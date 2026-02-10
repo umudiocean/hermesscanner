@@ -1,0 +1,31 @@
+---
+description: HERMES UI conventions - Layout, modules, dark theme
+globs: src/components/**/*.tsx
+alwaysApply: false
+---
+
+# HERMES UI Conventions
+
+## Theme
+- Dark background: `bg-[#08080C]` (main), `bg-[#0A0A10]` (header/footer)
+- Borders: `border-white/5`
+- Text: white with opacity levels (`text-white/40`, `text-white/30`)
+- Accent: violet/purple gradient (`from-violet-600 to-blue-600`)
+- Bullish: emerald/green tones (light, not too dark)
+- Bearish: red/orange tones (light, not too dark)
+
+## Module Structure
+Each module has its own component in `src/components/modules/`:
+- `Module200Week.tsx` - uses `useScanContext()`
+- `Module200Day.tsx` - uses `useScan200DContext()`
+- New modules should follow the same pattern with their own context
+
+## Layout Pattern
+- `Layout.tsx` owns all global state via dual React Context
+- Modules receive state via context hooks, not props
+- Header shows: market status indicator, auto-refresh toggle, last refresh time, scan button
+- Module navigation tabs in header
+
+## Language
+- UI labels are in Turkish (Tara, Seans Acik, Kapanisa, etc.)
+- Code comments can be Turkish or English

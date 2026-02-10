@@ -1,0 +1,38 @@
+---
+description: HERMES scoring engine rules - Pine Script parity and FMP data handling
+globs: src/lib/hermes*.ts, src/lib/fmp-client.ts
+alwaysApply: false
+---
+
+# HERMES Scoring Engine Rules
+
+## Pine Script Parity (CRITICAL)
+Both TypeScript engines MUST produce identical results to their Pine Script counterparts.
+Any change to scoring logic must be verified against TradingView.
+
+### 200W Engine (hermes-engine.ts)
+- Runs on **daily bars** from FMP `historical-price-eod`
+- Parameters: `vwap_200w_len: 1000`, `vwap_200d_len: 200`, `vwap_20d_len: 20`
+- Z-score lengths: `zscore_len_200w: 300`, `zscore_len_200d: 60`, `zscore_len_20d: 7`
+- Z-score thresholds: `>10` for 200W/200D, `>3` for 20D (CRITICAL - do not change)
+- Pine Script reference: `pine-script/HERMES_V5.1_DAILY.pine`
+
+### 200D Engine (hermes-200d-engine.ts)
+- Runs on **15-minute bars** from FMP `historical-chart/15min` (stitched)
+- Parameters: `vwap_200d_len: 5000`, `vwap_50d_len: 1300`, `vwap_halfd_len: 13`
+- Z-score lengths: `zscore_len_200d: 1500`, `zscore_len_50d: 400`, `zscore_len_halfd: 13`
+- Z-score thresholds: `>10` for 200D/50D, `>3` for HalfD
+- Pine Script reference: `pine-script/HERMES_200D_V5.1_15MIN.pine`
+
+## FMP 15-Min Data Stitching
+FMP API returns max ~1158 bars per 15-min request. The `fetchStitched15Min()` function
+fetches 2-month chunks spanning 14 months to accumulate ~5000+ bars. This is critical
+for 200D/50D component accuracy. Never replace with a single API call.
+
+## NaN/nz() Behavior
+- `rollingSum` returns `NaN` for insufficient bars (matches Pine `math.sum` with `na`)
+- VWAP falls back to `close` price when sum is `NaN` (matches Pine `nz()`)
+- Do NOT add extra "safety layers" to Z-score calculation beyond what Pine Script does
+
+## Score Ranges
+- 0-15: Strong Long | 16-40: Long | 41-59: Neutral | 60-84: Short | 85-100: Strong Short

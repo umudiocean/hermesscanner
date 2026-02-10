@@ -1,0 +1,417 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © HERMES INSTITUTIONAL - NASDAQ 200D V5.1 (15 Dakika)
+// 200 Gün / 50 Gün / Yarım Gün VWAP Kanalları + MFI + ADX Çarpan
+// Timeframe: 15 Dakika | NASDAQ için optimize
+// Puanlama: 0-100 arası | Yüksek = SHORT, Düşük = LONG
+//
+// AUDIT NOTU (2026-02-06):
+//   - Z-Score threshold'ları doğru: 200D>10, 50D>10, HalfD>3
+//   - 200D VWAP=5000 bar ≈ 192 gün (max_bars_back=5000 sınırı)
+//   - HalfD Z-score penceresi=13 > threshold 3 → her zaman hesaplanır
+//   - 200W versiyonundaki threshold hatası (>10 vs max 7) burada YOK
+
+//@version=6
+indicator("📈 HERMES NASDAQ 200D V5.1", overlay=true, max_bars_back=5000, max_lines_count=500)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// NASDAQ 15 DAKİKA OPTİMİZASYON
+// ═══════════════════════════════════════════════════════════════════════════════
+// - Timeframe: 15 Dakika
+// - NASDAQ: 6.5 saat/gün = 26 bar/gün
+// - 200 Gün ≈ 5000 bar (max_bars_back sınırı, ~192 gün)
+// - 50 Gün = 1300 bar
+// - Yarım Gün = 13 bar
+
+int MAX_LB = 5000
+int BARS_PER_DAY = 26
+int BARS_200D = 5000              // ~192 gün (max_bars_back sınırı)
+int BARS_50D = 50 * 26            // 50 gün = 1300 bar
+int BARS_HALFD = 13               // yarım gün = 13 bar
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// KULLANICI AYARLARI
+// ═══════════════════════════════════════════════════════════════════════════════
+
+grp_visual = "👁️ Görünürlük"
+show_200d = input.bool(true, "200 Gün Kanalı Göster", group=grp_visual)
+show_50d = input.bool(true, "50 Gün Kanalı Göster", group=grp_visual)
+show_halfd = input.bool(true, "Yarım Gün Kanalı Göster", group=grp_visual)
+show_vwap_lines = input.bool(true, "VWAP Orta Çizgileri Göster", group=grp_visual)
+show_anchors = input.bool(true, "Anchor Çizgileri Göster", group=grp_visual)
+show_signals = input.bool(true, "Sinyal Şekilleri Göster", group=grp_visual)
+show_table = input.bool(true, "Bilgi Tablosu Göster", group=grp_visual)
+
+grp_vwap = "📈 VWAP Ayarları (15dk)"
+vwap_200d_len = input.int(5000, "200 Gün VWAP Periyodu", minval=2000, maxval=5000, group=grp_vwap, tooltip="200 gün × 26 bar = 5200, max_bars_back=5000 sınırı")
+vwap_50d_len = input.int(1300, "50 Gün VWAP Periyodu", minval=500, maxval=3000, group=grp_vwap, tooltip="50 gün × 26 bar = 1300")
+vwap_halfd_len = input.int(13, "Yarım Gün VWAP Periyodu", minval=5, maxval=52, group=grp_vwap, tooltip="26 bar/gün ÷ 2 = 13 bar")
+
+grp_hybrid = "🔥 Hibrit Band Ayarları"
+atr_length = input.int(14, "ATR Periyodu", minval=5, maxval=50, group=grp_hybrid)
+atr_mult_200d = input.float(3.0, "200D ATR Çarpanı", minval=1.0, maxval=6, step=0.1, group=grp_hybrid)
+atr_mult_50d = input.float(2.5, "50D ATR Çarpanı", minval=1.0, maxval=5, step=0.1, group=grp_hybrid)
+atr_mult_halfd = input.float(1.8, "HalfD ATR Çarpanı", minval=0.5, maxval=4, step=0.1, group=grp_hybrid)
+
+grp_band_weights = "⚖️ Bant Metot Ağırlıkları"
+atr_weight = input.float(0.50, "ATR Ağırlığı", minval=0.3, maxval=0.8, step=0.05, group=grp_band_weights)
+calib_weight = input.float(0.30, "Auto Calib Ağırlığı", minval=0.1, maxval=0.5, step=0.05, group=grp_band_weights)
+rev_weight = input.float(0.20, "Reversal Ağırlığı", minval=0.05, maxval=0.4, step=0.05, group=grp_band_weights)
+
+grp_signal_weights = "🎯 Puanlama Ağırlıkları (Toplam 100)"
+weight_200d = input.float(30, "200D Ağırlık %", minval=0, maxval=100, group=grp_signal_weights)
+weight_50d = input.float(25, "50D Ağırlık %", minval=0, maxval=100, group=grp_signal_weights)
+weight_halfd = input.float(15, "HalfD Ağırlık %", minval=0, maxval=100, group=grp_signal_weights)
+weight_mfi = input.float(15, "MFI Ağırlık %", minval=0, maxval=100, group=grp_signal_weights)
+weight_rsi = input.float(15, "RSI Ağırlık %", minval=0, maxval=100, group=grp_signal_weights)
+
+grp_anchor = "📍 Anchor Ayarları"
+anchor_back_len = input.int(200, "Geriye Anchor (Bar)", minval=50, maxval=500, group=grp_anchor)
+anchor_forward_len = input.int(30, "İleriye Anchor (Bar)", minval=10, maxval=100, group=grp_anchor)
+anchor_line_width = input.int(4, "Anchor Çizgi Kalınlığı", minval=1, maxval=10, group=grp_anchor)
+
+grp_indicators = "📊 Gösterge Ayarları"
+rsi_length = input.int(14, "RSI Periyodu", minval=5, maxval=50, group=grp_indicators)
+mfi_length = input.int(14, "MFI Periyodu", minval=5, maxval=50, group=grp_indicators)
+adx_length = input.int(14, "ADX Periyodu", minval=5, maxval=50, group=grp_indicators)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RENK AYARLARI (NASDAQ - Mor/Mavi)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+grp_colors = "🎨 Kanal Renkleri"
+color_200d_band = input.color(color.purple, "200D Kanal Renk", group=grp_colors)
+color_200d_vwap = input.color(color.fuchsia, "200D VWAP Renk", group=grp_colors)
+color_50d_band = input.color(color.blue, "50D Kanal Renk", group=grp_colors)
+color_50d_vwap = input.color(color.aqua, "50D VWAP Renk", group=grp_colors)
+color_halfd_band = input.color(color.orange, "HalfD Kanal Renk", group=grp_colors)
+color_halfd_vwap = input.color(color.gray, "HalfD VWAP Renk", group=grp_colors)
+
+grp_anchor_colors = "🎨 Anchor Renkleri"
+color_anchor_200d = input.color(color.purple, "200D Bant Anchor", group=grp_anchor_colors)
+color_anchor_50d = input.color(color.blue, "50D Bant Anchor", group=grp_anchor_colors)
+color_anchor_halfd = input.color(color.orange, "HalfD Bant Anchor", group=grp_anchor_colors)
+color_vwap_anchor_200d = input.color(color.new(color.fuchsia, 30), "200D VWAP Anchor", group=grp_anchor_colors)
+color_vwap_anchor_50d = input.color(color.new(color.aqua, 30), "50D VWAP Anchor", group=grp_anchor_colors)
+color_vwap_anchor_halfd = input.color(color.new(color.gray, 30), "HalfD VWAP Anchor", group=grp_anchor_colors)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VWAP HESAPLAMA (math.sum ile - O(1))
+// ═══════════════════════════════════════════════════════════════════════════════
+
+float _vol = nz(volume, 1.0)
+float vwap_200d = nz(math.sum(close * _vol, vwap_200d_len) / math.sum(_vol, vwap_200d_len), close)
+float vwap_50d = nz(math.sum(close * _vol, vwap_50d_len) / math.sum(_vol, vwap_50d_len), close)
+float vwap_halfd = nz(math.sum(close * _vol, vwap_halfd_len) / math.sum(_vol, vwap_halfd_len), close)
+
+bool has_enough_200d = bar_index >= vwap_200d_len * 0.5
+bool has_enough_50d = bar_index >= vwap_50d_len * 0.5
+bool has_enough_halfd = bar_index >= vwap_halfd_len * 0.5
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ATR BANDS + AUTO CALIBRATION + REVERSAL + HİBRİT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+float atr_value = ta.atr(atr_length)
+
+float atr_upper_200d = vwap_200d + atr_value * atr_mult_200d
+float atr_lower_200d = vwap_200d - atr_value * atr_mult_200d
+float atr_upper_50d = vwap_50d + atr_value * atr_mult_50d
+float atr_lower_50d = vwap_50d - atr_value * atr_mult_50d
+float atr_upper_halfd = vwap_halfd + atr_value * atr_mult_halfd
+float atr_lower_halfd = vwap_halfd - atr_value * atr_mult_halfd
+
+int calib_length = 100
+var float adaptive_mult_200d = 3.0
+var float adaptive_mult_50d = 2.5
+var float adaptive_mult_halfd = 1.8
+var int bars_since_calib = 0
+
+float dev_200d = close - vwap_200d
+float dev_50d = close - vwap_50d
+float dev_halfd = close - vwap_halfd
+
+float std_200d = ta.stdev(dev_200d, calib_length)
+float std_50d = ta.stdev(dev_50d, calib_length)
+float std_halfd = ta.stdev(dev_halfd, math.min(calib_length, vwap_halfd_len * 2))
+
+float _atr_sma_100 = ta.sma(atr_value, 100)
+
+bars_since_calib += 1
+if bars_since_calib >= 50
+    bars_since_calib := 0
+    float _vr = atr_value / _atr_sma_100
+    if _vr > 1.3
+        adaptive_mult_200d := math.min(adaptive_mult_200d + 0.05, 5.0)
+        adaptive_mult_50d := math.min(adaptive_mult_50d + 0.05, 4.0)
+        adaptive_mult_halfd := math.min(adaptive_mult_halfd + 0.05, 3.0)
+    else if _vr < 0.7
+        adaptive_mult_200d := math.max(adaptive_mult_200d - 0.05, 2.0)
+        adaptive_mult_50d := math.max(adaptive_mult_50d - 0.05, 1.5)
+        adaptive_mult_halfd := math.max(adaptive_mult_halfd - 0.05, 1.0)
+
+float calib_upper_200d = vwap_200d + adaptive_mult_200d * std_200d
+float calib_lower_200d = vwap_200d - adaptive_mult_200d * std_200d
+float calib_upper_50d = vwap_50d + adaptive_mult_50d * std_50d
+float calib_lower_50d = vwap_50d - adaptive_mult_50d * std_50d
+float calib_upper_halfd = vwap_halfd + adaptive_mult_halfd * std_halfd
+float calib_lower_halfd = vwap_halfd - adaptive_mult_halfd * std_halfd
+
+int pivot_left = 10
+int pivot_right = 10
+float pivot_high = ta.pivothigh(high, pivot_left, pivot_right)
+float pivot_low = ta.pivotlow(low, pivot_left, pivot_right)
+
+var array<float> high_distances = array.new_float(0)
+var array<float> low_distances = array.new_float(0)
+
+if not na(pivot_high)
+    float dist = pivot_high - vwap_200d[pivot_right]
+    if dist > 0
+        array.push(high_distances, dist)
+        if array.size(high_distances) > 50
+            array.shift(high_distances)
+
+if not na(pivot_low)
+    float dist = vwap_200d[pivot_right] - pivot_low
+    if dist > 0
+        array.push(low_distances, dist)
+        if array.size(low_distances) > 50
+            array.shift(low_distances)
+
+float avg_high_dist = array.size(high_distances) > 5 ? array.avg(high_distances) : atr_value * 3
+float avg_low_dist = array.size(low_distances) > 5 ? array.avg(low_distances) : atr_value * 3
+
+float rev_upper_200d = vwap_200d + avg_high_dist
+float rev_lower_200d = vwap_200d - avg_low_dist
+float rev_upper_50d = vwap_50d + avg_high_dist * 0.6
+float rev_lower_50d = vwap_50d - avg_low_dist * 0.6
+float rev_upper_halfd = vwap_halfd + avg_high_dist * 0.25
+float rev_lower_halfd = vwap_halfd - avg_low_dist * 0.25
+
+float total_w = atr_weight + calib_weight + rev_weight
+float norm_atr = atr_weight / total_w
+float norm_calib = calib_weight / total_w
+float norm_rev = rev_weight / total_w
+
+float upper_200d = atr_upper_200d * norm_atr + calib_upper_200d * norm_calib + rev_upper_200d * norm_rev
+float lower_200d = atr_lower_200d * norm_atr + calib_lower_200d * norm_calib + rev_lower_200d * norm_rev
+float upper_50d = atr_upper_50d * norm_atr + calib_upper_50d * norm_calib + rev_upper_50d * norm_rev
+float lower_50d = atr_lower_50d * norm_atr + calib_lower_50d * norm_calib + rev_lower_50d * norm_rev
+float upper_halfd = atr_upper_halfd * norm_atr + calib_upper_halfd * norm_calib + rev_upper_halfd * norm_rev
+float lower_halfd = atr_lower_halfd * norm_atr + calib_lower_halfd * norm_calib + rev_lower_halfd * norm_rev
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TEMAS SİNYALLERİ
+// ═══════════════════════════════════════════════════════════════════════════════
+
+bool touch_200d_upper = high >= upper_200d and high[1] < upper_200d[1]
+bool touch_200d_lower = low <= lower_200d and low[1] > lower_200d[1]
+bool touch_50d_upper = high >= upper_50d and high[1] < upper_50d[1]
+bool touch_50d_lower = low <= lower_50d and low[1] > lower_50d[1]
+bool touch_halfd_upper = high >= upper_halfd and high[1] < upper_halfd[1]
+bool touch_halfd_lower = low <= lower_halfd and low[1] > lower_halfd[1]
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ANCHOR ÇİZGİLERİ
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var line a200d_ub = na, var line a200d_lb = na, var line a200d_uf = na, var line a200d_lf = na
+var line a200d_vb = na, var line a200d_vf = na
+var line a50d_ub = na, var line a50d_lb = na, var line a50d_uf = na, var line a50d_lf = na
+var line a50d_vb = na, var line a50d_vf = na
+var line ahalfd_ub = na, var line ahalfd_lb = na, var line ahalfd_uf = na, var line ahalfd_lf = na
+var line ahalfd_vb = na, var line ahalfd_vf = na
+
+if show_anchors
+    line.delete(a200d_ub), line.delete(a200d_lb), line.delete(a200d_uf), line.delete(a200d_lf)
+    line.delete(a200d_vb), line.delete(a200d_vf)
+    line.delete(a50d_ub), line.delete(a50d_lb), line.delete(a50d_uf), line.delete(a50d_lf)
+    line.delete(a50d_vb), line.delete(a50d_vf)
+    line.delete(ahalfd_ub), line.delete(ahalfd_lb), line.delete(ahalfd_uf), line.delete(ahalfd_lf)
+    line.delete(ahalfd_vb), line.delete(ahalfd_vf)
+    if show_200d
+        a200d_ub := line.new(bar_index - anchor_back_len, upper_200d, bar_index, upper_200d, color=color_anchor_200d, width=anchor_line_width)
+        a200d_uf := line.new(bar_index, upper_200d, bar_index + anchor_forward_len, upper_200d, color=color_anchor_200d, width=anchor_line_width, style=line.style_dashed)
+        a200d_lb := line.new(bar_index - anchor_back_len, lower_200d, bar_index, lower_200d, color=color_anchor_200d, width=anchor_line_width)
+        a200d_lf := line.new(bar_index, lower_200d, bar_index + anchor_forward_len, lower_200d, color=color_anchor_200d, width=anchor_line_width, style=line.style_dashed)
+        if show_vwap_lines
+            a200d_vb := line.new(bar_index - anchor_back_len, vwap_200d, bar_index, vwap_200d, color=color_vwap_anchor_200d, width=anchor_line_width)
+            a200d_vf := line.new(bar_index, vwap_200d, bar_index + anchor_forward_len, vwap_200d, color=color_vwap_anchor_200d, width=anchor_line_width, style=line.style_dashed)
+    if show_50d
+        a50d_ub := line.new(bar_index - anchor_back_len, upper_50d, bar_index, upper_50d, color=color_anchor_50d, width=anchor_line_width)
+        a50d_uf := line.new(bar_index, upper_50d, bar_index + anchor_forward_len, upper_50d, color=color_anchor_50d, width=anchor_line_width, style=line.style_dashed)
+        a50d_lb := line.new(bar_index - anchor_back_len, lower_50d, bar_index, lower_50d, color=color_anchor_50d, width=anchor_line_width)
+        a50d_lf := line.new(bar_index, lower_50d, bar_index + anchor_forward_len, lower_50d, color=color_anchor_50d, width=anchor_line_width, style=line.style_dashed)
+        if show_vwap_lines
+            a50d_vb := line.new(bar_index - anchor_back_len, vwap_50d, bar_index, vwap_50d, color=color_vwap_anchor_50d, width=anchor_line_width)
+            a50d_vf := line.new(bar_index, vwap_50d, bar_index + anchor_forward_len, vwap_50d, color=color_vwap_anchor_50d, width=anchor_line_width, style=line.style_dashed)
+    if show_halfd
+        ahalfd_ub := line.new(bar_index - anchor_back_len, upper_halfd, bar_index, upper_halfd, color=color_anchor_halfd, width=anchor_line_width)
+        ahalfd_uf := line.new(bar_index, upper_halfd, bar_index + anchor_forward_len, upper_halfd, color=color_anchor_halfd, width=anchor_line_width, style=line.style_dashed)
+        ahalfd_lb := line.new(bar_index - anchor_back_len, lower_halfd, bar_index, lower_halfd, color=color_anchor_halfd, width=anchor_line_width)
+        ahalfd_lf := line.new(bar_index, lower_halfd, bar_index + anchor_forward_len, lower_halfd, color=color_anchor_halfd, width=anchor_line_width, style=line.style_dashed)
+        if show_vwap_lines
+            ahalfd_vb := line.new(bar_index - anchor_back_len, vwap_halfd, bar_index, vwap_halfd, color=color_vwap_anchor_halfd, width=anchor_line_width)
+            ahalfd_vf := line.new(bar_index, vwap_halfd, bar_index + anchor_forward_len, vwap_halfd, color=color_vwap_anchor_halfd, width=anchor_line_width, style=line.style_dashed)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GÖRSELLEŞTİRME
+// ═══════════════════════════════════════════════════════════════════════════════
+
+plot(show_200d ? vwap_200d : na, "200D VWAP", color=show_vwap_lines ? color_200d_vwap : color.new(color_200d_vwap, 100), linewidth=3)
+plot(show_200d ? upper_200d : na, "200D Üst", color=color_200d_band, linewidth=2)
+plot(show_200d ? lower_200d : na, "200D Alt", color=color_200d_band, linewidth=2)
+plot(show_50d ? vwap_50d : na, "50D VWAP", color=show_vwap_lines ? color_50d_vwap : color.new(color_50d_vwap, 100), linewidth=2)
+plot(show_50d ? upper_50d : na, "50D Üst", color=color_50d_band, linewidth=1)
+plot(show_50d ? lower_50d : na, "50D Alt", color=color_50d_band, linewidth=1)
+plot(show_halfd ? vwap_halfd : na, "HalfD VWAP", color=show_vwap_lines ? color_halfd_vwap : color.new(color_halfd_vwap, 100), linewidth=2)
+plot(show_halfd ? upper_halfd : na, "HalfD Üst", color=color_halfd_band, linewidth=1, style=plot.style_stepline)
+plot(show_halfd ? lower_halfd : na, "HalfD Alt", color=color_halfd_band, linewidth=1, style=plot.style_stepline)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PUANLAMA V5.1 (TANH + MFI + ADX/ATR Çarpan)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+float rsi_value = ta.rsi(close, rsi_length)
+float mfi_value = ta.mfi(hlc3, mfi_length)
+float vol_ratio = atr_value / ta.sma(atr_value, 100)
+[diplus, diminus, adx_value] = ta.dmi(adx_length, adx_length)
+
+// Z-Score pencereleri (15dk timeframe)
+// Oranlar: 200D→1500/5000=0.30, 50D→400/1300=0.31, HalfD→13/13=1.0
+int zl_200d = math.min(1500, bar_index + 1)
+int zl_50d = math.min(400, bar_index + 1)
+int zl_halfd = math.min(13, bar_index + 1)
+
+float _s200d = ta.stdev(dev_200d, zl_200d)
+float _s50d = ta.stdev(dev_50d, zl_50d)
+float _shalfd = ta.stdev(dev_halfd, zl_halfd)
+
+// Threshold'lar:
+//   200D: 1500 > 10 ✓ (her zaman hesaplanır)
+//   50D:  400 > 10 ✓ (her zaman hesaplanır)
+//   HalfD: 13 > 3 ✓ (4+ bar olduğunda hesaplanır)
+float std_200d_zscore = zl_200d > 10 ? nz(_s200d, 0) : 0
+float std_50d_zscore = zl_50d > 10 ? nz(_s50d, 0) : 0
+float std_halfd_zscore = zl_halfd > 3 ? nz(_shalfd, 0) : 0
+
+float zs_200d = std_200d_zscore != 0 ? dev_200d / std_200d_zscore : 0
+float zs_50d = std_50d_zscore != 0 ? dev_50d / std_50d_zscore : 0
+float zs_halfd = std_halfd_zscore != 0 ? dev_halfd / std_halfd_zscore : 0
+
+// TANH dönüşüm
+f_tanh(float x) =>
+    float e2x = math.exp(2.0 * x)
+    (e2x - 1.0) / (e2x + 1.0)
+
+f_zs100(float zs) =>
+    50.0 + 50.0 * f_tanh(zs / 1.8)
+
+float point_200d = has_enough_200d ? f_zs100(zs_200d) : 50.0
+float point_50d = has_enough_50d ? f_zs100(zs_50d) : 50.0
+float point_halfd = has_enough_halfd ? f_zs100(zs_halfd) : 50.0
+float point_mfi = math.max(0.0, math.min(100.0, mfi_value))
+float point_rsi = math.max(0.0, math.min(100.0, rsi_value))
+
+float dw_total = weight_200d + weight_50d + weight_halfd + weight_mfi + weight_rsi
+float raw_score = (point_200d * weight_200d + point_50d * weight_50d + point_halfd * weight_halfd + point_mfi * weight_mfi + point_rsi * weight_rsi) / dw_total
+
+// Çarpanlar (sigmoid) - 200W ile BİREBİR AYNI formüller
+float atr_carpan = 0.5 + 0.5 / (1.0 + math.exp(-5.0 * (vol_ratio - 0.7)))
+float adx_carpan = 1.15 - 0.55 / (1.0 + math.exp(-0.15 * (adx_value - 25.0)))
+float quality = atr_carpan * adx_carpan
+
+float total_score = math.max(0.0, math.min(100.0, 50 + (raw_score - 50) * quality))
+
+// Sinyaller (asimetrik eşikler - 200W ile AYNI)
+bool is_strong_short = total_score >= 85
+bool is_short = total_score >= 60 and total_score < 85
+bool is_neutral = total_score > 40 and total_score < 60
+bool is_long = total_score > 15 and total_score <= 40
+bool is_strong_long = total_score <= 15
+
+string signal_text = is_strong_short ? "STRONG SHORT" : is_short ? "SHORT" : is_long ? "LONG" : is_strong_long ? "STRONG LONG" : "NÖTR"
+color signal_color = is_strong_short ? color.red : is_short ? color.orange : is_long ? color.green : is_strong_long ? color.rgb(255, 215, 0) : color.gray
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SİNYAL ŞEKİLLERİ
+// ═══════════════════════════════════════════════════════════════════════════════
+
+plotshape(show_signals and is_strong_long and not is_strong_long[1], "STRONG LONG", shape.triangleup, location.belowbar, color.rgb(255, 215, 0), size=size.normal)
+plotshape(show_signals and is_strong_short and not is_strong_short[1], "STRONG SHORT", shape.triangledown, location.abovebar, color.red, size=size.normal)
+plotshape(show_signals and touch_200d_lower ? low : na, "200D LONG", shape.triangleup, location.belowbar, color_200d_band, size=size.small)
+plotshape(show_signals and touch_200d_upper ? high : na, "200D SHORT", shape.triangledown, location.abovebar, color_200d_band, size=size.small)
+plotshape(show_signals and touch_50d_lower ? low : na, "50D LONG", shape.triangleup, location.belowbar, color_50d_band, size=size.tiny)
+plotshape(show_signals and touch_50d_upper ? high : na, "50D SHORT", shape.triangledown, location.abovebar, color_50d_band, size=size.tiny)
+plotshape(show_signals and touch_halfd_lower ? low : na, "HalfD LONG", shape.circle, location.belowbar, color_halfd_band, size=size.tiny)
+plotshape(show_signals and touch_halfd_upper ? high : na, "HalfD SHORT", shape.circle, location.abovebar, color_halfd_band, size=size.tiny)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ALARMLAR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+alertcondition(is_strong_long and not is_strong_long[1], title="⭐ STRONG LONG", message="NASDAQ 200D: STRONG LONG (Skor ≤ 15)! {{ticker}} @ {{close}}")
+alertcondition(is_strong_short and not is_strong_short[1], title="⭐ STRONG SHORT", message="NASDAQ 200D: STRONG SHORT (Skor ≥ 85)! {{ticker}} @ {{close}}")
+alertcondition(touch_200d_lower, title="🟢 200D LONG", message="NASDAQ 200D: 200D Alt Band TEMAS! {{ticker}} @ {{close}}")
+alertcondition(touch_200d_upper, title="🔴 200D SHORT", message="NASDAQ 200D: 200D Üst Band TEMAS! {{ticker}} @ {{close}}")
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BİLGİ TABLOSU
+// ═══════════════════════════════════════════════════════════════════════════════
+
+var table infoTable = table.new(position.bottom_left, 3, 12, bgcolor=color.new(color.white, 0), border_width=1, frame_width=2, frame_color=color.black)
+
+if show_table
+    string st_200d = not has_enough_200d ? "⚠️ VERİ YOK" : point_200d > 65 ? "SHORT" : point_200d >= 35 ? "NÖTR" : "LONG"
+    string st_50d = not has_enough_50d ? "⚠️ VERİ YOK" : point_50d > 65 ? "SHORT" : point_50d >= 35 ? "NÖTR" : "LONG"
+    string st_halfd = not has_enough_halfd ? "⚠️ VERİ YOK" : point_halfd > 65 ? "SHORT" : point_halfd >= 35 ? "NÖTR" : "LONG"
+    color c_200d = not has_enough_200d ? color.orange : point_200d > 65 ? color.red : point_200d >= 35 ? color.gray : color.green
+    color c_50d = not has_enough_50d ? color.orange : point_50d > 65 ? color.red : point_50d >= 35 ? color.gray : color.green
+    color c_halfd = not has_enough_halfd ? color.orange : point_halfd > 65 ? color.red : point_halfd >= 35 ? color.gray : color.green
+    string st_mfi = mfi_value > 80 ? "STR SHORT" : mfi_value > 60 ? "SHORT" : mfi_value >= 40 ? "NÖTR" : mfi_value >= 20 ? "LONG" : "STR LONG"
+    color c_mfi = mfi_value > 80 ? color.red : mfi_value > 60 ? color.orange : mfi_value >= 40 ? color.gray : mfi_value >= 20 ? color.green : color.rgb(255, 215, 0)
+    string st_rsi = rsi_value > 80 ? "STR SHORT" : rsi_value > 60 ? "SHORT" : rsi_value >= 40 ? "NÖTR" : rsi_value >= 20 ? "LONG" : "STR LONG"
+    color c_rsi = rsi_value > 80 ? color.red : rsi_value > 60 ? color.orange : rsi_value >= 40 ? color.gray : rsi_value >= 20 ? color.green : color.rgb(255, 215, 0)
+    string st_atr = atr_carpan < 0.60 ? "❌ BEKLE" : atr_carpan < 0.75 ? "⚠️ DİKKAT" : atr_carpan < 0.90 ? "✓ UYGUN" : "✅ İŞLEM"
+    color c_atr = atr_carpan < 0.60 ? color.red : atr_carpan < 0.75 ? color.orange : atr_carpan < 0.90 ? color.gray : color.green
+    string st_adx = adx_carpan > 1.05 ? "🚀 GÜÇLÜ MR" : adx_carpan > 0.85 ? "✓ UYGUN" : adx_carpan > 0.70 ? "⚠️ TREND" : "❌ GÜÇ TREND"
+    color c_adx = adx_carpan > 1.05 ? color.rgb(0, 200, 100) : adx_carpan > 0.85 ? color.green : adx_carpan > 0.70 ? color.orange : color.red
+
+    table.cell(infoTable, 0, 0, "📈 NASDAQ 200D V5.1", text_color=color.white, bgcolor=color.new(color.purple, 20), text_size=size.small)
+    table.cell(infoTable, 1, 0, signal_text, text_color=color.white, bgcolor=signal_color, text_size=size.small)
+    table.cell(infoTable, 2, 0, str.tostring(math.round(total_score)), text_color=color.white, bgcolor=signal_color, text_size=size.small)
+    table.cell(infoTable, 0, 1, "───────", text_color=color.gray, bgcolor=color.new(color.gray, 80), text_size=size.small)
+    table.cell(infoTable, 1, 1, "───────", text_color=color.gray, bgcolor=color.new(color.gray, 80), text_size=size.small)
+    table.cell(infoTable, 2, 1, "───────", text_color=color.gray, bgcolor=color.new(color.gray, 80), text_size=size.small)
+    table.cell(infoTable, 0, 2, "200D (" + str.tostring(math.round(weight_200d)) + "%)", text_color=color_200d_vwap, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 1, 2, str.tostring(math.round(point_200d)), text_color=c_200d, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 2, 2, st_200d, text_color=c_200d, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 3, "50D (" + str.tostring(math.round(weight_50d)) + "%)", text_color=color_50d_band, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 1, 3, str.tostring(math.round(point_50d)), text_color=c_50d, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 2, 3, st_50d, text_color=c_50d, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 4, "½D (" + str.tostring(math.round(weight_halfd)) + "%)", text_color=color_halfd_band, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 1, 4, str.tostring(math.round(point_halfd)), text_color=c_halfd, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 2, 4, st_halfd, text_color=c_halfd, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 5, "MFI (" + str.tostring(math.round(weight_mfi)) + "%)", text_color=color.new(#1E90FF, 0), bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 1, 5, str.tostring(math.round(point_mfi)), text_color=c_mfi, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 2, 5, st_mfi, text_color=c_mfi, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 6, "RSI (" + str.tostring(math.round(weight_rsi)) + "%)", text_color=color.black, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 1, 6, str.tostring(math.round(point_rsi)), text_color=c_rsi, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 2, 6, st_rsi, text_color=c_rsi, bgcolor=color.white, text_size=size.small)
+    table.cell(infoTable, 0, 7, "ATR ÇARPAN", text_color=color.black, bgcolor=color.new(color.gray, 92), text_size=size.small)
+    table.cell(infoTable, 1, 7, "x" + str.tostring(atr_carpan, "#.##"), text_color=c_atr, bgcolor=color.new(color.gray, 92), text_size=size.small)
+    table.cell(infoTable, 2, 7, st_atr, text_color=c_atr, bgcolor=color.new(color.gray, 92), text_size=size.small)
+    table.cell(infoTable, 0, 8, "ADX ÇARPAN", text_color=color.black, bgcolor=color.new(color.gray, 92), text_size=size.small)
+    table.cell(infoTable, 1, 8, "x" + str.tostring(adx_carpan, "#.##"), text_color=c_adx, bgcolor=color.new(color.gray, 92), text_size=size.small)
+    table.cell(infoTable, 2, 8, st_adx, text_color=c_adx, bgcolor=color.new(color.gray, 92), text_size=size.small)
+    table.cell(infoTable, 0, 9, "───────", text_color=color.gray, bgcolor=color.new(color.gray, 80), text_size=size.small)
+    table.cell(infoTable, 1, 9, "───────", text_color=color.gray, bgcolor=color.new(color.gray, 80), text_size=size.small)
+    table.cell(infoTable, 2, 9, "───────", text_color=color.gray, bgcolor=color.new(color.gray, 80), text_size=size.small)
+    table.cell(infoTable, 0, 10, "TOPLAM", text_color=color.black, bgcolor=color.new(color.gray, 80), text_size=size.small)
+    table.cell(infoTable, 1, 10, str.tostring(math.round(total_score)) + " / 100", text_color=signal_color, bgcolor=color.new(color.gray, 80), text_size=size.small)
+    table.cell(infoTable, 2, 10, signal_text, text_color=signal_color, bgcolor=color.new(color.gray, 80), text_size=size.small)
+    string ds = "📊 " + str.tostring(bar_index) + " bar"
+    color dc = bar_index >= vwap_200d_len ? color.green : bar_index >= vwap_50d_len ? color.orange : color.red
+    table.cell(infoTable, 0, 11, "VERİ", text_color=color.black, bgcolor=color.new(color.gray, 90), text_size=size.tiny)
+    table.cell(infoTable, 1, 11, ds, text_color=dc, bgcolor=color.new(color.gray, 90), text_size=size.tiny)
+    table.cell(infoTable, 2, 11, bar_index >= vwap_200d_len ? "✓ TAM" : bar_index >= vwap_50d_len ? "⚠️ KISMI" : "❌ AZ", text_color=dc, bgcolor=color.new(color.gray, 90), text_size=size.tiny)

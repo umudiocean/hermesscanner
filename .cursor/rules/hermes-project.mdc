@@ -1,0 +1,50 @@
+---
+description: HERMES NASDAQ Scanner - project architecture, conventions, and critical rules
+alwaysApply: true
+---
+
+# HERMES NASDAQ Scanner - Project Memory
+
+## Tech Stack
+- **Next.js 15** + TypeScript + Tailwind CSS
+- **FMP API** (Financial Modeling Prep) - Ultimate package, `/stable/` endpoints, header-based auth (`apikey` header)
+- Client runs at `localhost:3000`
+
+## Architecture Overview
+
+### Modules
+| Module | Label | Timeframe | Engine | Data Source |
+|--------|-------|-----------|--------|-------------|
+| 200 HAFTA | 200W | Daily (1D) | `hermes-engine.ts` | `getHistoricalDaily()` |
+| 200 GÜN | 200D | 15-min | `hermes-200d-engine.ts` | `getHistorical15Min()` (stitched) |
+
+### Key Files
+- `src/lib/hermes-engine.ts` - 200W scoring (Pine Script V5.1 port, daily bars)
+- `src/lib/hermes-200d-engine.ts` - 200D scoring (Pine Script V5.1 port, 15-min bars)
+- `src/lib/fmp-client.ts` - FMP API client with memory + disk caching
+- `src/lib/market-hours.ts` - NASDAQ session detection (9:30-16:00 ET)
+- `src/lib/data-store.ts` - Disk persistence (`data/historical/`, `data/historical-15m/`, `data/scans/`)
+- `src/lib/store.ts` - Client-side state (watchlist, settings, result cache)
+- `src/lib/symbols.ts` - NASDAQ symbol lists by segment (MEGA/LARGE/MID/SMALL/MICRO)
+- `src/components/Layout.tsx` - Main layout, dual context (ScanContext + Scan200DContext), auto-refresh timer
+- `pine-script/HERMES_V5.1_DAILY.pine` - Reference Pine Script for 200W
+- `pine-script/HERMES_200D_V5.1_15MIN.pine` - Reference Pine Script for 200D
+
+### API Routes
+| Route | Purpose |
+|-------|---------|
+| `/api/scan` | Full 200W scan (daily bars + scoring) |
+| `/api/scan-200d` | Full 200D scan (15-min stitched + scoring) |
+| `/api/scan/latest` | GET/POST - Load/save 200W results to disk |
+| `/api/scan-200d/latest` | GET/POST - Load/save 200D results to disk |
+| `/api/refresh` | 200W incremental refresh (quotes only, no historical re-fetch) |
+| `/api/refresh-200d` | 200D incremental refresh (latest 15-min chunk + merge) |
+| `/api/symbols` | Symbol lists by segment |
+| `/api/sectors` | Sector data from FMP |
+
+### Auto-Refresh System
+- Market hours check every 60 seconds (client-side, `Intl.DateTimeFormat` America/New_York)
+- When market opens + no data: triggers full scan
+- Every 15 minutes during market hours: incremental refresh (quotes + re-score)
+- When market closed: no refresh, shows "Seans Kapali"
+- User can toggle auto-refresh via header button
