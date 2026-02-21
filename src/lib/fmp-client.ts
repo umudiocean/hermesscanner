@@ -714,6 +714,72 @@ export async function refresh15MinLatest(
 }
 
 /**
+ * Delta fetch: Son 2 gunluk 15dk veri cek, Redis'teki mevcut bara merge et.
+ * Bootstrap sonrasi cron tarafindan kullanilir.
+ * Tek FMP call/hisse — tam stitching'e gore %94 daha az API kullanimi.
+ */
+export async function getHistorical15MinDelta(
+  symbol: string,
+  existingBars: OHLCV[]
+): Promise<OHLCV[]> {
+  const now = new Date()
+  const from = new Date(now)
+  from.setDate(from.getDate() - 2)
+
+  const fromStr = from.toISOString().split('T')[0]
+  const toStr = now.toISOString().split('T')[0]
+
+  try {
+    const res = await fmpFetch('/historical-chart/15min', {
+      symbol,
+      from: fromStr,
+      to: toStr,
+    })
+
+    if (!res.ok) return existingBars
+
+    const data = await res.json()
+    let freshBars: Record<string, unknown>[]
+    if (Array.isArray(data)) {
+      freshBars = data
+    } else if (data.value && Array.isArray(data.value)) {
+      freshBars = data.value
+    } else {
+      return existingBars
+    }
+
+    if (freshBars.length === 0) return existingBars
+
+    // Reverse to oldest-first if needed
+    const firstDate = freshBars[0].date as string
+    const lastDate = freshBars[freshBars.length - 1].date as string
+    if (firstDate > lastDate) freshBars.reverse()
+
+    const newBars: OHLCV[] = freshBars.map(bar => ({
+      date: bar.date as string,
+      open: bar.open as number,
+      high: bar.high as number,
+      low: bar.low as number,
+      close: bar.close as number,
+      volume: (bar.volume as number) || 0,
+    }))
+
+    // Merge: existing + new, dedup by date, update existing bars with fresh data
+    const dateMap = new Map<string, OHLCV>()
+    for (const bar of existingBars) dateMap.set(bar.date, bar)
+    for (const bar of newBars) dateMap.set(bar.date, bar) // overwrites stale bars
+
+    const merged = Array.from(dateMap.values())
+    merged.sort((a, b) => a.date.localeCompare(b.date))
+
+    return merged
+  } catch (err) {
+    logger.warn(`Delta fetch error for ${symbol}`, { module: 'fmpClient', symbol, error: err })
+    return existingBars
+  }
+}
+
+/**
  * Memory cache'i temizle
  */
 export function clearCache(): void {

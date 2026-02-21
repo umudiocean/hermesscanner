@@ -256,13 +256,50 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
   const runScan = useCallback(async () => {
     setLoading(true)
     setError(null)
-    setProgress('Hazırlanıyor...')
+    setProgress('Loading...')
 
     try {
+      // Step 1: Try reading pre-computed results from Redis/cache (cron fills these)
+      const cachedRes = await fetch('/api/scan/latest')
+      if (cachedRes.ok) {
+        const cached = await cachedRes.json()
+        if (cached.results && cached.results.length > 0) {
+          const allResults: ScanResult[] = cached.results
+          const strongLongs = allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_long')
+          const strongShorts = allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_short')
+
+          const newSummary: ScanSummary = {
+            scanId: cached.scanId || `cache-${Date.now()}`,
+            timestamp: cached.timestamp || new Date().toISOString(),
+            duration: 0,
+            totalScanned: allResults.length,
+            strongLongs,
+            strongShorts,
+            longs: allResults.filter((r: ScanResult) => r.hermes.signalType === 'long'),
+            shorts: allResults.filter((r: ScanResult) => r.hermes.signalType === 'short'),
+            neutrals: allResults.filter((r: ScanResult) => r.hermes.signalType === 'neutral').length,
+            errors: 0,
+            segment: 'ALL',
+          }
+
+          setResults(allResults)
+          setSummary(newSummary)
+          setCachedResults(allResults)
+          const now = new Date()
+          setLastRefresh(now)
+          setLastAutoRefresh(now)
+          setLoading(false)
+          setProgress('')
+          console.log(`[Layout] Loaded ${allResults.length} results from cache (source: ${cached.source || 'redis'})`)
+          return
+        }
+      }
+
+      // Step 2: No cached results — do a live FMP scan (fallback / first time)
+      setProgress('Scanning (live)...')
       const allResults: ScanResult[] = []
       const CHUNK_SIZE = 100
 
-      // Tum sembolleri tek seferde al
       const symRes = await fetch(`/api/symbols?segment=ALL`)
       if (!symRes.ok) throw new Error('Failed to get symbols')
       const symData = await symRes.json()
@@ -270,7 +307,6 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
 
       if (symbols.length === 0) throw new Error('No symbols to scan')
 
-      // Progressive scan: chunk'lar halinde, her chunk streaming ile taranir
       for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
         const chunk = symbols.slice(i, i + CHUNK_SIZE)
         const chunkNum = Math.floor(i / CHUNK_SIZE) + 1
@@ -281,7 +317,6 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
         try {
           const res = await fetch(`/api/scan?segment=ALL&mode=stream&symbols=${chunk.join(',')}`)
           if (!res.ok || !res.body) {
-            // Fallback: classic JSON
             const fallback = await fetch(`/api/scan?segment=ALL&symbols=${chunk.join(',')}`)
             if (fallback.ok) {
               const data = await fallback.json()
@@ -291,7 +326,6 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
             continue
           }
 
-          // Parse NDJSON stream
           const reader = res.body.getReader()
           const decoder = new TextDecoder()
           let buffer = ''
@@ -310,7 +344,6 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                 const msg = JSON.parse(line)
                 if (msg.type === 'result' && msg.data) {
                   allResults.push(msg.data)
-                  // Progressive update: every 5 results
                   if (allResults.length % 5 === 0) {
                     setResults([...allResults])
                   }
@@ -322,10 +355,8 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
             }
           }
 
-          // Final update for this chunk
           setResults([...allResults])
         } catch {
-          // Network error — try classic fallback
           try {
             const fallback = await fetch(`/api/scan?segment=ALL&symbols=${chunk.join(',')}`)
             if (fallback.ok) {
@@ -336,7 +367,6 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
           } catch { /* skip chunk on total failure */ }
         }
 
-        // Save intermediate results after each chunk so partial scans survive timeouts
         if (allResults.length > 0) {
           try {
             await fetch('/api/scan/latest', {
@@ -370,12 +400,10 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
       setCachedResults(allResults)
       const now = new Date()
       setLastRefresh(now)
-      setLastAutoRefresh(now) // Auto-refresh zamanlayıcısını senkronize et
+      setLastAutoRefresh(now)
       setLoading(false)
       setProgress('')
 
-      // Tarama tamamlandığında sonuçları disk'e kaydet (server tarafı)
-      // Bu sayede sayfa yenilendiğinde tüm sonuçlar yüklenir
       try {
         await fetch('/api/scan/latest', {
           method: 'POST',

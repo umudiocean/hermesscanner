@@ -17,6 +17,8 @@ import { updateTrendFromScanResults, getTrendContext, hasTrendCache } from '@/li
 import { ScanResult, ScanSummary, Segment } from '@/lib/types'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { segmentSchema, symbolsParamSchema, validateParams } from '@/lib/validation/schemas'
+import { getBarCache, setBarCache, getBootstrapProgress } from '@/lib/cache/redis-cache'
+import { isRedisAvailable } from '@/lib/cache/redis-client'
 
 export const maxDuration = 300 // Vercel Pro max (5 min) — streaming keeps alive
 
@@ -42,15 +44,42 @@ async function prepareScan(symbols: string[]): Promise<Omit<ScanContext, 'segmen
   return { symbols, quotes, profileMap }
 }
 
+// Detect if bootstrap is complete (cached per request lifecycle)
+let _bootstrapReady: boolean | null = null
+async function isBootstrapReady(): Promise<boolean> {
+  if (_bootstrapReady !== null) return _bootstrapReady
+  if (!isRedisAvailable()) { _bootstrapReady = false; return false }
+  const progress = await getBootstrapProgress()
+  _bootstrapReady = !!(progress && progress.status === 'complete')
+  return _bootstrapReady
+}
+
+const MIN_SCAN_BARS = 6331
+
 async function processSymbol(
   symbol: string,
   ctx: Omit<ScanContext, 'segment'>,
 ): Promise<ScanResult | null> {
   try {
-    const bars = await getHistorical15Min(symbol)
-    // hermes-engine minBars = zscore_len(1430) + vwap_len/2(4901) = 6331
-    // Bundan az bar ile engine NOTR doner — gereksiz islem yapmamak icin burada filtrele
-    const MIN_SCAN_BARS = 6331
+    let bars: import('@/lib/types').OHLCV[] | null = null
+
+    // Redis-first: read pre-cached bars from bootstrap/cron
+    if (await isBootstrapReady()) {
+      const cached = await getBarCache(symbol)
+      if (cached && cached.length >= MIN_SCAN_BARS) {
+        bars = cached
+      }
+    }
+
+    // Fallback: full FMP stitching (pre-bootstrap or cache miss)
+    if (!bars) {
+      bars = await getHistorical15Min(symbol)
+      // Opportunistically cache in Redis for future reads
+      if (bars && bars.length >= MIN_SCAN_BARS && isRedisAvailable()) {
+        setBarCache(symbol, bars).catch(() => {})
+      }
+    }
+
     if (!bars || bars.length < MIN_SCAN_BARS) return null
 
     const profile = ctx.profileMap.get(symbol)

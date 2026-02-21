@@ -71,11 +71,24 @@ function MiniBar({ items, max }: { items: { label: string; value: number }[]; ma
   )
 }
 
+interface BootstrapState {
+  running: boolean
+  completed: number
+  total: number
+  lastSymbol: string
+  status: string
+  barCacheCount: number
+  error: string | null
+}
+
 export default function AdminDashboard() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [flags, setFlags] = useState<FlagMap>({})
   const [loading, setLoading] = useState(true)
   const [flagLoading, setFlagLoading] = useState<string | null>(null)
+  const [bootstrap, setBootstrap] = useState<BootstrapState>({
+    running: false, completed: 0, total: 0, lastSymbol: '', status: 'unknown', barCacheCount: 0, error: null,
+  })
   const router = useRouter()
 
   const fetchData = useCallback(async () => {
@@ -132,6 +145,77 @@ export default function AdminDashboard() {
       fetchData()
     } catch {
       // silent
+    }
+  }
+
+  const fetchBootstrapStatus = useCallback(async () => {
+    try {
+      const cronSecret = 'hermes-scanner-cron-2026'
+      const res = await fetch('/api/cron/bootstrap', {
+        headers: { 'Authorization': `Bearer ${cronSecret}` },
+      })
+      if (res.ok) {
+        const d = await res.json()
+        setBootstrap(prev => ({
+          ...prev,
+          completed: d.progress?.completed || 0,
+          total: d.progress?.total || 0,
+          lastSymbol: d.progress?.lastSymbol || '',
+          status: d.progress?.status || 'not_started',
+          barCacheCount: d.barCacheCount || 0,
+          error: null,
+        }))
+      }
+    } catch {
+      // silent
+    }
+  }, [])
+
+  useEffect(() => { fetchBootstrapStatus() }, [fetchBootstrapStatus])
+
+  // Poll bootstrap progress while running
+  useEffect(() => {
+    if (!bootstrap.running) return
+    const interval = setInterval(fetchBootstrapStatus, 5000)
+    return () => clearInterval(interval)
+  }, [bootstrap.running, fetchBootstrapStatus])
+
+  // Auto-stop polling when bootstrap completes
+  useEffect(() => {
+    if (bootstrap.running && (bootstrap.status === 'complete' || (bootstrap.total > 0 && bootstrap.completed >= bootstrap.total))) {
+      setBootstrap(prev => ({ ...prev, running: false }))
+    }
+  }, [bootstrap.running, bootstrap.status, bootstrap.completed, bootstrap.total])
+
+  async function startBootstrap() {
+    setBootstrap(prev => ({ ...prev, running: true, error: null }))
+    try {
+      const cronSecret = 'hermes-scanner-cron-2026'
+      const res = await fetch('/api/cron/bootstrap', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${cronSecret}` },
+      })
+      if (res.ok) {
+        const d = await res.json()
+        setBootstrap(prev => ({
+          ...prev,
+          completed: d.completed || prev.completed,
+          total: d.total || prev.total,
+          status: d.status || 'running',
+        }))
+        // If partial, keep calling until complete
+        if (d.status === 'partial' && d.remaining > 0) {
+          // Auto-continue: call again after a short delay
+          setTimeout(() => startBootstrap(), 2000)
+        } else {
+          setBootstrap(prev => ({ ...prev, running: false }))
+        }
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Request failed' }))
+        setBootstrap(prev => ({ ...prev, running: false, error: err.error || 'Bootstrap failed' }))
+      }
+    } catch (err) {
+      setBootstrap(prev => ({ ...prev, running: false, error: (err as Error).message }))
     }
   }
 
@@ -391,6 +475,82 @@ export default function AdminDashboard() {
                 value={(c?.fmpMemory?.memoryEntries || 0) + (c?.cryptoMemory?.memoryEntries || 0)}
                 sub="FMP + Crypto"
               />
+            </div>
+          </Card>
+
+          {/* 10. Bootstrap — Trade AI Data */}
+          <Card title="Trade AI Bootstrap" icon={Database}>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Stat label="Redis Bar Cache" value={bootstrap.barCacheCount} sub="hisse" />
+                <Stat label="Durum" value={
+                  bootstrap.status === 'complete' ? 'Tamamlandi' :
+                  bootstrap.status === 'running' ? 'Calisiyor...' :
+                  bootstrap.status === 'partial' ? 'Kismi' : 'Baslamadi'
+                } />
+              </div>
+
+              {bootstrap.total > 0 && (
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[10px] text-white/40">Ilerleme</span>
+                    <span className="text-[10px] text-white/50 tabular-nums">
+                      {bootstrap.completed} / {bootstrap.total} ({bootstrap.total > 0 ? Math.round((bootstrap.completed / bootstrap.total) * 100) : 0}%)
+                    </span>
+                  </div>
+                  <div className="h-2.5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-1000 ${
+                        bootstrap.status === 'complete'
+                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
+                          : 'bg-gradient-to-r from-[#B3945B] to-amber-400'
+                      }`}
+                      style={{ width: `${bootstrap.total > 0 ? Math.max(1, (bootstrap.completed / bootstrap.total) * 100) : 0}%` }}
+                    />
+                  </div>
+                  {bootstrap.lastSymbol && (
+                    <p className="text-[9px] text-white/25 mt-1">Son: {bootstrap.lastSymbol}</p>
+                  )}
+                </div>
+              )}
+
+              {bootstrap.error && (
+                <p className="text-[10px] text-red-400 bg-red-500/10 rounded-lg px-2 py-1">{bootstrap.error}</p>
+              )}
+
+              <button
+                onClick={startBootstrap}
+                disabled={bootstrap.running}
+                className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  bootstrap.running
+                    ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400 cursor-wait'
+                    : bootstrap.status === 'complete'
+                    ? 'bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400'
+                    : 'bg-gradient-to-r from-[#B3945B] to-amber-600 hover:from-[#C4A56C] hover:to-amber-500 text-black'
+                }`}
+              >
+                {bootstrap.running ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    Bootstrap Calisiyor...
+                  </>
+                ) : bootstrap.status === 'complete' ? (
+                  <>
+                    <Database className="w-3.5 h-3.5" />
+                    Yeniden Bootstrap (Tamamlandi)
+                  </>
+                ) : (
+                  <>
+                    <Database className="w-3.5 h-3.5" />
+                    Bootstrap Baslat
+                  </>
+                )}
+              </button>
+
+              <p className="text-[9px] text-white/20 leading-relaxed">
+                Ilk calistirmada tum hisseler icin 3 yillik 15dk veri cekilir ve Redis&apos;e yazilir.
+                Saatler surebilir. Sonraki cron&apos;lar sadece delta (son 2 gun) gunceller.
+              </p>
             </div>
           </Card>
 

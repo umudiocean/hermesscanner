@@ -60,6 +60,63 @@ export async function clearRedisCacheByPrefix(prefix: string): Promise<number> {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// 15-Minute Bar Cache — Redis-backed persistent bar storage
+// Used by bootstrap + delta cron to avoid full stitching on every scan
+// ═══════════════════════════════════════════════════════════════════
+
+const BARS_PREFIX = 'bars15m:'
+const BARS_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+export async function getBarCache(symbol: string): Promise<Array<{ date: string; open: number; high: number; low: number; close: number; volume: number }> | null> {
+  const r = getRedis()
+  if (!r) return null
+  try {
+    const raw = await r.get<string>(KEY_PREFIX + BARS_PREFIX + symbol)
+    if (!raw) return null
+    return typeof raw === 'string' ? JSON.parse(raw) : raw as Array<{ date: string; open: number; high: number; low: number; close: number; volume: number }>
+  } catch {
+    return null
+  }
+}
+
+export async function setBarCache(symbol: string, bars: Array<{ date: string; open: number; high: number; low: number; close: number; volume: number }>): Promise<void> {
+  const r = getRedis()
+  if (!r) return
+  try {
+    await r.set(KEY_PREFIX + BARS_PREFIX + symbol, JSON.stringify(bars), { ex: redisTtlSec(BARS_TTL_MS) })
+  } catch {
+    // silent
+  }
+}
+
+export async function getBootstrapProgress(): Promise<{ completed: number; total: number; lastSymbol: string; startedAt: string; status: string } | null> {
+  return getRedisCache<{ completed: number; total: number; lastSymbol: string; startedAt: string; status: string }>('bootstrap:progress')
+}
+
+export async function setBootstrapProgress(data: { completed: number; total: number; lastSymbol: string; startedAt: string; status: string }): Promise<void> {
+  await setRedisCache('bootstrap:progress', data, 24 * 60 * 60 * 1000) // 1 day
+}
+
+export async function getBootstrapCheckpoint(): Promise<string[] | null> {
+  return getRedisCache<string[]>('bootstrap:checkpoint')
+}
+
+export async function setBootstrapCheckpoint(completedSymbols: string[]): Promise<void> {
+  await setRedisCache('bootstrap:checkpoint', completedSymbols, BARS_TTL_MS)
+}
+
+export async function getBarCacheCount(): Promise<number> {
+  const r = getRedis()
+  if (!r) return 0
+  try {
+    const keys = await r.keys(KEY_PREFIX + BARS_PREFIX + '*')
+    return keys.length
+  } catch {
+    return 0
+  }
+}
+
 export async function getRedisCacheStats(): Promise<{
   available: boolean
   keyCount: number
