@@ -180,15 +180,29 @@ export default function AdminDashboard() {
     return () => clearInterval(interval)
   }, [bootstrap.running, fetchBootstrapStatus])
 
-  // Auto-stop polling when bootstrap completes
+  // Auto-stop polling only when fully complete
   useEffect(() => {
-    if (bootstrap.running && (bootstrap.status === 'complete' || (bootstrap.total > 0 && bootstrap.completed >= bootstrap.total))) {
+    if (bootstrap.running && bootstrap.status === 'complete' && bootstrap.total > 0 && bootstrap.completed >= bootstrap.total) {
       setBootstrap(prev => ({ ...prev, running: false }))
     }
   }, [bootstrap.running, bootstrap.status, bootstrap.completed, bootstrap.total])
 
+  const bootstrapRetryRef = { current: 0 }
+  const MAX_BOOTSTRAP_RETRIES = 100 // 100 batches x ~80 symbols = ~8000 — well over 2197
+
   async function startBootstrap() {
     setBootstrap(prev => ({ ...prev, running: true, error: null }))
+    bootstrapRetryRef.current = 0
+    runBootstrapBatch()
+  }
+
+  async function runBootstrapBatch() {
+    if (bootstrapRetryRef.current >= MAX_BOOTSTRAP_RETRIES) {
+      setBootstrap(prev => ({ ...prev, running: false, error: 'Maksimum deneme sayisina ulasildi. Tekrar deneyin.' }))
+      return
+    }
+    bootstrapRetryRef.current++
+
     try {
       const cronSecret = 'hermes-scanner-cron-2026'
       const res = await fetch('/api/cron/bootstrap', {
@@ -202,20 +216,35 @@ export default function AdminDashboard() {
           completed: d.completed || prev.completed,
           total: d.total || prev.total,
           status: d.status || 'running',
+          lastSymbol: d.lastSymbol || prev.lastSymbol,
+          error: null,
         }))
-        // If partial, keep calling until complete
         if (d.status === 'partial' && d.remaining > 0) {
-          // Auto-continue: call again after a short delay
-          setTimeout(() => startBootstrap(), 2000)
+          setTimeout(() => runBootstrapBatch(), 3000)
         } else {
           setBootstrap(prev => ({ ...prev, running: false }))
         }
       } else {
-        const err = await res.json().catch(() => ({ error: 'Request failed' }))
-        setBootstrap(prev => ({ ...prev, running: false, error: err.error || 'Bootstrap failed' }))
+        // HTTP error (timeout, 504, etc.) — checkpoint in Redis, auto-retry
+        setBootstrap(prev => ({
+          ...prev,
+          error: `Batch hatasi (${res.status}) — otomatik devam edecek...`,
+        }))
+        setTimeout(() => {
+          fetchBootstrapStatus()
+          setTimeout(() => runBootstrapBatch(), 2000)
+        }, 5000)
       }
-    } catch (err) {
-      setBootstrap(prev => ({ ...prev, running: false, error: (err as Error).message }))
+    } catch {
+      // Network error or Vercel timeout — checkpoint saved, auto-retry
+      setBootstrap(prev => ({
+        ...prev,
+        error: 'Baglanti koptu — checkpoint kaydedildi, otomatik devam edecek...',
+      }))
+      setTimeout(() => {
+        fetchBootstrapStatus()
+        setTimeout(() => runBootstrapBatch(), 2000)
+      }, 5000)
     }
   }
 

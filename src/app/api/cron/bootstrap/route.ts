@@ -19,12 +19,12 @@ import logger from '@/lib/logger'
 
 export const maxDuration = 300 // Vercel Pro: 5 min max per invocation
 
-const CONCURRENCY = 5
-const CHECKPOINT_INTERVAL = 25 // Save checkpoint every N symbols
-const DELAY_BETWEEN_SYMBOLS_MS = 100
+const CONCURRENCY = 3
+const CHECKPOINT_INTERVAL = 10 // Save checkpoint every N symbols
+const DELAY_BETWEEN_SYMBOLS_MS = 50
+const TIME_LIMIT_MS = 250_000 // Stop at 250s to leave 50s buffer for cleanup + response
 
 export async function POST(request: NextRequest) {
-  // Auth: admin secret or cron secret
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
   if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
   const allSymbols = getCleanSymbols('ALL')
   const total = allSymbols.length
 
-  // Load checkpoint — skip already-completed symbols
   const checkpoint = await getBootstrapCheckpoint()
   const completedSet = new Set(checkpoint || [])
   const pending = allSymbols.filter(s => !completedSet.has(s))
@@ -69,8 +68,10 @@ export async function POST(request: NextRequest) {
     status: 'running',
   })
 
+  const startTime = Date.now()
   let processed = 0
   let errors = 0
+  let timedOut = false
   const newlyCompleted: string[] = []
   const queue = [...pending]
 
@@ -90,6 +91,11 @@ export async function POST(request: NextRequest) {
 
   async function worker() {
     while (queue.length > 0) {
+      if (Date.now() - startTime > TIME_LIMIT_MS) {
+        timedOut = true
+        break
+      }
+
       const symbol = queue.shift()
       if (!symbol) break
 
@@ -103,7 +109,6 @@ export async function POST(request: NextRequest) {
         errors++
       }
 
-      // Checkpoint save
       if (newlyCompleted.length % CHECKPOINT_INTERVAL === 0 && newlyCompleted.length > 0) {
         const allCompleted = Array.from(completedSet)
         await setBootstrapCheckpoint(allCompleted)
@@ -114,7 +119,6 @@ export async function POST(request: NextRequest) {
           startedAt: new Date().toISOString(),
           status: 'running',
         })
-        logger.info(`Bootstrap checkpoint: ${completedSet.size}/${total}`, { module: 'bootstrap' })
       }
 
       await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_SYMBOLS_MS))
@@ -124,7 +128,6 @@ export async function POST(request: NextRequest) {
   const workers = Array.from({ length: CONCURRENCY }, () => worker())
   await Promise.all(workers)
 
-  // Final checkpoint
   const allCompleted = Array.from(completedSet)
   await setBootstrapCheckpoint(allCompleted)
 
@@ -137,7 +140,8 @@ export async function POST(request: NextRequest) {
     status: isComplete ? 'complete' : 'partial',
   })
 
-  logger.info(`Bootstrap batch done: ${processed} processed, ${errors} errors, ${completedSet.size}/${total} total`, { module: 'bootstrap' })
+  const elapsed = Math.round((Date.now() - startTime) / 1000)
+  logger.info(`Bootstrap batch: ${processed} done, ${errors} err, ${completedSet.size}/${total} total, ${elapsed}s${timedOut ? ' (time limit)' : ''}`, { module: 'bootstrap' })
 
   return NextResponse.json({
     status: isComplete ? 'complete' : 'partial',
@@ -146,9 +150,11 @@ export async function POST(request: NextRequest) {
     completed: completedSet.size,
     total,
     remaining: total - completedSet.size,
+    timedOut,
+    elapsed,
     message: isComplete
       ? `Bootstrap complete! All ${total} symbols cached in Redis.`
-      : `Batch done. ${completedSet.size}/${total} complete. Call again to continue.`,
+      : `Batch done. ${completedSet.size}/${total} complete (${elapsed}s). Call again to continue.`,
   })
 }
 
