@@ -253,17 +253,20 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
   }, [watchlist])
 
   // Scan function
+  const MIN_TRUSTED_CACHE = 1500
+
   const runScan = useCallback(async () => {
     setLoading(true)
     setError(null)
     setProgress('Loading...')
 
     try {
-      // Always read from pre-computed cache (cron fills these)
+      // Read from pre-computed cache (cron fills these)
       const cachedRes = await fetch('/api/scan/latest')
       if (cachedRes.ok) {
         const cached = await cachedRes.json()
-        if (cached.results && cached.results.length > 0) {
+        const resultCount = cached.results?.length ?? 0
+        if (resultCount > 0 && resultCount >= MIN_TRUSTED_CACHE) {
           const allResults: ScanResult[] = cached.results
 
           const newSummary: ScanSummary = {
@@ -351,7 +354,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
     async function loadInitial() {
       // Check memory cache first
       const cached = getCachedResults()
-      if (cached.results.length > 0) {
+      if (cached.results.length >= MIN_TRUSTED_CACHE) {
         setResults(cached.results)
         const ts = new Date(cached.timestamp)
         setLastRefresh(ts)
@@ -359,12 +362,13 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
         return
       }
 
-      // Try disk cache
+      // Try disk/Redis cache
       try {
         const res = await fetch('/api/scan/latest')
         if (res.ok) {
           const data = await res.json()
-          if (data.results && data.results.length > 0) {
+          const n = data.results?.length ?? 0
+          if (n >= MIN_TRUSTED_CACHE) {
             setResults(data.results)
             setCachedResults(data.results)
             const ts = new Date(data.timestamp || Date.now())

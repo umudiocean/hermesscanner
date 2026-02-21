@@ -15,9 +15,9 @@ import { getHistorical15MinDelta, getBatchQuotes } from '@/lib/fmp-client'
 import { calculateHermes } from '@/lib/hermes-engine'
 import { saveScanResults } from '@/lib/scan-store'
 import { ScanResult, ScanSummary, OHLCV } from '@/lib/types'
-import { getBarCache, setBarCache, getBootstrapProgress } from '@/lib/cache/redis-cache'
+import { getBarCache, setBarCache, getBootstrapProgress, acquireRefreshLockRedis, releaseRefreshLockRedis } from '@/lib/cache/redis-cache'
 import { isRedisAvailable } from '@/lib/cache/redis-client'
-import { isMarketOpen, getNowET, getETMinutes, acquireRefreshLock, releaseRefreshLock } from '@/lib/scheduler/marketHours'
+import { isMarketOpen, getNowET, getETMinutes } from '@/lib/scheduler/marketHours'
 import { createApiError } from '@/lib/validation/ohlcv-validator'
 import logger from '@/lib/logger'
 
@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const forceParam = url.searchParams.get('force')
   const forceRun = forceParam === '1' || forceParam === 'true'
+  const bypassLock = forceRun
   const marketOpen = isMarketOpen()
 
   if (!marketOpen && !forceRun) {
@@ -67,14 +68,19 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  const lockAcquired = await acquireRefreshLock()
-  if (!lockAcquired) {
-    logger.info('Cron skipped — refresh already in progress', { module: 'cron' })
-    return NextResponse.json({
-      status: 'skipped',
-      reason: 'Refresh already in progress',
-      timestamp: new Date().toISOString(),
-    })
+  let lockAcquired = false
+  if (!bypassLock) {
+    lockAcquired = await acquireRefreshLockRedis()
+    if (!lockAcquired) {
+      logger.info('Cron skipped — refresh already in progress', { module: 'cron' })
+      return NextResponse.json({
+        status: 'skipped',
+        reason: 'Refresh already in progress',
+        timestamp: new Date().toISOString(),
+      })
+    }
+  } else {
+    logger.debug('Cron lock bypassed (force=1)', { module: 'cron' })
   }
 
   const context = getScanContext()
@@ -221,6 +227,6 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   } finally {
-    await releaseRefreshLock()
+    if (lockAcquired) await releaseRefreshLockRedis()
   }
 }

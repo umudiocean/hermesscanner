@@ -125,6 +125,28 @@ export async function getBarCacheCount(): Promise<number> {
   }
 }
 
+const REFRESH_LOCK_KEY = 'refresh:lock'
+const REFRESH_LOCK_TTL_SEC = 5 * 60 // 5 min
+
+export async function acquireRefreshLockRedis(): Promise<boolean> {
+  const r = getRedis()
+  if (!r) return true
+  try {
+    const ok = await r.set(REFRESH_LOCK_KEY, Date.now().toString(), { nx: true, ex: REFRESH_LOCK_TTL_SEC })
+    return !!ok
+  } catch {
+    return true
+  }
+}
+
+export async function releaseRefreshLockRedis(): Promise<void> {
+  const r = getRedis()
+  if (!r) return
+  try {
+    await r.del(REFRESH_LOCK_KEY)
+  } catch { /* silent */ }
+}
+
 export async function getRedisCacheStats(): Promise<{
   available: boolean
   keyCount: number
