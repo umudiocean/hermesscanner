@@ -3,7 +3,7 @@
 // HERMES AI CRYPTO TERMINAL — Tab: KARSILASTIR
 // Compare up to 4 coins side by side
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { GitCompare, X } from 'lucide-react'
 import type { CoinDetail, CryptoScore, CryptoScoreBreakdown } from '@/lib/crypto-terminal/coingecko-types'
 import { getCryptoScoreColor, CRYPTO_CATEGORY_LABELS, CRYPTO_SCORE_WEIGHTS } from '@/lib/crypto-terminal/coingecko-types'
@@ -34,10 +34,140 @@ function formatLarge(v: number): string {
   return `$${v.toFixed(0)}`
 }
 
+function CoinSearchInput({ onAdd, existingIds, placeholder }: {
+  onAdd: (coinId: string) => void
+  existingIds: string[]
+  placeholder?: string
+}) {
+  const [input, setInput] = useState('')
+  const [suggestions, setSuggestions] = useState<Array<{ id: string; symbol: string; name: string }>>([])
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [selectedIdx, setSelectedIdx] = useState(-1)
+  const [allCoins, setAllCoins] = useState<Array<{ id: string; symbol: string; name: string }>>([])
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetch('/api/crypto-terminal/search?q=_init')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.coins) {
+          setAllCoins(data.coins.slice(0, 500).map((c: { id: string; symbol: string; name: string }) => ({
+            id: c.id, symbol: c.symbol, name: c.name,
+          })))
+        }
+      })
+      .catch(() => {})
+
+    fetch('/api/crypto-terminal/coins?page=1&per_page=250')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.coins) {
+          setAllCoins(prev => {
+            const existingIds = new Set(prev.map(c => c.id))
+            const newCoins = data.coins
+              .filter((c: { id: string }) => !existingIds.has(c.id))
+              .map((c: { id: string; symbol: string; name: string }) => ({
+                id: c.id, symbol: c.symbol, name: c.name,
+              }))
+            return [...prev, ...newCoins]
+          })
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const filtered = useMemo(() => {
+    if (!input.trim()) return []
+    const q = input.toLowerCase()
+    return allCoins
+      .filter(c => !existingIds.includes(c.id))
+      .filter(c => c.id.includes(q) || c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q))
+      .slice(0, 8)
+  }, [input, allCoins, existingIds])
+
+  useEffect(() => {
+    setSuggestions(filtered)
+    setSelectedIdx(-1)
+    setShowDropdown(filtered.length > 0 && input.trim().length > 0)
+  }, [filtered, input])
+
+  const handleSelect = (coinId: string) => {
+    onAdd(coinId)
+    setInput('')
+    setShowDropdown(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelectedIdx(prev => Math.min(prev + 1, suggestions.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelectedIdx(prev => Math.max(prev - 1, -1))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (selectedIdx >= 0 && suggestions[selectedIdx]) {
+        handleSelect(suggestions[selectedIdx].id)
+      } else if (input.trim()) {
+        handleSelect(input.trim().toLowerCase())
+      }
+    } else if (e.key === 'Escape') {
+      setShowDropdown(false)
+    }
+  }
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onFocus={() => { if (suggestions.length > 0) setShowDropdown(true) }}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder || 'Orn: bitcoin, ethereum...'}
+          className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-white/30 focus:outline-none focus:border-amber-500/40 focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300 w-64"
+        />
+        <button
+          onClick={() => { if (input.trim()) { handleSelect(input.trim().toLowerCase()) } }}
+          className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold hover:from-amber-400 hover:to-orange-400 hover:shadow-lg hover:shadow-amber-500/25 transition-all duration-300"
+        >
+          Ekle
+        </button>
+      </div>
+      {showDropdown && suggestions.length > 0 && (
+        <div className="absolute top-full left-0 mt-1 w-80 max-h-64 overflow-y-auto bg-[#151520] border border-white/10 rounded-xl shadow-2xl shadow-black/40 z-50">
+          {suggestions.map((c, i) => (
+            <button
+              key={c.id}
+              onClick={() => handleSelect(c.id)}
+              className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors ${
+                i === selectedIdx ? 'bg-amber-500/10 text-white' : 'text-white/70 hover:bg-white/[0.04]'
+              }`}
+            >
+              <span className="font-mono font-bold text-xs w-12 uppercase">{c.symbol}</span>
+              <span className="text-[11px] text-white/40 truncate">{c.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabCompareProps) {
   const [coinsData, setCoinsData] = useState<Map<string, CoinCompareData>>(new Map())
   const [loading, setLoading] = useState(false)
-  const [addInput, setAddInput] = useState('')
 
   useEffect(() => {
     if (coinIds.length === 0) return
@@ -83,41 +213,68 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
         <GitCompare size={48} className="text-white/10 mb-4" />
         <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Coin Karsilastir</h3>
-        <p className="text-white/40 text-sm mb-6">COINLER sekmesindeki coinleri karsilastirmaya ekleyin</p>
-        <div className="flex items-center gap-2">
-          <input type="text" value={addInput} onChange={e => setAddInput(e.target.value.toLowerCase())}
-            onKeyDown={e => { if (e.key === 'Enter' && addInput) { onSelectCoin(addInput); setAddInput('') } }}
-            placeholder="Orn: bitcoin, ethereum..." className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder-white/30 focus:outline-none focus:border-amber-500/40 focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300 w-64" />
-          <button onClick={() => { if (addInput) { onSelectCoin(addInput); setAddInput('') } }}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold hover:from-amber-400 hover:to-orange-400 hover:shadow-lg hover:shadow-amber-500/25 hover:scale-[1.03] transition-all duration-300">Ekle</button>
-        </div>
+        <p className="text-white/40 text-sm mb-6">Coin ismi veya sembol yazin (max 4 coin)</p>
+        <CoinSearchInput onAdd={onSelectCoin} existingIds={coinIds} />
       </div>
     )
   }
 
-  const coins = coinIds.map(id => ({ id, data: coinsData.get(id) })).filter(c => c.data)
+  const coins = coinIds.map(id => ({ id, data: coinsData.get(id) }))
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <GitCompare size={16} className="text-amber-400" />
           <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Coin Karsilastirma</h3>
         </div>
         {coinIds.length < 4 && (
-          <div className="flex items-center gap-1">
-            <input type="text" value={addInput} onChange={e => setAddInput(e.target.value.toLowerCase())}
-              onKeyDown={e => { if (e.key === 'Enter' && addInput) { onSelectCoin(addInput); setAddInput('') } }}
-              placeholder="Coin ekle..." className="w-32 px-2 py-1 text-xs bg-white/[0.04] border border-white/8 rounded-lg text-white placeholder-white/25 focus:outline-none" />
-          </div>
+          <CoinSearchInput onAdd={onSelectCoin} existingIds={coinIds} placeholder="+ Coin ekle" />
         )}
       </div>
 
-      {loading && <div className="text-center py-8 text-white/30">Yukleniyor...</div>}
+      {/* Coin pills */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {coinIds.map(id => (
+          <div key={id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10">
+            <span className="text-xs font-medium text-white">{id}</span>
+            <button onClick={() => onRemoveCoin(id)} className="text-white/30 hover:text-red-400 transition-colors text-xs ml-1">
+              <X size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {loading && (
+        <div className="text-center py-8">
+          <div className="inline-flex items-center gap-2 text-white/30">
+            <div className="w-4 h-4 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+            <span>Coin verileri yukleniyor...</span>
+          </div>
+        </div>
+      )}
 
       <div className={`grid gap-2 sm:gap-3 ${coins.length === 1 ? 'grid-cols-1' : coins.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : coins.length === 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}`}>
         {coins.map(({ id, data }) => {
-          if (!data) return null
+          if (!data) {
+            return (
+              <div key={id} className="bg-[#151520] rounded-2xl border border-white/[0.06] p-4">
+                <div className="h-40 flex flex-col items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+                      <span className="text-[10px] text-white/20">{id} yukleniyor...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-sm text-white/30">{id}</span>
+                      <span className="text-[10px] text-red-400/50">Veri yuklenemedi</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          }
           const { detail, score } = data
           const md = detail.market_data
           const price = md?.current_price?.usd ?? 0

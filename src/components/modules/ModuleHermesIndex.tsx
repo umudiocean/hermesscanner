@@ -325,7 +325,7 @@ function TopMovers({ title, items, color, icon }: {
 }
 
 // ─── Live ticker tape ───
-function TickerTape({ items }: { items: Array<{ symbol: string; change: number }> }) {
+function TickerTape({ items }: { items: Array<{ symbol: string; price: number; change: number }> }) {
   if (items.length === 0) return null
   const doubled = [...items, ...items]
   return (
@@ -336,6 +336,7 @@ function TickerTape({ items }: { items: Array<{ symbol: string; change: number }
         {doubled.map((item, i) => (
           <span key={`${item.symbol}-${i}`} className="flex items-center gap-1.5 text-[10px]">
             <span className="font-bold text-white/50">{item.symbol}</span>
+            <span className="text-white/35 tabular-nums font-mono">${item.price.toFixed(2)}</span>
             <span className={`font-semibold tabular-nums ${item.change >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
               {item.change >= 0 ? '▲' : '▼'}{Math.abs(item.change).toFixed(2)}%
             </span>
@@ -444,7 +445,7 @@ export default function ModuleHermesIndex() {
     const topStrongShorts = [...results].filter(r => r.hermes.signalType === 'strong_short').sort((a, b) => b.hermes.score - a.hermes.score).slice(0, 5).map(r => ({ symbol: r.symbol, score: r.hermes.score, changePercent: r.quote?.changePercent || 0, price: r.quote?.price || r.hermes.price, signalType: r.hermes.signalType }))
 
     const marketPulse = 100 - avgScore
-    const tickerItems = sorted.slice(0, 30).map(r => ({ symbol: r.symbol, change: r.quote?.changePercent || 0 }))
+    const tickerItems = sorted.slice(0, 30).map(r => ({ symbol: r.symbol, price: r.quote?.price || r.hermes.price, change: r.quote?.changePercent || 0 }))
 
     return { n, avgScore, avgRsi, avgMfi, avgChange, totalMcap, signalCounts, longs, shorts, neutrals, longPct, shortPct, direction, dirColor, sectorStats, avgAiScore, avgRisk, aiStrongCount, aiBadCount, topGainers, topLosers, topStrongLongs, topStrongShorts, marketPulse, tickerItems }
   }, [results, fmpStocks])

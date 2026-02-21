@@ -245,7 +245,7 @@ export default function ModuleCryptoTradeAI() {
           </div>
           <div>
             <h2 className="text-lg font-bold text-white">CRYPTO TRADE <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">AI</span></h2>
-            <p className="text-[10px] text-white/30">V377_R6.85_Z55 | L30_S90 | Top 1000 Coin | Pure Z-Score Mean-Reversion</p>
+            <p className="text-[10px] text-white/30">Top 1000 Coin | Pure Z-Score Mean-Reversion</p>
           </div>
           {scanInfo && !loading && (
             <div className="hidden sm:flex items-center gap-2 ml-3">
@@ -454,7 +454,7 @@ export default function ModuleCryptoTradeAI() {
 
         <div className="px-4 py-2 border-t border-white/[0.04] flex justify-between">
           <span className="text-[10px] text-white/20">{sortedItems.length} sinyal / {items.length} coin tarandi</span>
-          <span className="text-[10px] text-white/15">Top 1000 | VWAP 377G | Z-Score 55G | TANH 6.85 | TP {TP_PCT}% / SL {SL_PCT}%</span>
+          <span className="text-[10px] text-white/15">Top 1000 Coin | Pure Z-Score | TP {TP_PCT}% / SL {SL_PCT}%</span>
         </div>
       </div>
     </div>

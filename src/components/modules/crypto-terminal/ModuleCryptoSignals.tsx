@@ -558,7 +558,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
         )}
         <div className="px-4 py-2 border-t border-white/[0.04] flex justify-between">
           <span className="text-[10px] text-white/20">{filtered.length} sinyal gosteriliyor / {rows.length} toplam</span>
-          <span className="text-[10px] text-white/15">HERMES AI Score x 7d Sparkline Momentum | L30_S90</span>
+          <span className="text-[10px] text-white/15">HERMES AI Score x 7d Sparkline Momentum</span>
         </div>
       </div>
     </div>

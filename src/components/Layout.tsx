@@ -326,12 +326,25 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
           setResults([...allResults])
         } catch {
           // Network error — try classic fallback
-          const fallback = await fetch(`/api/scan?segment=ALL&symbols=${chunk.join(',')}`)
-          if (fallback.ok) {
-            const data = await fallback.json()
-            if (data.allResults) allResults.push(...data.allResults)
-            setResults([...allResults])
-          }
+          try {
+            const fallback = await fetch(`/api/scan?segment=ALL&symbols=${chunk.join(',')}`)
+            if (fallback.ok) {
+              const data = await fallback.json()
+              if (data.allResults) allResults.push(...data.allResults)
+              setResults([...allResults])
+            }
+          } catch { /* skip chunk on total failure */ }
+        }
+
+        // Save intermediate results after each chunk so partial scans survive timeouts
+        if (allResults.length > 0) {
+          try {
+            await fetch('/api/scan/latest', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ results: allResults, scanId: `scan-partial-${Date.now()}` }),
+            })
+          } catch { /* ignore save errors */ }
         }
       }
 
