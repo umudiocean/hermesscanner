@@ -10,17 +10,19 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getCleanSymbols, computeSegmentFromMarketCap } from '@/lib/symbols'
-import { getBatchQuotes, getHistorical15Min, getCompanyProfiles } from '@/lib/fmp-client'
+import { getBatchQuotes, getCompanyProfiles } from '@/lib/fmp-client'
+// getHistorical15Min removed — scan reads only from Redis cache now
 import { calculateHermes } from '@/lib/hermes-engine'
 import { saveScanResults } from '@/lib/scan-store'
 import { updateTrendFromScanResults, getTrendContext, hasTrendCache } from '@/lib/trend-context'
-import { ScanResult, ScanSummary, Segment } from '@/lib/types'
+import { ScanResult, ScanSummary, Segment, OHLCV } from '@/lib/types'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { segmentSchema, symbolsParamSchema, validateParams } from '@/lib/validation/schemas'
-import { getBarCache, setBarCache, getBootstrapProgress } from '@/lib/cache/redis-cache'
+import { getBarCache, getBootstrapProgress } from '@/lib/cache/redis-cache'
+// setBarCache removed — scan is read-only from Redis
 import { isRedisAvailable } from '@/lib/cache/redis-client'
 
-export const maxDuration = 300 // Vercel Pro max (5 min) — streaming keeps alive
+export const maxDuration = 300
 
 // ─── Shared scan logic ──────────────────────────────────────────────
 
@@ -44,7 +46,6 @@ async function prepareScan(symbols: string[]): Promise<Omit<ScanContext, 'segmen
   return { symbols, quotes, profileMap }
 }
 
-// Detect if bootstrap is complete (cached per request lifecycle)
 let _bootstrapReady: boolean | null = null
 async function isBootstrapReady(): Promise<boolean> {
   if (_bootstrapReady !== null) return _bootstrapReady
@@ -61,9 +62,8 @@ async function processSymbol(
   ctx: Omit<ScanContext, 'segment'>,
 ): Promise<ScanResult | null> {
   try {
-    let bars: import('@/lib/types').OHLCV[] | null = null
+    let bars: OHLCV[] | null = null
 
-    // Redis-first: read pre-cached bars from bootstrap/cron
     if (await isBootstrapReady()) {
       const cached = await getBarCache(symbol)
       if (cached && cached.length >= MIN_SCAN_BARS) {
@@ -71,16 +71,8 @@ async function processSymbol(
       }
     }
 
-    // Fallback: full FMP stitching (pre-bootstrap or cache miss)
-    if (!bars) {
-      bars = await getHistorical15Min(symbol)
-      // Opportunistically cache in Redis for future reads
-      if (bars && bars.length >= MIN_SCAN_BARS && isRedisAvailable()) {
-        setBarCache(symbol, bars).catch(() => {})
-      }
-    }
-
-    if (!bars || bars.length < MIN_SCAN_BARS) return null
+    // No FMP fallback — if bootstrap is done but symbol has no Redis data, skip it
+    if (!bars) return null
 
     const profile = ctx.profileMap.get(symbol)
     const trendCtx = profile && hasTrendCache()

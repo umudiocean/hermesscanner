@@ -259,22 +259,20 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
     setProgress('Loading...')
 
     try {
-      // Step 1: Try reading pre-computed results from Redis/cache (cron fills these)
+      // Always read from pre-computed cache (cron fills these)
       const cachedRes = await fetch('/api/scan/latest')
       if (cachedRes.ok) {
         const cached = await cachedRes.json()
         if (cached.results && cached.results.length > 0) {
           const allResults: ScanResult[] = cached.results
-          const strongLongs = allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_long')
-          const strongShorts = allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_short')
 
           const newSummary: ScanSummary = {
             scanId: cached.scanId || `cache-${Date.now()}`,
             timestamp: cached.timestamp || new Date().toISOString(),
             duration: 0,
             totalScanned: allResults.length,
-            strongLongs,
-            strongShorts,
+            strongLongs: allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_long'),
+            strongShorts: allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_short'),
             longs: allResults.filter((r: ScanResult) => r.hermes.signalType === 'long'),
             shorts: allResults.filter((r: ScanResult) => r.hermes.signalType === 'short'),
             neutrals: allResults.filter((r: ScanResult) => r.hermes.signalType === 'neutral').length,
@@ -295,128 +293,46 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
         }
       }
 
-      // Step 2: No cached results — do a live FMP scan (fallback / first time)
-      setProgress('Scanning (live)...')
-      const allResults: ScanResult[] = []
-      const CHUNK_SIZE = 100
+      // No cached results — trigger a server-side scan via cron endpoint
+      setProgress('Generating scores from Redis data...')
+      console.log('[Layout] No cached results — triggering server-side scan')
 
-      const symRes = await fetch(`/api/symbols?segment=ALL`)
-      if (!symRes.ok) throw new Error('Failed to get symbols')
-      const symData = await symRes.json()
-      const symbols: string[] = symData.symbols
-
-      if (symbols.length === 0) throw new Error('No symbols to scan')
-
-      for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
-        const chunk = symbols.slice(i, i + CHUNK_SIZE)
-        const chunkNum = Math.floor(i / CHUNK_SIZE) + 1
-        const totalChunks = Math.ceil(symbols.length / CHUNK_SIZE)
-
-        setProgress(`Scanning ${chunkNum}/${totalChunks}`)
-
-        try {
-          const res = await fetch(`/api/scan?segment=ALL&mode=stream&symbols=${chunk.join(',')}`)
-          if (!res.ok || !res.body) {
-            const fallback = await fetch(`/api/scan?segment=ALL&symbols=${chunk.join(',')}`)
-            if (fallback.ok) {
-              const data = await fallback.json()
-              if (data.allResults) allResults.push(...data.allResults)
-              setResults([...allResults])
-            }
-            continue
-          }
-
-          const reader = res.body.getReader()
-          const decoder = new TextDecoder()
-          let buffer = ''
-
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
-
-            buffer += decoder.decode(value, { stream: true })
-            const lines = buffer.split('\n')
-            buffer = lines.pop() || ''
-
-            for (const line of lines) {
-              if (!line.trim()) continue
-              try {
-                const msg = JSON.parse(line)
-                if (msg.type === 'result' && msg.data) {
-                  allResults.push(msg.data)
-                  if (allResults.length % 5 === 0) {
-                    setResults([...allResults])
-                  }
-                } else if (msg.type === 'progress') {
-                  const pct = msg.total > 0 ? Math.round((msg.scanned / msg.total) * 100) : 0
-                  setProgress(`Scanning ${chunkNum}/${totalChunks} (${pct}%)`)
-                }
-              } catch { /* skip malformed lines */ }
-            }
-          }
-
-          setResults([...allResults])
-        } catch {
-          try {
-            const fallback = await fetch(`/api/scan?segment=ALL&symbols=${chunk.join(',')}`)
-            if (fallback.ok) {
-              const data = await fallback.json()
-              if (data.allResults) allResults.push(...data.allResults)
-              setResults([...allResults])
-            }
-          } catch { /* skip chunk on total failure */ }
-        }
+      const scanRes = await fetch('/api/scan?segment=ALL&mode=json')
+      if (scanRes.ok) {
+        const data = await scanRes.json()
+        const allResults: ScanResult[] = data.allResults || []
 
         if (allResults.length > 0) {
-          try {
-            await fetch('/api/scan/latest', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ results: allResults, scanId: `scan-partial-${Date.now()}` }),
-            })
-          } catch { /* ignore save errors */ }
+          const newSummary: ScanSummary = {
+            scanId: data.scanId || `scan-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            duration: data.duration || 0,
+            totalScanned: allResults.length,
+            strongLongs: allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_long'),
+            strongShorts: allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_short'),
+            longs: allResults.filter((r: ScanResult) => r.hermes.signalType === 'long'),
+            shorts: allResults.filter((r: ScanResult) => r.hermes.signalType === 'short'),
+            neutrals: allResults.filter((r: ScanResult) => r.hermes.signalType === 'neutral').length,
+            errors: data.errors || 0,
+            segment: 'ALL',
+          }
+
+          setResults(allResults)
+          setSummary(newSummary)
+          setCachedResults(allResults)
+          const now = new Date()
+          setLastRefresh(now)
+          setLastAutoRefresh(now)
+          console.log(`[Layout] Scan complete: ${allResults.length} results`)
+        } else {
+          setError('No scan results — bootstrap may not be complete yet. Check admin panel.')
         }
+      } else {
+        setError('Scan failed — server returned an error')
       }
 
-      const strongLongs = allResults.filter(r => r.hermes.signalType === 'strong_long')
-      const strongShorts = allResults.filter(r => r.hermes.signalType === 'strong_short')
-
-      const newSummary: ScanSummary = {
-        scanId: `scan-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        duration: 0,
-        totalScanned: allResults.length,
-        strongLongs,
-        strongShorts,
-        longs: allResults.filter(r => r.hermes.signalType === 'long'),
-        shorts: allResults.filter(r => r.hermes.signalType === 'short'),
-        neutrals: allResults.filter(r => r.hermes.signalType === 'neutral').length,
-        errors: 0,
-        segment: 'ALL',
-      }
-
-      setResults(allResults)
-      setSummary(newSummary)
-      setCachedResults(allResults)
-      const now = new Date()
-      setLastRefresh(now)
-      setLastAutoRefresh(now)
       setLoading(false)
       setProgress('')
-
-      try {
-        await fetch('/api/scan/latest', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            results: allResults,
-            scanId: newSummary.scanId,
-          }),
-        })
-        console.log(`[Layout] Saved ${allResults.length} results to disk cache`)
-      } catch (saveErr) {
-        console.error('[Layout] Failed to save results to disk:', saveErr)
-      }
 
     } catch (err) {
       setError((err as Error).message)

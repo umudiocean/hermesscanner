@@ -1,16 +1,20 @@
 // ═══════════════════════════════════════════════════════════════════
-// HERMES Scanner - Cron Endpoint (Delta Mode)
-// Vercel Cron tarafindan her 30dk tetiklenir.
-// Redis'teki bar verisini delta (son 2 gun) ile gunceller, skor hesaplar.
-// Bootstrap yapilmamissa fallback olarak tam stitching yapar.
+// HERMES Scanner - Cron Endpoint (Redis-First Scan)
+// Vercel Cron tarafindan tetiklenir.
+// 3 mod:
+//   1) REDIS_SCAN: Bootstrap tamamlanmissa Redis'teki barlardan skor hesaplar (FMP yok)
+//   2) DELTA: Market aciksa Redis barlari delta gunceller + skor hesaplar
+//   3) FULL_STITCH: Bootstrap yoksa FMP'den tam veri ceker (cok yavas)
+// force=1 parametresi ile market kapali olsa bile calisir.
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getCleanSymbols, computeSegmentFromMarketCap } from '@/lib/symbols'
-import { getHistorical15MinDelta, getHistorical15Min, getBatchQuotes } from '@/lib/fmp-client'
+import { getHistorical15MinDelta, getBatchQuotes } from '@/lib/fmp-client'
+// getHistorical15Min removed — cron no longer does full FMP stitching
 import { calculateHermes } from '@/lib/hermes-engine'
 import { saveScanResults } from '@/lib/scan-store'
-import { ScanResult, ScanSummary } from '@/lib/types'
+import { ScanResult, ScanSummary, OHLCV } from '@/lib/types'
 import { getBarCache, setBarCache, getBootstrapProgress } from '@/lib/cache/redis-cache'
 import { isRedisAvailable } from '@/lib/cache/redis-client'
 import { isMarketOpen, getNowET, getETMinutes, acquireRefreshLock, releaseRefreshLock } from '@/lib/scheduler/marketHours'
@@ -20,6 +24,7 @@ import logger from '@/lib/logger'
 export const maxDuration = 300
 
 const MIN_SCAN_BARS = 6331
+const TIME_LIMIT_MS = 250_000
 
 function getScanContext(): string {
   const et = getNowET()
@@ -48,11 +53,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(createApiError('Unauthorized', 'Invalid credentials', 'AUTH'), { status: 401 })
   }
 
-  if (!isMarketOpen()) {
+  const url = new URL(request.url)
+  const forceParam = url.searchParams.get('force')
+  const forceRun = forceParam === '1' || forceParam === 'true'
+  const marketOpen = isMarketOpen()
+
+  if (!marketOpen && !forceRun) {
     logger.info('Cron skipped — market closed', { module: 'cron' })
     return NextResponse.json({
       status: 'skipped',
-      reason: 'Market kapali',
+      reason: 'Market kapali (force=1 ile zorlayabilirsiniz)',
       timestamp: new Date().toISOString(),
     })
   }
@@ -70,51 +80,62 @@ export async function GET(request: NextRequest) {
   const context = getScanContext()
   const redisReady = isRedisAvailable()
 
-  // Check if bootstrap has been completed
-  let useRedisDeltas = false
+  let bootstrapComplete = false
   if (redisReady) {
     const progress = await getBootstrapProgress()
-    if (progress && progress.status === 'complete') {
-      useRedisDeltas = true
-    }
+    bootstrapComplete = !!(progress && progress.status === 'complete')
   }
 
-  logger.info(`Cron ${context} scan starting (mode: ${useRedisDeltas ? 'DELTA' : 'FULL_STITCH'})`, { module: 'cron' })
+  // Decide mode
+  let mode: 'REDIS_SCAN' | 'DELTA' | 'FULL_STITCH'
+  if (bootstrapComplete && marketOpen) {
+    mode = 'DELTA'
+  } else if (bootstrapComplete) {
+    mode = 'REDIS_SCAN'
+  } else {
+    mode = 'FULL_STITCH'
+  }
+
+  logger.info(`Cron ${context} scan starting (mode: ${mode}, market: ${marketOpen ? 'OPEN' : 'CLOSED'})`, { module: 'cron' })
 
   try {
     const allSymbols = getCleanSymbols('ALL')
     const results: ScanResult[] = []
     let totalErrors = 0
+    let redisHits = 0
     let deltaHits = 0
-    let stitchFallbacks = 0
+    let skippedBars = 0
 
     const quotes = await getBatchQuotes(allSymbols)
     const queue = [...allSymbols]
-    const concurrency = useRedisDeltas ? 10 : 10
+    const concurrency = mode === 'REDIS_SCAN' ? 20 : 10
 
     async function processSymbol(symbol: string): Promise<ScanResult | null> {
       try {
-        let bars: import('@/lib/types').OHLCV[] | null = null
+        let bars: OHLCV[] | null = null
 
-        if (useRedisDeltas) {
-          // Delta mode: read existing bars from Redis, fetch only last 2 days
+        if (mode === 'REDIS_SCAN') {
+          const cached = await getBarCache(symbol)
+          if (cached && cached.length >= MIN_SCAN_BARS) {
+            bars = cached
+            redisHits++
+          } else {
+            skippedBars++
+            return null
+          }
+        } else if (mode === 'DELTA') {
           const existing = await getBarCache(symbol)
           if (existing && existing.length >= MIN_SCAN_BARS) {
             bars = await getHistorical15MinDelta(symbol, existing)
-            // Write updated bars back to Redis
-            await setBarCache(symbol, bars)
+            await setBarCache(symbol, bars).catch(() => {})
             deltaHits++
           } else {
-            // No Redis cache for this symbol — full stitch fallback
-            bars = await getHistorical15Min(symbol)
-            if (bars && bars.length > 0) {
-              await setBarCache(symbol, bars)
-            }
-            stitchFallbacks++
+            skippedBars++
+            return null
           }
         } else {
-          // Legacy mode: full stitching (no bootstrap done yet)
-          bars = await getHistorical15Min(symbol)
+          skippedBars++
+          return null
         }
 
         if (!bars || bars.length < MIN_SCAN_BARS) return null
@@ -143,11 +164,12 @@ export async function GET(request: NextRequest) {
 
     async function worker() {
       while (queue.length > 0) {
+        if (Date.now() - startTime > TIME_LIMIT_MS) break
         const symbol = queue.shift()
         if (!symbol) break
         const result = await processSymbol(symbol)
         if (result) results.push(result)
-        await new Promise(resolve => setTimeout(resolve, useRedisDeltas ? 20 : 50))
+        await new Promise(resolve => setTimeout(resolve, mode === 'REDIS_SCAN' ? 5 : 20))
       }
     }
 
@@ -175,30 +197,21 @@ export async function GET(request: NextRequest) {
     saveScanResults('ALL', results, summary)
 
     const duration = Date.now() - startTime
-    logger.info(`Cron ${context}: ${totalScanned} scanned (delta: ${deltaHits}, stitch: ${stitchFallbacks}), ${allStrongLongs.length} S.LONG, ${allStrongShorts.length} S.SHORT — ${(duration / 1000).toFixed(1)}s`, { module: 'cron' })
+    logger.info(`Cron ${context}: ${totalScanned} scanned (mode: ${mode}, redis: ${redisHits}, delta: ${deltaHits}, skipped: ${skippedBars}) — ${(duration / 1000).toFixed(1)}s`, { module: 'cron' })
 
     return NextResponse.json({
       status: 'completed',
-      mode: useRedisDeltas ? 'delta' : 'full_stitch',
+      mode,
       context,
       timestamp: new Date().toISOString(),
       duration: `${(duration / 1000).toFixed(1)}s`,
       totalScanned,
       totalErrors,
+      redisHits,
       deltaHits,
-      stitchFallbacks,
-      strongLongs: allStrongLongs.map(r => ({
-        symbol: r.symbol,
-        score: r.hermes.score,
-        price: r.hermes.price,
-        segment: r.segment,
-      })),
-      strongShorts: allStrongShorts.map(r => ({
-        symbol: r.symbol,
-        score: r.hermes.score,
-        price: r.hermes.price,
-        segment: r.segment,
-      })),
+      skippedBars,
+      strongLongs: allStrongLongs.length,
+      strongShorts: allStrongShorts.length,
     })
 
   } catch (error) {

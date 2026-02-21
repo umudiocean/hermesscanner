@@ -576,9 +576,37 @@ export default function AdminDashboard() {
                 )}
               </button>
 
+              {bootstrap.status === 'complete' && (
+                <button
+                  onClick={async () => {
+                    try {
+                      setBootstrap(prev => ({ ...prev, error: 'Force scan tetikleniyor...' }))
+                      const cronSecret = 'hermes-scanner-cron-2026'
+                      const res = await fetch('/api/cron?force=1', {
+                        headers: { 'Authorization': `Bearer ${cronSecret}` },
+                      })
+                      const data = await res.json()
+                      setBootstrap(prev => ({
+                        ...prev,
+                        error: data.status === 'completed'
+                          ? `Scan tamamlandi! ${data.totalScanned} hisse islendi (${data.duration})`
+                          : `Scan sonucu: ${data.status} — ${data.reason || ''}`
+                      }))
+                    } catch {
+                      setBootstrap(prev => ({ ...prev, error: 'Scan tetikleme hatasi' }))
+                    }
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-400 transition-all"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  Force Scan (Redis&apos;ten Skor Hesapla)
+                </button>
+              )}
+
               <p className="text-[9px] text-white/20 leading-relaxed">
-                Ilk calistirmada tum hisseler icin 3 yillik 15dk veri cekilir ve Redis&apos;e yazilir.
-                Saatler surebilir. Sonraki cron&apos;lar sadece delta (son 2 gun) gunceller.
+                Bootstrap: Tum hisseler icin 3 yillik 15dk veri Redis&apos;e yazilir.
+                Force Scan: Redis&apos;teki barlardan skor hesaplar (FMP cagirmaz).
+                Cron her 6 saatte otomatik calisiyor.
               </p>
             </div>
           </Card>

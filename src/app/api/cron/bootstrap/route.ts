@@ -150,6 +150,23 @@ export async function POST(request: NextRequest) {
   const elapsed = Math.round((Date.now() - startTime) / 1000)
   logger.info(`Bootstrap batch: ${processed} proc, ${batchErrors} err, ${completedSet.size} cached, ${skippedSet.size} skipped, ${elapsed}s${timedOut ? ' (time limit)' : ''}`, { module: 'bootstrap' })
 
+  // Auto-trigger first scan when bootstrap completes
+  if (allDone) {
+    try {
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : process.env.NEXTAUTH_URL || 'http://localhost:3000'
+      logger.info('Bootstrap complete — auto-triggering first cron scan', { module: 'bootstrap' })
+      fetch(`${baseUrl}/api/cron?force=1`, {
+        headers: {
+          'Authorization': `Bearer ${cronSecret}`,
+        },
+      }).catch(err => {
+        logger.warn(`Auto-scan trigger failed: ${err}`, { module: 'bootstrap' })
+      })
+    } catch { /* ignore */ }
+  }
+
   return NextResponse.json({
     status: allDone ? 'complete' : 'partial',
     processed,
