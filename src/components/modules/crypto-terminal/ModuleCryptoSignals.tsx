@@ -2,8 +2,8 @@
 
 // ═══════════════════════════════════════════════════════════════════
 // HERMES AI CRYPTO TERMINAL — AI SIGNALS Module
-// V377_R6.85_Z55 x Temel Capraz Sinyal | 6-Sinyal Konsensus
-// NASDAQ ModuleNasdaqSignals ile ayni tablo/liste formati
+// Coins API + HERMES AI Score x Sparkline Momentum Capraz Sinyal
+// 6-Sinyal Konsensus | /api/crypto-terminal/coins (hizli, cache'li)
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
@@ -35,27 +35,33 @@ interface SignalRow {
   vwapDistPct: number
 }
 
-interface ScanItem {
+interface CoinData {
   id: string
   symbol: string
   name: string
   image: string
-  current_price: number
-  price_change_24h: number
-  market_cap: number
-  market_cap_rank: number
-  total_volume: number
-  circulating_supply: number
-  total_supply: number | null
-  fully_diluted_valuation: number | null
-  ath_change_percentage: number
-  tradeAI: {
-    score: number
-    signal: string
-    signalType: string
-    zscore: number
-    vwapDistPct: number
-  }
+  price: number
+  change1h: number
+  change24h: number
+  change7d: number
+  change30d: number
+  marketCap: number
+  marketCapRank: number
+  volume24h: number
+  volumeToMcap: number
+  circulatingSupply: number
+  totalSupply: number | null
+  maxSupply: number | null
+  ath: number
+  athChangePercent: number
+  fdv: number | null
+  sparkline7d: number[]
+  score: {
+    total: number
+    level: string
+    confidence: number
+    degraded: boolean
+  } | null
 }
 
 const SIGNAL_ORDER: BestSignalType[] = [
@@ -74,11 +80,54 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
   confluence_sell: { label: 'CONFLUENCE SELL', bg: 'bg-fuchsia-600/15', text: 'text-fuchsia-400', border: 'border-fuchsia-600/40', badgeBg: 'bg-fuchsia-600/25' },
 }
 
-function sigmoid(value: number, center: number, steepness: number): number {
-  return 100 / (1 + Math.exp(-steepness * (value - center)))
+// Sparkline-based momentum score (0-100): low = oversold/bullish, high = overbought/bearish
+function computeSparklineMomentum(sparkline: number[]): { score: number; trend: string } {
+  if (!sparkline || sparkline.length < 24) return { score: 50, trend: 'NOTR' }
+
+  const n = sparkline.length
+  const last = sparkline[n - 1]
+  const first = sparkline[0]
+  if (!last || !first || first === 0) return { score: 50, trend: 'NOTR' }
+
+  const totalChange = (last - first) / first
+  const recentSlice = sparkline.slice(-24)
+  const recentFirst = recentSlice[0]
+  const recentChange = recentFirst > 0 ? (last - recentFirst) / recentFirst : 0
+
+  // Mean of sparkline
+  let sum = 0
+  for (const p of sparkline) sum += p
+  const mean = sum / n
+
+  // Simple Z-score: how far is current price from 7d mean, normalized by range
+  const min = Math.min(...sparkline)
+  const max = Math.max(...sparkline)
+  const range = max - min
+  const zLike = range > 0 ? (last - mean) / range : 0
+
+  // Score: 50 + contribution from 7d change + recent change + position in range
+  const raw = 50
+    + totalChange * 150   // 7d momentum
+    + recentChange * 100  // 24h momentum boost
+    + zLike * 30          // position in range
+
+  const score = Math.round(Math.max(0, Math.min(100, raw)))
+
+  let trend: string
+  if (score <= 20) trend = 'STRONG LONG'
+  else if (score <= 35) trend = 'LONG'
+  else if (score >= 90) trend = 'STRONG SHORT'
+  else if (score >= 70) trend = 'SHORT'
+  else trend = 'NOTR'
+
+  return { score, trend }
 }
 
-function matchSignal(teknikSignalType: string, fundamentalScore: number, riskLevel: string): BestSignalType | null {
+function matchSignal(
+  teknikSignalType: string,
+  fundamentalScore: number,
+  riskLevel: string,
+): BestSignalType | null {
   if (teknikSignalType === 'strong_long' || teknikSignalType === 'long') {
     const aiLevel = fundamentalScore >= 80 ? 'STRONG' : fundamentalScore >= 60 ? 'GOOD' : fundamentalScore >= 40 ? 'NEUTRAL' : 'WEAK'
     if ((aiLevel === 'STRONG' || aiLevel === 'GOOD') && riskLevel === 'LOW') return 'confluence_buy'
@@ -94,61 +143,92 @@ function matchSignal(teknikSignalType: string, fundamentalScore: number, riskLev
   return null
 }
 
-function generateSignalRows(scanItems: ScanItem[]): SignalRow[] {
+function generateSignalRows(coins: CoinData[]): SignalRow[] {
   const rows: SignalRow[] = []
 
-  for (const item of scanItems) {
-    const { tradeAI } = item
-    if (tradeAI.signalType === 'neutral') continue
+  for (const coin of coins) {
+    const { score: momentum, trend } = computeSparklineMomentum(coin.sparkline7d)
 
-    const mcapRank = item.market_cap_rank || 500
-    const supplyRatio = item.circulating_supply && item.total_supply
-      ? item.circulating_supply / item.total_supply : 0.5
-    const volRatio = item.total_volume && item.market_cap
-      ? item.total_volume / item.market_cap : 0
+    // Map momentum score to signal type
+    let teknikSignalType: string
+    if (momentum <= 20) teknikSignalType = 'strong_long'
+    else if (momentum <= 35) teknikSignalType = 'long'
+    else if (momentum >= 90) teknikSignalType = 'strong_short'
+    else if (momentum >= 70) teknikSignalType = 'short'
+    else teknikSignalType = 'neutral'
 
-    const fundamentalScore = Math.round(
-      sigmoid(Math.log10(item.market_cap || 1), 9, 0.8) * 0.3 +
-      (supplyRatio * 100) * 0.2 +
-      (volRatio > 0.1 ? 70 : volRatio > 0.05 ? 50 : 30) * 0.2 +
-      (mcapRank <= 20 ? 80 : mcapRank <= 100 ? 60 : mcapRank <= 300 ? 40 : 25) * 0.15 +
-      (supplyRatio > 0.7 ? 65 : supplyRatio > 0.4 ? 50 : 35) * 0.15
-    )
-    const fundamentalLevel = fundamentalScore >= 80 ? 'STRONG' : fundamentalScore >= 60 ? 'GOOD' : fundamentalScore >= 40 ? 'NEUTRAL' : fundamentalScore >= 20 ? 'WEAK' : 'BAD'
+    if (teknikSignalType === 'neutral') continue
+
+    // Use HERMES AI Score as fundamental score, fallback to market-cap based estimate
+    let fundamentalScore: number
+    if (coin.score && !coin.score.degraded) {
+      fundamentalScore = coin.score.total
+    } else {
+      const mcapRank = coin.marketCapRank || 500
+      const supplyRatio = coin.circulatingSupply && coin.totalSupply && coin.totalSupply > 0
+        ? coin.circulatingSupply / coin.totalSupply : 0.5
+      const volRatio = coin.volumeToMcap || 0
+
+      fundamentalScore = Math.round(
+        (mcapRank <= 10 ? 80 : mcapRank <= 50 ? 65 : mcapRank <= 200 ? 50 : mcapRank <= 500 ? 35 : 20) * 0.35 +
+        (supplyRatio > 0.7 ? 70 : supplyRatio > 0.4 ? 55 : 35) * 0.25 +
+        (volRatio > 0.1 ? 75 : volRatio > 0.05 ? 55 : 30) * 0.2 +
+        (Math.abs(coin.athChangePercent) > 50 ? 60 : 40) * 0.2
+      )
+    }
+
+    const fundamentalLevel = fundamentalScore >= 80 ? 'STRONG'
+      : fundamentalScore >= 60 ? 'GOOD'
+      : fundamentalScore >= 40 ? 'NEUTRAL'
+      : fundamentalScore >= 20 ? 'WEAK' : 'BAD'
+
+    const mcapRank = coin.marketCapRank || 500
     const riskLevel: SignalRow['riskLevel'] = mcapRank <= 20 ? 'LOW' : mcapRank <= 100 ? 'MODERATE' : 'HIGH'
 
-    const signalType = matchSignal(tradeAI.signalType, fundamentalScore, riskLevel)
+    const signalType = matchSignal(teknikSignalType, fundamentalScore, riskLevel)
     if (!signalType) continue
 
-    const confidence = Math.min(95, Math.round(40 + Math.abs(tradeAI.score - 50) * 0.6 + (fundamentalScore > 60 || fundamentalScore < 40 ? 15 : 0)))
+    const confidence = Math.min(95, Math.round(
+      40
+      + Math.abs(momentum - 50) * 0.4
+      + (fundamentalScore > 65 || fundamentalScore < 35 ? 12 : 0)
+      + (coin.score ? 10 : 0)
+      + (coin.sparkline7d.length >= 168 ? 5 : 0)
+    ))
 
-    const fdvMcap = item.fully_diluted_valuation && item.market_cap
-      ? item.fully_diluted_valuation / item.market_cap : 0
-    const athDist = Math.abs(item.ath_change_percentage ?? 0)
+    const fdvMcap = coin.fdv && coin.marketCap ? coin.fdv / coin.marketCap : 0
+    const athDist = Math.abs(coin.athChangePercent ?? 0)
+    const supplyRatio = coin.circulatingSupply && coin.totalSupply && coin.totalSupply > 0
+      ? coin.circulatingSupply / coin.totalSupply : 0.5
     let valuation: ValuationTag = 'NORMAL'
     if (fdvMcap > 0 && fdvMcap < 1.2 && athDist > 70 && supplyRatio > 0.7) valuation = 'COK UCUZ'
     else if (fdvMcap > 0 && fdvMcap < 1.5 && athDist > 50) valuation = 'UCUZ'
     else if (fdvMcap > 5 || athDist < 3) valuation = 'COK PAHALI'
     else if (fdvMcap > 3 || athDist < 10) valuation = 'PAHALI'
 
+    // Approximate VWAP dist from sparkline mean
+    const sparkMean = coin.sparkline7d.length > 0
+      ? coin.sparkline7d.reduce((a, b) => a + b, 0) / coin.sparkline7d.length : 0
+    const vwapDistPct = sparkMean > 0 ? ((coin.price - sparkMean) / sparkMean) * 100 : 0
+
     rows.push({
-      id: item.id,
-      symbol: item.symbol?.toUpperCase() || '',
-      name: item.name || '',
-      image: item.image || '',
+      id: coin.id,
+      symbol: coin.symbol?.toUpperCase() || '',
+      name: coin.name || '',
+      image: coin.image || '',
       signalType,
-      teknikSignal: tradeAI.signal,
-      teknikScore: tradeAI.score,
-      zscore: tradeAI.zscore,
+      teknikSignal: trend,
+      teknikScore: momentum,
+      zscore: +(vwapDistPct / 10).toFixed(2),
       fundamentalScore,
       fundamentalLevel,
       confidence,
       valuation,
       riskLevel,
-      price: item.current_price,
-      change24h: item.price_change_24h,
-      marketCap: item.market_cap,
-      vwapDistPct: tradeAI.vwapDistPct || 0,
+      price: coin.price,
+      change24h: coin.change24h || 0,
+      marketCap: coin.marketCap,
+      vwapDistPct: +vwapDistPct.toFixed(2),
     })
   }
 
@@ -176,14 +256,6 @@ function formatMcap(v: number): string {
   return `$${v.toLocaleString()}`
 }
 
-function getSignalLabel(signalType: string): string {
-  if (signalType === 'strong_long') return 'STRONG LONG'
-  if (signalType === 'long') return 'LONG'
-  if (signalType === 'short') return 'SHORT'
-  if (signalType === 'strong_short') return 'STRONG SHORT'
-  return 'NOTR'
-}
-
 export interface ModuleCryptoSignalsProps {
   onSelectCoin?: (coinId: string) => void
 }
@@ -195,6 +267,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set())
   const [sortField, setSortField] = useState<string>('signal')
   const [sortAsc, setSortAsc] = useState(true)
+  const [coinCount, setCoinCount] = useState(0)
 
   useEffect(() => {
     const stored = localStorage.getItem('hermes_crypto_watchlist')
@@ -222,16 +295,12 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
   const loadSignals = useCallback(async () => {
     setLoading(true)
     try {
-      const allResults: ScanItem[] = []
-      const responses = await Promise.allSettled(
-        [1, 2, 3, 4].map(p => fetch(`/api/crypto-terminal/scan?page=${p}`).then(r => r.ok ? r.json() : null))
-      )
-      for (const r of responses) {
-        if (r.status === 'fulfilled' && r.value?.results) {
-          allResults.push(...r.value.results)
-        }
-      }
-      setRows(generateSignalRows(allResults))
+      const res = await fetch('/api/crypto-terminal/coins?page=1')
+      if (!res.ok) throw new Error(`API error ${res.status}`)
+      const data = await res.json()
+      const coins: CoinData[] = data.coins || []
+      setCoinCount(coins.length)
+      setRows(generateSignalRows(coins))
     } catch {
       setRows([])
     } finally {
@@ -247,7 +316,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
   }
 
   const filtered = useMemo(() => {
-    let data = filter === 'all' ? rows : rows.filter(r => r.signalType === filter)
+    const data = filter === 'all' ? rows : rows.filter(r => r.signalType === filter)
     const sorted = [...data]
     sorted.sort((a, b) => {
       let va: number, vb: number
@@ -281,7 +350,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
   const sellCount = rows.filter(r => ['hermes_short', 'alpha_short', 'confluence_sell'].includes(r.signalType)).length
 
   const downloadCSV = () => {
-    const header = 'Symbol,Name,Sinyal,Teknik,Teknik Skor,Temel Skor,Guven%,Fiyatlama,Risk,Fiyat,Degisim%,MCap'
+    const header = 'Symbol,Name,Sinyal,Momentum,Momentum Skor,HERMES Skor,Guven%,Fiyatlama,Risk,Fiyat,Degisim%,MCap'
     const csvRows = filtered.map(r => {
       const cfg = SIGNAL_CONFIG[r.signalType]
       return [
@@ -327,7 +396,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white">CRYPTO AI <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">SIGNALS</span></h2>
-            <p className="text-[10px] text-white/30">V377_R6.85_Z55 x Temel Capraz Sinyal | 6-Sinyal Konsensus</p>
+            <p className="text-[10px] text-white/30">HERMES AI Skor x 7g Momentum Capraz Sinyal | {coinCount > 0 ? `${coinCount} coin` : ''}</p>
           </div>
           <div className="flex items-center gap-2 ml-3">
             <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400">{buyCount} ALIS</span>
@@ -388,9 +457,9 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                 <th className="w-8 px-2 py-2"></th>
                 <SortHeader field="symbol">COIN</SortHeader>
                 <SortHeader field="signal">SINYAL</SortHeader>
-                <SortHeader field="teknikScore">TEKNIK</SortHeader>
-                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/35 font-semibold whitespace-nowrap">TEKNIK SKOR</th>
-                <SortHeader field="aiScore">TEMEL</SortHeader>
+                <SortHeader field="teknikScore">MOMENTUM</SortHeader>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/35 font-semibold whitespace-nowrap">SKOR</th>
+                <SortHeader field="aiScore">HERMES AI</SortHeader>
                 <SortHeader field="confidence">GUVEN</SortHeader>
                 <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/35 font-semibold whitespace-nowrap">FIYATLAMA</th>
                 <SortHeader field="price">FIYAT</SortHeader>
@@ -406,7 +475,6 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
               ))}
               {!loading && filtered.map(r => {
                 const cfg = SIGNAL_CONFIG[r.signalType]
-                const isLong = ['confluence_buy', 'alpha_long', 'hermes_long'].includes(r.signalType)
                 return (
                   <tr
                     key={r.id}
@@ -433,11 +501,11 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                     <td className="px-2 py-2">
                       <span className={`text-[10px] font-semibold ${
                         r.teknikScore <= 20 ? 'text-amber-400' :
-                        r.teknikScore <= 30 ? 'text-emerald-400' :
+                        r.teknikScore <= 35 ? 'text-emerald-400' :
                         r.teknikScore >= 90 ? 'text-red-500' :
                         r.teknikScore >= 70 ? 'text-red-400' : 'text-white/40'
                       }`}>
-                        {getSignalLabel(r.teknikSignal === 'STRONG LONG' ? 'strong_long' : r.teknikSignal === 'LONG' ? 'long' : r.teknikSignal === 'SHORT' ? 'short' : r.teknikSignal === 'STRONG SHORT' ? 'strong_short' : 'neutral')}
+                        {r.teknikSignal}
                       </span>
                     </td>
                     <td className="px-2 py-2 text-right">
@@ -490,7 +558,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
         )}
         <div className="px-4 py-2 border-t border-white/[0.04] flex justify-between">
           <span className="text-[10px] text-white/20">{filtered.length} sinyal gosteriliyor / {rows.length} toplam</span>
-          <span className="text-[10px] text-white/15">V377_R6.85_Z55 x Temel Capraz | L30_S90</span>
+          <span className="text-[10px] text-white/15">HERMES AI Score x 7d Sparkline Momentum | L30_S90</span>
         </div>
       </div>
     </div>

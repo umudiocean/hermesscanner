@@ -141,6 +141,14 @@ export default function ModuleCryptoTerminal() {
             <span className={`transition-transform duration-200 ${activeModule === mod.id ? 'scale-110' : 'group-hover:scale-110'}`}>{mod.icon}</span>
             <span className="hidden sm:inline">{mod.label}</span>
             <span className="sm:hidden">{mod.shortLabel}</span>
+            {(mod.id === 'signals' || mod.id === 'index') && (
+              <span className="relative ml-1 text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/15 text-amber-300/90 border border-amber-400/30 font-bold tracking-wider animate-pulse group/premium cursor-default">
+                PREMIUM
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] px-2 py-1 rounded-lg bg-[#1a1a2e]/95 text-amber-300/80 border border-amber-400/20 opacity-0 group-hover/premium:opacity-100 transition-opacity duration-300 pointer-events-none backdrop-blur-sm shadow-lg z-50">
+                  Ileride Hermes Coin holder&apos;larina ozel
+                </span>
+              </span>
+            )}
             {!mod.active && <Lock size={10} className="text-white/15 ml-0.5" />}
           </button>
         ))}
@@ -283,7 +291,7 @@ function TerminalContent({
           {activeTab === 'exchanges' && <TabExchanges />}
           {activeTab === 'onchain' && <TabOnchain onSelectCoin={onSelectCoin} />}
           {activeTab === 'treasury' && <TabTreasury />}
-          {activeTab === 'compare' && <TabCompare coinIds={compareCoins} onRemoveCoin={onRemoveFromCompare} onSelectCoin={onSelectCoin} />}
+          {activeTab === 'compare' && <TabCompare coinIds={compareCoins} onRemoveCoin={onRemoveFromCompare} onSelectCoin={onAddToCompare} />}
           {activeTab === 'correlation' && <TabCorrelation onSelectCoin={onSelectCoin} />}
         </Suspense>
       </ErrorBoundary>

@@ -209,7 +209,7 @@ function TrendingCoins({ items }: { items: Array<{ item: { id: string; symbol: s
 }
 
 // ─── Ticker Tape ───
-function TickerTape({ items }: { items: Array<{ symbol: string; change: number }> }) {
+function TickerTape({ items }: { items: Array<{ symbol: string; price: number; change: number }> }) {
   if (items.length === 0) return null
   const doubled = [...items, ...items]
   return (
@@ -220,6 +220,7 @@ function TickerTape({ items }: { items: Array<{ symbol: string; change: number }
         {doubled.map((item, i) => (
           <span key={`${item.symbol}-${i}`} className="flex items-center gap-1.5 text-[10px]">
             <span className="font-bold text-white/50 uppercase">{item.symbol}</span>
+            <span className="text-white/35 tabular-nums font-mono">{formatPrice(item.price)}</span>
             <span className={`font-semibold tabular-nums ${item.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               {item.change >= 0 ? '▲' : '▼'}{Math.abs(item.change).toFixed(2)}%
             </span>
@@ -361,7 +362,7 @@ export default function ModuleCryptoIndex() {
 
     const topGainers: CoinData[] = (marketData.topGainers || [...coins].sort((a, b) => (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0)).slice(0, 5)) as CoinData[]
     const topLosers: CoinData[] = (marketData.topLosers || [...coins].sort((a, b) => (a.price_change_percentage_24h || 0) - (b.price_change_percentage_24h || 0)).slice(0, 5)) as CoinData[]
-    const tickerItems = coins.slice(0, 30).map(c => ({ symbol: c.symbol, change: c.price_change_percentage_24h || 0 }))
+    const tickerItems = coins.slice(0, 30).map(c => ({ symbol: c.symbol, price: c.current_price || 0, change: c.price_change_percentage_24h || 0 }))
     const trending = marketData.trending?.coins || []
 
     return {

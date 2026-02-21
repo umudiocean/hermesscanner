@@ -808,6 +808,14 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                   <span className="text-xs sm:text-sm">{mod.icon}</span>
                   <span className="hidden sm:inline">{mod.label}</span>
                   <span className="sm:hidden">{mod.id === 'nasdaq-terminal' ? 'TERMINAL' : mod.id === 'nasdaq-trade' ? 'TRADE' : mod.id === 'nasdaq-signals' ? 'SIGNALS' : mod.id === 'nasdaq-watchlist' ? 'WATCH' : 'INDEX'}</span>
+                  {(mod.id === 'nasdaq-signals' || mod.id === 'hermes-index') && (
+                    <span className="relative ml-1 text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/15 text-amber-300/90 border border-amber-400/30 font-bold tracking-wider animate-pulse group/premium cursor-default">
+                      PREMIUM
+                      <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] px-2 py-1 rounded-lg bg-[#1a1a2e]/95 text-amber-300/80 border border-amber-400/20 opacity-0 group-hover/premium:opacity-100 transition-opacity duration-300 pointer-events-none backdrop-blur-sm shadow-lg z-50">
+                        Ileride Hermes Coin holder&apos;larina ozel
+                      </span>
+                    </span>
+                  )}
                   {activeModule === mod.id && (
                     <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-gradient-to-r from-gold-400/80 via-gold-300 to-gold-400/80 rounded-full" />
                   )}

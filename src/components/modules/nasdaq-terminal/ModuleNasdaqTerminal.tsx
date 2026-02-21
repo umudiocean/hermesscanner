@@ -387,7 +387,7 @@ export default function ModuleNasdaqTerminal() {
             {activeTab === 'ownership' && <TabOwnership symbol={selectedSymbol} />}
             {activeTab === 'analyst' && <TabAnalyst symbol={selectedSymbol} />}
             {activeTab === 'compare' && (
-              <TabCompare symbols={compareSymbols} onRemoveSymbol={handleRemoveFromCompare} onSelectSymbol={handleSelectSymbol} />
+              <TabCompare symbols={compareSymbols} onRemoveSymbol={handleRemoveFromCompare} onSelectSymbol={handleAddToCompare} />
             )}
           </Suspense>
         </ErrorBoundary>

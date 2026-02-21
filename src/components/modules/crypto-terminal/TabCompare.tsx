@@ -41,37 +41,42 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
 
   useEffect(() => {
     if (coinIds.length === 0) return
+    let cancelled = false
+
     async function loadAll() {
+      const idsToFetch = coinIds.filter(id => !coinsData.has(id))
+      if (idsToFetch.length === 0) return
+
       setLoading(true)
-      setCoinsData(prev => {
-        const idsToFetch = coinIds.filter(id => !prev.has(id))
-        if (idsToFetch.length === 0) { setLoading(false); return prev }
-        Promise.allSettled(
+      try {
+        const results = await Promise.allSettled(
           idsToFetch.map(async id => {
             const res = await fetch(`/api/crypto-terminal/coin/${id}`)
             if (res.ok) {
               const data = await res.json()
-              return { id, detail: data.detail, score: data.score }
+              return { id, detail: data.detail, score: data.score } as { id: string; detail: CoinDetail; score: CryptoScore | null }
             }
             return null
           })
-        ).then(results => {
-          setCoinsData(current => {
-            const updated = new Map(current)
-            for (const r of results) {
-              if (r.status === 'fulfilled' && r.value) {
-                updated.set(r.value.id, { detail: r.value.detail, score: r.value.score })
-              }
+        )
+        if (cancelled) return
+        setCoinsData(current => {
+          const updated = new Map(current)
+          for (const r of results) {
+            if (r.status === 'fulfilled' && r.value) {
+              updated.set(r.value.id, { detail: r.value.detail, score: r.value.score })
             }
-            return updated
-          })
-          setLoading(false)
+          }
+          return updated
         })
-        return prev
-      })
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
     loadAll()
-  }, [coinIds])
+
+    return () => { cancelled = true }
+  }, [coinIds]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (coinIds.length === 0) {
     return (
