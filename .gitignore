@@ -28,6 +28,8 @@ yarn-error.log*
 
 # local data cache (historical bars, scan results)
 /data/
+!/data/symbols.json
+!/data/sectors.json
 
 # temp/debug files
 *.raw.txt
