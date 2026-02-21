@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
-import { ScanResult, ScanSummary, Scan200DResult, Scan200DSummary } from '@/lib/types'
-import { getWatchlist, getSettings, setCachedResults, getCachedResults, setCached200DResults, getCached200DResults } from '@/lib/store'
+import { ScanResult, ScanSummary } from '@/lib/types'
+import { getWatchlist, getSettings, setCachedResults, getCachedResults } from '@/lib/store'
 
 // ═══════════════════════════════════════════════════════════════════
 // HERMES Scanner - Main Layout with Module Navigation
 // ═══════════════════════════════════════════════════════════════════
 
-export type ModuleId = '200week' | '200day' | 'bestsignals' | 'trend' | 'btctrend' | 'watchlist' | 'heatmap' | 'sectors' | 'backtest'
+export type ModuleId = 'nasdaq-terminal' | 'nasdaq-trade' | 'nasdaq-signals' | 'nasdaq-watchlist' | 'hermes-index'
 
 interface Module {
   id: ModuleId
@@ -18,20 +18,26 @@ interface Module {
 }
 
 const MODULES: Module[] = [
-  { id: '200week', label: '52 HAFTA', icon: '📊', ready: true },
-  { id: '200day', label: '5 GÜN', icon: '🟠', ready: true },
-  { id: 'bestsignals', label: 'BEST SIGNALS', icon: '⚡', ready: true },
-  { id: 'trend', label: 'TREND', icon: '📉', ready: false },
-  { id: 'btctrend', label: 'BTC Trend', icon: '₿', ready: true },
-  { id: 'watchlist', label: 'Watchlist', icon: '⭐', ready: true },
-  { id: 'heatmap', label: 'Heatmap', icon: '🗺️', ready: true },
-  { id: 'sectors', label: 'Sektörler', icon: '🏭', ready: true },
-  { id: 'backtest', label: 'Backtest', icon: '🔬', ready: false },
+  { id: 'nasdaq-terminal', label: 'NASDAQ TERMINAL AI', icon: '🧠', ready: true },
+  { id: 'nasdaq-trade', label: 'TRADE AI', icon: '📊', ready: true },
+  { id: 'nasdaq-signals', label: 'AI SIGNALS', icon: '⚡', ready: true },
+  { id: 'nasdaq-watchlist', label: 'Watchlist', icon: '⭐', ready: true },
+  { id: 'hermes-index', label: 'HERMES AI INDEX', icon: '💎', ready: true },
 ]
 
 // ═══════════════════════════════════════════════════════════════════
 // CONTEXT
 // ═══════════════════════════════════════════════════════════════════
+
+export interface FmpLookupItem {
+  confidence: number
+  valuationScore: number
+  valuationLabel: string
+  /** Terminal AI signal: STRONG | GOOD | NEUTRAL | WEAK | BAD */
+  signal?: string
+  /** Risk score 0-100 (for AI Signal confluence logic) */
+  riskScore?: number
+}
 
 interface ScanContextType {
   results: ScanResult[]
@@ -42,51 +48,65 @@ interface ScanContextType {
   lastRefresh: Date | null
   watchlist: string[]
   sectorMap: Map<string, string>
+  fmpStocksMap: Map<string, FmpLookupItem>
   runScan: () => Promise<void>
   toggleWatchlistItem: (symbol: string) => void
   isInWatchlist: (symbol: string) => boolean
+  marketRegime: 'RISK_ON' | 'CAUTION' | 'RISK_OFF' | 'CRISIS'
+  vixValue: number | null
+  signalsPaused: boolean
+  pauseReason: string | null
+  positionSizeMultiplier: number
 }
 
 const ScanContext = createContext<ScanContextType | null>(null)
 
-export function useScanContext() {
+export function useNasdaqTradeContext() {
   const ctx = useContext(ScanContext)
-  if (!ctx) throw new Error('useScanContext must be used within Layout')
+  if (!ctx) throw new Error('useNasdaqTradeContext must be used within Layout')
   return ctx
 }
 
+// Backward compat alias
+export const useScanContext = useNasdaqTradeContext
+
 // ═══════════════════════════════════════════════════════════════════
-// 200D CONTEXT (15 Dakika Modülü)
+// SCROLL TO TOP BUTTON — global, appears after 400px scroll
 // ═══════════════════════════════════════════════════════════════════
 
-interface Scan200DContextType {
-  results: Scan200DResult[]
-  summary: Scan200DSummary | null
-  loading: boolean
-  error: string | null
-  progress: string
-  lastRefresh: Date | null
-  watchlist: string[]
-  sectorMap: Map<string, string>
-  runScan: () => Promise<void>
-  toggleWatchlistItem: (symbol: string) => void
-  isInWatchlist: (symbol: string) => boolean
-}
+function ScrollToTopButton() {
+  const [visible, setVisible] = useState(false)
 
-const Scan200DContext = createContext<Scan200DContextType | null>(null)
+  useEffect(() => {
+    function onScroll() {
+      setVisible(window.scrollY > 400)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
-export function useScan200DContext() {
-  const ctx = useContext(Scan200DContext)
-  if (!ctx) throw new Error('useScan200DContext must be used within Layout')
-  return ctx
+  if (!visible) return null
+
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-[#0d0d0d] shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 hover:scale-110 transition-all duration-300 flex items-center justify-center group"
+      title="Basa Don"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-y-0.5 transition-transform">
+        <path d="M18 15l-6-6-6 6" />
+        <path d="M18 9l-6-6-6 6" />
+      </svg>
+    </button>
+  )
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // LAYOUT COMPONENT
 // ═══════════════════════════════════════════════════════════════════
 
-export default function Layout({ children }: { children: (activeModule: ModuleId) => React.ReactNode }) {
-  const [activeModule, setActiveModule] = useState<ModuleId>('200week')
+export default function Layout({ children, onBack }: { children: (activeModule: ModuleId) => React.ReactNode; onBack?: () => void }) {
+  const [activeModule, setActiveModule] = useState<ModuleId>('nasdaq-terminal')
   const [results, setResults] = useState<ScanResult[]>([])
   const [summary, setSummary] = useState<ScanSummary | null>(null)
   const [loading, setLoading] = useState(false)
@@ -95,14 +115,7 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
   const [sectorMap, setSectorMap] = useState<Map<string, string>>(new Map())
-
-  // 200D Module state
-  const [results200d, setResults200d] = useState<Scan200DResult[]>([])
-  const [summary200d, setSummary200d] = useState<Scan200DSummary | null>(null)
-  const [loading200d, setLoading200d] = useState(false)
-  const [error200d, setError200d] = useState<string | null>(null)
-  const [progress200d, setProgress200d] = useState('')
-  const [lastRefresh200d, setLastRefresh200d] = useState<Date | null>(null)
+  const [fmpStocksMap, setFmpStocksMap] = useState<Map<string, FmpLookupItem>>(new Map())
 
   // Market status & auto-refresh state
   const [marketOpen, setMarketOpen] = useState(false)
@@ -116,8 +129,14 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
   const marketCheckTimerRef = useRef<NodeJS.Timeout | null>(null)
   const wasMarketOpenRef = useRef(false)
   const isRefreshingRef = useRef(false)
+
+  // Market Risk / Regime state
+  const [marketRegime, setMarketRegime] = useState<'RISK_ON' | 'CAUTION' | 'RISK_OFF' | 'CRISIS'>('RISK_ON')
+  const [vixValue, setVixValue] = useState<number | null>(null)
+  const [signalsPaused, setSignalsPaused] = useState(false)
+  const [pauseReason, setPauseReason] = useState<string | null>(null)
+  const [positionSizeMultiplier, setPositionSizeMultiplier] = useState(1.0)
   const resultsRef = useRef<ScanResult[]>([])
-  const results200dRef = useRef<Scan200DResult[]>([])
   const lastAutoRefreshRef = useRef<Date | null>(null)
   const runIncrementalRefreshRef = useRef<() => Promise<void>>(() => Promise.resolve())
 
@@ -126,6 +145,51 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
     setWatchlist(getWatchlist())
     const settings = getSettings()
     setAutoRefreshEnabled(settings.autoRefresh)
+  }, [])
+
+  // Market Risk / Regime fetch (every 5 min)
+  useEffect(() => {
+    let cancelled = false
+    async function fetchRisk() {
+      try {
+        const res = await fetch('/api/risk')
+        if (!res.ok || cancelled) return
+        const data = await res.json()
+        setMarketRegime(data.regime || 'RISK_ON')
+        setVixValue(data.vix ?? null)
+        setSignalsPaused(!!data.signalsPaused)
+        setPauseReason(data.pauseReason || null)
+        setPositionSizeMultiplier(data.positionSizeMultiplier ?? 1.0)
+      } catch { /* silent — risk data is advisory */ }
+    }
+    fetchRisk()
+    const iv = setInterval(fetchRisk, 5 * 60 * 1000)
+    return () => { cancelled = true; clearInterval(iv) }
+  }, [])
+
+  // FMP stocks (GUVEN/FIYATLAMA) — NASDAQ Terminal Hisseler ile ayni kaynak
+  useEffect(() => {
+    let cancelled = false
+    async function fetchFmpStocks() {
+      try {
+        const res = await fetch('/api/fmp-terminal/stocks')
+        if (!res.ok || cancelled) return
+        const data = await res.json()
+        const map = new Map<string, FmpLookupItem>()
+        for (const s of (data.stocks || [])) {
+          map.set(s.symbol, {
+            confidence: s.confidence || 0,
+            valuationScore: s.valuationScore || 0,
+            valuationLabel: s.valuationLabel || '',
+            signal: s.signal || 'NEUTRAL',
+            riskScore: s.riskScore ?? 50,
+          })
+        }
+        if (!cancelled) setFmpStocksMap(map)
+      } catch { /* silent */ }
+    }
+    fetchFmpStocks()
+    return () => { cancelled = true }
   }, [])
 
   // Load sectors when results change
@@ -195,39 +259,78 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
     setProgress('Hazırlanıyor...')
 
     try {
-      const segments = ['MEGA', 'LARGE', 'MID', 'SMALL', 'MICRO'] as const
       const allResults: ScanResult[] = []
       const CHUNK_SIZE = 100
 
-      for (const seg of segments) {
-        const symRes = await fetch(`/api/symbols?segment=${seg}`)
-        if (!symRes.ok) throw new Error(`Failed to get symbols for ${seg}`)
-        const symData = await symRes.json()
-        const symbols: string[] = symData.symbols
+      // Tum sembolleri tek seferde al
+      const symRes = await fetch(`/api/symbols?segment=ALL`)
+      if (!symRes.ok) throw new Error('Failed to get symbols')
+      const symData = await symRes.json()
+      const symbols: string[] = symData.symbols
 
-        if (symbols.length === 0) continue
+      if (symbols.length === 0) throw new Error('No symbols to scan')
 
-        if (symbols.length <= CHUNK_SIZE) {
-          setProgress(`${seg} taranıyor...`)
-          const res = await fetch(`/api/scan?segment=${seg}`)
-          if (!res.ok) throw new Error(`Scan failed for ${seg}`)
-          const data = await res.json()
-          if (data.allResults) allResults.push(...data.allResults)
-          setResults([...allResults])
-        } else {
-          for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
-            const chunk = symbols.slice(i, i + CHUNK_SIZE)
-            const chunkNum = Math.floor(i / CHUNK_SIZE) + 1
-            const totalChunks = Math.ceil(symbols.length / CHUNK_SIZE)
+      // Progressive scan: chunk'lar halinde, her chunk streaming ile taranir
+      for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
+        const chunk = symbols.slice(i, i + CHUNK_SIZE)
+        const chunkNum = Math.floor(i / CHUNK_SIZE) + 1
+        const totalChunks = Math.ceil(symbols.length / CHUNK_SIZE)
 
-            setProgress(`${seg} ${chunkNum}/${totalChunks}`)
+        setProgress(`Scanning ${chunkNum}/${totalChunks}`)
 
-            const res = await fetch(`/api/scan?segment=${seg}&symbols=${chunk.join(',')}`)
-            if (res.ok) {
-              const data = await res.json()
+        try {
+          const res = await fetch(`/api/scan?segment=ALL&mode=stream&symbols=${chunk.join(',')}`)
+          if (!res.ok || !res.body) {
+            // Fallback: classic JSON
+            const fallback = await fetch(`/api/scan?segment=ALL&symbols=${chunk.join(',')}`)
+            if (fallback.ok) {
+              const data = await fallback.json()
               if (data.allResults) allResults.push(...data.allResults)
               setResults([...allResults])
             }
+            continue
+          }
+
+          // Parse NDJSON stream
+          const reader = res.body.getReader()
+          const decoder = new TextDecoder()
+          let buffer = ''
+
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() || ''
+
+            for (const line of lines) {
+              if (!line.trim()) continue
+              try {
+                const msg = JSON.parse(line)
+                if (msg.type === 'result' && msg.data) {
+                  allResults.push(msg.data)
+                  // Progressive update: every 5 results
+                  if (allResults.length % 5 === 0) {
+                    setResults([...allResults])
+                  }
+                } else if (msg.type === 'progress') {
+                  const pct = msg.total > 0 ? Math.round((msg.scanned / msg.total) * 100) : 0
+                  setProgress(`Scanning ${chunkNum}/${totalChunks} (${pct}%)`)
+                }
+              } catch { /* skip malformed lines */ }
+            }
+          }
+
+          // Final update for this chunk
+          setResults([...allResults])
+        } catch {
+          // Network error — try classic fallback
+          const fallback = await fetch(`/api/scan?segment=ALL&symbols=${chunk.join(',')}`)
+          if (fallback.ok) {
+            const data = await fallback.json()
+            if (data.allResults) allResults.push(...data.allResults)
+            setResults([...allResults])
           }
         }
       }
@@ -281,108 +384,12 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
     }
   }, [])
 
-  // 200D Scan function
-  const runScan200D = useCallback(async () => {
-    setLoading200d(true)
-    setError200d(null)
-    setProgress200d('Hazırlanıyor (200D)...')
-
-    try {
-      const segments = ['MEGA', 'LARGE', 'MID', 'SMALL', 'MICRO'] as const
-      const allResults: Scan200DResult[] = []
-      const CHUNK_SIZE = 100
-
-      for (const seg of segments) {
-        const symRes = await fetch(`/api/symbols?segment=${seg}`)
-        if (!symRes.ok) throw new Error(`Failed to get symbols for ${seg}`)
-        const symData = await symRes.json()
-        const symbols: string[] = symData.symbols
-
-        if (symbols.length === 0) continue
-
-        if (symbols.length <= CHUNK_SIZE) {
-          setProgress200d(`${seg} taranıyor (200D)...`)
-          const res = await fetch(`/api/scan-200d?segment=${seg}`)
-          if (!res.ok) throw new Error(`200D Scan failed for ${seg}`)
-          const data = await res.json()
-          if (data.allResults) allResults.push(...data.allResults)
-          setResults200d([...allResults])
-        } else {
-          for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
-            const chunk = symbols.slice(i, i + CHUNK_SIZE)
-            const chunkNum = Math.floor(i / CHUNK_SIZE) + 1
-            const totalChunks = Math.ceil(symbols.length / CHUNK_SIZE)
-
-            setProgress200d(`${seg} ${chunkNum}/${totalChunks} (200D)`)
-
-            const res = await fetch(`/api/scan-200d?segment=${seg}&symbols=${chunk.join(',')}`)
-            if (res.ok) {
-              const data = await res.json()
-              if (data.allResults) allResults.push(...data.allResults)
-              setResults200d([...allResults])
-            }
-          }
-        }
-      }
-
-      const strongLongs = allResults.filter(r => r.hermes.signalType === 'strong_long')
-      const strongShorts = allResults.filter(r => r.hermes.signalType === 'strong_short')
-
-      const newSummary: Scan200DSummary = {
-        scanId: `200d-scan-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        duration: 0,
-        totalScanned: allResults.length,
-        strongLongs,
-        strongShorts,
-        longs: allResults.filter(r => r.hermes.signalType === 'long'),
-        shorts: allResults.filter(r => r.hermes.signalType === 'short'),
-        neutrals: allResults.filter(r => r.hermes.signalType === 'neutral').length,
-        errors: 0,
-        segment: 'ALL',
-      }
-
-      setResults200d(allResults)
-      setSummary200d(newSummary)
-      setCached200DResults(allResults)
-      const now = new Date()
-      setLastRefresh200d(now)
-      setLastAutoRefresh(now) // Auto-refresh zamanlayıcısını senkronize et
-      setLoading200d(false)
-      setProgress200d('')
-
-      // Disk'e kaydet
-      try {
-        await fetch('/api/scan-200d/latest', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            results: allResults,
-            scanId: newSummary.scanId,
-          }),
-        })
-        console.log(`[Layout] Saved ${allResults.length} 200D results to disk cache`)
-      } catch (saveErr) {
-        console.error('[Layout] Failed to save 200D results to disk:', saveErr)
-      }
-
-    } catch (err) {
-      setError200d((err as Error).message)
-      setLoading200d(false)
-      setProgress200d('')
-    }
-  }, [])
-
-  // Combined scan handler - routes to active module
+  // Scan handler
   const handleScan = useCallback(async () => {
-    if (activeModule === '200day') {
-      await runScan200D()
-    } else {
-      await runScan()
-    }
-  }, [activeModule, runScan, runScan200D])
+    await runScan()
+  }, [runScan])
 
-  // Load cached results on mount (200W)
+  // Load cached results on mount (52W)
   useEffect(() => {
     async function loadInitial() {
       // Check memory cache first
@@ -434,57 +441,9 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
     loadInitial()
   }, [runScan])
 
-  // Load cached 200D results on mount
-  useEffect(() => {
-    async function loadInitial200D() {
-      // Check memory cache first
-      const cached = getCached200DResults()
-      if (cached.results.length > 0) {
-        setResults200d(cached.results)
-        const ts = new Date(cached.timestamp)
-        setLastRefresh200d(ts)
-        setLastAutoRefresh(prev => prev && prev > ts ? prev : ts) // En son olan zaman damgasını koru
-        return
-      }
-
-      // Try disk cache
-      try {
-        const res = await fetch('/api/scan-200d/latest')
-        if (res.ok) {
-          const data = await res.json()
-          if (data.results && data.results.length > 0) {
-            setResults200d(data.results)
-            setCached200DResults(data.results)
-            const ts = new Date(data.timestamp || Date.now())
-            setLastRefresh200d(ts)
-            setLastAutoRefresh(prev => prev && prev > ts ? prev : ts) // En son olan zaman damgasını koru
-
-            const strongLongs = data.results.filter((r: Scan200DResult) => r.hermes.signalType === 'strong_long')
-            const strongShorts = data.results.filter((r: Scan200DResult) => r.hermes.signalType === 'strong_short')
-            setSummary200d({
-              scanId: data.scanId || 'cached-200d',
-              timestamp: data.timestamp || new Date().toISOString(),
-              duration: 0,
-              totalScanned: data.results.length,
-              strongLongs,
-              strongShorts,
-              longs: data.results.filter((r: Scan200DResult) => r.hermes.signalType === 'long'),
-              shorts: data.results.filter((r: Scan200DResult) => r.hermes.signalType === 'short'),
-              neutrals: data.results.filter((r: Scan200DResult) => r.hermes.signalType === 'neutral').length,
-              errors: 0,
-              segment: 'ALL',
-            })
-          }
-        }
-      } catch { /* ignore */ }
-    }
-
-    loadInitial200D()
-  }, [])
 
   // Keep refs in sync with state (for stable useEffect)
   useEffect(() => { resultsRef.current = results }, [results])
-  useEffect(() => { results200dRef.current = results200d }, [results200d])
   useEffect(() => { lastAutoRefreshRef.current = lastAutoRefresh }, [lastAutoRefresh])
 
   // ═══════════════════════════════════════════════════════════════════
@@ -498,9 +457,9 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
     console.log('[AutoRefresh] Starting incremental refresh at', new Date().toLocaleTimeString())
 
     try {
-      // 200W refresh (eğer sonuç varsa)
+      // 52W refresh (eğer sonuç varsa)
       if (results.length > 0) {
-        setProgress('Yenileniyor (200W)...')
+        setProgress('Yenileniyor (52W)...')
         const BATCH = 500
         const allSymbols = results.map(r => r.symbol)
         const updatedResults: ScanResult[] = []
@@ -514,7 +473,7 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
               if (data.results) updatedResults.push(...data.results)
             }
           } catch (err) {
-            console.error('[AutoRefresh] 200W batch error:', err)
+            console.error('[AutoRefresh] 52W batch error:', err)
           }
         }
 
@@ -554,79 +513,21 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
         }
       }
 
-      // 200D refresh (eğer sonuç varsa)
-      if (results200d.length > 0) {
-        setProgress200d('Yenileniyor (200D)...')
-        const BATCH = 200 // 15dk veri daha ağır, küçük batch
-        const allSymbols = results200d.map(r => r.symbol)
-        const updatedResults: Scan200DResult[] = []
-
-        for (let i = 0; i < allSymbols.length; i += BATCH) {
-          const batch = allSymbols.slice(i, i + BATCH)
-          try {
-            const res = await fetch(`/api/refresh-200d?symbols=${batch.join(',')}`)
-            if (res.ok) {
-              const data = await res.json()
-              if (data.results) updatedResults.push(...data.results)
-            }
-          } catch (err) {
-            console.error('[AutoRefresh] 200D batch error:', err)
-          }
-        }
-
-        if (updatedResults.length > 0) {
-          const updateMap = new Map(updatedResults.map(r => [r.symbol, r]))
-          const merged = results200d.map(r => updateMap.get(r.symbol) || r)
-          setResults200d(merged)
-          setCached200DResults(merged)
-          setLastRefresh200d(new Date())
-
-          // Disk'e kaydet
-          try {
-            await fetch('/api/scan-200d/latest', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ results: merged, scanId: `200d-refresh-${Date.now()}` }),
-            })
-          } catch { /* ignore */ }
-
-          // Summary güncelle
-          const strongLongs = merged.filter(r => r.hermes.signalType === 'strong_long')
-          const strongShorts = merged.filter(r => r.hermes.signalType === 'strong_short')
-          setSummary200d({
-            scanId: `200d-refresh-${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            duration: 0,
-            totalScanned: merged.length,
-            strongLongs,
-            strongShorts,
-            longs: merged.filter(r => r.hermes.signalType === 'long'),
-            shorts: merged.filter(r => r.hermes.signalType === 'short'),
-            neutrals: merged.filter(r => r.hermes.signalType === 'neutral').length,
-            errors: 0,
-            segment: 'ALL',
-          })
-        }
-      }
-
       const now = new Date()
       setLastAutoRefresh(now)
       setLastRefresh(now)
-      setLastRefresh200d(now)
       setProgress('')
-      setProgress200d('')
       console.log('[AutoRefresh] Completed at', now.toLocaleTimeString())
     } catch (err) {
       console.error('[AutoRefresh] Error:', err)
       // Hata olsa bile lastAutoRefresh'i güncelle ki sonsuz retry loop olmasın
       setLastAutoRefresh(new Date())
       setProgress('')
-      setProgress200d('')
     } finally {
       isRefreshingRef.current = false
       setIsAutoRefreshing(false)
     }
-  }, [results, results200d])
+  }, [results])
 
   // Keep ref in sync
   useEffect(() => { runIncrementalRefreshRef.current = runIncrementalRefresh }, [runIncrementalRefresh])
@@ -658,19 +559,19 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
           const minsLeft = 960 - timeInMinutes
           const h = Math.floor(minsLeft / 60)
           const m = minsLeft % 60
-          setMarketLabel('Seans Acik')
-          setMarketNextEvent(`Kapanisa ${h}s ${m}dk`)
+          setMarketLabel('MARKET OPEN')
+          setMarketNextEvent(`Close in ${h}h ${m}m`)
         } else {
-          setMarketLabel('Seans Kapali')
+          setMarketLabel('MARKET CLOSED')
           if (dayOfWeek >= 1 && dayOfWeek <= 5 && timeInMinutes < 570) {
             const minsLeft = 570 - timeInMinutes
             if (minsLeft < 60) {
-              setMarketNextEvent(`Acilisa ${minsLeft}dk`)
+              setMarketNextEvent(`Opens in ${minsLeft}m`)
             } else {
-              setMarketNextEvent(`Acilisa ${Math.floor(minsLeft / 60)}s ${minsLeft % 60}dk`)
+              setMarketNextEvent(`Opens in ${Math.floor(minsLeft / 60)}h ${minsLeft % 60}m`)
             }
           } else {
-            setMarketNextEvent('Hafta ici acilir')
+            setMarketNextEvent('Opens on weekday')
           }
         }
 
@@ -678,12 +579,8 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
         if (isOpen && !wasMarketOpenRef.current) {
           wasMarketOpenRef.current = true
           if (resultsRef.current.length === 0) {
-            console.log('[AutoRefresh] Market just opened, triggering full scan (200W)')
+            console.log('[AutoRefresh] Market just opened, triggering full scan (52W)')
             runScan()
-          }
-          if (results200dRef.current.length === 0) {
-            console.log('[AutoRefresh] Market just opened, triggering full scan (200D)')
-            runScan200D()
           }
         }
 
@@ -712,7 +609,7 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
           }
 
           if (timeSinceLastRefresh >= refreshIntervalMs) {
-            if (resultsRef.current.length > 0 || results200dRef.current.length > 0) {
+            if (resultsRef.current.length > 0) {
               console.log('[AutoRefresh] 30min interval reached (2 mum kapanisi), starting incremental refresh')
               runIncrementalRefreshRef.current()
             }
@@ -741,7 +638,7 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
         autoRefreshTimerRef.current = null
       }
     }
-  }, [autoRefreshEnabled, runScan, runScan200D])
+  }, [autoRefreshEnabled, runScan])
 
   const contextValue: ScanContextType = {
     results,
@@ -752,127 +649,170 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
     lastRefresh,
     watchlist,
     sectorMap,
+    fmpStocksMap,
     runScan,
     toggleWatchlistItem,
     isInWatchlist,
-  }
-
-  const context200DValue: Scan200DContextType = {
-    results: results200d,
-    summary: summary200d,
-    loading: loading200d,
-    error: error200d,
-    progress: progress200d,
-    lastRefresh: lastRefresh200d,
-    watchlist,
-    sectorMap,
-    runScan: runScan200D,
-    toggleWatchlistItem,
-    isInWatchlist,
+    marketRegime,
+    vixValue,
+    signalsPaused,
+    pauseReason,
+    positionSizeMultiplier,
   }
 
   // Determine which loading/progress to show in header
-  const isAnyLoading = loading || loading200d
-  const currentProgress = loading200d ? progress200d : progress
+  const isAnyLoading = loading
+  const currentProgress = progress
 
   return (
     <ScanContext.Provider value={contextValue}>
-    <Scan200DContext.Provider value={context200DValue}>
-      <div className="min-h-screen bg-[#08080C] text-white">
-        {/* ═══ HEADER ═══ */}
-        <header className="border-b border-white/5 bg-[#0A0A10] sticky top-0 z-50">
-          <div className="max-w-[1920px] mx-auto px-6">
+      <div className="min-h-screen bg-[#0d0d0d] text-white">
+        {/* ═══ HEADER — Midnight Gold Professional ═══ */}
+        <header className="sticky top-0 z-50 border-b border-gold-400/10 bg-[#111111]/95 backdrop-blur-xl safe-top">
+          <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6">
             {/* Top Bar */}
-            <div className="flex items-center justify-between py-3 border-b border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-orange-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-purple-500/20">
-                  H
+            <div className="flex items-center justify-between h-12 sm:h-14">
+              {/* Logo & Brand */}
+              <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+                {onBack && (
+                  <button
+                    onClick={onBack}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-midnight-50/50 border border-gold-400/10 flex items-center justify-center text-white/40 hover:text-gold-300 hover:border-gold-400/30 transition-all duration-200 shrink-0"
+                    title="Back to Markets"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                )}
+                <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-[10px] sm:rounded-[12px] bg-[#1e2028] flex items-center justify-center hermes-logo overflow-hidden shrink-0"
+                  style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.04)' }}>
+                  <svg className="w-[22px] h-[22px] sm:w-[26px] sm:h-[26px] relative z-10" viewBox="0 0 32 32" fill="none">
+                    <line x1="6" y1="10" x2="16" y2="7" stroke="rgba(120,160,255,0.25)" strokeWidth="0.8" />
+                    <line x1="16" y1="7" x2="26" y2="12" stroke="rgba(120,160,255,0.25)" strokeWidth="0.8" />
+                    <line x1="6" y1="10" x2="10" y2="18" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
+                    <line x1="16" y1="7" x2="10" y2="18" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
+                    <line x1="16" y1="7" x2="22" y2="16" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
+                    <line x1="26" y1="12" x2="22" y2="16" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
+                    <line x1="10" y1="18" x2="22" y2="16" stroke="rgba(120,160,255,0.15)" strokeWidth="0.6" />
+                    <path d="M4 22 L8.5 17 L13 19.5 L18 13 L22.5 16 L28 10" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <circle cx="6" cy="10" r="1.8" fill="rgba(120,160,255,0.5)" />
+                    <circle cx="16" cy="7" r="2.2" fill="rgba(120,160,255,0.6)" />
+                    <circle cx="26" cy="12" r="1.8" fill="rgba(120,160,255,0.5)" />
+                    <circle cx="10" cy="18" r="1.5" fill="rgba(120,160,255,0.35)" />
+                    <circle cx="22" cy="16" r="1.5" fill="rgba(120,160,255,0.35)" />
+                    <circle cx="13" cy="19.5" r="1.4" fill="rgba(255,255,255,0.85)" />
+                    <circle cx="18" cy="13" r="1.6" fill="rgba(255,255,255,0.9)" />
+                    <circle cx="28" cy="10" r="1.4" fill="rgba(255,255,255,0.85)" />
+                  </svg>
+                  <div className="absolute inset-0 rounded-[12px] bg-gradient-to-br from-[rgba(120,160,255,0.04)] via-transparent to-transparent" />
                 </div>
-                <div>
-                  <h1 className="text-lg font-bold text-white">HERMES Scanner</h1>
-                  <p className="text-[10px] text-white/70">NASDAQ • 52W VWAP V6 • 2777 Hisse</p>
+                <div className="flex items-center gap-2 min-w-0">
+                  <h1 className="text-sm sm:text-base font-bold tracking-wide whitespace-nowrap">
+                    <span className="text-white/90">HERMES</span>
+                    <span className="gradient-text ml-1 sm:ml-1.5 font-extrabold">AI</span>
+                  </h1>
+                  <div className="hidden lg:block w-px h-4 bg-gold-400/15" />
+                  <span className="hidden lg:inline text-[11px] text-gold-400/50 font-medium tracking-wider uppercase truncate">NASDAQ/NYSE • Neural Core</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                {/* Market Status Indicator */}
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${marketOpen ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse' : 'bg-red-400/70'}`} />
-                  <div className="text-right">
-                    <span className={`text-xs font-medium ${marketOpen ? 'text-emerald-400' : 'text-red-400/70'}`}>
-                      {marketLabel}
-                    </span>
-                    {marketNextEvent && (
-                      <span className="text-[10px] text-white/60 ml-1.5">
-                        {marketNextEvent}
-                      </span>
-                    )}
-                  </div>
+              {/* Right Controls */}
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                {/* Market Status */}
+                <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-midnight-50/50 border border-gold-400/8">
+                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${marketOpen ? 'bg-hermes-green shadow-lg shadow-hermes-green/50 animate-pulse' : 'bg-red-400/50'}`} />
+                  <span className={`text-[10px] sm:text-[11px] font-semibold tracking-wide ${marketOpen ? 'text-hermes-green' : 'text-red-400/50'}`}>
+                    <span className="hidden sm:inline">{marketLabel}</span>
+                    <span className="sm:hidden">{marketOpen ? 'OPEN' : 'CLOSED'}</span>
+                  </span>
+                  {marketNextEvent && (
+                    <span className="text-[10px] text-white/30 hidden lg:inline">{marketNextEvent}</span>
+                  )}
                 </div>
 
-                {/* Auto-refresh toggle */}
+                {/* Regime Badge */}
+                {marketRegime !== 'RISK_ON' && (
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold border ${
+                    marketRegime === 'CRISIS'
+                      ? 'bg-red-500/15 text-red-400 border-red-500/30 animate-pulse'
+                      : marketRegime === 'RISK_OFF'
+                        ? 'bg-orange-500/15 text-orange-400 border-orange-500/30'
+                        : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                  }`} title={pauseReason || `VIX: ${vixValue ?? '?'} | Pos: ${Math.round(positionSizeMultiplier * 100)}%`}>
+                    {marketRegime === 'CRISIS' ? '🚨' : marketRegime === 'RISK_OFF' ? '⚠️' : '⚡'}
+                    <span className="hidden sm:inline">{marketRegime.replace('_', ' ')}</span>
+                    {vixValue !== null && <span className="opacity-60 ml-0.5">VIX {vixValue.toFixed(0)}</span>}
+                  </div>
+                )}
+
+                {/* Auto-refresh */}
                 <button
                   onClick={() => setAutoRefreshEnabled(prev => !prev)}
-                  className={`px-2 py-1 rounded text-[10px] font-medium transition-all ${
+                  className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all duration-200 border ${
                     autoRefreshEnabled 
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-                      : 'bg-white/5 text-white/60 border border-white/10'
+                      ? 'bg-hermes-green/10 text-hermes-green border-hermes-green/20' 
+                      : 'bg-midnight-50/50 text-white/40 border-gold-400/8'
                   }`}
-                  title={autoRefreshEnabled ? 'Otomatik yenileme aktif (15dk)' : 'Otomatik yenileme kapalı'}
+                  title={autoRefreshEnabled ? 'Auto-refresh active (30min)' : 'Auto-refresh paused'}
                 >
                   {isAutoRefreshing ? (
-                    <span className="animate-spin inline-block">⟳</span>
-                  ) : autoRefreshEnabled ? '⟳ Oto' : '⏸ Oto'}
+                    <span className="animate-spin inline-block">↻</span>
+                  ) : 'Auto'}
                 </button>
 
-                <div className="w-px h-6 bg-white/10" />
+                <div className="w-px h-5 bg-gold-400/10 hidden lg:block" />
 
-                <div className="flex flex-col items-end">
-                  {(activeModule === '200day' ? lastRefresh200d : lastRefresh) && (
-                    <span className="text-xs text-white/70">
-                      Son: {(activeModule === '200day' ? lastRefresh200d : lastRefresh)?.toLocaleTimeString('tr-TR')}
+                <div className="hidden lg:flex flex-col items-end">
+                  {lastRefresh && (
+                    <span className="text-[10px] text-white/35 font-mono">
+                      Last: {lastRefresh?.toLocaleTimeString('en-US', { hour12: false })}
                     </span>
                   )}
                   {isAutoRefreshing && (
-                    <span className="text-[9px] text-blue-400 animate-pulse">Yenileniyor...</span>
+                    <span className="text-[10px] text-gold-300 animate-pulse">Refreshing...</span>
                   )}
                   {!isAutoRefreshing && marketOpen && autoRefreshEnabled && nextRefreshCountdown && (
-                    <span className="text-[9px] text-white/55">Sonraki: {nextRefreshCountdown}</span>
+                    <span className="text-[10px] text-white/25">Next: {nextRefreshCountdown}</span>
                   )}
                 </div>
                 
                 <button
                   onClick={handleScan}
                   disabled={isAnyLoading}
-                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  className={`px-3 sm:px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 ${
                     isAnyLoading
-                      ? 'bg-white/5 text-white/70 cursor-wait'
-                      : 'bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white shadow-lg shadow-violet-500/20'
+                      ? 'bg-midnight-50 text-white/40 cursor-wait border border-gold-400/10'
+                      : 'bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 hover:to-gold-300 text-[#0d0d0d] shadow-lg shadow-gold-400/20 hover:shadow-gold-400/35'
                   }`}
                 >
-                  {isAnyLoading ? currentProgress || 'Taranıyor...' : 'Tara'}
+                  {isAnyLoading ? (currentProgress || 'Scan...') : 'Scan'}
                 </button>
               </div>
             </div>
 
-            {/* Module Navigation */}
-            <nav className="flex items-center gap-1 py-2 overflow-x-auto">
+            {/* Module Navigation — Gold accent tabs, horizontal scroll on mobile */}
+            <nav className="flex items-center gap-0.5 -mb-px overflow-x-auto scrollbar-hide -mx-2 px-2 sm:mx-0 sm:px-0">
               {MODULES.map(mod => (
                 <button
                   key={mod.id}
                   onClick={() => setActiveModule(mod.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
+                  className={`relative px-2.5 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-[13px] font-semibold transition-all duration-200 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 ${
                     activeModule === mod.id
-                      ? 'bg-white/10 text-white'
+                      ? 'text-gold-300'
                       : mod.ready
-                        ? 'text-white/50 hover:text-white/80 hover:bg-white/5'
-                        : 'text-white/60 hover:text-white/50 hover:bg-white/5'
+                        ? 'text-white/35 hover:text-white/60'
+                        : 'text-white/20 hover:text-white/35'
                   }`}
                 >
-                  <span>{mod.icon}</span>
-                  <span>{mod.label}</span>
+                  <span className="text-xs sm:text-sm">{mod.icon}</span>
+                  <span className="hidden sm:inline">{mod.label}</span>
+                  <span className="sm:hidden">{mod.id === 'nasdaq-terminal' ? 'TERMINAL' : mod.id === 'nasdaq-trade' ? 'TRADE' : mod.id === 'nasdaq-signals' ? 'SIGNALS' : mod.id === 'nasdaq-watchlist' ? 'WATCH' : 'INDEX'}</span>
+                  {activeModule === mod.id && (
+                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-gradient-to-r from-gold-400/80 via-gold-300 to-gold-400/80 rounded-full" />
+                  )}
                   {!mod.ready && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/70">Soon</span>
+                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-gold-400/10 text-gold-400/50">Soon</span>
                   )}
                 </button>
               ))}
@@ -881,19 +821,26 @@ export default function Layout({ children }: { children: (activeModule: ModuleId
         </header>
 
         {/* ═══ CONTENT ═══ */}
-        <main>
+        <main className="animate-fade-in">
           {children(activeModule)}
         </main>
 
-        {/* ═══ FOOTER ═══ */}
-        <footer className="border-t border-white/5 bg-[#0A0A10] py-4 mt-8">
-          <div className="max-w-[1920px] mx-auto px-6 flex items-center justify-between text-xs text-white/60">
-            <span>HERMES Institutional NASDAQ Scanner V6</span>
-            <span>Skor: 0-20 Strong Long • 21-40 Long • 41-59 Nötr • 60-79 Short • 80-100 Strong Short</span>
+        {/* ═══ FOOTER — Midnight Gold ═══ */}
+        <footer className="border-t border-gold-400/8 bg-[#111111]/80 py-2.5 sm:py-3 mt-8 safe-bottom">
+          <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 flex flex-col gap-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] sm:text-[11px] text-white/25 font-medium tracking-wide truncate">HERMES AI • NASDAQ/NYSE Scanner</span>
+              <span className="hidden md:inline text-[11px] text-white/20 shrink-0">0-20 Strong Long • 21-35 Long • 36-66 Notr • 67-89 Short • 90-100 Strong Short</span>
+            </div>
+            <p className="text-[9px] text-white/15 leading-tight">
+              Not financial advice. Signals are algorithmic, based on historical patterns; past performance does not guarantee future results. Always do your own research (DYOR). Use at your own risk.
+            </p>
           </div>
         </footer>
+
+        {/* ═══ SCROLL TO TOP BUTTON — appears when user scrolls down ═══ */}
+        <ScrollToTopButton />
       </div>
-    </Scan200DContext.Provider>
     </ScanContext.Provider>
   )
 }

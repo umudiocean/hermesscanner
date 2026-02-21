@@ -3,7 +3,7 @@
 // Watchlist, Alerts, Settings için client-side storage
 // ═══════════════════════════════════════════════════════════════════
 
-import { ScanResult, Scan200DResult } from './types'
+import { ScanResult } from './types'
 
 const WATCHLIST_KEY = 'hermes_watchlist'
 const SETTINGS_KEY = 'hermes_settings'
@@ -64,7 +64,7 @@ export interface HermesSettings {
 const DEFAULT_SETTINGS: HermesSettings = {
   autoRefresh: true,
   refreshInterval: 30,  // 30 dakika = her 2 mum kapanışında (15dk × 2)
-  defaultModule: '200week',
+  defaultModule: 'nasdaq-terminal',
   theme: 'dark',
 }
 
@@ -105,22 +105,3 @@ export function hasCachedResults(): boolean {
   return cachedResults.length > 0
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 200D SCAN RESULTS CACHE (Client-side)
-// ═══════════════════════════════════════════════════════════════════
-
-let cached200DResults: Scan200DResult[] = []
-let cache200DTimestamp: number = 0
-
-export function setCached200DResults(results: Scan200DResult[]): void {
-  cached200DResults = results
-  cache200DTimestamp = Date.now()
-}
-
-export function getCached200DResults(): { results: Scan200DResult[]; timestamp: number } {
-  return { results: cached200DResults, timestamp: cache200DTimestamp }
-}
-
-export function hasCached200DResults(): boolean {
-  return cached200DResults.length > 0
-}

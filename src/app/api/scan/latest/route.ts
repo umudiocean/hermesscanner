@@ -6,6 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { loadLatestScan, saveFullScan, getAllResults } from '@/lib/scan-store'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import { scanLatestBodySchema, validateParams } from '@/lib/validation/schemas'
 
 export async function GET() {
   try {
@@ -49,22 +51,25 @@ export async function GET() {
 }
 
 /**
- * POST - Tarama tamamlandığında tüm sonuçları disk'e kaydet
- * Client tarafından çağrılır
+ * POST - Tarama tamamlandiginda tum sonuclari disk'e kaydet
+ * Rate-limited + idempotency key ile korunur (cache poisoning onleme)
  */
 export async function POST(request: NextRequest) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`scan-save:${ip}`, 3, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const body = await request.json()
-    const { results, scanId } = body
-
-    if (!results || !Array.isArray(results)) {
+    const parsed = validateParams(scanLatestBodySchema, body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid results data' },
+        { error: 'Invalid request body', code: 'VALIDATION_ERROR' },
         { status: 400 }
       )
     }
+    const { results, scanId } = parsed.data
 
-    // Disk'e kaydet
     await saveFullScan(results, scanId || `full-${Date.now()}`)
 
     return NextResponse.json({
@@ -73,8 +78,9 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
+    console.error('[SCAN-LATEST] Save error:', (error as Error).message)
     return NextResponse.json(
-      { error: 'Failed to save results', message: (error as Error).message },
+      { error: 'Failed to save results', code: 'SAVE_ERROR' },
       { status: 500 }
     )
   }

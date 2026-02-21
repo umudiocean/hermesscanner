@@ -1,15 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════
-// Module Exports
+// Module Exports — NASDAQ Market
 // ═══════════════════════════════════════════════════════════════════
 
-export { default as Module200Week } from './Module200Week'
-export { default as Module200Day } from './Module200Day'
-export { default as ModuleBestSignals } from './ModuleBestSignals'
-export { default as ModuleBTCTrend } from './ModuleBTCTrend'
-export { default as ModuleWatchlist } from './ModuleWatchlist'
-export { default as ModuleHeatmap } from './ModuleHeatmap'
-export { default as ModuleSectors } from './ModuleSectors'
-export { 
-  ModuleTrend, 
-  ModuleBacktest 
-} from './ModulePlaceholder'
+export { default as ModuleNasdaqTrade } from './ModuleNasdaqTrade'
+export { default as ModuleNasdaqSignals } from './ModuleNasdaqSignals'
+export { default as ModuleNasdaqWatchlist } from './ModuleNasdaqWatchlist'
+export { default as ModuleNasdaqTerminal } from './nasdaq-terminal/ModuleNasdaqTerminal'

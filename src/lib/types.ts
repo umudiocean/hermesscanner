@@ -72,6 +72,29 @@ export interface HermesResult {
     touchInnerUpper: boolean
     touchInnerLower: boolean
   }
+  // V10: Giriş filtreleri durumu
+  filters: {
+    longFiltersOk: boolean    // RSI ≤40 && MFI ≤50 && ADX ≤25
+    shortFiltersOk: boolean   // RSI ≥60 && MFI ≥70 && ADX ≤25
+    rsiOk: boolean
+    mfiOk: boolean
+    adxOk: boolean
+  }
+  // V10: Delay confirmation durumu
+  delay?: {
+    barsRemaining: number     // Kalan gecikme barı (0 = confirmed)
+    triggerScore: number      // İlk trigger skorı
+    confirmed: boolean        // Confirmation başarılı mı
+    waitingForConfirm: boolean // Trigger oldu, confirm bekleniyor
+  }
+  // V12: Trend çarpanı bilgisi
+  trend?: {
+    multiplier: number        // Uygulanan trend çarpanı (1.0 = nötr)
+    composite: number         // Trend composite skoru (0-100, düşük=bullish)
+    marketPoint: number       // Market trend puanı
+    sectorPoint: number       // Sektör trend puanı
+    industryPoint: number     // Industry trend puanı
+  }
   price: number
   dataPoints: number
   hasEnough52w: boolean
@@ -109,129 +132,18 @@ export interface ScanSummary {
 export type Segment = 'MEGA' | 'LARGE' | 'MID' | 'SMALL' | 'MICRO' | 'ALL'
 
 // ═══════════════════════════════════════════════════════════════════
-// 200 GÜN Module Types (15 Dakika Timeframe)
+// V12 Trend Context — Sektör/Market/Industry Trend Çarpanı
 // ═══════════════════════════════════════════════════════════════════
 
-export interface Hermes200DConfig {
-  // VWAP periods (15-min bars)
-  vwap_200d_len: number   // 200 gün ≈ 5000 bar (26 bar/gün)
-  vwap_50d_len: number    // 50 gün = 1300 bar
-  vwap_halfd_len: number  // yarım gün = 13 bar
+export interface TrendContext {
+  // Market breadth: tüm hisselerin yüzdesi (Z < 0 = bullish taraf)
+  marketBreadth: number    // 0-100, 50=nötr
+  marketMomentum: number   // breadth'in değişim hızı
 
-  // ATR
-  atr_length: number
-  atr_mult_200d: number
-  atr_mult_50d: number
-  atr_mult_halfd: number
+  // Sektör ortalama Z-Score (ZA1: en iyi yöntem)
+  sectorAvgZScore: number  // negatif=bullish, pozitif=bearish
 
-  // Band method weights
-  atr_weight: number
-  calib_weight: number
-  rev_weight: number
-
-  // Scoring weights (sum = 100)
-  weight_200d: number
-  weight_50d: number
-  weight_halfd: number
-  weight_mfi: number
-  weight_rsi: number
-
-  // Indicator periods
-  rsi_length: number
-  mfi_length: number
-  adx_length: number
-
-  // Calibration
-  calib_length: number
-  pivot_left: number
-  pivot_right: number
-
-  // Z-Score windows (15-min bars)
-  zscore_len_200d: number
-  zscore_len_50d: number
-  zscore_len_halfd: number
+  // Industry relative performance
+  industryRelative: number // sektöre göre sapma
 }
 
-export interface Hermes200DResult {
-  score: number
-  signal: string
-  signalType: SignalType
-  components: {
-    point200d: number
-    point50d: number
-    pointHalfd: number
-    pointMfi: number
-    pointRsi: number
-  }
-  multipliers: {
-    atrCarpan: number
-    adxCarpan: number
-    quality: number
-  }
-  rawScore: number
-  indicators: {
-    rsi: number
-    mfi: number
-    adx: number
-    atr: number
-    volRatio: number
-  }
-  zscores: {
-    zscore200d: number
-    zscore50d: number
-    zscoreHalfd: number
-  }
-  bands: {
-    vwap200d: number
-    upper200d: number
-    lower200d: number
-    vwap50d: number
-    upper50d: number
-    lower50d: number
-    vwapHalfd: number
-    upperHalfd: number
-    lowerHalfd: number
-  }
-  touches: {
-    touch200dUpper: boolean
-    touch200dLower: boolean
-    touch50dUpper: boolean
-    touch50dLower: boolean
-    touchHalfdUpper: boolean
-    touchHalfdLower: boolean
-  }
-  price: number
-  dataPoints: number
-  hasEnough200d: boolean
-  hasEnough50d: boolean
-  hasEnoughHalfd: boolean
-  error?: string
-}
-
-export interface Scan200DResult {
-  symbol: string
-  segment: string
-  hermes: Hermes200DResult
-  quote?: {
-    price: number
-    change: number
-    changePercent: number
-    volume: number
-    marketCap: number
-  }
-  timestamp: string
-}
-
-export interface Scan200DSummary {
-  scanId: string
-  timestamp: string
-  duration: number
-  totalScanned: number
-  strongLongs: Scan200DResult[]
-  strongShorts: Scan200DResult[]
-  longs: Scan200DResult[]
-  shorts: Scan200DResult[]
-  neutrals: number
-  errors: number
-  segment: string
-}

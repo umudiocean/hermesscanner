@@ -1,0 +1,462 @@
+'use client'
+
+import { useState, useMemo, useRef, useCallback, memo } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
+import { useNasdaqTradeContext } from '../Layout'
+import { ScanResult } from '@/lib/types'
+
+// ═══════════════════════════════════════════════════════════════════
+// TRADE AI Module — V15 Pure Z-Score (V377_R6.85_Z55)
+// VWAP 377g | Z-Score LB=55 | Z-Ratio: 6.85 | L30_S90
+// Skor: <=20 STRONG LONG | 21-30 LONG | 31-69 NOTR | 70-89 SHORT | >=90 STRONG SHORT
+// ═══════════════════════════════════════════════════════════════════
+
+type SortField = 'score' | 'symbol' | 'price' | 'change' | 'signal' | 'rsi' | 'mfi' | 'marketCap' | 'quality' | 'confidence' | 'valuation'
+type SortDir = 'asc' | 'desc'
+type SignalFilter = 'all' | 'strong_long' | 'long' | 'neutral' | 'short' | 'strong_short'
+type SegmentFilter = 'ALL' | 'MEGA' | 'LARGE' | 'MID' | 'SMALL' | 'MICRO'
+
+const SEGMENTS = ['MEGA', 'LARGE', 'MID', 'SMALL', 'MICRO'] as const
+
+// Sinyal label'i her zaman signalType'dan turetilir (cache uyumluluk)
+const SIGNAL_LABELS: Record<string, string> = {
+  strong_long: 'STRONG LONG',
+  long: 'LONG',
+  neutral: 'NOTR',
+  short: 'SHORT',
+  strong_short: 'STRONG SHORT',
+}
+
+function getSignalLabel(signalType: string): string {
+  return SIGNAL_LABELS[signalType] || 'NOTR'
+}
+
+function getSignalStyle(signalType: string) {
+  const styles: Record<string, { bg: string; text: string; border: string }> = {
+    strong_long: { bg: 'bg-gold-400/15', text: 'text-gold-300', border: 'border-gold-400/40' },
+    long: { bg: 'bg-hermes-green/15', text: 'text-hermes-green', border: 'border-hermes-green/40' },
+    neutral: { bg: 'bg-white/[0.06]', text: 'text-white/50', border: 'border-white/10' },
+    short: { bg: 'bg-orange-500/15', text: 'text-orange-400', border: 'border-orange-500/40' },
+    strong_short: { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/40' },
+  }
+  return styles[signalType] || styles.neutral
+}
+
+function getScoreColor(score: number): string {
+  if (score <= 20) return 'text-gold-300'
+  if (score <= 30) return 'text-hermes-green'
+  if (score < 70) return 'text-white/50'
+  if (score < 90) return 'text-orange-400'
+  return 'text-red-400'
+}
+
+function formatMarketCap(mc: number): string {
+  if (!mc) return '-'
+  if (mc >= 1e12) return `${(mc / 1e12).toFixed(1)}T`
+  if (mc >= 1e9) return `${(mc / 1e9).toFixed(1)}B`
+  if (mc >= 1e6) return `${(mc / 1e6).toFixed(0)}M`
+  return `${mc.toFixed(0)}`
+}
+
+function exportToCSV(results: ScanResult[], filename: string, fmpMap?: Map<string, { confidence: number; valuationScore: number; valuationLabel: string }>) {
+  const headers = ['Symbol', 'Segment', 'Price', 'Change%', 'Score', 'Signal', 'RSI', 'MFI', 'Quality', 'Z-Score', 'VWAP52W', 'MarketCap', 'Guven%', 'Fiyatlama']
+  const rows = results.map(r => {
+    const fmp = fmpMap?.get(r.symbol)
+    return [
+      r.symbol, r.segment, r.quote?.price?.toFixed(2) || r.hermes.price.toFixed(2),
+      r.quote?.changePercent?.toFixed(2) || '0', r.hermes.score.toFixed(1), getSignalLabel(r.hermes.signalType),
+      r.hermes.indicators.rsi.toFixed(1), r.hermes.indicators.mfi.toFixed(1),
+      r.hermes.multipliers.quality.toFixed(2),
+      r.hermes.zscores.zscore52w.toFixed(2), r.hermes.bands.vwap52w.toFixed(2),
+      r.quote?.marketCap || 0,
+      fmp?.confidence || '',
+      fmp?.valuationLabel || '',
+    ]
+  })
+  const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`
+  link.click()
+}
+
+function ScoreBar({ score }: { score: number }) {
+  return (
+    <div className="relative w-16 h-1.5 rounded-full bg-gradient-to-r from-gold-400 via-white/20 to-red-500 opacity-40">
+      <div
+        className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-gold-300 rounded-full shadow-lg shadow-gold-400/30"
+        style={{ left: `calc(${Math.min(100, Math.max(0, score))}% - 4px)` }}
+      />
+    </div>
+  )
+}
+
+function FilterButton({ active, onClick, children, count, variant = 'default' }: {
+  active: boolean; onClick: () => void; children: React.ReactNode; count?: number
+  variant?: 'default' | 'yellow' | 'green' | 'gray' | 'orange' | 'red'
+}) {
+  const variants: Record<string, string> = {
+    default: active ? 'bg-gold-400/10 border-gold-400/30 text-gold-300' : 'bg-transparent border-gold-400/8 text-white/40 hover:text-white/60',
+    yellow: active ? 'bg-gold-400/15 border-gold-400/40 text-gold-300' : 'bg-transparent border-gold-400/10 text-gold-400/40 hover:text-gold-300',
+    green: active ? 'bg-hermes-green/15 border-hermes-green/40 text-hermes-green' : 'bg-transparent border-hermes-green/15 text-hermes-green/40 hover:text-hermes-green',
+    gray: active ? 'bg-white/[0.06] border-white/15 text-white/60' : 'bg-transparent border-white/8 text-white/30 hover:text-white/50',
+    orange: active ? 'bg-orange-500/15 border-orange-500/40 text-orange-400' : 'bg-transparent border-orange-500/15 text-orange-500/40 hover:text-orange-400',
+    red: active ? 'bg-red-500/15 border-red-500/40 text-red-400' : 'bg-transparent border-red-500/15 text-red-500/40 hover:text-red-400',
+  }
+  return (
+    <button onClick={onClick} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all flex items-center gap-1.5 ${variants[variant]}`}>
+      {children}
+      {count !== undefined && (
+        <span className={`font-bold tabular-nums ${active ? 'text-white/90' : 'text-white/50'}`}>
+          {count}
+        </span>
+      )}
+    </button>
+  )
+}
+
+function getValuationStyle(label: string): string {
+  if (label === 'COK UCUZ') return 'text-emerald-300 bg-emerald-500/15'
+  if (label === 'UCUZ') return 'text-emerald-400 bg-emerald-500/10'
+  if (label === 'NORMAL') return 'text-slate-300 bg-white/[0.04]'
+  if (label === 'PAHALI') return 'text-orange-400 bg-orange-500/10'
+  if (label === 'COK PAHALI') return 'text-red-400 bg-red-500/10'
+  return 'text-white/25 bg-white/[0.03]'
+}
+
+const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlistToggle, inWatchlist, fmpData }: {
+  result: ScanResult; expanded: boolean; onToggle: () => void
+  onWatchlistToggle: () => void; inWatchlist: boolean; fmpData?: { confidence: number; valuationScore: number; valuationLabel: string }
+}) {
+  const { hermes, quote, symbol, segment } = result
+  const style = getSignalStyle(hermes.signalType)
+  const confidence = fmpData?.confidence || 0
+  const valuationLabel = fmpData?.valuationLabel || ''
+
+  return (
+    <>
+      <tr className="border-b border-gold-400/5 cursor-pointer transition-all hover:bg-gold-400/[0.03] group">
+        <td className="px-2 py-3 w-10">
+          <button
+            onClick={(e) => { e.stopPropagation(); onWatchlistToggle() }}
+            className={`p-1 rounded transition-all ${inWatchlist ? 'text-gold-300' : 'text-white/20 hover:text-gold-400/50'}`}
+          >
+            {inWatchlist ? '★' : '☆'}
+          </button>
+        </td>
+        <td className="px-3 py-3" onClick={onToggle}>
+          <div className="flex items-center gap-2">
+            <span className="font-mono font-semibold text-white/90">{symbol}</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-gold-400/8 text-gold-400/50">{segment}</span>
+          </div>
+        </td>
+        <td className="px-3 py-3 text-right" onClick={onToggle}>
+          <span className="font-mono text-white/90">${quote?.price?.toFixed(2) || hermes.price.toFixed(2)}</span>
+        </td>
+        <td className={`px-3 py-3 text-right font-mono ${(quote?.changePercent ?? 0) >= 0 ? 'text-hermes-green' : 'text-red-400'}`} onClick={onToggle}>
+          {quote?.changePercent ? `${quote.changePercent >= 0 ? '+' : ''}${quote.changePercent.toFixed(2)}%` : '-'}
+        </td>
+        <td className="px-3 py-3" onClick={onToggle}>
+          <div className="flex items-center gap-2">
+            <span className={`font-mono font-bold text-base sm:text-lg w-8 ${getScoreColor(hermes.score)}`}>{Math.round(hermes.score)}</span>
+            <ScoreBar score={hermes.score} />
+          </div>
+        </td>
+        <td className="px-3 py-3" onClick={onToggle}>
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-block px-2 py-1 rounded text-xs font-semibold border ${style.bg} ${style.text} ${style.border}`}>
+              {getSignalLabel(hermes.signalType)}
+            </span>
+            {hermes.delay?.waitingForConfirm && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-gold-400/15 text-gold-300 border border-gold-400/30">
+                {hermes.delay.barsRemaining} bar
+              </span>
+            )}
+            {hermes.delay?.confirmed && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-hermes-green/15 text-hermes-green border border-hermes-green/30">
+                ✓
+              </span>
+            )}
+          </div>
+        </td>
+        <td className="px-3 py-3 text-right hidden md:table-cell" onClick={onToggle}>
+          <span className={`font-mono ${hermes.indicators.rsi >= 70 ? 'text-red-400' : hermes.indicators.rsi <= 30 ? 'text-hermes-green' : 'text-white/50'}`}>
+            {Math.round(hermes.indicators.rsi)}
+          </span>
+        </td>
+        <td className="px-3 py-3 text-right hidden md:table-cell" onClick={onToggle}>
+          <span className={`font-mono ${hermes.indicators.mfi >= 75 ? 'text-red-400' : hermes.indicators.mfi <= 25 ? 'text-hermes-green' : 'text-white/50'}`}>
+            {Math.round(hermes.indicators.mfi)}
+          </span>
+        </td>
+        <td className="px-3 py-3 text-right hidden lg:table-cell" onClick={onToggle}>
+          <span className="font-mono text-white/50">{formatMarketCap(quote?.marketCap || 0)}</span>
+        </td>
+        <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
+          <span className={`text-[11px] tabular-nums font-medium ${
+            confidence >= 70 ? 'text-emerald-400/60' : confidence >= 50 ? 'text-amber-400/60' : 'text-white/25'
+          }`}>{confidence > 0 ? `${confidence}%` : '—'}</span>
+        </td>
+        <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
+          {valuationLabel ? (
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${getValuationStyle(valuationLabel)}`}>
+              {valuationLabel}
+            </span>
+          ) : <span className="text-white/20 text-[10px]">—</span>}
+        </td>
+        <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
+          <span className={`text-xs ${hermes.multipliers.quality > 0.9 ? 'text-hermes-green' : hermes.multipliers.quality < 0.7 ? 'text-red-400' : 'text-gold-300'}`}>
+            {hermes.multipliers.quality.toFixed(2)}
+          </span>
+        </td>
+      </tr>
+      {expanded && (
+        <tr className="border-b border-gold-400/5 bg-midnight-50/30">
+          <td colSpan={12} className="px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 text-xs">
+              <DetailBlock title="Bilesenler (70/15/15)" items={[
+                { label: '52W Z-Score (70%)', value: hermes.components.point52w.toFixed(1), color: getScoreColor(hermes.components.point52w) },
+                { label: 'MFI (15%)', value: hermes.components.pointMfi.toFixed(1), color: getScoreColor(hermes.components.pointMfi) },
+                { label: 'RSI (15%)', value: hermes.components.pointRsi.toFixed(1), color: getScoreColor(hermes.components.pointRsi) },
+              ]} />
+              <DetailBlock title="Carpanlar" items={[
+                { label: 'ATR', value: `x${hermes.multipliers.atrCarpan.toFixed(2)}` },
+                { label: 'ADX', value: `x${hermes.multipliers.adxCarpan.toFixed(2)}` },
+                { label: 'Kalite', value: `x${hermes.multipliers.quality.toFixed(2)}` },
+                { label: 'Raw', value: hermes.rawScore.toFixed(1) },
+              ]} />
+              <DetailBlock title="Gostergeler" items={[
+                { label: 'RSI', value: hermes.indicators.rsi.toFixed(1) },
+                { label: 'MFI', value: hermes.indicators.mfi.toFixed(1) },
+                { label: 'ADX', value: hermes.indicators.adx.toFixed(1) },
+                { label: 'Vol Ratio', value: hermes.indicators.volRatio.toFixed(2) },
+              ]} />
+              <DetailBlock title="52W Z-Score" items={[
+                { label: 'Z-Score', value: hermes.zscores.zscore52w.toFixed(2) },
+                { label: 'VWAP', value: `$${hermes.bands.vwap52w.toFixed(2)}` },
+              ]} />
+              <DetailBlock title="Bantlar (Z-Score)" items={[
+                { label: 'Dis Ust (Z=+2)', value: `$${hermes.bands.upperOuter.toFixed(2)}` },
+                { label: 'Ic Ust (Z=+1)', value: `$${hermes.bands.upperInner.toFixed(2)}` },
+                { label: 'Ic Alt (Z=-1)', value: `$${hermes.bands.lowerInner.toFixed(2)}` },
+                { label: 'Dis Alt (Z=-2)', value: `$${hermes.bands.lowerOuter.toFixed(2)}` },
+              ]} />
+              <DetailBlock title="Veri Durumu" items={[
+                { label: 'Bar', value: hermes.dataPoints.toString() },
+                { label: 'MktCap', value: formatMarketCap(quote?.marketCap || 0) },
+                { label: 'Durum', value: hermes.hasEnough52w ? 'TAM' : 'KISMI', color: hermes.hasEnough52w ? 'text-hermes-green' : 'text-orange-400' },
+                { label: 'Delay', value: hermes.delay ? (hermes.delay.confirmed ? 'CONFIRMED' : `${hermes.delay.barsRemaining} bar bekle`) : '-', 
+                  color: hermes.delay?.confirmed ? 'text-hermes-green' : hermes.delay?.waitingForConfirm ? 'text-gold-300' : 'text-white/30' },
+              ]} />
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  )
+})
+
+function DetailBlock({ title, items }: { title: string; items: { label: string; value: string; color?: string }[] }) {
+  return (
+    <div className="space-y-2">
+      <div className="text-gold-400/70 font-semibold uppercase tracking-wide text-[10px]">{title}</div>
+      <div className="space-y-1">
+        {items.map(item => (
+          <div key={item.label} className="flex justify-between">
+            <span className="text-white/35">{item.label}</span>
+            <span className={item.color || 'text-white/70'}>{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const ROW_HEIGHT = 48
+const EXPANDED_ROW_HEIGHT = 240
+
+export default function ModuleNasdaqTrade() {
+  const { results, loading, error, toggleWatchlistItem, isInWatchlist, fmpStocksMap } = useNasdaqTradeContext()
+  
+  const [signalFilter, setSignalFilter] = useState<SignalFilter>('all')
+  const [segmentFilter, setSegmentFilter] = useState<SegmentFilter>('ALL')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortField, setSortField] = useState<SortField>('score')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [expandedRow, setExpandedRow] = useState<string | null>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  const filteredResults = useMemo(() => {
+    return results
+      .filter(r => signalFilter === 'all' || r.hermes.signalType === signalFilter)
+      .filter(r => segmentFilter === 'ALL' || r.segment === segmentFilter)
+      .filter(r => !searchQuery || r.symbol.toLowerCase().includes(searchQuery.toLowerCase()))
+      .sort((a, b) => {
+        let aVal: number, bVal: number
+        switch (sortField) {
+          case 'score': aVal = a.hermes.score; bVal = b.hermes.score; break
+          case 'symbol': return sortDir === 'asc' ? a.symbol.localeCompare(b.symbol) : b.symbol.localeCompare(a.symbol)
+          case 'price': aVal = a.quote?.price || a.hermes.price; bVal = b.quote?.price || b.hermes.price; break
+          case 'change': aVal = a.quote?.changePercent || 0; bVal = b.quote?.changePercent || 0; break
+          case 'signal': aVal = a.hermes.score; bVal = b.hermes.score; break
+          case 'rsi': aVal = a.hermes.indicators.rsi; bVal = b.hermes.indicators.rsi; break
+          case 'mfi': aVal = a.hermes.indicators.mfi; bVal = b.hermes.indicators.mfi; break
+          case 'marketCap': aVal = a.quote?.marketCap || 0; bVal = b.quote?.marketCap || 0; break
+          case 'quality': aVal = a.hermes.multipliers.quality; bVal = b.hermes.multipliers.quality; break
+          case 'confidence': aVal = fmpStocksMap.get(a.symbol)?.confidence || 0; bVal = fmpStocksMap.get(b.symbol)?.confidence || 0; break
+          case 'valuation': aVal = fmpStocksMap.get(a.symbol)?.valuationScore || 0; bVal = fmpStocksMap.get(b.symbol)?.valuationScore || 0; break
+          default: aVal = a.hermes.score; bVal = b.hermes.score
+        }
+        return sortDir === 'asc' ? aVal - bVal : bVal - aVal
+      })
+  }, [results, signalFilter, segmentFilter, searchQuery, sortField, sortDir, fmpStocksMap])
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc')
+    else { setSortField(field); setSortDir(field === 'score' ? 'asc' : 'desc') }
+  }
+
+  const signalCounts = useMemo(() => ({
+    strong_long: results.filter(r => r.hermes.signalType === 'strong_long').length,
+    long: results.filter(r => r.hermes.signalType === 'long').length,
+    neutral: results.filter(r => r.hermes.signalType === 'neutral').length,
+    short: results.filter(r => r.hermes.signalType === 'short').length,
+    strong_short: results.filter(r => r.hermes.signalType === 'strong_short').length,
+  }), [results])
+
+  const getSegmentCount = (seg: SegmentFilter) => {
+    const base = results.filter(r => signalFilter === 'all' || r.hermes.signalType === signalFilter)
+    return seg === 'ALL' ? base.length : base.filter(r => r.segment === seg).length
+  }
+
+  const estimateSize = useCallback((index: number) => {
+    const item = filteredResults[index]
+    if (!item) return ROW_HEIGHT
+    return expandedRow === item.symbol ? ROW_HEIGHT + EXPANDED_ROW_HEIGHT : ROW_HEIGHT
+  }, [filteredResults, expandedRow])
+
+  const virtualizer = useVirtualizer({
+    count: filteredResults.length,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize,
+    overscan: 15,
+    getItemKey: (index) => filteredResults[index]?.symbol ?? index,
+  })
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <span className="text-white/20 ml-1">↕</span>
+    return <span className="text-gold-300 ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>
+  }
+
+  return (
+    <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
+      {/* Filters */}
+      <div className="bg-midnight/80 rounded-xl border border-gold-400/8 p-2 sm:p-4 mb-2 sm:mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <span className="text-xs text-gold-400/50 mr-2">Sinyal:</span>
+          <FilterButton active={signalFilter === 'all'} onClick={() => setSignalFilter('all')} count={results.length}>Tumu</FilterButton>
+          <FilterButton active={signalFilter === 'strong_long'} onClick={() => setSignalFilter('strong_long')} variant="yellow" count={signalCounts.strong_long}>Strong Long</FilterButton>
+          <FilterButton active={signalFilter === 'long'} onClick={() => setSignalFilter('long')} variant="green" count={signalCounts.long}>Long</FilterButton>
+          <FilterButton active={signalFilter === 'neutral'} onClick={() => setSignalFilter('neutral')} variant="gray" count={signalCounts.neutral}>Notr</FilterButton>
+          <FilterButton active={signalFilter === 'short'} onClick={() => setSignalFilter('short')} variant="orange" count={signalCounts.short}>Short</FilterButton>
+          <FilterButton active={signalFilter === 'strong_short'} onClick={() => setSignalFilter('strong_short')} variant="red" count={signalCounts.strong_short}>Strong Short</FilterButton>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-gold-400/50 mr-2">Market Cap:</span>
+          <FilterButton active={segmentFilter === 'ALL'} onClick={() => setSegmentFilter('ALL')} count={getSegmentCount('ALL')}>Tumu</FilterButton>
+          {SEGMENTS.map(seg => (
+            <FilterButton key={seg} active={segmentFilter === seg} onClick={() => setSegmentFilter(seg)} count={getSegmentCount(seg)}>{seg}</FilterButton>
+          ))}
+          <div className="ml-auto flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Sembol ara..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="bg-midnight-50/50 border border-gold-400/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-gold-400/25 w-36"
+            />
+            <button
+              onClick={() => exportToCSV(filteredResults, 'hermes_52week', fmpStocksMap)}
+              disabled={filteredResults.length === 0}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold-400/8 hover:bg-gold-400/15 text-gold-400/60 hover:text-gold-300 border border-gold-400/15 flex items-center gap-1.5"
+            >
+              CSV
+            </button>
+            <span className="text-xs text-white/50 tabular-nums">
+              <span className="font-bold text-gold-300">{filteredResults.length}</span>
+              <span className="text-white/30"> / {results.length} hisse</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 mb-4">
+          Hata: {error}
+        </div>
+      )}
+
+      {/* Virtualized Table */}
+      <div className="rounded-xl border border-gold-400/8 bg-midnight/50 overflow-hidden">
+        <div
+          ref={scrollContainerRef}
+          className="overflow-auto"
+          style={{ maxHeight: 'calc(100vh - 280px)', minHeight: '400px' }}
+        >
+          <table className="w-full">
+            <thead className="sticky top-0 z-10 bg-midnight/95 backdrop-blur-sm">
+              <tr className="border-b border-gold-400/10 text-white/35 text-xs uppercase tracking-wider">
+                <th className="px-2 py-3 w-10"></th>
+                <th className="px-3 py-3 text-left cursor-pointer hover:text-white/80" onClick={() => handleSort('symbol')}>Sembol <SortIcon field="symbol" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80" onClick={() => handleSort('price')}>Fiyat <SortIcon field="price" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80" onClick={() => handleSort('change')}>Degisim <SortIcon field="change" /></th>
+                <th className="px-3 py-3 text-left cursor-pointer hover:text-white/80" onClick={() => handleSort('score')}>Skor <SortIcon field="score" /></th>
+                <th className="px-3 py-3 text-left cursor-pointer hover:text-white/80" onClick={() => handleSort('signal')}>Sinyal <SortIcon field="signal" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden md:table-cell" onClick={() => handleSort('rsi')}>RSI <SortIcon field="rsi" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden md:table-cell" onClick={() => handleSort('mfi')}>MFI <SortIcon field="mfi" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('marketCap')}>MktCap <SortIcon field="marketCap" /></th>
+                <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('confidence')} title="Temel analiz veri tamligi (Confidence %)">Guven <SortIcon field="confidence" /></th>
+                <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('valuation')} title="Fiyatlama seviyesi (COK UCUZ -> COK PAHALI)">Fiyatlama <SortIcon field="valuation" /></th>
+                <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('quality')}>Kalite <SortIcon field="quality" /></th>
+              </tr>
+            </thead>
+            <tbody>
+              {virtualizer.getVirtualItems().length > 0 && (
+                <tr style={{ height: virtualizer.getVirtualItems()[0].start }}>
+                  <td colSpan={12} />
+                </tr>
+              )}
+              {virtualizer.getVirtualItems().map((virtualRow) => {
+                const result = filteredResults[virtualRow.index]
+                if (!result) return null
+                return (
+                  <StockRow
+                    key={result.symbol}
+                    result={result}
+                    expanded={expandedRow === result.symbol}
+                    onToggle={() => setExpandedRow(expandedRow === result.symbol ? null : result.symbol)}
+                    onWatchlistToggle={() => toggleWatchlistItem(result.symbol)}
+                    inWatchlist={isInWatchlist(result.symbol)}
+                    fmpData={fmpStocksMap.get(result.symbol)}
+                  />
+                )
+              })}
+              {virtualizer.getVirtualItems().length > 0 && (
+                <tr style={{ height: virtualizer.getTotalSize() - (virtualizer.getVirtualItems()[virtualizer.getVirtualItems().length - 1]?.end ?? 0) }}>
+                  <td colSpan={12} />
+                </tr>
+              )}
+            </tbody>
+          </table>
+          {filteredResults.length === 0 && !loading && (
+            <div className="text-center py-16 text-white/30">
+              {results.length === 0 ? 'Tarama sonucu yok. Yukaridan TARA butonuna basin.' : 'Filtre kriterlerine uyan sonuc yok.'}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

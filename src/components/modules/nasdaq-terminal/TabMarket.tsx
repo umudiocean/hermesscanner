@@ -1,0 +1,1087 @@
+'use client'
+
+// ═══════════════════════════════════════════════════════════════════
+// HERMES AI TERMINAL - Tab: PIYASA & TREND
+// Piyasa nabzi, trend gucu, Wall Street nabzi, sektor trendi
+// Font: %25 buyutulmus
+// ═══════════════════════════════════════════════════════════════════
+
+import { useState, useEffect, useMemo } from 'react'
+import { TrendingUp, TrendingDown, Activity, BarChart3, Globe, DollarSign, Calendar, ArrowUpRight, ArrowDownRight, Info, Zap, Gauge, Shield, AlertTriangle, ChevronRight, Radio } from 'lucide-react'
+import { MarketDashboardData, MarketGainerLoser, IndexQuote, SectorPerformance, TreasuryRate, EconomicEvent } from '@/lib/fmp-terminal/fmp-types'
+import type { FredDashboardData, FearGreedComponents } from '@/lib/fred-client'
+
+interface TabMarketProps {
+  onSelectSymbol: (symbol: string) => void
+}
+
+const INDEX_NAMES: Record<string, string> = {
+  '^GSPC': 'S&P 500',
+  '^IXIC': 'NASDAQ',
+  '^DJI': 'Dow Jones',
+}
+
+const INDEX_DESC: Record<string, string> = {
+  '^GSPC': 'ABD en buyuk 500 sirket',
+  '^IXIC': 'Teknoloji agirlikli borsa',
+  '^DJI': 'ABD 30 dev sirketi',
+}
+
+// ─── Trend hesaplama yardimcilari ────────────────────────────────
+
+function computeMarketTrend(indexes: IndexQuote[], sectors: SectorPerformance[], gainers: MarketGainerLoser[], losers: MarketGainerLoser[]) {
+  // Endeks trendi
+  const avgIndexChange = indexes.length > 0
+    ? indexes.reduce((sum, idx) => sum + (idx.changesPercentage ?? 0), 0) / indexes.length
+    : 0
+
+  // Sektor genisligi (pozitif sektor orani)
+  const posSectors = sectors.filter(s => (s.changesPercentage ?? 0) > 0).length
+  const sectorBreadth = sectors.length > 0 ? (posSectors / sectors.length) * 100 : 50
+
+  // Gainer vs Loser gucu
+  const avgGain = gainers.length > 0 ? gainers.slice(0, 5).reduce((s, g) => s + Math.abs(g.changesPercentage ?? 0), 0) / Math.min(5, gainers.length) : 0
+  const avgLoss = losers.length > 0 ? losers.slice(0, 5).reduce((s, l) => s + Math.abs(l.changesPercentage ?? 0), 0) / Math.min(5, losers.length) : 0
+  const glRatio = avgGain + avgLoss > 0 ? (avgGain / (avgGain + avgLoss)) * 100 : 50
+
+  // Toplam trend skoru (0-100)
+  const indexScore = Math.max(0, Math.min(100, 50 + avgIndexChange * 20))
+  const trendScore = Math.round(indexScore * 0.4 + sectorBreadth * 0.35 + glRatio * 0.25)
+
+  let trendLabel: string
+  let trendColor: string
+  if (trendScore >= 70) { trendLabel = 'GUCLU YUKSELIS'; trendColor = 'emerald' }
+  else if (trendScore >= 55) { trendLabel = 'YUKSELIS EGILIMI'; trendColor = 'emerald' }
+  else if (trendScore >= 45) { trendLabel = 'NOTR / YATAY'; trendColor = 'slate' }
+  else if (trendScore >= 30) { trendLabel = 'DUSUS EGILIMI'; trendColor = 'red' }
+  else { trendLabel = 'GUCLU DUSUS'; trendColor = 'red' }
+
+  return { trendScore, trendLabel, trendColor, avgIndexChange, sectorBreadth, glRatio, posSectors, totalSectors: sectors.length }
+}
+
+function computeWallStreetSentiment(gainers: MarketGainerLoser[], losers: MarketGainerLoser[], mostActive: MarketGainerLoser[]) {
+  // Wall Street nabzi: gainer gucu, loser gucu, hacim trendi
+  const gainerCount = gainers.length
+  const loserCount = losers.length
+  const activeUp = mostActive.filter(a => (a.changesPercentage ?? 0) > 0).length
+  const activeDown = mostActive.length - activeUp
+
+  const sentiment = gainerCount + loserCount > 0
+    ? Math.round((gainerCount / (gainerCount + loserCount)) * 100)
+    : 50
+
+  let label: string
+  let icon: string
+  if (sentiment >= 65) { label = 'Alis Baskisi Agir'; icon = 'bull' }
+  else if (sentiment >= 50) { label = 'Hafif Alis Egilimi'; icon = 'neutral_up' }
+  else if (sentiment >= 35) { label = 'Hafif Satis Egilimi'; icon = 'neutral_down' }
+  else { label = 'Satis Baskisi Agir'; icon = 'bear' }
+
+  return { sentiment, label, icon, activeUp, activeDown, gainerCount, loserCount }
+}
+
+export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
+  const [data, setData] = useState<MarketDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [fredData, setFredData] = useState<(FredDashboardData & { fearGreedV2: FearGreedComponents }) | null>(null)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true)
+        const [marketRes, fredRes] = await Promise.all([
+          fetch('/api/fmp-terminal/market'),
+          fetch('/api/fmp-terminal/fred').catch(() => null),
+        ])
+        if (!marketRes.ok) throw new Error('Pazar verisi yuklenemedi')
+        const json = await marketRes.json()
+        setData(json)
+        if (fredRes?.ok) {
+          const fj = await fredRes.json()
+          setFredData(fj)
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Bilinmeyen hata')
+      } finally { setLoading(false) }
+    }
+    load()
+  }, [])
+
+  // Computed trends
+  const trend = useMemo(() => {
+    if (!data) return null
+    return computeMarketTrend(data.indexes, data.sectorPerformance, data.topGainers, data.topLosers)
+  }, [data])
+
+  const wallStreet = useMemo(() => {
+    if (!data) return null
+    return computeWallStreetSentiment(data.topGainers, data.topLosers, data.mostActive)
+  }, [data])
+
+  const hermesPulse = useMemo(() => {
+    if (!data || !trend) return null
+    const fg = data.fearGreedIndex ?? 50
+    const fredFG = fredData?.fearGreedV2?.composite ?? 50
+    const trendScore = trend.trendScore
+    const sectorBreadth = trend.sectorBreadth
+    const wsScore = wallStreet?.sentiment ?? 50
+
+    const composite = Math.round(
+      trendScore * 0.30 + fg * 0.20 + fredFG * 0.20 + sectorBreadth * 0.15 + wsScore * 0.15
+    )
+
+    let label: string, color: string
+    if (composite >= 75) { label = 'GUCLU YUKSELIS'; color = '#34d399' }
+    else if (composite >= 60) { label = 'YUKSELIS'; color = '#6ee7b7' }
+    else if (composite >= 45) { label = 'NOTR'; color = '#94a3b8' }
+    else if (composite >= 30) { label = 'DUSUS'; color = '#fb923c' }
+    else { label = 'GUCLU DUSUS'; color = '#f87171' }
+
+    return { composite, label, color, components: { trendScore, fg, fredFG: Math.round(fredFG), sectorBreadth: Math.round(sectorBreadth), wsScore } }
+  }, [data, trend, fredData, wallStreet])
+
+  if (loading) return <MarketSkeleton />
+  if (error) return <ErrorState message={error} />
+  if (!data) return <ErrorState message="Veri bulunamadi" />
+
+  return (
+    <div className="space-y-2 sm:space-y-4 px-2 sm:px-4 lg:px-6 animate-fade-in">
+
+      {/* ═══ HERMES AI PULSE — Tum Sistem Nabzi ═══ */}
+      {hermesPulse && <HermesPulseGauge pulse={hermesPulse} />}
+
+      {/* ═══ FEAR & GREED INDEX BAR ═══ */}
+      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <div className="flex items-center gap-2">
+            <Activity size={16} className="text-violet-400" />
+            <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Korku & Acgozluluk Endeksi</h3>
+            <span className="text-[10px] text-white/25 ml-1">Piyasa duyarlilik olceri</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-xl sm:text-2xl font-black tabular-nums ${
+              (data.fearGreedIndex ?? 50) <= 20 ? 'text-red-500' :
+              (data.fearGreedIndex ?? 50) <= 40 ? 'text-orange-400' :
+              (data.fearGreedIndex ?? 50) <= 60 ? 'text-slate-300' :
+              (data.fearGreedIndex ?? 50) <= 80 ? 'text-emerald-400' :
+              'text-emerald-300'
+            }`}>{data.fearGreedIndex ?? 50}</span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              (data.fearGreedIndex ?? 50) <= 20 ? 'text-red-400 bg-red-500/15' :
+              (data.fearGreedIndex ?? 50) <= 40 ? 'text-orange-400 bg-orange-500/15' :
+              (data.fearGreedIndex ?? 50) <= 60 ? 'text-slate-300 bg-white/[0.06]' :
+              (data.fearGreedIndex ?? 50) <= 80 ? 'text-emerald-400 bg-emerald-500/15' :
+              'text-emerald-300 bg-emerald-500/20'
+            }`}>{data.fearGreedLabel ?? 'NEUTRAL'}</span>
+          </div>
+        </div>
+        {/* Gradient bar */}
+        <div className="relative h-3 rounded-full overflow-hidden bg-gradient-to-r from-red-600 via-orange-500 via-yellow-400 via-slate-400 via-emerald-400 to-emerald-500">
+          <div className="absolute top-0 h-full w-1 bg-white shadow-lg shadow-white/50 rounded-full transition-all duration-700"
+            style={{ left: `${Math.max(1, Math.min(99, data.fearGreedIndex ?? 50))}%` }} />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-[9px] text-red-400/60">Asiri Korku</span>
+          <span className="text-[9px] text-orange-400/50">Korku</span>
+          <span className="text-[9px] text-white/30">Notr</span>
+          <span className="text-[9px] text-emerald-400/50">Acgozluluk</span>
+          <span className="text-[9px] text-emerald-400/60">Asiri Acgozluluk</span>
+        </div>
+      </div>
+
+      {/* ═══ FEAR & GREED v2 (FRED Bazli) ═══ */}
+      {fredData && <FearGreedV2 fg={fredData.fearGreedV2} />}
+
+      {/* ═══ MAKRO RADAR (FRED) ═══ */}
+      {fredData && <MacroRadarCards fred={fredData} />}
+
+      {/* ═══ ROW 1: TREND GUCU + WALL STREET NABZI + ENDEKSLER ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3">
+
+        {/* Trend Gucu Gauge */}
+        {trend && (
+          <div className="lg:col-span-3 bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+            <div className="flex items-center gap-2 mb-4">
+              <Gauge size={18} className="text-violet-400" />
+              <div>
+                <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Piyasa Trend Gucu</h3>
+                <p className="text-[11px] text-white/30">Canli endeks, sektor ve hacim analizi</p>
+              </div>
+            </div>
+
+            {/* Big Score */}
+            <div className="flex flex-col items-center mb-4">
+              <div className="relative w-28 h-28">
+                <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+                  <circle cx="60" cy="60" r="50" fill="none"
+                    stroke={trend.trendColor === 'emerald' ? '#34d399' : trend.trendColor === 'red' ? '#f87171' : '#94a3b8'}
+                    strokeWidth="10" strokeLinecap="round"
+                    strokeDasharray={`${trend.trendScore * 3.14} 314`}
+                    className="transition-all duration-1000" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className={`text-3xl font-black tabular-nums ${trend.trendColor === 'emerald' ? 'text-emerald-400' : trend.trendColor === 'red' ? 'text-red-400' : 'text-slate-300'}`}>
+                    {trend.trendScore}
+                  </span>
+                  <span className="text-[10px] text-white/40">/100</span>
+                </div>
+              </div>
+              <span className={`mt-2 text-sm font-bold tracking-wide ${trend.trendColor === 'emerald' ? 'text-emerald-400' : trend.trendColor === 'red' ? 'text-red-400' : 'text-slate-400'}`}>
+                {trend.trendLabel}
+              </span>
+            </div>
+
+            {/* Trend breakdown */}
+            <div className="space-y-2">
+              <TrendBar label="Endeks Trendi" value={Math.round(50 + trend.avgIndexChange * 20)} desc={`${trend.avgIndexChange >= 0 ? '+' : ''}${trend.avgIndexChange.toFixed(2)}% ort.`} />
+              <TrendBar label="Sektor Genisligi" value={Math.round(trend.sectorBreadth)} desc={`${trend.posSectors}/${trend.totalSectors} pozitif`} />
+              <TrendBar label="Alis/Satis Gucu" value={Math.round(trend.glRatio)} desc="Top 5 gainer vs loser" />
+            </div>
+          </div>
+        )}
+
+        {/* Wall Street Nabzi */}
+        {wallStreet && (
+          <div className="lg:col-span-3 bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+            <div className="flex items-center gap-2 mb-4">
+              <Shield size={18} className="text-amber-400" />
+              <div>
+                <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Wall Street Nabzi</h3>
+                <p className="text-[11px] text-white/30">Kurumsal alis-satis duyarliligi</p>
+              </div>
+            </div>
+
+            {/* Sentiment Score */}
+            <div className="flex flex-col items-center mb-4">
+              <div className="text-5xl mb-2">
+                {wallStreet.icon === 'bull' ? '\u{1F402}' : wallStreet.icon === 'bear' ? '\u{1F43B}' : wallStreet.icon === 'neutral_up' ? '\u{1F4C8}' : '\u{1F4C9}'}
+              </div>
+              <div className={`text-2xl font-black tabular-nums ${wallStreet.sentiment >= 50 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {wallStreet.sentiment}%
+              </div>
+              <span className={`text-sm font-semibold ${wallStreet.sentiment >= 50 ? 'text-emerald-400/80' : 'text-red-400/80'}`}>
+                {wallStreet.label}
+              </span>
+            </div>
+
+            {/* Breakdown */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-500/8 border border-emerald-500/15">
+                <div className="flex items-center gap-2">
+                  <ArrowUpRight size={14} className="text-emerald-400" />
+                  <span className="text-xs text-white/60">Yukselenler</span>
+                </div>
+                <span className="text-sm font-bold text-emerald-400 tabular-nums">{wallStreet.gainerCount}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-red-500/8 border border-red-500/15">
+                <div className="flex items-center gap-2">
+                  <ArrowDownRight size={14} className="text-red-400" />
+                  <span className="text-xs text-white/60">Dusenler</span>
+                </div>
+                <span className="text-sm font-bold text-red-400 tabular-nums">{wallStreet.loserCount}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                <div className="flex items-center gap-2">
+                  <Activity size={14} className="text-violet-400" />
+                  <span className="text-xs text-white/60">Aktif Hacim</span>
+                </div>
+                <span className="text-xs text-white/50">
+                  <span className="text-emerald-400 font-bold">{wallStreet.activeUp}</span>
+                  <span className="text-white/30 mx-1">/</span>
+                  <span className="text-red-400 font-bold">{wallStreet.activeDown}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Index Cards */}
+        <div className="lg:col-span-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe size={16} className="text-violet-400/60" />
+            <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">Ana Endeksler</h3>
+            <p className="text-[11px] text-white/25 ml-1">ABD borsalarinin anlik durumu</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
+            {data.indexes.length > 0 ? (
+              data.indexes.map((idx, i) => <IndexCard key={i} index={idx} />)
+            ) : (
+              ['S&P 500', 'NASDAQ', 'Dow Jones'].map(n => (
+                <div key={n} className="bg-[#151520] rounded-2xl border border-white/[0.06] p-4 animate-pulse">
+                  <span className="text-xs text-white/25">{n}</span>
+                  <div className="mt-2 h-6 w-24 bg-white/[0.04] rounded-lg" />
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Treasury below indexes */}
+          <div className="mt-2 sm:mt-3 bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign size={16} className="text-violet-400/60" />
+              <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">ABD Tahvil Faizleri</h3>
+              <p className="text-[11px] text-white/25 ml-1">Kisa ve uzun vadeli oranlar</p>
+            </div>
+            {data.treasury ? <TreasuryDisplay treasury={data.treasury} /> : (
+              <p className="text-white/25 text-xs mt-3">Faiz verisi bekleniyor...</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ ROW 2: SEKTOR ROTASYON & PERFORMANS ═══ */}
+      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <div className="flex items-center gap-2">
+            <BarChart3 size={16} className="text-violet-400/60" />
+            <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">Sektor Rotasyon & Performans</h3>
+            <p className="text-[11px] text-white/25 ml-1">Her sektorun gunluk degisimi ve para akisi</p>
+          </div>
+          {/* Makro Rejim Badge */}
+          {(() => {
+            const posCount = data.sectorPerformance.filter(s => (s.changesPercentage ?? 0) > 0).length
+            const total = data.sectorPerformance.length || 1
+            const breadthRatio = posCount / total
+            const regime = breadthRatio >= 0.7 ? 'RISK-ON' : breadthRatio >= 0.4 ? 'NEUTRAL' : 'RISK-OFF'
+            const regimeColor = regime === 'RISK-ON' ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/25' : regime === 'RISK-OFF' ? 'text-red-400 bg-red-500/15 border-red-500/25' : 'text-slate-300 bg-white/[0.06] border-white/[0.1]'
+            return (
+              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border ${regimeColor}`}>
+                {regime} ({posCount}/{total})
+              </span>
+            )
+          })()}
+        </div>
+        {data.sectorPerformance.length > 0 ? (
+          <>
+            {/* Sektor bar chart - sortlanmis */}
+            <div className="space-y-1.5 mb-3">
+              {[...data.sectorPerformance]
+                .sort((a, b) => (b.changesPercentage ?? 0) - (a.changesPercentage ?? 0))
+                .map((sp, i) => {
+                  const pct = sp.changesPercentage ?? 0
+                  const isPos = pct >= 0
+                  const barWidth = Math.min(100, Math.abs(pct) * 15)
+                  return (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-[11px] text-white/50 w-24 truncate">{sp.sector}</span>
+                      <div className="flex-1 h-4 relative bg-white/[0.03] rounded-md overflow-hidden">
+                        <div className={`absolute top-0 h-full rounded-md transition-all duration-500 ${isPos ? 'left-1/2 bg-emerald-500/30' : 'right-1/2 bg-red-500/30'}`}
+                          style={{ width: `${barWidth / 2}%` }} />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className={`text-[10px] font-bold tabular-nums ${isPos ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {isPos ? '+' : ''}{pct.toFixed(2)}%
+                          </span>
+                        </div>
+                      </div>
+                      <span className={`text-[10px] w-5 text-center ${isPos ? 'text-emerald-400/60' : 'text-red-400/60'}`}>
+                        {isPos ? '\u25B2' : '\u25BC'}
+                      </span>
+                    </div>
+                  )
+                })
+              }
+            </div>
+            {/* Grid tiles */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {data.sectorPerformance.map((sp, i) => <SectorTile key={i} sector={sp} />)}
+            </div>
+          </>
+        ) : (
+          <p className="text-white/25 text-xs">Sektor verisi bekleniyor...</p>
+        )}
+      </div>
+
+      {/* ═══ ROW 3: MOVERS ═══ */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
+        <MoversCard title="En Cok Yukselen" desc="Bugun en fazla artan hisseler" items={data.topGainers}
+          type="gainer" icon={<ArrowUpRight size={16} className="text-emerald-400" />} onSelect={onSelectSymbol} />
+        <MoversCard title="En Cok Dusen" desc="Bugun en fazla dusen hisseler" items={data.topLosers}
+          type="loser" icon={<ArrowDownRight size={16} className="text-red-400" />} onSelect={onSelectSymbol} />
+        <MoversCard title="En Yuksek Hacim" desc="En cok alim-satim yapilan hisseler" items={data.mostActive}
+          type="active" icon={<Activity size={16} className="text-violet-400" />} onSelect={onSelectSymbol} />
+      </div>
+
+      {/* ═══ ROW 3.5: BUYUK PARA AKISI (V3) ═══ */}
+      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="flex items-center gap-2 mb-3">
+          <DollarSign size={16} className="text-emerald-400/60" />
+          <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">Buyuk Para Akisi</h3>
+          <p className="text-[11px] text-white/25 ml-1">Kurumsal yatirimci yonu</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
+            <div className="text-[11px] text-white/30 mb-1">Yukselenler Gucu</div>
+            <div className="text-base font-bold text-emerald-400 tabular-nums">
+              {data.topGainers.slice(0, 5).reduce((s, g) => s + Math.abs(g.changesPercentage || 0), 0).toFixed(1)}%
+            </div>
+            <div className="text-[10px] text-white/20">Top 5 ort. yukselis</div>
+          </div>
+          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
+            <div className="text-[11px] text-white/30 mb-1">Dusenler Gucu</div>
+            <div className="text-base font-bold text-red-400 tabular-nums">
+              {data.topLosers.slice(0, 5).reduce((s, l) => s + Math.abs(l.changesPercentage || 0), 0).toFixed(1)}%
+            </div>
+            <div className="text-[10px] text-white/20">Top 5 ort. dusus</div>
+          </div>
+          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
+            <div className="text-[11px] text-white/30 mb-1">Aktif Hacim</div>
+            <div className="text-base font-bold text-violet-400 tabular-nums">
+              {data.mostActive.length}
+            </div>
+            <div className="text-[10px] text-white/20">Yuksek hacim hisse</div>
+          </div>
+          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
+            <div className="text-[11px] text-white/30 mb-1">Net Yon</div>
+            {(() => {
+              const upCount = data.mostActive.filter(a => (a.changesPercentage ?? 0) > 0).length
+              const total = data.mostActive.length || 1
+              const ratio = upCount / total
+              return (
+                <>
+                  <div className={`text-base font-bold tabular-nums ${ratio > 0.5 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {ratio > 0.6 ? 'ALICI' : ratio < 0.4 ? 'SATICI' : 'DENGELI'}
+                  </div>
+                  <div className="text-[10px] text-white/20">{(ratio * 100).toFixed(0)}% pozitif</div>
+                </>
+              )
+            })()}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ ROW 4: ECONOMIC CALENDAR ═══ */}
+      {data.economicCalendar.length > 0 && (
+        <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar size={16} className="text-violet-400/60" />
+            <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">Ekonomik Takvim</h3>
+            <p className="text-[11px] text-white/25 ml-1">Piyasayi etkileyebilecek yaklasan olaylar</p>
+          </div>
+          <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
+            {data.economicCalendar.slice(0, 15).map((event, i) => <EventRow key={i} event={event} />)}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Trend Bar Component ────────────────────────────────────────
+
+function TrendBar({ label, value, desc }: { label: string; value: number; desc: string }) {
+  const clampedValue = Math.max(0, Math.min(100, value))
+  const color = clampedValue >= 60 ? '#34d399' : clampedValue >= 40 ? '#94a3b8' : '#f87171'
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-0.5">
+        <span className="text-[11px] text-white/50">{label}</span>
+        <span className="text-[11px] text-white/40">{desc}</span>
+      </div>
+      <div className="w-full h-2 bg-white/[0.05] rounded-full overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${clampedValue}%`, backgroundColor: color }} />
+      </div>
+    </div>
+  )
+}
+
+// ─── Index Card ────────────────────────────────────────────────────
+
+function IndexCard({ index }: { index: IndexQuote }) {
+  const change = index.change ?? 0
+  const pct = index.changesPercentage ?? 0
+  const price = index.price ?? 0
+  const isUp = change >= 0
+  const name = INDEX_NAMES[index.symbol] || index.name || 'Index'
+  const desc = INDEX_DESC[index.symbol] || ''
+
+  return (
+    <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 hover:border-white/[0.12] transition-all duration-300 shadow-xl shadow-black/20 group">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <span className="text-xs text-white/35 font-medium">{name}</span>
+          {desc && <p className="text-[10px] text-white/15">{desc}</p>}
+        </div>
+        <span className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${isUp ? 'bg-emerald-500/12 text-emerald-400' : 'bg-red-500/12 text-red-400'}`}>
+          {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+          {Math.abs(pct).toFixed(2)}%
+        </span>
+      </div>
+      <div className="flex items-baseline gap-2">
+        <span className="text-xl sm:text-2xl font-bold text-white/90 tabular-nums group-hover:text-white transition-colors">
+          {price.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+        </span>
+        <span className={`text-sm tabular-nums ${isUp ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
+          {isUp ? '+' : ''}{change.toFixed(2)}
+        </span>
+      </div>
+      {/* Day range */}
+      {index.dayLow > 0 && index.dayHigh > 0 && (
+        <div className="mt-2 flex items-center gap-1">
+          <span className="text-[10px] text-white/25 tabular-nums">{index.dayLow.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+          <div className="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden relative">
+            <div className="absolute h-full bg-gradient-to-r from-red-400/40 via-violet-400/60 to-emerald-400/40 rounded-full"
+              style={{ width: `${Math.min(100, ((price - index.dayLow) / (index.dayHigh - index.dayLow)) * 100)}%` }} />
+          </div>
+          <span className="text-[10px] text-white/25 tabular-nums">{index.dayHigh.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Sector Tile ───────────────────────────────────────────────────
+
+function SectorTile({ sector }: { sector: SectorPerformance }) {
+  const pct = sector.changesPercentage ?? 0
+  const isUp = pct >= 0
+  const intensity = Math.min(1, Math.abs(pct) / 3)
+
+  return (
+    <div className="rounded-xl p-3 border border-white/[0.05] hover:border-white/[0.12] transition-all duration-200 cursor-default"
+      style={{
+        backgroundColor: isUp
+          ? `rgba(52,211,153,${0.04 + intensity * 0.12})`
+          : `rgba(248,113,113,${0.04 + intensity * 0.12})`,
+      }}>
+      <div className="text-[11px] text-white/50 truncate mb-1 font-medium">{sector.sector || 'Unknown'}</div>
+      <div className={`flex items-center gap-0.5 text-base font-bold tabular-nums ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+        {isUp ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
+        {isUp ? '+' : ''}{pct.toFixed(2)}%
+      </div>
+    </div>
+  )
+}
+
+// ─── Treasury ──────────────────────────────────────────────────────
+
+function TreasuryDisplay({ treasury }: { treasury: TreasuryRate }) {
+  const rates = [
+    { label: '3 Ay', value: treasury.month3 ?? 0 },
+    { label: '6 Ay', value: treasury.month6 ?? 0 },
+    { label: '1 Yil', value: treasury.year1 ?? 0 },
+    { label: '2 Yil', value: treasury.year2 ?? 0 },
+    { label: '5 Yil', value: treasury.year5 ?? 0 },
+    { label: '10 Yil', value: treasury.year10 ?? 0 },
+    { label: '30 Yil', value: treasury.year30 ?? 0 },
+  ]
+  const spread = (treasury.year10 ?? 0) - (treasury.year2 ?? 0)
+  const inverted = spread < 0
+
+  return (
+    <div className="flex items-start gap-4 mt-2">
+      <div className="flex-1 grid grid-cols-7 gap-1.5">
+        {rates.map(r => (
+          <div key={r.label} className="text-center">
+            <span className="block text-[10px] text-white/35 mb-1">{r.label}</span>
+            <div className="h-10 relative flex items-end justify-center">
+              <div className="w-full bg-gradient-to-t from-violet-500/40 to-blue-500/20 rounded-t"
+                style={{ height: `${Math.min(100, (r.value / 6) * 100)}%` }} />
+            </div>
+            <span className="block text-xs text-white/70 tabular-nums font-semibold mt-0.5">{r.value.toFixed(2)}%</span>
+          </div>
+        ))}
+      </div>
+      <div className={`shrink-0 px-3 py-2 rounded-xl border text-center min-w-[100px] ${inverted ? 'bg-red-500/8 border-red-500/15' : 'bg-emerald-500/8 border-emerald-500/15'}`}>
+        <div className="flex items-center gap-1 justify-center mb-1">
+          <Info size={11} className={inverted ? 'text-red-400/60' : 'text-emerald-400/60'} />
+          <span className="text-[10px] text-white/40">2Y-10Y</span>
+        </div>
+        <span className={`text-base font-bold tabular-nums ${inverted ? 'text-red-400' : 'text-emerald-400'}`}>
+          {spread >= 0 ? '+' : ''}{spread.toFixed(2)}%
+        </span>
+        {inverted && <p className="text-[9px] text-red-400/50 mt-1">Ters yield egrisi</p>}
+      </div>
+    </div>
+  )
+}
+
+// ─── Movers Card ───────────────────────────────────────────────────
+
+function MoversCard({ title, desc, items, type, icon, onSelect }: {
+  title: string; desc: string; items: MarketGainerLoser[]
+  type: 'gainer' | 'loser' | 'active'; icon: React.ReactNode; onSelect: (s: string) => void
+}) {
+  return (
+    <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
+      <div className="flex items-center gap-2 mb-2 sm:mb-3">
+        {icon}
+        <div>
+          <h3 className="text-xs font-semibold text-white/45 uppercase tracking-wider">{title}</h3>
+          <p className="text-[10px] text-white/20">{desc}</p>
+        </div>
+      </div>
+      <div className="space-y-0.5">
+        {items.length === 0 ? (
+          <p className="text-white/20 text-xs py-3 text-center">Veri bekleniyor...</p>
+        ) : items.slice(0, 7).map((item, i) => {
+          const price = item.price ?? 0
+          const pct = item.changesPercentage ?? 0
+          const isUp = pct >= 0
+          return (
+            <button key={i} onClick={() => onSelect(item.symbol)}
+              className="w-full flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-white/[0.04] transition-all duration-150 text-left group">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-white/15 w-3 tabular-nums">{i + 1}</span>
+                <div>
+                  <span className="text-xs font-semibold text-white/70 group-hover:text-violet-300 transition-colors">{item.symbol}</span>
+                  <span className="text-[10px] text-white/15 ml-1.5 hidden lg:inline">{(item.name || '').slice(0, 14)}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-white/40 tabular-nums">${price.toFixed(2)}</span>
+                <span className={`flex items-center gap-0.5 text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded-full ${isUp ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                  {isUp ? '+' : ''}{pct.toFixed(2)}%
+                </span>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Economic Event ────────────────────────────────────────────────
+
+function EventRow({ event }: { event: EconomicEvent }) {
+  return (
+    <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.02] transition-all duration-150">
+      <span className="text-[11px] text-white/25 w-16 shrink-0 tabular-nums">
+        {new Date(event.date).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' })}
+      </span>
+      <span className="text-xs text-white/50 flex-1 truncate">{event.event}</span>
+      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+        event.impact === 'High' ? 'bg-red-500/12 text-red-400 border border-red-500/20' :
+        event.impact === 'Medium' ? 'bg-orange-500/12 text-orange-400 border border-orange-500/20' :
+        'bg-white/[0.04] text-white/25 border border-white/[0.06]'
+      }`}>
+        {event.impact === 'High' ? 'Yuksek' : event.impact === 'Medium' ? 'Orta' : 'Dusuk'}
+      </span>
+    </div>
+  )
+}
+
+// ─── Fear & Greed v2 (FRED Bazli) ────────────────────────────────
+
+function FearGreedV2({ fg }: { fg: FearGreedComponents }) {
+  const label = fg.composite >= 80 ? 'ASIRI ACGOZLULUK'
+    : fg.composite >= 60 ? 'ACGOZLULUK'
+    : fg.composite >= 40 ? 'NOTR'
+    : fg.composite >= 20 ? 'KORKU'
+    : 'ASIRI KORKU'
+
+  const barColor = fg.composite >= 60 ? 'text-emerald-400'
+    : fg.composite >= 40 ? 'text-slate-300'
+    : 'text-red-400'
+
+  const components = [
+    { name: 'VIX Momentum', score: fg.vixScore, weight: '25%' },
+    { name: 'Verim Egrisi', score: fg.yieldCurveScore, weight: '20%' },
+    { name: 'Kredi Spreadi', score: fg.creditSpreadScore, weight: '20%' },
+    { name: 'Tuketici Guveni', score: fg.consumerSentimentScore, weight: '20%' },
+    { name: 'Issizlik Basvurulari', score: fg.joblessClaimsScore, weight: '15%' },
+  ]
+
+  return (
+    <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <div className="flex items-center gap-2">
+          <Zap size={16} className="text-cyan-400" />
+          <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Makro Korku & Acgozluluk v2</h3>
+          <span className="text-[10px] text-white/25 ml-1">FRED ekonomik veriler bazli</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-xl sm:text-2xl font-black tabular-nums ${barColor}`}>{fg.composite}</span>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+            fg.composite >= 60 ? 'text-emerald-400 bg-emerald-500/15' :
+            fg.composite >= 40 ? 'text-slate-300 bg-white/[0.06]' :
+            'text-red-400 bg-red-500/15'
+          }`}>{label}</span>
+        </div>
+      </div>
+      {/* Gradient bar */}
+      <div className="relative h-2.5 rounded-full overflow-hidden bg-gradient-to-r from-red-600 via-orange-500 via-slate-400 to-emerald-500 mb-3">
+        <div className="absolute top-0 h-full w-1 bg-white shadow-lg shadow-white/50 rounded-full transition-all duration-700"
+          style={{ left: `${Math.max(1, Math.min(99, fg.composite))}%` }} />
+      </div>
+      {/* Components */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+        {components.map(c => (
+          <div key={c.name} className="text-center">
+            <div className="text-[10px] text-white/35 mb-1 truncate">{c.name}</div>
+            <div className={`text-sm font-bold tabular-nums ${
+              c.score >= 60 ? 'text-emerald-400' : c.score >= 40 ? 'text-slate-300' : 'text-red-400'
+            }`}>{c.score}</div>
+            <div className="w-full h-1 bg-white/[0.05] rounded-full overflow-hidden mt-1">
+              <div className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${c.score}%`,
+                  backgroundColor: c.score >= 60 ? '#34d399' : c.score >= 40 ? '#94a3b8' : '#f87171'
+                }} />
+            </div>
+            <div className="text-[9px] text-white/20 mt-0.5">{c.weight}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Makro Radar Cards (FRED) ────────────────────────────────────
+
+function MacroRadarCards({ fred }: { fred: FredDashboardData & { fearGreedV2: FearGreedComponents } }) {
+  const yc = fred.yieldCurve
+  const ycColor = yc.status === 'INVERSION' ? 'text-red-400 bg-red-500/10 border-red-500/20'
+    : yc.status === 'DIKKAT' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20'
+    : yc.status === 'GENIS' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+    : 'text-slate-300 bg-white/[0.04] border-white/[0.08]'
+
+  const csColor = fred.creditStress.status === 'CRISIS' ? 'text-red-400'
+    : fred.creditStress.status === 'HIGH' ? 'text-orange-400'
+    : fred.creditStress.status === 'ELEVATED' ? 'text-yellow-400'
+    : 'text-emerald-400'
+
+  const vColor = fred.volatility.status === 'PANIC' ? 'text-red-400'
+    : fred.volatility.status === 'FEAR' ? 'text-orange-400'
+    : fred.volatility.status === 'NORMAL' ? 'text-slate-300'
+    : 'text-emerald-400'
+
+  const regimeColor: Record<string, string> = {
+    GOLDILOCKS: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/25',
+    REFLATION: 'text-amber-400 bg-amber-500/15 border-amber-500/25',
+    STAGFLATION: 'text-red-400 bg-red-500/15 border-red-500/25',
+    DEFLATION: 'text-blue-400 bg-blue-500/15 border-blue-500/25',
+    UNKNOWN: 'text-slate-400 bg-white/[0.06] border-white/[0.1]',
+  }
+
+  const regimeEmoji: Record<string, string> = {
+    GOLDILOCKS: '\u2728', REFLATION: '\uD83D\uDD25', STAGFLATION: '\u26A0\uFE0F', DEFLATION: '\u2744\uFE0F', UNKNOWN: '\u2753',
+  }
+
+  return (
+    <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <div className="flex items-center gap-2">
+          <Radio size={16} className="text-cyan-400" />
+          <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Makro Radar</h3>
+          <span className="text-[10px] text-white/25 ml-1">FRED verileri — ekonomi nabzi</span>
+        </div>
+        <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border ${regimeColor[fred.macroRegime] || regimeColor.UNKNOWN}`}>
+          {regimeEmoji[fred.macroRegime] || '?'} {fred.macroRegime}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+        {/* Yield Curve */}
+        <div className={`rounded-xl p-3 border ${ycColor}`}>
+          <div className="text-[11px] text-white/40 mb-1">Verim Egrisi (10Y-2Y)</div>
+          <div className="text-xl font-black tabular-nums">
+            {yc.spread >= 0 ? '+' : ''}{yc.spread.toFixed(2)}%
+          </div>
+          <div className="flex items-center justify-between mt-1">
+            <span className="text-[10px] text-white/30">10Y: {yc.dgs10.toFixed(2)}%</span>
+            <span className="text-[10px] text-white/30">2Y: {yc.dgs2.toFixed(2)}%</span>
+          </div>
+          <div className="text-[10px] font-bold mt-1">{yc.status}</div>
+        </div>
+
+        {/* Fed Policy */}
+        <div className="rounded-xl p-3 border border-blue-500/20 bg-blue-500/8 text-blue-300">
+          <div className="text-[11px] text-white/40 mb-1">Fed Faiz Orani</div>
+          <div className="text-xl font-black tabular-nums">
+            {fred.fedPolicy.fedFundsRate.toFixed(2)}%
+          </div>
+          <div className="text-[10px] text-white/30 mt-1">Bank Prime: {fred.fedPolicy.bankPrime.toFixed(2)}%</div>
+          <div className="text-[10px] text-white/20 mt-0.5">{fred.fedPolicy.fedFundsDate}</div>
+        </div>
+
+        {/* Credit Stress */}
+        <div className="rounded-xl p-3 border border-white/[0.06] bg-white/[0.03]">
+          <div className="text-[11px] text-white/40 mb-1">Kredi Stresi (HY Spread)</div>
+          <div className={`text-xl font-black tabular-nums ${csColor}`}>
+            {fred.creditStress.highYieldSpread.toFixed(2)}%
+          </div>
+          <div className="text-[10px] text-white/30 mt-1">Durum: <span className={`font-bold ${csColor}`}>{fred.creditStress.status}</span></div>
+          <div className="text-[10px] text-white/20 mt-0.5">{fred.creditStress.highYieldDate}</div>
+        </div>
+
+        {/* Employment */}
+        <div className="rounded-xl p-3 border border-white/[0.06] bg-white/[0.03]">
+          <div className="text-[11px] text-white/40 mb-1">Istihdam Nabzi</div>
+          <div className="text-xl font-black tabular-nums text-white/80">
+            %{fred.employment.unemploymentRate.toFixed(1)}
+          </div>
+          <div className="text-[10px] text-white/30 mt-1">
+            Haftalik Basvuru: {(fred.employment.joblessClaims / 1000).toFixed(0)}K
+          </div>
+          <div className="flex items-center gap-1 mt-1">
+            <span className="text-[10px] text-white/40">VIX:</span>
+            <span className={`text-[10px] font-bold ${vColor}`}>{fred.volatility.vix.toFixed(1)} ({fred.volatility.status})</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── States ────────────────────────────────────────────────────────
+
+function MarketSkeleton() {
+  const PANELS = [
+    { label: 'Fear & Greed', w: 'col-span-3', h: 'h-72' },
+    { label: 'Sektor Trendi', w: 'col-span-3', h: 'h-72' },
+    { label: 'Endeks Verileri', w: 'col-span-6', h: 'h-72' },
+  ]
+  const CARDS = [
+    { label: 'Yukselenler', icon: '▲' },
+    { label: 'Dusenler', icon: '▼' },
+    { label: 'Hacim Liderleri', icon: '◆' },
+  ]
+  return (
+    <div className="relative space-y-4 animate-fade-in overflow-hidden">
+      <div className="absolute inset-0 data-stream pointer-events-none" />
+      {/* Top panels */}
+      <div className="grid grid-cols-12 gap-3 relative z-10">
+        {PANELS.map((p, i) => (
+          <div key={i} className={`${p.w} bg-[#1A1A1A]/60 rounded-2xl border border-white/[0.05] p-4 ${p.h} opacity-0 overflow-hidden`}
+            style={{ animation: `card-reveal 0.5s ease-out ${0.1 + i * 0.15}s forwards` }}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 rounded-full bg-gold-400/30" style={{ animation: 'heartbeat 2s ease-in-out infinite' }} />
+              <span className="text-[10px] text-white/25 font-medium tracking-wider uppercase">{p.label}</span>
+            </div>
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, j) => (
+                <div key={j} className="h-3 skeleton-shimmer rounded" style={{ width: `${65 + Math.random() * 30}%`, animationDelay: `${j * 80}ms` }} />
+              ))}
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-8 overflow-hidden">
+              <div className="h-full w-1/3 terminal-scan-line" style={{ background: 'linear-gradient(90deg, transparent, rgba(179,148,91,0.06), transparent)' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Bottom cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 relative z-10">
+        {CARDS.map((c, i) => (
+          <div key={i} className="bg-[#1A1A1A]/60 rounded-2xl border border-white/[0.05] p-4 h-44 opacity-0 overflow-hidden"
+            style={{ animation: `card-reveal 0.5s ease-out ${0.6 + i * 0.15}s forwards` }}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-gold-400/40 text-xs">{c.icon}</span>
+              <span className="text-[10px] text-white/20 font-medium tracking-wider uppercase">{c.label}</span>
+            </div>
+            <div className="space-y-2.5">
+              {Array.from({ length: 4 }).map((_, j) => (
+                <div key={j} className="flex items-center gap-2">
+                  <div className="h-2.5 w-12 skeleton-shimmer rounded" style={{ animationDelay: `${j * 100}ms` }} />
+                  <div className="flex-1 h-2.5 skeleton-shimmer rounded" style={{ animationDelay: `${j * 100 + 50}ms` }} />
+                  <div className="h-2.5 w-8 skeleton-shimmer rounded" style={{ animationDelay: `${j * 100 + 100}ms` }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Progress */}
+      <div className="flex justify-center relative z-10 opacity-0" style={{ animation: 'card-reveal 0.4s ease-out 1s forwards' }}>
+        <div className="flex items-center gap-2">
+          <div className="w-24 h-0.5 bg-white/[0.04] rounded-full overflow-hidden">
+            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
+          </div>
+          <span className="text-[9px] text-white/15 font-mono">Piyasa verisi yukleniyor</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// HERMES AI PULSE — Animasyonlu Oval Gauge (tum sistem nabzi)
+// ═══════════════════════════════════════════════════════════════════
+
+function HermesPulseGauge({ pulse }: {
+  pulse: {
+    composite: number; label: string; color: string
+    components: { trendScore: number; fg: number; fredFG: number; sectorBreadth: number; wsScore: number }
+  }
+}) {
+  const [animatedScore, setAnimatedScore] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    setIsVisible(true)
+    const target = pulse.composite
+    const duration = 1500
+    const startTime = Date.now()
+    const animate = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(1, elapsed / duration)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setAnimatedScore(Math.round(eased * target))
+      if (progress < 1) requestAnimationFrame(animate)
+    }
+    requestAnimationFrame(animate)
+  }, [pulse.composite])
+
+  const scoreAngle = (animatedScore / 100) * 270 - 135
+  const circumference = 2 * Math.PI * 90
+  const strokeProgress = (animatedScore / 100) * (circumference * 0.75)
+
+  const components = [
+    { label: 'Trend Gucu', value: pulse.components.trendScore, icon: '◆' },
+    { label: 'Korku/Acgozluluk', value: pulse.components.fg, icon: '◇' },
+    { label: 'FRED F&G', value: pulse.components.fredFG, icon: '◈' },
+    { label: 'Sektor Genisligi', value: pulse.components.sectorBreadth, icon: '◆' },
+    { label: 'Wall Street', value: pulse.components.wsScore, icon: '◇' },
+  ]
+
+  return (
+    <div className={`bg-gradient-to-br from-[#12121a] via-[#151520] to-[#0e0e18] rounded-2xl border border-white/[0.06]
+      shadow-2xl shadow-black/30 overflow-hidden transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        <div className="relative p-3 sm:p-4 lg:p-6">
+        {/* Background pulse effect */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full opacity-[0.03]"
+            style={{ background: `radial-gradient(circle, ${pulse.color} 0%, transparent 70%)`, animation: 'heartbeat 3s ease-in-out infinite' }} />
+        </div>
+
+        <div className="relative z-10 flex flex-col lg:flex-row items-center gap-6">
+          {/* Animated Ring Gauge */}
+          <div className="relative w-52 h-52 shrink-0">
+            <svg viewBox="0 0 200 200" className="w-full h-full" style={{ filter: 'drop-shadow(0 0 20px rgba(0,0,0,0.5))' }}>
+              <defs>
+                <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={pulse.color} stopOpacity="1" />
+                  <stop offset="50%" stopColor={pulse.color} stopOpacity="0.7" />
+                  <stop offset="100%" stopColor={pulse.color} stopOpacity="0.3" />
+                </linearGradient>
+                <linearGradient id="ringBg" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.04" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0.02" />
+                </linearGradient>
+                <filter id="pulseGlow">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+
+              {/* Outer decorative ring */}
+              <circle cx="100" cy="100" r="96" fill="none" stroke="url(#ringBg)" strokeWidth="1" />
+
+              {/* Background arc track */}
+              <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="8"
+                strokeLinecap="round" strokeDasharray={`${circumference * 0.75} ${circumference * 0.25}`}
+                transform="rotate(-225 100 100)" />
+
+              {/* Progress arc */}
+              <circle cx="100" cy="100" r="90" fill="none" stroke="url(#pulseGrad)" strokeWidth="8"
+                strokeLinecap="round" filter="url(#pulseGlow)"
+                strokeDasharray={`${strokeProgress} ${circumference - strokeProgress}`}
+                transform="rotate(-225 100 100)"
+                style={{ transition: 'stroke-dasharray 1.5s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+
+              {/* Inner ring 1 */}
+              <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="4"
+                strokeDasharray={`${circumference * 0.68 * 0.75} ${circumference * 0.68 * 0.25}`}
+                transform="rotate(-225 100 100)" style={{ animation: 'ring-spin 20s linear infinite reverse' }} />
+
+              {/* Inner ring 2 */}
+              <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="2"
+                strokeDasharray="4 8" style={{ animation: 'ring-spin 15s linear infinite' }} />
+
+              {/* Tick marks */}
+              {[0, 25, 50, 75, 100].map(tick => {
+                const angle = ((tick / 100) * 270 - 135) * (Math.PI / 180)
+                const x1 = 100 + 94 * Math.cos(angle)
+                const y1 = 100 + 94 * Math.sin(angle)
+                const x2 = 100 + 88 * Math.cos(angle)
+                const y2 = 100 + 88 * Math.sin(angle)
+                return <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" />
+              })}
+
+              {/* Score needle dot */}
+              {(() => {
+                const angle = scoreAngle * (Math.PI / 180)
+                const x = 100 + 90 * Math.cos(angle)
+                const y = 100 + 90 * Math.sin(angle)
+                return <circle cx={x} cy={y} r="4" fill={pulse.color} style={{ filter: `drop-shadow(0 0 6px ${pulse.color})`, transition: 'cx 1.5s, cy 1.5s' }} />
+              })()}
+            </svg>
+
+            {/* Center content */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[10px] text-white/25 uppercase tracking-widest mb-1">HERMES AI</span>
+              <span className="text-2xl sm:text-4xl font-black tabular-nums" style={{ color: pulse.color, textShadow: `0 0 20px ${pulse.color}40` }}>
+                {animatedScore}
+              </span>
+              <span className="text-[11px] font-bold mt-0.5 px-2.5 py-0.5 rounded-full"
+                style={{ color: pulse.color, backgroundColor: `${pulse.color}15`, border: `1px solid ${pulse.color}30` }}>
+                {pulse.label}
+              </span>
+            </div>
+          </div>
+
+          {/* Right side: Components breakdown */}
+          <div className="flex-1 w-full">
+            <div className="flex items-center gap-2 mb-4">
+              <Radio size={16} style={{ color: pulse.color }} className="animate-pulse" />
+              <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Sistem Nabzi</h3>
+              <span className="text-[10px] text-white/25">Tum modullerin bilesik skoru</span>
+            </div>
+
+            <div className="space-y-2.5">
+              {components.map((comp, i) => {
+                const barColor = comp.value >= 60 ? '#34d399' : comp.value >= 45 ? '#94a3b8' : '#fb923c'
+                return (
+                  <div key={i} className="flex items-center gap-3 group">
+                    <span className="text-[10px] w-3 text-center" style={{ color: `${barColor}80` }}>{comp.icon}</span>
+                    <span className="text-[11px] text-white/40 w-32 truncate">{comp.label}</span>
+                    <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-1000 ease-out"
+                        style={{
+                          width: `${comp.value}%`,
+                          background: `linear-gradient(90deg, ${barColor}60, ${barColor})`,
+                          transitionDelay: `${i * 150}ms`
+                        }} />
+                    </div>
+                    <span className="text-[12px] tabular-nums font-semibold w-8 text-right" style={{ color: barColor }}>
+                      {comp.value}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Mini summary tags */}
+            <div className="flex items-center gap-2 mt-4 flex-wrap">
+              {[
+                { label: '5 Modul Aktif', color: 'text-emerald-400/60 bg-emerald-500/8' },
+                { label: 'Tum hisseler', color: 'text-violet-400/60 bg-violet-500/8' },
+                { label: 'Canli Veri', color: 'text-blue-400/60 bg-blue-500/8' },
+              ].map((tag, i) => (
+                <span key={i} className={`text-[9px] font-medium px-2 py-0.5 rounded-full border border-white/[0.05] ${tag.color}`}>
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[40vh] animate-fade-in">
+      <AlertTriangle size={36} className="text-red-400/40 mb-3" />
+      <p className="text-white/40 text-base">{message}</p>
+      <button onClick={() => window.location.reload()}
+        className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-sm font-medium
+                   hover:from-violet-500 hover:to-blue-500 shadow-lg shadow-violet-500/20 transition-all duration-200">
+        Tekrar Dene
+      </button>
+    </div>
+  )
+}

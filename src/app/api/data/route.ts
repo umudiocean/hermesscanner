@@ -6,8 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getDataStats, listHistoricalSymbols, saveScanToFile, loadLatestScan } from '@/lib/data-store'
-import { getSymbols } from '@/lib/symbols'
-import { getHistoricalDaily, clearCache } from '@/lib/fmp-client'
+import { getCleanSymbols } from '@/lib/symbols'
+import { getHistorical15Min, clearCache } from '@/lib/fmp-client'
 import { Segment } from '@/lib/types'
 
 export const maxDuration = 300 // 5 dakika timeout
@@ -18,7 +18,7 @@ export async function GET() {
     const stats = await getDataStats()
     const savedSymbols = await listHistoricalSymbols()
     
-    const allSymbols = getSymbols('ALL')
+    const allSymbols = getCleanSymbols('ALL')
     const coverage = savedSymbols.length / allSymbols.length * 100
     
     return NextResponse.json({
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const forceRefresh = body.forceRefresh === true
     const concurrency = body.concurrency || 10
     
-    const symbols = getSymbols(segment)
+    const symbols = getCleanSymbols(segment)
     const savedSymbols = new Set(await listHistoricalSymbols())
     
     // Force refresh yoksa sadece eksikleri indir
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         if (!symbol) break
         
         try {
-          await getHistoricalDaily(symbol, 7500, forceRefresh)
+          await getHistorical15Min(symbol, forceRefresh)
           downloaded++
           
           // Her 50 hissede progress log

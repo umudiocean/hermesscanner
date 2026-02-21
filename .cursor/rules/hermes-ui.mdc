@@ -16,12 +16,14 @@ alwaysApply: false
 
 ## Module Structure
 Each module has its own component in `src/components/modules/`:
-- `Module200Week.tsx` - uses `useScanContext()`
-- `Module200Day.tsx` - uses `useScan200DContext()`
+- `ModuleNasdaqTrade.tsx` - uses `useNasdaqTradeContext()`
+- `ModuleNasdaqSignals.tsx` - uses `useNasdaqTradeContext()`
+- `ModuleNasdaqWatchlist.tsx` - uses `useNasdaqTradeContext()`
+- `nasdaq-terminal/ModuleNasdaqTerminal.tsx` - NASDAQ TERMINAL AI (10 tab)
 - New modules should follow the same pattern with their own context
 
 ## Layout Pattern
-- `Layout.tsx` owns all global state via dual React Context
+- `Layout.tsx` owns all global state via React Context (Trade AI)
 - Modules receive state via context hooks, not props
 - Header shows: market status indicator, auto-refresh toggle, last refresh time, scan button
 - Module navigation tabs in header

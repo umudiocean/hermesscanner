@@ -6,33 +6,29 @@
 
 import { OHLCV } from './types'
 import { saveHistoricalData, loadHistoricalData, getHistoricalAge, save15MinData, load15MinData, get15MinAge } from './data-store'
+import { fmpApiFetchRaw } from './api/fmpClient'
+import logger from './logger'
+import { validateOHLCVBars } from './validation/ohlcv-validator'
 
-const FMP_BASE = 'https://financialmodelingprep.com/stable'
-
-// In-memory cache (Vercel warm instances arasinda korunur)
+// LRU memory cache — bounded to prevent OOM on Vercel (256MB heap)
+const MAX_CACHE_ENTRIES = 500
 const historyCache = new Map<string, { bars: OHLCV[]; fetchedAt: number }>()
 const CACHE_TTL = 4 * 60 * 60 * 1000 // 4 saat
 const LOCAL_CACHE_TTL = 24 * 60 * 60 * 1000 // 24 saat - locale kayitli veriler icin
 
-function getApiKey(): string {
-  const key = process.env.FMP_API_KEY
-  if (!key) throw new Error('FMP_API_KEY environment variable is not set')
-  return key
+function setCacheWithEviction<V>(cache: Map<string, V>, key: string, value: V, maxEntries: number = MAX_CACHE_ENTRIES) {
+  if (cache.has(key)) {
+    cache.delete(key)
+  } else if (cache.size >= maxEntries) {
+    const oldest = cache.keys().next().value
+    if (oldest !== undefined) cache.delete(oldest)
+  }
+  cache.set(key, value)
 }
 
-/** FMP stable API icin fetch wrapper - header auth */
+/** FMP stable API icin fetch wrapper - uses centralized client */
 async function fmpFetch(endpoint: string, params: Record<string, string> = {}): Promise<Response> {
-  const url = new URL(`${FMP_BASE}${endpoint}`)
-  for (const [key, val] of Object.entries(params)) {
-    url.searchParams.set(key, val)
-  }
-
-  return fetch(url.toString(), {
-    headers: {
-      'apikey': getApiKey(),
-    },
-    cache: 'no-store',
-  })
+  return fmpApiFetchRaw(endpoint, params)
 }
 
 /**
@@ -62,7 +58,7 @@ export async function getHistoricalDaily(
       const localBars = await loadHistoricalData(symbol)
       if (localBars && localBars.length > 0) {
         // Memory cache'e de ekle
-        historyCache.set(symbol, { bars: localBars, fetchedAt: Date.now() })
+        setCacheWithEviction(historyCache, symbol, { bars: localBars, fetchedAt: Date.now() })
         return localBars
       }
     }
@@ -87,7 +83,7 @@ export async function getHistoricalDaily(
     const fallbackBars = await loadHistoricalData(symbol)
     if (fallbackBars && fallbackBars.length > 0) {
       console.log(`[FMP] API error for ${symbol}, using local cache`)
-      historyCache.set(symbol, { bars: fallbackBars, fetchedAt: Date.now() })
+      setCacheWithEviction(historyCache, symbol, { bars: fallbackBars, fetchedAt: Date.now() })
       return fallbackBars
     }
     throw new Error(`FMP API error for ${symbol}: ${res.status} ${res.statusText}`)
@@ -144,15 +140,19 @@ export async function getHistoricalDaily(
     }
   })
 
+  // ═══ OHLCV DOGRULAMA ═══
+  const dailyValidation = validateOHLCVBars(bars, symbol, 200)
+  const cleanBars = dailyValidation.cleanBars
+
   // Memory cache'e kaydet
-  historyCache.set(symbol, { bars, fetchedAt: Date.now() })
+  setCacheWithEviction(historyCache, symbol, { bars: cleanBars, fetchedAt: Date.now() })
 
   // Local disk'e kaydet (async, beklemeden devam et)
-  saveHistoricalData(symbol, bars).catch(err => {
-    console.error(`[FMP] Failed to save ${symbol} to disk:`, err)
+  saveHistoricalData(symbol, cleanBars).catch(err => {
+    logger.warn(`Failed to save ${symbol} daily to disk`, { module: 'fmpClient', symbol, error: err })
   })
 
-  return bars
+  return cleanBars
 }
 
 /**
@@ -225,7 +225,7 @@ export async function getBatchQuotes(
         }
       }
     } catch (err) {
-      console.error(`Batch quote error (batch ${i}):`, err)
+      logger.warn(`Batch quote error (batch ${i})`, { module: 'fmpClient', error: err })
     }
   }
 
@@ -255,7 +255,7 @@ export async function fetchMultipleHistorical(
         const bars = await getHistoricalDaily(symbol)
         results.set(symbol, bars)
       } catch (err) {
-        console.error(`Failed to fetch ${symbol}:`, (err as Error).message)
+        logger.warn(`Failed to fetch historical for ${symbol}`, { module: 'fmpClient', symbol, error: err })
       }
 
       done++
@@ -325,7 +325,7 @@ export async function getCompanyProfiles(
     console.log(`[FMP] Matched ${results.size} symbols with sector data`)
 
   } catch (err) {
-    console.error('Company screener error:', err)
+    logger.warn('Company screener error', { module: 'fmpClient', error: err })
   }
 
   return results
@@ -367,7 +367,7 @@ export async function getHistorical15Min(
     if (localAge !== null && localAge < LOCAL_15M_CACHE_TTL) {
       const localBars = await load15MinData(symbol)
       if (localBars && localBars.length > 0) {
-        history15mCache.set(symbol, { bars: localBars, fetchedAt: Date.now() })
+        setCacheWithEviction(history15mCache, symbol, { bars: localBars, fetchedAt: Date.now() })
         return localBars
       }
     }
@@ -382,47 +382,45 @@ export async function getHistorical15Min(
     const fallbackBars = await load15MinData(symbol)
     if (fallbackBars && fallbackBars.length > 0) {
       console.log(`[FMP] 15min stitching empty for ${symbol}, using local cache`)
-      history15mCache.set(symbol, { bars: fallbackBars, fetchedAt: Date.now() })
+      setCacheWithEviction(history15mCache, symbol, { bars: fallbackBars, fetchedAt: Date.now() })
       return fallbackBars
     }
     throw new Error(`No 15min data for ${symbol}`)
   }
 
   // Memory cache'e kaydet
-  history15mCache.set(symbol, { bars, fetchedAt: Date.now() })
+  setCacheWithEviction(history15mCache, symbol, { bars, fetchedAt: Date.now() })
 
   // Local disk'e kaydet (async, beklemeden devam et)
   save15MinData(symbol, bars).catch(err => {
-    console.error(`[FMP] Failed to save 15min ${symbol} to disk:`, err)
+    logger.warn(`Failed to save 15min ${symbol} to disk`, { module: 'fmpClient', symbol, error: err })
   })
 
   return bars
 }
 
 /**
- * Aylık parçalar halinde 15dk veri çekip birleştir (stitching)
- * FMP API tek istekte ~1158 bar döndürür (44 gün).
- * 2 aylık aralıklarla istek atarak ~5000+ bar elde ediyoruz.
+ * Aylik parcalar halinde 15dk veri cekip birlestir (stitching)
+ * FMP API tek istekte ~1158 bar dondurur (44 gun).
+ * 2 aylik araliklarla istek atarak ~13000+ bar elde ediyoruz.
  * 
- * TradingView 5000 bar = ~192 işgünü (8 ay)
- * Biz 13+ aylık aralıkta çekip birleştiriyoruz.
+ * VWAP 377 gun + Z-Score 55 gun = 11,232 bar (432 gun x 26 bar/gun)
+ * 432 is gunu ~ 21 ay. Guvenlik marji ile 36 ay geriye gidiyoruz.
  */
 async function fetchStitched15Min(symbol: string): Promise<OHLCV[]> {
-  // 2 aylık aralıklarla tarih çiftleri oluştur
   const now = new Date()
   const ranges: [string, string][] = []
   
-  // 14 ay geriye git (TradingView'ın 5000 barını yakalayabilmek için)
-  for (let monthsBack = 14; monthsBack >= 0; monthsBack -= 2) {
+  // 36 ay (3 yil) geriye git — VWAP 377g + Z-Score 55g icin yeterli
+  for (let monthsBack = 36; monthsBack >= 0; monthsBack -= 2) {
     const from = new Date(now)
     from.setMonth(from.getMonth() - monthsBack)
     from.setDate(1)
     
     const to = new Date(from)
     to.setMonth(to.getMonth() + 2)
-    to.setDate(0) // Ayın son günü
+    to.setDate(0)
     
-    // Gelecek tarihleri sınırla
     if (to > now) {
       to.setTime(now.getTime())
     }
@@ -433,6 +431,8 @@ async function fetchStitched15Min(symbol: string): Promise<OHLCV[]> {
   }
 
   const allBars: OHLCV[] = []
+  let successChunks = 0
+  let failedChunks = 0
 
   for (const [from, to] of ranges) {
     try {
@@ -442,7 +442,10 @@ async function fetchStitched15Min(symbol: string): Promise<OHLCV[]> {
         to,
       })
 
-      if (!res.ok) continue
+      if (!res.ok) {
+        failedChunks++
+        continue
+      }
 
       const data = await res.json()
       
@@ -452,10 +455,13 @@ async function fetchStitched15Min(symbol: string): Promise<OHLCV[]> {
       } else if (data.value && Array.isArray(data.value)) {
         historical = data.value
       } else {
+        failedChunks++
         continue
       }
 
       if (historical.length === 0) continue
+
+      successChunks++
 
       // Reverse to oldest-first if needed
       const firstDate = historical[0].date as string
@@ -475,8 +481,15 @@ async function fetchStitched15Min(symbol: string): Promise<OHLCV[]> {
         })
       }
     } catch (err) {
-      console.error(`[FMP] 15min chunk error for ${symbol} (${from}→${to}):`, (err as Error).message)
+      failedChunks++
+      logger.warn(`15min chunk error for ${symbol} (${from} -> ${to})`, { module: 'fmpClient', symbol, error: err })
     }
+  }
+
+  if (failedChunks > 0) {
+    logger.warn(`${symbol}: stitching ${successChunks}/${ranges.length} chunks OK, ${failedChunks} failed`, {
+      module: 'fmpClient', symbol, successChunks, failedChunks, totalChunks: ranges.length,
+    })
   }
 
   if (allBars.length === 0) return []
@@ -496,18 +509,39 @@ async function fetchStitched15Min(symbol: string): Promise<OHLCV[]> {
   // ═══ SPLIT TESPİTİ VE DÜZELTMESİ ═══
   // 15dk veride adjClose yok — open/close arası büyük gap varsa split tespit et
   // TradingView 15dk verileri otomatik split-adjusted, FMP'ninki olmayabilir
-  return fixIntradaySplits(uniqueBars)
+  const splitFixed = fixIntradaySplits(uniqueBars)
+
+  // ═══ OHLCV DOGRULAMA ═══
+  // VWAP 377g x 26 BPD = 9,802 bar ideal.
+  // Z-Score 55g x 26 = 1,430 bar minimum.
+  // Uyari esigi: Z-Score periyodu + VWAP yarisinin toplami (hermes-engine ile tutarli)
+  const ZSCORE_BARS = 55 * 26  // 1,430
+  const VWAP_BARS = 377 * 26   // 9,802
+  const minRequired = ZSCORE_BARS + Math.floor(VWAP_BARS / 2)  // 6,331
+  const validation = validateOHLCVBars(splitFixed, symbol, minRequired)
+  if (!validation.valid) {
+    logger.warn(`${symbol}: stitching sonrasi yetersiz veri (${validation.cleanBars.length} bar, min ${minRequired})`, {
+      module: 'fmpClient', symbol, cleanBars: validation.cleanBars.length, removed: validation.removedCount
+    })
+  }
+  return validation.cleanBars
 }
 
 /**
- * 15dk verideki split'leri tespit et ve düzelt.
- * Ardışık barlarda close→open oranı 4x+ ise split kabul et,
- * önceki tüm barları oranla.
+ * 15dk verideki split'leri tespit et ve duzelt.
+ * Ardisik barlarda close→open orani 1.8x+ ise split kabul et,
+ * onceki tum barlari oranla. Volume ters oranla duzeltilir.
+ *
+ * Esik 1.8x: 2:1, 3:1, 4:1 ve reverse split'leri yakalar.
+ * Yanlislikla buyuk gap'li hisseleri tetikleyebilir ancak
+ * VWAP hesabi icin split-miss riski cok daha tehlikeli.
  */
 function fixIntradaySplits(bars: OHLCV[]): OHLCV[] {
   if (bars.length < 2) return bars
 
-  // Birden fazla split olabilir, sondan başa tara
+  const SPLIT_THRESHOLD = 1.8
+  const INV_THRESHOLD = 1 / SPLIT_THRESHOLD
+
   for (let i = 1; i < bars.length; i++) {
     const prevClose = bars[i - 1].close
     const currOpen = bars[i].open
@@ -516,17 +550,19 @@ function fixIntradaySplits(bars: OHLCV[]): OHLCV[] {
 
     const ratio = currOpen / prevClose
 
-    // 4x'den büyük veya 0.25x'den küçük değişim → büyük olasılıkla split
-    if (ratio > 4 || ratio < 0.25) {
-      // Önceki tüm barları adjust et
+    if (ratio > SPLIT_THRESHOLD || ratio < INV_THRESHOLD) {
       for (let j = 0; j < i; j++) {
         bars[j].open *= ratio
         bars[j].high *= ratio
         bars[j].low *= ratio
         bars[j].close *= ratio
-        // volume'ü ters oranla (forward split: fiyat düşer, volume artar)
-        // ama VWAP hesabı 15dk'da yapılmıyor, sadece RSI/MFI/ADX/ATR için önemli
+        if (bars[j].volume > 0 && ratio !== 0) {
+          bars[j].volume /= ratio
+        }
       }
+      logger.info(`Split detected for bar ${i}: ratio=${ratio.toFixed(4)}, adjusted ${i} prior bars`, {
+        module: 'fmpClient', barIndex: i
+      })
     }
   }
 
@@ -562,8 +598,8 @@ export async function refreshHistoricalDaily(
 
   if (!bars || bars.length === 0) return null
 
-  // Memory cache'i güncelle (bars referansı yenilenecek)
-  historyCache.set(symbol, { bars, fetchedAt: Date.now() })
+  // Memory cache'i guncelle (bars referansi yenilenecek)
+  setCacheWithEviction(historyCache, symbol, { bars, fetchedAt: Date.now() })
 
   return bars
 }
@@ -662,17 +698,17 @@ export async function refresh15MinLatest(
     // Tarih sırasına göre sort
     merged.sort((a, b) => a.date.localeCompare(b.date))
 
-    // Memory cache güncelle
-    history15mCache.set(symbol, { bars: merged, fetchedAt: Date.now() })
+    // Memory cache guncelle
+    setCacheWithEviction(history15mCache, symbol, { bars: merged, fetchedAt: Date.now() })
 
     // Disk cache güncelle (async)
     save15MinData(symbol, merged).catch(err => {
-      console.error(`[FMP] Failed to save refreshed 15min ${symbol}:`, err)
+      logger.warn(`Failed to save refreshed 15min ${symbol}`, { module: 'fmpClient', symbol, error: err })
     })
 
     return merged
   } catch (err) {
-    console.error(`[FMP] 15min refresh error for ${symbol}:`, (err as Error).message)
+    logger.warn(`15min refresh error for ${symbol}, using stale data`, { module: 'fmpClient', symbol, error: err })
     return existingBars
   }
 }
@@ -711,10 +747,10 @@ export async function clearAllCaches(): Promise<{ memory: number; disk: number }
             diskCount++
           }
         }
-      } catch { /* dir doesn't exist */ }
+      } catch { /* dir may not exist — acceptable */ }
     }
   } catch (err) {
-    console.error('[Cache] Disk clear error:', err)
+    logger.warn('Disk cache clear error', { module: 'fmpClient', error: err })
   }
 
   return { memory: memCount, disk: diskCount }

@@ -17,7 +17,7 @@ Any change to scoring logic must be verified against TradingView.
 - Z-score thresholds: `>10` for 200W/200D, `>3` for 20D (CRITICAL - do not change)
 - Pine Script reference: `pine-script/HERMES_V5.1_DAILY.pine`
 
-### 200D Engine (hermes-200d-engine.ts)
+### 200D Engine — KALDIRILDI (SCALP AI 2026-02-17)
 - Runs on **15-minute bars** from FMP `historical-chart/15min` (stitched)
 - Parameters: `vwap_200d_len: 5000`, `vwap_50d_len: 1300`, `vwap_halfd_len: 13`
 - Z-score lengths: `zscore_len_200d: 1500`, `zscore_len_50d: 400`, `zscore_len_halfd: 13`

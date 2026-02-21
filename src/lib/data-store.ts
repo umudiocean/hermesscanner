@@ -11,7 +11,6 @@ const DATA_DIR = path.join(process.cwd(), 'data')
 const HISTORICAL_DIR = path.join(DATA_DIR, 'historical')
 const HISTORICAL_15M_DIR = path.join(DATA_DIR, 'historical-15m')
 const SCANS_DIR = path.join(DATA_DIR, 'scans')
-const SCANS_200D_DIR = path.join(DATA_DIR, 'scans-200d')
 
 /** Dizinlerin var oldugundan emin ol */
 async function ensureDirs(): Promise<void> {
@@ -19,7 +18,6 @@ async function ensureDirs(): Promise<void> {
   await fs.mkdir(HISTORICAL_DIR, { recursive: true })
   await fs.mkdir(HISTORICAL_15M_DIR, { recursive: true })
   await fs.mkdir(SCANS_DIR, { recursive: true })
-  await fs.mkdir(SCANS_200D_DIR, { recursive: true })
 }
 
 /** Tek bir hissenin historical verisini kaydet */
