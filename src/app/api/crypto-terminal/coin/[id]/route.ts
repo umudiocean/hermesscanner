@@ -56,9 +56,9 @@ export async function GET(
       return base === coinSymbol || d.index_id?.toLowerCase() === id
     }) ?? []
 
-    // Build a CoinMarket-like object for scoring
+    // Build CoinMarket shape from CoinGecko detail (real API data)
     const md = detail.market_data
-    const mockCoinMarket = {
+    const coinMarketData = {
       id: detail.id,
       symbol: detail.symbol,
       name: detail.name,
@@ -93,8 +93,8 @@ export async function GET(
 
     // Score
     const score = scoreCoin({
-      coin: mockCoinMarket as never,
-      allCoins: [mockCoinMarket as never],
+      coin: coinMarketData as never,
+      allCoins: [coinMarketData as never],
       detail,
       derivatives: coinDerivatives,
     })

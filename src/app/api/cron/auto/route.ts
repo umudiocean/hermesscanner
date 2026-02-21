@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════
-// HERMES Scanner — Auto Bootstrap + Scan Cron
-// Her 6 saatte calisir. Bootstrap tamamlanmamissa bootstrap devam eder,
-// tamamlanmissa force scan yapar.
-// Vercel Cron tarafindan tetiklenir — tamamen otomatik, admin mudalesi yok.
+// HERMES Scanner — Full Auto Cron (Bootstrap + Scan)
+// Her 5 dakikada tetiklenir. Tamamen otomatik, manuel adim yok.
+// Bootstrap tamamlanmamissa dongu halinde bootstrap cagirir (4 dk limit).
+// Bootstrap tamamlaninca force scan yapar, Redis'e sonuclari yazar.
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -11,6 +11,8 @@ import { isRedisAvailable } from '@/lib/cache/redis-client'
 import logger from '@/lib/logger'
 
 export const maxDuration = 300
+
+const BOOTSTRAP_LOOP_LIMIT_MS = 240_000 // 4 min max for bootstrap loop (leave 1 min buffer)
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -26,48 +28,64 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Redis unavailable' }, { status: 503 })
   }
 
-  const progress = await getBootstrapProgress()
-  const bootstrapComplete = !!(progress && progress.status === 'complete')
-
   const baseUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
     : process.env.NEXTAUTH_URL || 'http://localhost:3000'
 
+  let progress = await getBootstrapProgress()
+  let bootstrapComplete = !!(progress && progress.status === 'complete')
+
   if (!bootstrapComplete) {
-    logger.info('Auto-cron: Bootstrap not complete — triggering bootstrap batch', { module: 'auto-cron' })
+    const loopStart = Date.now()
+    let batchesRun = 0
 
-    try {
-      const res = await fetch(`${baseUrl}/api/cron/bootstrap`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${cronSecret}`,
-          'Content-Type': 'application/json',
-        },
-      })
-      const data = await res.json()
+    while (!bootstrapComplete && Date.now() - loopStart < BOOTSTRAP_LOOP_LIMIT_MS) {
+      batchesRun++
+      logger.info('Auto-cron: Bootstrap batch', { module: 'auto-cron', batch: batchesRun })
 
+      try {
+        const res = await fetch(`${baseUrl}/api/cron/bootstrap`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${cronSecret}`,
+            'Content-Type': 'application/json',
+          },
+        })
+        const data = await res.json()
+
+        if (data.status === 'complete') {
+          bootstrapComplete = true
+          logger.info('Auto-cron: Bootstrap complete', { module: 'auto-cron', batches: batchesRun })
+        }
+
+        if (data.status === 'complete' || data.remaining === 0) break
+        if (data.status === 'error') break
+
+        await new Promise(r => setTimeout(r, 2000))
+      } catch (err) {
+        logger.error('Auto-cron: Bootstrap batch failed', { module: 'auto-cron', error: err })
+        break
+      }
+    }
+
+    progress = await getBootstrapProgress()
+    bootstrapComplete = !!(progress && progress.status === 'complete')
+
+    if (!bootstrapComplete) {
       return NextResponse.json({
         action: 'bootstrap',
-        status: data.status,
-        completed: data.completed,
-        skipped: data.skipped,
-        total: data.total,
-        remaining: data.remaining,
-        message: data.message,
+        status: 'partial',
+        batchesRun,
+        completed: progress?.completed ?? 0,
+        total: progress?.total ?? 0,
+        message: `Bootstrap devam ediyor — sonraki cron kaldigindan devam edecek`,
         timestamp: new Date().toISOString(),
       })
-    } catch (err) {
-      logger.error('Auto-cron: Bootstrap trigger failed', { module: 'auto-cron', error: err })
-      return NextResponse.json({
-        action: 'bootstrap',
-        status: 'error',
-        message: (err as Error).message,
-      }, { status: 500 })
     }
   }
 
-  // Bootstrap complete — run a force scan
-  logger.info('Auto-cron: Bootstrap complete — triggering force scan', { module: 'auto-cron' })
+  // Bootstrap complete — run scan (always, so cache is fresh)
+  logger.info('Auto-cron: Running scan', { module: 'auto-cron' })
 
   try {
     const res = await fetch(`${baseUrl}/api/cron?force=1`, {
@@ -86,7 +104,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (err) {
-    logger.error('Auto-cron: Scan trigger failed', { module: 'auto-cron', error: err })
+    logger.error('Auto-cron: Scan failed', { module: 'auto-cron', error: err })
     return NextResponse.json({
       action: 'scan',
       status: 'error',

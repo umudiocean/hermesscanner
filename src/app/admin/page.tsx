@@ -72,7 +72,6 @@ function MiniBar({ items, max }: { items: { label: string; value: number }[]; ma
 }
 
 interface BootstrapState {
-  running: boolean
   completed: number
   total: number
   lastSymbol: string
@@ -87,7 +86,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [flagLoading, setFlagLoading] = useState<string | null>(null)
   const [bootstrap, setBootstrap] = useState<BootstrapState>({
-    running: false, completed: 0, total: 0, lastSymbol: '', status: 'unknown', barCacheCount: 0, error: null,
+    completed: 0, total: 0, lastSymbol: '', status: 'unknown', barCacheCount: 0, error: null,
   })
   const router = useRouter()
 
@@ -150,10 +149,7 @@ export default function AdminDashboard() {
 
   const fetchBootstrapStatus = useCallback(async () => {
     try {
-      const cronSecret = 'hermes-scanner-cron-2026'
-      const res = await fetch('/api/cron/bootstrap', {
-        headers: { 'Authorization': `Bearer ${cronSecret}` },
-      })
+      const res = await fetch('/api/admin/bootstrap-status')
       if (res.ok) {
         const d = await res.json()
         setBootstrap(prev => ({
@@ -173,80 +169,11 @@ export default function AdminDashboard() {
 
   useEffect(() => { fetchBootstrapStatus() }, [fetchBootstrapStatus])
 
-  // Poll bootstrap progress while running
+  // Poll bootstrap status every 30s (cron runs automatically, admin just watches)
   useEffect(() => {
-    if (!bootstrap.running) return
-    const interval = setInterval(fetchBootstrapStatus, 5000)
+    const interval = setInterval(fetchBootstrapStatus, 30_000)
     return () => clearInterval(interval)
-  }, [bootstrap.running, fetchBootstrapStatus])
-
-  // Auto-stop polling only when fully complete
-  useEffect(() => {
-    if (bootstrap.running && bootstrap.status === 'complete' && bootstrap.total > 0 && bootstrap.completed >= bootstrap.total) {
-      setBootstrap(prev => ({ ...prev, running: false }))
-    }
-  }, [bootstrap.running, bootstrap.status, bootstrap.completed, bootstrap.total])
-
-  const bootstrapRetryRef = { current: 0 }
-  const MAX_BOOTSTRAP_RETRIES = 100 // 100 batches x ~80 symbols = ~8000 — well over 2197
-
-  async function startBootstrap() {
-    setBootstrap(prev => ({ ...prev, running: true, error: null }))
-    bootstrapRetryRef.current = 0
-    runBootstrapBatch()
-  }
-
-  async function runBootstrapBatch() {
-    if (bootstrapRetryRef.current >= MAX_BOOTSTRAP_RETRIES) {
-      setBootstrap(prev => ({ ...prev, running: false, error: 'Maksimum deneme sayisina ulasildi. Tekrar deneyin.' }))
-      return
-    }
-    bootstrapRetryRef.current++
-
-    try {
-      const cronSecret = 'hermes-scanner-cron-2026'
-      const res = await fetch('/api/cron/bootstrap', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${cronSecret}` },
-      })
-      if (res.ok) {
-        const d = await res.json()
-        setBootstrap(prev => ({
-          ...prev,
-          completed: d.completed || prev.completed,
-          total: d.total || prev.total,
-          status: d.status || 'running',
-          lastSymbol: d.lastSymbol || prev.lastSymbol,
-          error: null,
-        }))
-        if (d.status === 'partial' && d.remaining > 0) {
-          setTimeout(() => runBootstrapBatch(), 3000)
-        } else {
-          setBootstrap(prev => ({ ...prev, running: false }))
-        }
-      } else {
-        // HTTP error (timeout, 504, etc.) — checkpoint in Redis, auto-retry
-        setBootstrap(prev => ({
-          ...prev,
-          error: `Batch hatasi (${res.status}) — otomatik devam edecek...`,
-        }))
-        setTimeout(() => {
-          fetchBootstrapStatus()
-          setTimeout(() => runBootstrapBatch(), 2000)
-        }, 5000)
-      }
-    } catch {
-      // Network error or Vercel timeout — checkpoint saved, auto-retry
-      setBootstrap(prev => ({
-        ...prev,
-        error: 'Baglanti koptu — checkpoint kaydedildi, otomatik devam edecek...',
-      }))
-      setTimeout(() => {
-        fetchBootstrapStatus()
-        setTimeout(() => runBootstrapBatch(), 2000)
-      }, 5000)
-    }
-  }
+  }, [fetchBootstrapStatus])
 
   const a = data?.analytics
   const c = data?.cache
@@ -547,66 +474,9 @@ export default function AdminDashboard() {
                 <p className="text-[10px] text-red-400 bg-red-500/10 rounded-lg px-2 py-1">{bootstrap.error}</p>
               )}
 
-              <button
-                onClick={startBootstrap}
-                disabled={bootstrap.running}
-                className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                  bootstrap.running
-                    ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400 cursor-wait'
-                    : bootstrap.status === 'complete'
-                    ? 'bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400'
-                    : 'bg-gradient-to-r from-[#B3945B] to-amber-600 hover:from-[#C4A56C] hover:to-amber-500 text-black'
-                }`}
-              >
-                {bootstrap.running ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    Bootstrap Calisiyor...
-                  </>
-                ) : bootstrap.status === 'complete' ? (
-                  <>
-                    <Database className="w-3.5 h-3.5" />
-                    Yeniden Bootstrap (Tamamlandi)
-                  </>
-                ) : (
-                  <>
-                    <Database className="w-3.5 h-3.5" />
-                    Bootstrap Baslat
-                  </>
-                )}
-              </button>
-
-              {bootstrap.status === 'complete' && (
-                <button
-                  onClick={async () => {
-                    try {
-                      setBootstrap(prev => ({ ...prev, error: 'Force scan tetikleniyor...' }))
-                      const cronSecret = 'hermes-scanner-cron-2026'
-                      const res = await fetch('/api/cron?force=1', {
-                        headers: { 'Authorization': `Bearer ${cronSecret}` },
-                      })
-                      const data = await res.json()
-                      setBootstrap(prev => ({
-                        ...prev,
-                        error: data.status === 'completed'
-                          ? `Scan tamamlandi! ${data.totalScanned} hisse islendi (${data.duration})`
-                          : `Scan sonucu: ${data.status} — ${data.reason || ''}`
-                      }))
-                    } catch {
-                      setBootstrap(prev => ({ ...prev, error: 'Scan tetikleme hatasi' }))
-                    }
-                  }}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-400 transition-all"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  Force Scan (Redis&apos;ten Skor Hesapla)
-                </button>
-              )}
-
               <p className="text-[9px] text-white/20 leading-relaxed">
-                Bootstrap: Tum hisseler icin 3 yillik 15dk veri Redis&apos;e yazilir.
-                Force Scan: Redis&apos;teki barlardan skor hesaplar (FMP cagirmaz).
-                Cron her 6 saatte otomatik calisiyor.
+                %100 otomatik. Cron her 5 dakikada calisir: bootstrap tamamlanmamissa devam eder,
+                tamamlanmissa Redis&apos;ten skor hesaplar ve sonuclari kaydeder. Manuel adim yok.
               </p>
             </div>
           </Card>
