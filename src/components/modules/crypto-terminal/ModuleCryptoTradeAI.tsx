@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Target, TrendingUp, TrendingDown, RefreshCw, ArrowUpRight, ArrowDownRight, Star, Crosshair, ChevronDown, ChevronUp, Download } from 'lucide-react'
 import { trackSignal } from '@/lib/crypto-terminal/signalTracker'
+import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 
 interface TradeAIResult {
   score: number
@@ -95,6 +96,7 @@ function formatMcap(v: number): string {
 }
 
 export default function ModuleCryptoTradeAI() {
+  const canCSV = useCanDownloadCSV()
   const [items, setItems] = useState<ScanItem[]>([])
   const [loading, setLoading] = useState(true)
   const [pagesLoaded, setPagesLoaded] = useState(0)
@@ -265,7 +267,7 @@ export default function ModuleCryptoTradeAI() {
               <span className="text-[9px] text-white/30 tabular-nums">{pagesLoaded}/{TOTAL_PAGES}</span>
             </div>
           )}
-          {sortedItems.length > 0 && (
+          {sortedItems.length > 0 && canCSV && (
             <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/40 border border-white/8 hover:bg-white/[0.08] hover:text-white/60 transition-all">
               <Download size={12} className="inline mr-1" />CSV
             </button>

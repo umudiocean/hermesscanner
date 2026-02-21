@@ -106,6 +106,14 @@ export async function setBootstrapCheckpoint(completedSymbols: string[]): Promis
   await setRedisCache('bootstrap:checkpoint', completedSymbols, BARS_TTL_MS)
 }
 
+export async function getBootstrapSkipped(): Promise<string[] | null> {
+  return getRedisCache<string[]>('bootstrap:skipped')
+}
+
+export async function setBootstrapSkipped(skippedSymbols: string[]): Promise<void> {
+  await setRedisCache('bootstrap:skipped', skippedSymbols, BARS_TTL_MS)
+}
+
 export async function getBarCacheCount(): Promise<number> {
   const r = getRedis()
   if (!r) return 0

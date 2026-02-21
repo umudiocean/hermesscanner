@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useCallback, memo } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useNasdaqTradeContext } from '../Layout'
 import { ScanResult } from '@/lib/types'
+import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 
 // ═══════════════════════════════════════════════════════════════════
 // TRADE AI Module — V15 Pure Z-Score (V377_R6.85_Z55)
@@ -278,7 +279,8 @@ const EXPANDED_ROW_HEIGHT = 240
 
 export default function ModuleNasdaqTrade() {
   const { results, loading, error, toggleWatchlistItem, isInWatchlist, fmpStocksMap } = useNasdaqTradeContext()
-  
+  const canCSV = useCanDownloadCSV()
+
   const [signalFilter, setSignalFilter] = useState<SignalFilter>('all')
   const [segmentFilter, setSegmentFilter] = useState<SegmentFilter>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
@@ -376,13 +378,15 @@ export default function ModuleNasdaqTrade() {
               onChange={e => setSearchQuery(e.target.value)}
               className="bg-midnight-50/50 border border-gold-400/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-gold-400/25 w-36"
             />
-            <button
-              onClick={() => exportToCSV(filteredResults, 'hermes_52week', fmpStocksMap)}
-              disabled={filteredResults.length === 0}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold-400/8 hover:bg-gold-400/15 text-gold-400/60 hover:text-gold-300 border border-gold-400/15 flex items-center gap-1.5"
-            >
-              CSV
-            </button>
+            {canCSV && (
+              <button
+                onClick={() => exportToCSV(filteredResults, 'hermes_52week', fmpStocksMap)}
+                disabled={filteredResults.length === 0}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold-400/8 hover:bg-gold-400/15 text-gold-400/60 hover:text-gold-300 border border-gold-400/15 flex items-center gap-1.5"
+              >
+                CSV
+              </button>
+            )}
             <span className="text-xs text-white/50 tabular-nums">
               <span className="font-bold text-gold-300">{filteredResults.length}</span>
               <span className="text-white/30"> / {results.length} hisse</span>

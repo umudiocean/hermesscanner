@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useNasdaqTradeContext } from '../Layout'
 import { getWatchlist, toggleWatchlist } from '@/lib/store'
+import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 
 // ================================================================
 // BEST SIGNALS Module — V15
@@ -383,6 +384,7 @@ function SkeletonRow() {
 
 export default function ModuleNasdaqSignals() {
   const { results: results52w, loading: loading52w, marketRegime, vixValue, signalsPaused, pauseReason, positionSizeMultiplier } = useNasdaqTradeContext()
+  const canCSV = useCanDownloadCSV()
   const [fmpStocks, setFmpStocks] = useState<FmpStock[]>([])
   const [loadingFmp, setLoadingFmp] = useState(true)
   const [fmpError, setFmpError] = useState<string | null>(null)
@@ -684,14 +686,16 @@ export default function ModuleNasdaqSignals() {
             </div>
           )}
           <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={() => downloadCSV('nasdaq')}
-              disabled={filtered.length === 0}
-              className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-gold-400/10 text-gold-300 border border-gold-400/20 hover:bg-gold-400/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-              title="NASDAQ sinyallerini CSV olarak indir"
-            >
-              CSV Indir
-            </button>
+            {canCSV && (
+              <button
+                onClick={() => downloadCSV('nasdaq')}
+                disabled={filtered.length === 0}
+                className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-gold-400/10 text-gold-300 border border-gold-400/20 hover:bg-gold-400/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                title="NASDAQ sinyallerini CSV olarak indir"
+              >
+                CSV Indir
+              </button>
+            )}
             <span className="text-[11px] text-white/40 tabular-nums">
               <span className="font-bold text-gold-300">{filtered.length}</span>
               <span className="text-white/30"> / {counts.all} sinyal</span>

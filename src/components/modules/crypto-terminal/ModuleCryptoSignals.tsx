@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Radio, RefreshCw, Star, Download } from 'lucide-react'
+import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 
 type BestSignalType =
   | 'confluence_buy' | 'alpha_long' | 'hermes_long'
@@ -261,6 +262,7 @@ export interface ModuleCryptoSignalsProps {
 }
 
 export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignalsProps = {}) {
+  const canCSV = useCanDownloadCSV()
   const [rows, setRows] = useState<SignalRow[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<BestSignalType | 'all'>('all')
@@ -405,7 +407,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {filtered.length > 0 && (
+          {filtered.length > 0 && canCSV && (
             <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/40 border border-white/8 hover:bg-white/[0.08] hover:text-white/60 transition-all">
               <Download size={12} className="inline mr-1" />CSV
             </button>

@@ -11,6 +11,7 @@ import { useNasdaqTradeContext } from '../Layout'
 import { ScanResult } from '@/lib/types'
 import { Star, Trash2, Download, Search, Plus, ChevronUp, ChevronDown } from 'lucide-react'
 import { getSymbols } from '@/lib/symbols'
+import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 
 type TerminalSignal = 'STRONG' | 'GOOD' | 'NEUTRAL' | 'WEAK' | 'BAD'
 type TradeSignal = 'STRONG LONG' | 'LONG' | 'NOTR' | 'SHORT' | 'STRONG SHORT'
@@ -90,6 +91,7 @@ function ScoreBar({ score }: { score: number }) {
 
 export default function ModuleNasdaqWatchlist() {
   const { results, watchlist, toggleWatchlistItem, fmpStocksMap } = useNasdaqTradeContext()
+  const canCSV = useCanDownloadCSV()
   const [sortField, setSortField] = useState<SortField>('aiSignal')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [searchQuery, setSearchQuery] = useState('')
@@ -278,7 +280,7 @@ export default function ModuleNasdaqWatchlist() {
               </div>
             )}
           </div>
-          {watchlistResults.length > 0 && (
+          {watchlistResults.length > 0 && canCSV && (
             <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/40 border border-white/8 hover:bg-white/[0.08] hover:text-white/60 transition-all">
               <Download size={12} className="inline mr-1" />CSV
             </button>

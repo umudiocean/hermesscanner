@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Star, Trash2, RefreshCw, AlertTriangle, Shield, ChevronUp, ChevronDown, Download, Search, Plus } from 'lucide-react'
 import { getCoinCategories, getCategoryStyle, inferCategoryFromName } from '@/lib/crypto-terminal/crypto-categories'
+import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 
 type ValuationTag = 'COK UCUZ' | 'UCUZ' | 'NORMAL' | 'PAHALI' | 'COK PAHALI'
 
@@ -212,6 +213,7 @@ interface SearchResult {
 const WATCHLIST_KEY = 'hermes_crypto_watchlist'
 
 export default function ModuleCryptoWatchlist() {
+  const canCSV = useCanDownloadCSV()
   const [watchlistIds, setWatchlistIds] = useState<string[]>([])
   const [coins, setCoins] = useState<WatchlistCoin[]>([])
   const [loading, setLoading] = useState(false)
@@ -553,7 +555,7 @@ export default function ModuleCryptoWatchlist() {
               </div>
             )}
           </div>
-          {sortedCoins.length > 0 && (
+          {sortedCoins.length > 0 && canCSV && (
             <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/40 border border-white/8 hover:bg-white/[0.08] hover:text-white/60 transition-all">
               <Download size={12} className="inline mr-1" />CSV
             </button>

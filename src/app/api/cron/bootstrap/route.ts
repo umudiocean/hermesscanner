@@ -13,6 +13,8 @@ import {
   getBootstrapCheckpoint,
   setBootstrapCheckpoint,
   setBootstrapProgress,
+  getBootstrapSkipped,
+  setBootstrapSkipped,
 } from '@/lib/cache/redis-cache'
 import { isRedisAvailable } from '@/lib/cache/redis-client'
 import logger from '@/lib/logger'
@@ -40,25 +42,29 @@ export async function POST(request: NextRequest) {
 
   const checkpoint = await getBootstrapCheckpoint()
   const completedSet = new Set(checkpoint || [])
-  const pending = allSymbols.filter(s => !completedSet.has(s))
+  const skippedArr = await getBootstrapSkipped()
+  const skippedSet = new Set(skippedArr || [])
+  const doneSet = new Set([...completedSet, ...skippedSet])
+  const pending = allSymbols.filter(s => !doneSet.has(s))
 
   if (pending.length === 0) {
     await setBootstrapProgress({
-      completed: total,
+      completed: completedSet.size,
       total,
-      lastSymbol: allSymbols[allSymbols.length - 1] || '',
+      lastSymbol: '',
       startedAt: new Date().toISOString(),
       status: 'complete',
     })
     return NextResponse.json({
       status: 'complete',
-      message: `All ${total} symbols already bootstrapped`,
-      completed: total,
+      message: `Bootstrap complete! ${completedSet.size} cached, ${skippedSet.size} skipped (no data).`,
+      completed: completedSet.size,
+      skipped: skippedSet.size,
       total,
     })
   }
 
-  logger.info(`Bootstrap starting: ${pending.length} pending of ${total} total`, { module: 'bootstrap' })
+  logger.info(`Bootstrap starting: ${pending.length} pending, ${completedSet.size} done, ${skippedSet.size} skipped`, { module: 'bootstrap' })
 
   await setBootstrapProgress({
     completed: completedSet.size,
@@ -70,22 +76,22 @@ export async function POST(request: NextRequest) {
 
   const startTime = Date.now()
   let processed = 0
-  let errors = 0
+  let batchErrors = 0
   let timedOut = false
   const newlyCompleted: string[] = []
   const queue = [...pending]
 
-  async function processSymbol(symbol: string): Promise<boolean> {
+  async function processSymbol(symbol: string): Promise<'ok' | 'fail'> {
     try {
       const bars = await getHistorical15Min(symbol)
       if (bars && bars.length > 0) {
         await setBarCache(symbol, bars)
-        return true
+        return 'ok'
       }
-      return false
+      return 'fail'
     } catch (err) {
       logger.debug(`Bootstrap error: ${symbol}`, { module: 'bootstrap', symbol, error: err })
-      return false
+      return 'fail'
     }
   }
 
@@ -99,19 +105,20 @@ export async function POST(request: NextRequest) {
       const symbol = queue.shift()
       if (!symbol) break
 
-      const ok = await processSymbol(symbol)
+      const result = await processSymbol(symbol)
       processed++
 
-      if (ok) {
+      if (result === 'ok') {
         completedSet.add(symbol)
         newlyCompleted.push(symbol)
       } else {
-        errors++
+        batchErrors++
+        skippedSet.add(symbol)
       }
 
-      if (newlyCompleted.length % CHECKPOINT_INTERVAL === 0 && newlyCompleted.length > 0) {
-        const allCompleted = Array.from(completedSet)
-        await setBootstrapCheckpoint(allCompleted)
+      if (processed % CHECKPOINT_INTERVAL === 0) {
+        await setBootstrapCheckpoint(Array.from(completedSet))
+        await setBootstrapSkipped(Array.from(skippedSet))
         await setBootstrapProgress({
           completed: completedSet.size,
           total,
@@ -128,33 +135,34 @@ export async function POST(request: NextRequest) {
   const workers = Array.from({ length: CONCURRENCY }, () => worker())
   await Promise.all(workers)
 
-  const allCompleted = Array.from(completedSet)
-  await setBootstrapCheckpoint(allCompleted)
+  await setBootstrapCheckpoint(Array.from(completedSet))
+  await setBootstrapSkipped(Array.from(skippedSet))
 
-  const isComplete = completedSet.size >= total
+  const allDone = completedSet.size + skippedSet.size >= total
   await setBootstrapProgress({
     completed: completedSet.size,
     total,
     lastSymbol: newlyCompleted[newlyCompleted.length - 1] || '',
     startedAt: new Date().toISOString(),
-    status: isComplete ? 'complete' : 'partial',
+    status: allDone ? 'complete' : 'partial',
   })
 
   const elapsed = Math.round((Date.now() - startTime) / 1000)
-  logger.info(`Bootstrap batch: ${processed} done, ${errors} err, ${completedSet.size}/${total} total, ${elapsed}s${timedOut ? ' (time limit)' : ''}`, { module: 'bootstrap' })
+  logger.info(`Bootstrap batch: ${processed} proc, ${batchErrors} err, ${completedSet.size} cached, ${skippedSet.size} skipped, ${elapsed}s${timedOut ? ' (time limit)' : ''}`, { module: 'bootstrap' })
 
   return NextResponse.json({
-    status: isComplete ? 'complete' : 'partial',
+    status: allDone ? 'complete' : 'partial',
     processed,
-    errors,
+    errors: batchErrors,
     completed: completedSet.size,
+    skipped: skippedSet.size,
     total,
-    remaining: total - completedSet.size,
+    remaining: total - completedSet.size - skippedSet.size,
     timedOut,
     elapsed,
-    message: isComplete
-      ? `Bootstrap complete! All ${total} symbols cached in Redis.`
-      : `Batch done. ${completedSet.size}/${total} complete (${elapsed}s). Call again to continue.`,
+    message: allDone
+      ? `Bootstrap complete! ${completedSet.size} cached, ${skippedSet.size} skipped.`
+      : `Batch done. ${completedSet.size}+${skippedSet.size}/${total} (${elapsed}s). Call again to continue.`,
   })
 }
 
@@ -165,13 +173,25 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { getBootstrapProgress, getBarCacheCount } = await import('@/lib/cache/redis-cache')
+  const { getBootstrapProgress, getBarCacheCount, getBootstrapSkipped, getBootstrapCheckpoint: getChk } = await import('@/lib/cache/redis-cache')
   const progress = await getBootstrapProgress()
   const barCount = await getBarCacheCount()
+  const skipped = await getBootstrapSkipped()
+  const completed = await getChk()
+
+  const allSymbols = getCleanSymbols('ALL')
+  const completedSet = new Set(completed || [])
+  const skippedSet = new Set(skipped || [])
+  const missing = allSymbols.filter(s => !completedSet.has(s) && !skippedSet.has(s))
 
   return NextResponse.json({
     progress: progress || { completed: 0, total: 0, status: 'not_started' },
     barCacheCount: barCount,
+    skipped: skipped || [],
+    skippedCount: skippedSet.size,
+    completedCount: completedSet.size,
+    missing,
+    missingCount: missing.length,
     timestamp: new Date().toISOString(),
   })
 }
