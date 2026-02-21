@@ -6,6 +6,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import { ScanResult, ScanSummary } from './types'
+import { getRedisCache, setRedisCache } from './cache/redis-cache'
 
 const SCANS_DIR = path.join(process.cwd(), 'data', 'scans')
 const LATEST_SCAN_FILE = path.join(SCANS_DIR, 'latest.json')
@@ -25,17 +26,26 @@ async function ensureDir(): Promise<void> {
 /**
  * Segment tarama sonuclarini kaydet
  */
+const SCAN_REDIS_KEY = 'scan:latest'
+const SCAN_REDIS_TTL = 7 * 24 * 60 * 60 * 1000 // 7 days
+
 export function saveScanResults(segment: string, results: ScanResult[], summary: ScanSummary): void {
   scanResults.set(segment, results)
   scanSummaries.set(segment, summary)
 
-  // Full scan guncelle
   updateFullScan()
   
-  // Disk'e async kaydet
+  // Disk + Redis async save
+  const payload = {
+    scanId: lastFullScan?.scanId || `full-${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    totalResults: getAllResults().length,
+    results: getAllResults(),
+  }
   saveLatestToDisk().catch(err => {
     console.error('[SCAN-STORE] Failed to save to disk:', err)
   })
+  setRedisCache(SCAN_REDIS_KEY, payload, SCAN_REDIS_TTL).catch(() => {})
 }
 
 /**
@@ -134,15 +144,18 @@ async function saveLatestToDisk(): Promise<void> {
 export async function saveFullScan(results: ScanResult[], scanId: string): Promise<void> {
   if (!results || results.length === 0) return
   
-  await ensureDir()
-  await fs.writeFile(LATEST_SCAN_FILE, JSON.stringify({
+  const payload = {
     scanId,
     timestamp: new Date().toISOString(),
     totalResults: results.length,
     results,
-  }, null, 2))
+  }
   
-  console.log(`[SCAN-STORE] Saved ${results.length} results to disk`)
+  await ensureDir()
+  await fs.writeFile(LATEST_SCAN_FILE, JSON.stringify(payload, null, 2))
+  await setRedisCache(SCAN_REDIS_KEY, payload, SCAN_REDIS_TTL).catch(() => {})
+  
+  console.log(`[SCAN-STORE] Saved ${results.length} results to disk + Redis`)
 }
 
 /**
@@ -153,9 +166,23 @@ export async function loadLatestScan(): Promise<{
   timestamp: string
   results: ScanResult[]
 } | null> {
+  // 1. Try Redis first (shared across instances)
+  try {
+    const redis = await getRedisCache<{ scanId: string; timestamp: string; results: ScanResult[] }>(SCAN_REDIS_KEY)
+    if (redis && redis.results?.length > 0) return redis
+  } catch {
+    // fallback to disk
+  }
+
+  // 2. Disk fallback
   try {
     const content = await fs.readFile(LATEST_SCAN_FILE, 'utf-8')
-    return JSON.parse(content)
+    const parsed = JSON.parse(content)
+    // Promote to Redis for other instances
+    if (parsed?.results?.length > 0) {
+      setRedisCache(SCAN_REDIS_KEY, parsed, SCAN_REDIS_TTL).catch(() => {})
+    }
+    return parsed
   } catch {
     return null
   }

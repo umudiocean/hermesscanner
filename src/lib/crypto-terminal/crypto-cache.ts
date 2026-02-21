@@ -6,6 +6,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import logger from '../logger'
+import { getRedisCache, setRedisCache, clearRedisCacheByPrefix } from '../cache/redis-cache'
 
 const CACHE_DIR = path.join(process.cwd(), '.next', 'cache', 'crypto-terminal')
 const MAX_MEMORY_ENTRIES = 1000
@@ -110,7 +111,7 @@ export async function setDiskCache(key: string, data: unknown): Promise<void> {
   }
 }
 
-// ─── Combined Cache ────────────────────────────────────────────────
+// ─── Combined Cache (Memory → Redis → Disk → Fetch) ──────────────
 
 export async function getCached<T>(
   key: string,
@@ -120,14 +121,23 @@ export async function getCached<T>(
   const mem = getMemoryCache<T>(key, maxAge)
   if (mem !== null) return mem
 
+  const redisKey = `crypto:${key}`
+  const redis = await getRedisCache<T>(redisKey)
+  if (redis !== null) {
+    setMemoryCache(key, redis)
+    return redis
+  }
+
   const disk = await getDiskCache<T>(key, maxAge)
   if (disk !== null) {
     setMemoryCache(key, disk)
+    setRedisCache(redisKey, disk, maxAge).catch(() => {})
     return disk
   }
 
   const data = await fetcher()
   setMemoryCache(key, data)
+  setRedisCache(redisKey, data, maxAge).catch(() => {})
   await setDiskCache(key, data)
   return data
 }
@@ -147,16 +157,26 @@ export async function getStaleWhileRevalidate<T>(
   if (stale !== null) {
     fetcher().then(data => {
       setMemoryCache(key, data)
+      setRedisCache(`crypto:${key}`, data, staleAge).catch(() => {})
       setDiskCache(key, data).catch(() => {})
     }).catch(() => {})
     return stale
   }
 
+  const redisKey = `crypto:${key}`
+  const redis = await getRedisCache<T>(redisKey)
+  if (redis !== null) {
+    setMemoryCache(key, redis)
+    return redis
+  }
+
   const disk = await getDiskCache<T>(key, staleAge)
   if (disk !== null) {
     setMemoryCache(key, disk)
+    setRedisCache(redisKey, disk, staleAge).catch(() => {})
     fetcher().then(data => {
       setMemoryCache(key, data)
+      setRedisCache(redisKey, data, staleAge).catch(() => {})
       setDiskCache(key, data).catch(() => {})
     }).catch(() => {})
     return disk
@@ -164,6 +184,7 @@ export async function getStaleWhileRevalidate<T>(
 
   const data = await fetcher()
   setMemoryCache(key, data)
+  setRedisCache(redisKey, data, staleAge).catch(() => {})
   await setDiskCache(key, data)
   return data
 }
@@ -181,6 +202,7 @@ export async function clearCryptoDiskCache(): Promise<void> {
   } catch {
     // dir may not exist
   }
+  await clearRedisCacheByPrefix('crypto:')
 }
 
 export function getCryptoCacheStats() {

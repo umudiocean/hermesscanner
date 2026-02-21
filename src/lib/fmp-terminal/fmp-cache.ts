@@ -6,6 +6,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import logger from '../logger'
+import { getRedisCache, setRedisCache, clearRedisCacheByPrefix } from '../cache/redis-cache'
 
 const CACHE_DIR = path.join(process.cwd(), '.next', 'cache', 'fmp-terminal')
 
@@ -116,27 +117,37 @@ export async function setDiskCache(key: string, data: unknown): Promise<void> {
   }
 }
 
-// ─── Combined Cache (Memory → Disk → Fetch) ───────────────────────
+// ─── Combined Cache (Memory → Redis → Disk → Fetch) ────────────────
 
 export async function getCached<T>(
   key: string,
   maxAge: number,
   fetcher: () => Promise<T>
 ): Promise<T> {
-  // 1. Memory cache (LRU)
+  // 1. Memory cache (LRU) — fastest
   const mem = getMemoryCache<T>(key, maxAge)
   if (mem !== null) return mem
 
-  // 2. Disk cache
+  // 2. Redis cache — shared across serverless instances
+  const redisKey = `fmp:${key}`
+  const redis = await getRedisCache<T>(redisKey)
+  if (redis !== null) {
+    setMemoryCache(key, redis)
+    return redis
+  }
+
+  // 3. Disk cache — local fallback
   const disk = await getDiskCache<T>(key, maxAge)
   if (disk !== null) {
-    setMemoryCache(key, disk) // promote to memory
+    setMemoryCache(key, disk)
+    setRedisCache(redisKey, disk, maxAge).catch(() => {})
     return disk
   }
 
-  // 3. Fetch fresh
+  // 4. Fetch fresh
   const data = await fetcher()
   setMemoryCache(key, data)
+  setRedisCache(redisKey, data, maxAge).catch(() => {})
   await setDiskCache(key, data)
   return data
 }
@@ -156,31 +167,42 @@ export async function getStaleWhileRevalidate<T>(
   // 2. Memory cache (stale but usable)
   const stale = getMemoryCache<T>(key, staleAge)
   if (stale !== null) {
-    // Return stale, revalidate in background
     fetcher().then(data => {
       setMemoryCache(key, data)
+      setRedisCache(`fmp:${key}`, data, staleAge).catch(() => {})
       setDiskCache(key, data).catch(err => logger.debug('SWR disk write failed', { module: 'fmpCache', error: err }))
     }).catch(err => logger.debug('SWR background revalidation failed', { module: 'fmpCache', error: err, key }))
     return stale
   }
 
-  // 3. Disk cache
+  // 3. Redis cache
+  const redisKey = `fmp:${key}`
+  const redis = await getRedisCache<T>(redisKey)
+  if (redis !== null) {
+    setMemoryCache(key, redis)
+    return redis
+  }
+
+  // 4. Disk cache
   const disk = await getDiskCache<T>(key, staleAge)
   if (disk !== null) {
     setMemoryCache(key, disk)
+    setRedisCache(redisKey, disk, staleAge).catch(() => {})
     const diskFresh = await getDiskCache<T>(key, maxAge)
     if (!diskFresh) {
       fetcher().then(data => {
         setMemoryCache(key, data)
+        setRedisCache(redisKey, data, staleAge).catch(() => {})
         setDiskCache(key, data).catch(err => logger.debug('SWR disk rewrite failed', { module: 'fmpCache', error: err }))
       }).catch(err => logger.debug('SWR disk revalidation failed', { module: 'fmpCache', error: err, key }))
     }
     return disk
   }
 
-  // 4. Fresh fetch
+  // 5. Fresh fetch
   const data = await fetcher()
   setMemoryCache(key, data)
+  setRedisCache(redisKey, data, staleAge).catch(() => {})
   await setDiskCache(key, data)
   return data
 }
@@ -207,6 +229,7 @@ export async function clearDiskCache(): Promise<void> {
 export async function clearAllFMPCache(): Promise<void> {
   clearMemoryCache()
   await clearDiskCache()
+  await clearRedisCacheByPrefix('fmp:')
 }
 
 // ─── Cache Stats ───────────────────────────────────────────────────

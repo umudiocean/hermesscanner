@@ -5,28 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
-
-// ─── Upstash Redis client (singleton) ───────────────────────────
-
-let redis: Redis | null = null
-let upstashAvailable = false
-
-function getRedis(): Redis | null {
-  if (redis) return redis
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
-  if (url && token) {
-    try {
-      redis = new Redis({ url, token })
-      upstashAvailable = true
-      return redis
-    } catch {
-      console.warn('[RATE-LIMITER] Upstash init failed, using in-memory fallback')
-    }
-  }
-  return null
-}
+import { getRedis, isRedisAvailable } from './cache/redis-client'
 
 // ─── Upstash rate limiters keyed by (max, windowMs) ─────────────
 
@@ -121,7 +100,7 @@ export async function checkRateLimit(
 }
 
 export function isUpstashActive(): boolean {
-  return upstashAvailable
+  return isRedisAvailable()
 }
 
 export function getClientIP(request: Request): string {
