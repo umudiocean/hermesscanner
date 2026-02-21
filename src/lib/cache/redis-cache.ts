@@ -125,6 +125,17 @@ export async function getBarCacheCount(): Promise<number> {
   }
 }
 
+// Trade-ready symbol list (updated after each successful scan)
+const TRADE_READY_KEY = 'symbols:trade-ready'
+
+export async function getTradeReadySymbols(): Promise<string[] | null> {
+  return getRedisCache<string[]>(TRADE_READY_KEY)
+}
+
+export async function setTradeReadySymbols(symbols: string[]): Promise<void> {
+  await setRedisCache(TRADE_READY_KEY, symbols, 7 * 24 * 60 * 60 * 1000)
+}
+
 const REFRESH_LOCK_KEY = 'refresh:lock'
 const REFRESH_LOCK_TTL_SEC = 5 * 60 // 5 min
 

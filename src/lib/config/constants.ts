@@ -53,8 +53,8 @@ export const CACHE = {
 // ─── Scoring ────────────────────────────────────────────────────────
 
 export const SCORING = {
-  /** Total number of monitored stocks (yatirim fonlari cikarildi) */
-  TOTAL_STOCKS: 2197,
+  /** Total number of trade-ready stocks (FMP 15dk verisi yeterli olanlar) */
+  TOTAL_STOCKS: 2054,
   /** V15 Z-Score lookback (days) — V377_R6.85_Z55 */
   ZSCORE_LOOKBACK_DAYS: 55,
   /** V15 VWAP period (days) — V377_R6.85_Z55 */

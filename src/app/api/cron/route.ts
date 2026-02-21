@@ -15,7 +15,7 @@ import { getHistorical15MinDelta, getBatchQuotes } from '@/lib/fmp-client'
 import { calculateHermes } from '@/lib/hermes-engine'
 import { saveScanResults } from '@/lib/scan-store'
 import { ScanResult, ScanSummary, OHLCV } from '@/lib/types'
-import { getBarCache, setBarCache, getBootstrapProgress, acquireRefreshLockRedis, releaseRefreshLockRedis } from '@/lib/cache/redis-cache'
+import { getBarCache, setBarCache, getBootstrapProgress, acquireRefreshLockRedis, releaseRefreshLockRedis, setTradeReadySymbols } from '@/lib/cache/redis-cache'
 import { isRedisAvailable } from '@/lib/cache/redis-client'
 import { isMarketOpen, getNowET, getETMinutes } from '@/lib/scheduler/marketHours'
 import { createApiError } from '@/lib/validation/ohlcv-validator'
@@ -201,6 +201,12 @@ export async function GET(request: NextRequest) {
     }
 
     saveScanResults('ALL', results, summary)
+
+    // Save trade-ready symbol list to Redis
+    if (results.length > 1000) {
+      const tradeReadySymbols = results.map(r => r.symbol).sort()
+      await setTradeReadySymbols(tradeReadySymbols)
+    }
 
     const duration = Date.now() - startTime
     logger.info(`Cron ${context}: ${totalScanned} scanned (mode: ${mode}, redis: ${redisHits}, delta: ${deltaHits}, skipped: ${skippedBars}) — ${(duration / 1000).toFixed(1)}s`, { module: 'cron' })

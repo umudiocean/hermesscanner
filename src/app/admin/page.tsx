@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   Shield, LogOut, RefreshCw, Users, Eye, Globe, Smartphone,
   Server, Database, Activity, ToggleLeft, ToggleRight, Trash2,
-  TrendingUp, Zap, Cpu,
+  TrendingUp, Zap, Cpu, Download,
 } from 'lucide-react'
 
 interface AnalyticsData {
@@ -88,6 +88,10 @@ export default function AdminDashboard() {
   const [bootstrap, setBootstrap] = useState<BootstrapState>({
     completed: 0, total: 0, lastSymbol: '', status: 'unknown', barCacheCount: 0, error: null,
   })
+  const [symbolsSync, setSymbolsSync] = useState<{
+    tradeReady: string[]; tradeReadyCount: number;
+    insufficient: string[]; insufficientCount: number;
+  } | null>(null)
   const router = useRouter()
 
   const fetchData = useCallback(async () => {
@@ -174,6 +178,17 @@ export default function AdminDashboard() {
     const interval = setInterval(fetchBootstrapStatus, 30_000)
     return () => clearInterval(interval)
   }, [fetchBootstrapStatus])
+
+  const fetchSymbolsSync = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/symbols-sync')
+      if (res.ok) setSymbolsSync(await res.json())
+    } catch {
+      setSymbolsSync(null)
+    }
+  }, [])
+
+  useEffect(() => { fetchSymbolsSync() }, [fetchSymbolsSync])
 
   const a = data?.analytics
   const c = data?.cache
@@ -477,6 +492,60 @@ export default function AdminDashboard() {
               <p className="text-[9px] text-white/20 leading-relaxed">
                 %100 otomatik. Cron her 5 dakikada calisir: bootstrap tamamlanmamissa devam eder,
                 tamamlanmissa Redis&apos;ten skor hesaplar ve sonuclari kaydeder. Manuel adim yok.
+              </p>
+            </div>
+          </Card>
+
+          {/* 11. Symbol Sync — Trade AI sembol durumu */}
+          <Card title="Trade AI Sembol Senkronizasyonu" icon={Activity}>
+            <div className="space-y-3">
+              {symbolsSync ? (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Stat label="Trade-ready" value={symbolsSync.tradeReadyCount} sub="Trade AI + Terminal" />
+                    <Stat label="Yetersiz (cikarilacak)" value={symbolsSync.insufficientCount} sub="FMP 15dk veri yok" />
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const blob = new Blob([JSON.stringify({
+                          tradeReady: symbolsSync.tradeReady,
+                          insufficient: symbolsSync.insufficient,
+                        }, null, 2)], { type: 'application/json' })
+                        const a = document.createElement('a')
+                        a.href = URL.createObjectURL(blob)
+                        a.download = 'trade_ready.json'
+                        a.click()
+                        URL.revokeObjectURL(a.href)
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs transition-all"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      trade_ready.json indir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const blob = new Blob([JSON.stringify(symbolsSync.insufficient, null, 2)], { type: 'application/json' })
+                        const a = document.createElement('a')
+                        a.href = URL.createObjectURL(blob)
+                        a.download = 'insufficient.json'
+                        a.click()
+                        URL.revokeObjectURL(a.href)
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 text-white/70 text-xs transition-all"
+                    >
+                      Eksik listesi (insufficient.json)
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-[10px] text-white/40">Tarama sonucu yok veya yukleniyor...</p>
+              )}
+              <p className="text-[9px] text-white/20 leading-relaxed">
+                Trade-ready: Redis bar cache yeterli hisseler. Yetersiz: FMP 15dk verisi eksik.
+                Guncelleme: trade_ready.json indir → node scripts/sync-symbols-from-trade.js data/trade_ready.json
               </p>
             </div>
           </Card>

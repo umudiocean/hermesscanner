@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════
 // HERMES Scanner — Bootstrap Endpoint
-// Ilk agir yukleme: Tum 2197 hisse icin 3 yillik 15dk veri cekilir
+// Ilk agir yukleme: Tum 2054 trade-ready hisse icin 3 yillik 15dk veri cekilir
 // Redis'e yazilir. Saatler surebilir. Admin panelden tetiklenir.
 // Checkpoint destegi: kesilirse kaldigindan devam eder.
 // ═══════════════════════════════════════════════════════════════════

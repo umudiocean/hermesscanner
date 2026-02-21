@@ -62,7 +62,7 @@ async function main() {
     if (symbols.length >= 2000) {
       check('Symbol count', 'PASS', `${symbols.length} symbols loaded`)
     } else {
-      check('Symbol count', 'WARN', `Only ${symbols.length} symbols (expected 2033)`)
+      check('Symbol count', 'WARN', `Only ${symbols.length} symbols (expected 2054)`)
     }
   } catch (err) {
     check('Symbol count', 'FAIL', `Error loading symbols: ${err}`)
