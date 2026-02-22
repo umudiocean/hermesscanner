@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
-import { Calendar, DollarSign, Scissors, Rocket, Clock, AlertTriangle, Info, Filter } from 'lucide-react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { Calendar, DollarSign, Scissors, Rocket, Clock, Info, Search, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus, Star, ArrowUpRight, ArrowDownRight, Zap, AlertTriangle } from 'lucide-react'
 
 interface CalendarData {
   earnings: { date: string; symbol: string; eps: number | null; epsEstimated: number | null; time: string; revenue: number | null; revenueEstimated: number | null }[]
@@ -11,23 +11,79 @@ interface CalendarData {
 }
 
 type EventType = 'earnings' | 'dividends' | 'splits' | 'ipos'
+type TimeRange = 'this_week' | 'next_week' | 'all'
 
 interface TabCalendarProps {
   onSelectSymbol?: (s: string) => void
 }
 
+const MEGA_CAPS = new Set(['AAPL', 'MSFT', 'GOOGL', 'GOOG', 'AMZN', 'NVDA', 'META', 'TSLA', 'BRK.A', 'BRK.B', 'JPM', 'V', 'JNJ', 'WMT', 'MA', 'PG', 'XOM', 'HD', 'CVX', 'LLY', 'ABBV', 'MRK', 'PEP', 'KO', 'AVGO', 'COST', 'TMO', 'MCD', 'CSCO', 'ACN', 'ABT', 'DHR', 'NEE', 'NFLX', 'AMD', 'INTC', 'CRM', 'ORCL', 'QCOM', 'IBM', 'BA', 'GS', 'MS', 'UNH', 'DIS', 'NKE', 'PYPL', 'LOW', 'TXN', 'CAT'])
+
 function formatDate(d: string) {
-  const dt = new Date(d)
+  const dt = new Date(d + 'T00:00:00')
   const days = ['Paz', 'Pzt', 'Sal', 'Car', 'Per', 'Cum', 'Cmt']
   const months = ['Oca', 'Sub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Agu', 'Eyl', 'Eki', 'Kas', 'Ara']
-  return `${days[dt.getUTCDay()]} ${dt.getUTCDate()} ${months[dt.getUTCMonth()]}`
+  return `${days[dt.getDay()]} ${dt.getDate()} ${months[dt.getMonth()]}`
+}
+
+function formatFullDate(d: string) {
+  const dt = new Date(d + 'T00:00:00')
+  const days = ['Pazar', 'Pazartesi', 'Sali', 'Carsamba', 'Persembe', 'Cuma', 'Cumartesi']
+  const months = ['Ocak', 'Subat', 'Mart', 'Nisan', 'Mayis', 'Haziran', 'Temmuz', 'Agustos', 'Eylul', 'Ekim', 'Kasim', 'Aralik']
+  return `${days[dt.getDay()]}, ${dt.getDate()} ${months[dt.getMonth()]}`
 }
 
 function fmtNum(v: number | null | undefined, prefix: string = '') {
-  if (v === null || v === undefined) return '--'
+  if (v === null || v === undefined) return '—'
   if (Math.abs(v) >= 1e9) return `${prefix}${(v / 1e9).toFixed(1)}B`
   if (Math.abs(v) >= 1e6) return `${prefix}${(v / 1e6).toFixed(1)}M`
+  if (Math.abs(v) >= 1e3) return `${prefix}${(v / 1e3).toFixed(1)}K`
   return `${prefix}${v.toFixed(2)}`
+}
+
+function getDateLabel(dateStr: string): { label: string; isToday: boolean; isPast: boolean } {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const date = new Date(dateStr + 'T00:00:00')
+  date.setHours(0, 0, 0, 0)
+  const diff = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  if (diff === 0) return { label: 'BUGUN', isToday: true, isPast: false }
+  if (diff === 1) return { label: 'YARIN', isToday: false, isPast: false }
+  if (diff === -1) return { label: 'DUN', isToday: false, isPast: true }
+  if (diff < 0) return { label: formatFullDate(dateStr), isToday: false, isPast: true }
+  return { label: formatFullDate(dateStr), isToday: false, isPast: false }
+}
+
+function getWeekRange(offset: number): { start: Date; end: Date } {
+  const now = new Date()
+  const day = now.getDay()
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + offset * 7)
+  monday.setHours(0, 0, 0, 0)
+  const friday = new Date(monday)
+  friday.setDate(monday.getDate() + 4)
+  friday.setHours(23, 59, 59, 999)
+  return { start: monday, end: friday }
+}
+
+interface EventItem {
+  date: string
+  type: EventType
+  symbol: string
+  detail: string
+  sub: string
+  isMega: boolean
+  eps?: number | null
+  epsEstimated?: number | null
+  revenue?: number | null
+  revenueEstimated?: number | null
+  time?: string
+  dividend?: number
+  numerator?: number
+  denominator?: number
+  company?: string
+  priceRange?: string
+  exchange?: string
 }
 
 export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
@@ -35,6 +91,8 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<EventType | 'all'>('all')
   const [search, setSearch] = useState('')
+  const [timeRange, setTimeRange] = useState<TimeRange>('all')
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/fmp-terminal/calendar?days=14')
@@ -45,20 +103,23 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
 
   const allEvents = useMemo(() => {
     if (!data) return []
-    const events: { date: string; type: EventType; symbol: string; detail: string; sub: string }[] = []
+    const events: EventItem[] = []
 
     for (const e of (data.earnings || [])) {
       events.push({
         date: e.date, type: 'earnings', symbol: e.symbol,
         detail: `EPS Tahmini: ${fmtNum(e.epsEstimated, '$')} | Gelir Tahmini: ${fmtNum(e.revenueEstimated, '$')}`,
         sub: e.time === 'bmo' ? 'Piyasa Oncesi' : e.time === 'amc' ? 'Piyasa Sonrasi' : 'Gun Ici',
+        isMega: MEGA_CAPS.has(e.symbol),
+        eps: e.eps, epsEstimated: e.epsEstimated, revenue: e.revenue, revenueEstimated: e.revenueEstimated, time: e.time,
       })
     }
     for (const d of (data.dividends || [])) {
       events.push({
         date: d.date, type: 'dividends', symbol: d.symbol,
-        detail: `Temettu: $${d.dividend.toFixed(3)} | Odeme: ${d.paymentDate || '--'}`,
-        sub: `Kayit: ${d.recordDate || '--'}`,
+        detail: `Temettu: $${d.dividend.toFixed(3)} | Odeme: ${d.paymentDate || '—'}`,
+        sub: `Kayit: ${d.recordDate || '—'}`,
+        isMega: MEGA_CAPS.has(d.symbol), dividend: d.dividend,
       })
     }
     for (const s of (data.splits || [])) {
@@ -66,35 +127,88 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
         date: s.date, type: 'splits', symbol: s.symbol,
         detail: `Oran: ${s.numerator}:${s.denominator}`,
         sub: s.numerator > s.denominator ? 'Ileri Split' : 'Ters Split',
+        isMega: MEGA_CAPS.has(s.symbol), numerator: s.numerator, denominator: s.denominator,
       })
     }
     for (const i of (data.ipos || [])) {
       events.push({
-        date: i.date, type: 'ipos', symbol: i.symbol || i.company,
-        detail: `${i.company} | Fiyat: ${i.priceRange || '--'}`,
+        date: i.date, type: 'ipos', symbol: i.symbol || i.company?.substring(0, 6) || '?',
+        detail: `${i.company} | Fiyat: ${i.priceRange || '—'}`,
         sub: i.exchange || 'TBD',
+        isMega: false, company: i.company, priceRange: i.priceRange, exchange: i.exchange,
       })
     }
 
-    return events
+    let filtered = events
       .filter(e => filter === 'all' || e.type === filter)
       .filter(e => !search || e.symbol.toUpperCase().includes(search.toUpperCase()))
-      .sort((a, b) => a.date.localeCompare(b.date))
-  }, [data, filter, search])
 
-  const FILTER_OPTS: { id: EventType | 'all'; label: string; icon: React.ReactNode; color: string }[] = [
-    { id: 'all', label: 'TUMU', icon: <Calendar size={13} />, color: 'violet' },
-    { id: 'earnings', label: 'KAZANC', icon: <DollarSign size={13} />, color: 'amber' },
-    { id: 'dividends', label: 'TEMETTU', icon: <DollarSign size={13} />, color: 'emerald' },
-    { id: 'splits', label: 'SPLIT', icon: <Scissors size={13} />, color: 'blue' },
-    { id: 'ipos', label: 'IPO', icon: <Rocket size={13} />, color: 'rose' },
+    if (selectedDate) {
+      filtered = filtered.filter(e => e.date === selectedDate)
+    }
+
+    if (timeRange !== 'all') {
+      const week = getWeekRange(timeRange === 'this_week' ? 0 : 1)
+      filtered = filtered.filter(e => {
+        const d = new Date(e.date + 'T00:00:00')
+        return d >= week.start && d <= week.end
+      })
+    }
+
+    return filtered.sort((a, b) => a.date.localeCompare(b.date) || (b.isMega ? 1 : 0) - (a.isMega ? 1 : 0))
+  }, [data, filter, search, timeRange, selectedDate])
+
+  const dateGroups = useMemo(() => {
+    const groups: { date: string; events: EventItem[] }[] = []
+    const map = new Map<string, EventItem[]>()
+    for (const ev of allEvents) {
+      if (!map.has(ev.date)) map.set(ev.date, [])
+      map.get(ev.date)!.push(ev)
+    }
+    for (const [date, events] of map) {
+      groups.push({ date, events })
+    }
+    return groups
+  }, [allEvents])
+
+  const miniCalDays = useMemo(() => {
+    if (!data) return []
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const days: { date: string; count: number; types: Set<EventType>; isToday: boolean; isWeekend: boolean }[] = []
+    for (let i = -2; i < 14; i++) {
+      const d = new Date(today)
+      d.setDate(today.getDate() + i)
+      const ds = d.toISOString().slice(0, 10)
+      const dayEvents = allEvents.filter(e => e.date === ds)
+      const types = new Set<EventType>()
+      dayEvents.forEach(e => types.add(e.type))
+      days.push({
+        date: ds,
+        count: dayEvents.length,
+        types,
+        isToday: i === 0,
+        isWeekend: d.getDay() === 0 || d.getDay() === 6,
+      })
+    }
+    return days
+  }, [data, allEvents])
+
+  const megaEvents = useMemo(() => allEvents.filter(e => e.isMega).slice(0, 8), [allEvents])
+
+  const FILTER_OPTS: { id: EventType | 'all'; label: string; icon: React.ReactNode; count: number }[] = [
+    { id: 'all', label: 'TUMU', icon: <Calendar size={13} />, count: allEvents.length },
+    { id: 'earnings', label: 'KAZANC', icon: <DollarSign size={13} />, count: data?.earnings?.length || 0 },
+    { id: 'dividends', label: 'TEMETTU', icon: <DollarSign size={13} />, count: data?.dividends?.length || 0 },
+    { id: 'splits', label: 'SPLIT', icon: <Scissors size={13} />, count: data?.splits?.length || 0 },
+    { id: 'ipos', label: 'IPO', icon: <Rocket size={13} />, count: data?.ipos?.length || 0 },
   ]
 
-  const TYPE_STYLES: Record<EventType, { bg: string; text: string; label: string }> = {
-    earnings: { bg: 'bg-amber-500/10 border-amber-500/20', text: 'text-amber-400', label: 'KAZANC' },
-    dividends: { bg: 'bg-emerald-500/10 border-emerald-500/20', text: 'text-emerald-400', label: 'TEMETTU' },
-    splits: { bg: 'bg-blue-500/10 border-blue-500/20', text: 'text-blue-400', label: 'SPLIT' },
-    ipos: { bg: 'bg-rose-500/10 border-rose-500/20', text: 'text-rose-400', label: 'IPO' },
+  const TYPE_STYLES: Record<EventType, { bg: string; border: string; text: string; label: string; dot: string }> = {
+    earnings: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', label: 'KAZANC', dot: 'bg-amber-400' },
+    dividends: { bg: 'bg-hermes-green/10', border: 'border-hermes-green/20', text: 'text-hermes-green', label: 'TEMETTU', dot: 'bg-hermes-green' },
+    splits: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400', label: 'SPLIT', dot: 'bg-blue-400' },
+    ipos: { bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400', label: 'IPO', dot: 'bg-rose-400' },
   }
 
   if (loading) {
@@ -132,101 +246,313 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
   }
 
   return (
-    <div className="space-y-2 sm:space-y-4 px-2 sm:px-4 lg:px-6 animate-fade-in">
-      {/* Header */}
-      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
-        <div className="flex items-center justify-between mb-2 sm:mb-4">
+    <div className="space-y-2 sm:space-y-3 px-2 sm:px-4 lg:px-6 animate-fade-in">
+
+      {/* Mini Calendar Strip + Stats */}
+      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-              <Calendar size={20} className="text-white" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/80 to-orange-600/80 flex items-center justify-center shadow-lg shadow-amber-500/15">
+              <Calendar size={18} className="text-white" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-white">PIYASA TAKVIMI</h3>
-              <p className="text-xs text-white/30">Yaklasan 14 gunluk etkinlikler</p>
+              <h3 className="text-sm sm:text-base font-bold text-white tracking-wide">PIYASA TAKVIMI</h3>
+              <p className="text-[10px] text-white/25">14 gunluk gorunum</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-white/30">
-            <Clock size={12} />
-            {allEvents.length} etkinlik
+          <div className="flex items-center gap-1.5">
+            {(['this_week', 'next_week', 'all'] as TimeRange[]).map(tr => (
+              <button key={tr} onClick={() => { setTimeRange(tr); setSelectedDate(null) }}
+                className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg transition-all ${
+                  timeRange === tr
+                    ? 'bg-gold-400/15 text-gold-400 border border-gold-400/25'
+                    : 'text-white/25 hover:text-white/50 bg-white/[0.02] border border-transparent hover:border-white/[0.06]'
+                }`}>
+                {tr === 'this_week' ? 'Bu Hafta' : tr === 'next_week' ? 'Gelecek Hafta' : 'Tumu'}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-2 mb-2 sm:mb-3 flex-wrap">
-          {FILTER_OPTS.map(f => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all
-                ${filter === f.id
-                  ? 'bg-gradient-to-r from-violet-600/80 to-blue-600/80 text-white'
-                  : 'bg-white/[0.03] text-white/40 hover:bg-white/[0.07] hover:text-white/70'}`}
-            >
-              {f.icon} {f.label}
-            </button>
-          ))}
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value.toUpperCase())}
-            placeholder="Sembol ara..."
-            className="ml-auto w-32 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white placeholder-white/20 focus:outline-none focus:border-violet-500/40"
-          />
+        {/* Mini Calendar Strip */}
+        <div className="flex gap-1 mb-3 overflow-x-auto pb-1">
+          {miniCalDays.map((day, i) => {
+            const dt = new Date(day.date + 'T00:00:00')
+            const dayNames = ['P', 'Pt', 'S', 'C', 'Pe', 'Cu', 'Ct']
+            const isSelected = selectedDate === day.date
+            const hasEvents = day.count > 0
+            return (
+              <button key={i}
+                onClick={() => setSelectedDate(isSelected ? null : day.date)}
+                className={`flex-shrink-0 w-10 sm:w-11 flex flex-col items-center py-1.5 rounded-lg transition-all duration-200 ${
+                  day.isToday
+                    ? 'bg-gold-400/15 border border-gold-400/30 shadow-sm shadow-gold-400/10'
+                    : isSelected
+                      ? 'bg-violet-500/15 border border-violet-500/30'
+                      : day.isWeekend
+                        ? 'bg-white/[0.01] border border-transparent opacity-40'
+                        : hasEvents
+                          ? 'bg-white/[0.03] border border-white/[0.06] hover:border-white/15'
+                          : 'bg-white/[0.01] border border-transparent hover:border-white/[0.04]'
+                }`}>
+                <span className={`text-[8px] font-medium ${day.isToday ? 'text-gold-400' : 'text-white/25'}`}>
+                  {dayNames[dt.getDay()]}
+                </span>
+                <span className={`text-xs font-bold ${day.isToday ? 'text-gold-300' : isSelected ? 'text-violet-300' : 'text-white/50'}`}>
+                  {dt.getDate()}
+                </span>
+                {hasEvents && (
+                  <div className="flex gap-0.5 mt-0.5">
+                    {Array.from(day.types).slice(0, 3).map((t, ti) => (
+                      <div key={ti} className={`w-1 h-1 rounded-full ${TYPE_STYLES[t].dot}`} />
+                    ))}
+                  </div>
+                )}
+                {day.count > 0 && (
+                  <span className={`text-[7px] font-bold mt-0.5 ${day.isToday ? 'text-gold-400' : 'text-white/25'}`}>
+                    {day.count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        {/* Stats Row */}
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
           {(['earnings', 'dividends', 'splits', 'ipos'] as EventType[]).map(t => {
-            const count = allEvents.filter(e => e.type === t || filter === 'all').length
             const ts = TYPE_STYLES[t]
+            const count = data ? (t === 'earnings' ? data.earnings.length : t === 'dividends' ? data.dividends.length : t === 'splits' ? data.splits.length : data.ipos.length) : 0
             return (
-              <div key={t} className={`${ts.bg} border rounded-lg px-3 py-2 text-center`}>
-                <div className={`text-lg font-bold ${ts.text}`}>
-                  {data ? (t === 'earnings' ? data.earnings.length : t === 'dividends' ? data.dividends.length : t === 'splits' ? data.splits.length : data.ipos.length) : 0}
-                </div>
-                <div className="text-[10px] text-white/30">{ts.label}</div>
-              </div>
+              <button key={t}
+                onClick={() => setFilter(filter === t ? 'all' : t)}
+                className={`${ts.bg} border ${ts.border} rounded-xl px-2 py-2 text-center transition-all hover:scale-[1.02] ${
+                  filter === t ? 'ring-1 ring-white/10 scale-[1.02]' : ''
+                }`}>
+                <div className={`text-lg sm:text-xl font-bold ${ts.text} tabular-nums`}>{count}</div>
+                <div className="text-[9px] text-white/30 font-medium">{ts.label}</div>
+              </button>
             )
           })}
         </div>
       </div>
 
-      {/* Events List */}
-      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] overflow-x-auto shadow-xl shadow-black/20">
-        {allEvents.length === 0 ? (
-          <div className="text-center py-12">
-            <Calendar size={32} className="text-white/10 mx-auto mb-2" />
-            <p className="text-white/25 text-sm">Bu donemde etkinlik bulunamadi</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-white/[0.04]">
-            {allEvents.slice(0, 100).map((ev, i) => {
-              const ts = TYPE_STYLES[ev.type]
-              return (
-                <div key={i}
-                  onClick={() => onSelectSymbol?.(ev.symbol)}
-                  className="flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2 sm:py-2.5 hover:bg-violet-500/[0.05] cursor-pointer transition-all min-w-0">
-                  <div className="w-14 text-center shrink-0">
-                    <div className="text-[11px] text-white/30">{formatDate(ev.date)}</div>
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${ts.bg} ${ts.text}`}>
-                    {ts.label}
-                  </span>
-                  <span className="text-sm font-bold text-white min-w-[60px]">{ev.symbol}</span>
-                  <span className="text-xs text-white/40 flex-1 truncate">{ev.detail}</span>
-                  <span className="text-[11px] text-white/20 shrink-0">{ev.sub}</span>
-                </div>
-              )
-            })}
-          </div>
+      {/* Filters + Search */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {FILTER_OPTS.map(f => (
+          <button key={f.id} onClick={() => setFilter(f.id)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+              filter === f.id
+                ? 'bg-gradient-to-r from-gold-500/20 to-amber-500/15 border border-gold-400/25 text-gold-300 shadow-sm shadow-gold-400/10'
+                : 'bg-white/[0.03] border border-white/[0.05] text-white/35 hover:bg-white/[0.06] hover:text-white/60'
+            }`}>
+            {f.icon}
+            <span>{f.label}</span>
+            <span className={`text-[9px] px-1 py-0 rounded-full ${filter === f.id ? 'bg-gold-400/15 text-gold-400' : 'bg-white/[0.04] text-white/20'}`}>
+              {f.count}
+            </span>
+          </button>
+        ))}
+        <div className="relative ml-auto">
+          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/20" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value.toUpperCase())}
+            placeholder="Sembol ara..."
+            className="pl-7 pr-3 py-1.5 w-36 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-white placeholder-white/15 focus:outline-none focus:border-gold-400/25"
+          />
+        </div>
+        {selectedDate && (
+          <button onClick={() => setSelectedDate(null)}
+            className="text-[10px] text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2 py-1 rounded-lg hover:bg-violet-500/20 transition-all">
+            {formatDate(selectedDate)} &times;
+          </button>
         )}
       </div>
 
-      <div className="flex items-start gap-2 px-2 sm:px-4 py-2 sm:py-3 bg-violet-500/[0.05] rounded-xl border border-violet-500/10">
-        <Info size={14} className="text-violet-400/50 mt-0.5 shrink-0" />
-        <p className="text-[12px] text-white/30 leading-relaxed">
+      {/* Mega-Cap Upcoming (featured events) */}
+      {megaEvents.length > 0 && filter !== 'dividends' && filter !== 'splits' && (
+        <div className="bg-[#151520] rounded-2xl border border-gold-400/10 p-3 sm:p-4 shadow-xl shadow-black/20">
+          <div className="flex items-center gap-2 mb-2.5">
+            <Star size={13} className="text-gold-400" />
+            <span className="text-[10px] font-bold text-gold-400/80 uppercase tracking-wider">Onemli Etkinlikler</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            {megaEvents.map((ev, i) => {
+              const ts = TYPE_STYLES[ev.type]
+              const dl = getDateLabel(ev.date)
+              return (
+                <button key={i}
+                  onClick={() => onSelectSymbol?.(ev.symbol)}
+                  className="bg-[#0c0c14] rounded-xl border border-white/[0.06] p-2.5 text-left hover:border-gold-400/20 hover:bg-gold-400/[0.02] transition-all group/mega">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-white group-hover/mega:text-gold-300 transition-colors">{ev.symbol}</span>
+                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${ts.bg} border ${ts.border} ${ts.text}`}>
+                      {ts.label}
+                    </span>
+                  </div>
+                  <div className={`text-[9px] font-semibold ${dl.isToday ? 'text-gold-400' : dl.isPast ? 'text-white/20' : 'text-white/40'}`}>
+                    {dl.isToday ? 'BUGUN' : dl.label}
+                  </div>
+                  {ev.type === 'earnings' && ev.time && (
+                    <div className="text-[8px] text-white/20 mt-0.5">{ev.sub}</div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Date-Grouped Timeline */}
+      <div className="space-y-2">
+        {dateGroups.length === 0 ? (
+          <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-8 text-center">
+            <Calendar size={36} className="text-white/8 mx-auto mb-3" />
+            <p className="text-white/20 text-sm font-medium">Bu donemde etkinlik bulunamadi</p>
+            <p className="text-[10px] text-white/10 mt-1">Filtre veya tarih secimini degistirmeyi deneyin</p>
+          </div>
+        ) : dateGroups.map((group, gi) => {
+          const dl = getDateLabel(group.date)
+          return (
+            <div key={group.date} className="bg-[#151520] rounded-2xl border border-white/[0.06] overflow-hidden shadow-xl shadow-black/20"
+              style={{ animationDelay: `${gi * 50}ms` }}>
+
+              {/* Date Header */}
+              <div className={`flex items-center justify-between px-3 sm:px-4 py-2 border-b ${
+                dl.isToday
+                  ? 'bg-gold-400/[0.06] border-gold-400/15'
+                  : dl.isPast
+                    ? 'bg-white/[0.01] border-white/[0.04]'
+                    : 'bg-white/[0.02] border-white/[0.05]'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {dl.isToday && <div className="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />}
+                  <span className={`text-xs font-bold ${dl.isToday ? 'text-gold-300' : dl.isPast ? 'text-white/25' : 'text-white/60'}`}>
+                    {dl.label}
+                  </span>
+                  {dl.isToday && <span className="text-[8px] text-gold-400/50 font-medium ml-1">AKTIF</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  {group.events.filter(e => e.type === 'earnings').length > 0 && (
+                    <span className="text-[8px] text-amber-400/60 bg-amber-500/8 px-1.5 py-0.5 rounded">
+                      {group.events.filter(e => e.type === 'earnings').length} Kazanc
+                    </span>
+                  )}
+                  <span className="text-[9px] text-white/20">{group.events.length} etkinlik</span>
+                </div>
+              </div>
+
+              {/* Events */}
+              <div className="divide-y divide-white/[0.03]">
+                {group.events.map((ev, ei) => {
+                  const ts = TYPE_STYLES[ev.type]
+                  const hasBeat = ev.type === 'earnings' && ev.eps !== null && ev.epsEstimated !== null
+                  const beat = hasBeat ? (ev.eps! > ev.epsEstimated! ? 'beat' : ev.eps! < ev.epsEstimated! ? 'miss' : 'inline') : null
+
+                  return (
+                    <div key={ei}
+                      onClick={() => onSelectSymbol?.(ev.symbol)}
+                      className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 cursor-pointer transition-all duration-200 group/row ${
+                        ev.isMega
+                          ? 'hover:bg-gold-400/[0.04] bg-gold-400/[0.01]'
+                          : 'hover:bg-violet-500/[0.04]'
+                      } ${dl.isPast ? 'opacity-60' : ''}`}>
+
+                      {/* Type Badge */}
+                      <div className={`w-16 shrink-0 text-center ${ts.bg} border ${ts.border} rounded-lg py-1`}>
+                        <span className={`text-[9px] font-bold ${ts.text}`}>{ts.label}</span>
+                      </div>
+
+                      {/* Symbol */}
+                      <div className="w-16 shrink-0">
+                        <div className="flex items-center gap-1">
+                          {ev.isMega && <Star size={9} className="text-gold-400/50" />}
+                          <span className={`text-sm font-bold ${ev.isMega ? 'text-gold-300' : 'text-white'} group-hover/row:text-gold-300 transition-colors`}>
+                            {ev.symbol}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        {ev.type === 'earnings' ? (
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[9px] text-white/25">EPS Th:</span>
+                              <span className="text-[11px] font-semibold text-white/60 tabular-nums">{fmtNum(ev.epsEstimated, '$')}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[9px] text-white/25">Gelir Th:</span>
+                              <span className="text-[11px] font-semibold text-white/60 tabular-nums">{fmtNum(ev.revenueEstimated, '$')}</span>
+                            </div>
+                            {hasBeat && (
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                                beat === 'beat' ? 'bg-hermes-green/15 text-hermes-green border border-hermes-green/20'
+                                  : beat === 'miss' ? 'bg-red-500/15 text-red-400 border border-red-500/20'
+                                    : 'bg-white/[0.04] text-white/30 border border-white/[0.06]'
+                              }`}>
+                                {beat === 'beat' ? 'BEKLENTI USTU' : beat === 'miss' ? 'BEKLENTI ALTI' : 'PARALEL'}
+                              </span>
+                            )}
+                            {ev.eps !== null && (
+                              <span className="text-[10px] text-white/35 tabular-nums">Gercek: {fmtNum(ev.eps, '$')}</span>
+                            )}
+                          </div>
+                        ) : ev.type === 'dividends' ? (
+                          <div className="flex items-center gap-3">
+                            <span className="text-[11px] text-hermes-green font-semibold tabular-nums">${ev.dividend?.toFixed(3)}</span>
+                            <span className="text-[9px] text-white/20">Odeme: {ev.sub?.replace('Kayit: ', '')}</span>
+                          </div>
+                        ) : ev.type === 'splits' ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-blue-400 font-semibold">{ev.numerator}:{ev.denominator}</span>
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded ${
+                              (ev.numerator || 0) > (ev.denominator || 0)
+                                ? 'bg-hermes-green/10 text-hermes-green'
+                                : 'bg-red-500/10 text-red-400'
+                            }`}>
+                              {ev.sub}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-white/40 truncate">{ev.company}</span>
+                            {ev.priceRange && <span className="text-[10px] text-rose-400 font-medium">{ev.priceRange}</span>}
+                            {ev.exchange && <span className="text-[8px] text-white/15 bg-white/[0.03] px-1.5 py-0.5 rounded">{ev.exchange}</span>}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Time / Sub */}
+                      <div className="shrink-0 text-right">
+                        {ev.type === 'earnings' && ev.time && (
+                          <span className={`text-[9px] font-medium px-2 py-0.5 rounded-md ${
+                            ev.time === 'bmo' ? 'bg-amber-500/10 text-amber-400/70' : ev.time === 'amc' ? 'bg-violet-500/10 text-violet-400/70' : 'bg-white/[0.03] text-white/20'
+                          }`}>
+                            {ev.time === 'bmo' ? 'BMO' : ev.time === 'amc' ? 'AMC' : 'GIC'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Arrow */}
+                      <ArrowUpRight size={12} className="text-white/10 group-hover/row:text-white/30 shrink-0 transition-colors" />
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Footer Info */}
+      <div className="flex items-start gap-2 px-3 py-2.5 bg-gold-400/[0.02] rounded-xl border border-gold-400/8">
+        <Info size={13} className="text-gold-400/40 mt-0.5 shrink-0" />
+        <p className="text-[11px] text-white/25 leading-relaxed">
           Kazanc takvimleri, temettu tarihleri, hisse split&apos;leri ve yeni IPO&apos;lar canli olarak cekilir.
-          BMO = Piyasa Oncesi, AMC = Piyasa Sonrasi.
+          <span className="text-white/15"> BMO = Piyasa Oncesi, AMC = Piyasa Sonrasi, GIC = Gun Ici.</span>
         </p>
       </div>
     </div>

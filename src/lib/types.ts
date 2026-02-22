@@ -101,6 +101,19 @@ export interface HermesResult {
   error?: string
 }
 
+export type PriceZone = 'BUY_ZONE' | 'ACCUMULATE' | 'NEUTRAL' | 'DISTRIBUTE' | 'SELL_ZONE'
+
+export interface PriceTargetData {
+  targetPrice: number
+  floorPrice: number
+  targetPct: number
+  floorPct: number
+  riskReward: number
+  zone: PriceZone
+  confidence: number
+  method: string
+}
+
 export interface ScanResult {
   symbol: string
   segment: string
@@ -112,6 +125,7 @@ export interface ScanResult {
     volume: number
     marketCap: number
   }
+  priceTarget?: PriceTargetData | null
   timestamp: string
 }
 

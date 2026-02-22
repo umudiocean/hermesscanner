@@ -10,6 +10,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useNasdaqTradeContext } from '../Layout'
 import { ScanResult } from '@/lib/types'
 import { Star, Trash2, Download, Search, Plus, ChevronUp, ChevronDown } from 'lucide-react'
+import { PriceFlashCell } from '../premium-ui'
 import { getSymbols } from '@/lib/symbols'
 import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 
@@ -319,6 +320,9 @@ export default function ModuleNasdaqWatchlist() {
                 <WTH field="point52w">52W</WTH>
                 <WTH field="zscore">Z</WTH>
                 <WTH field="quality">Kalite</WTH>
+                <th className="py-2 px-2 text-right text-[9px] text-white/30 uppercase tracking-wider hidden xl:table-cell" title="Hedef Fiyat">Hedef</th>
+                <th className="py-2 px-2 text-right text-[9px] text-white/30 uppercase tracking-wider hidden xl:table-cell" title="Dip Fiyat">Dip</th>
+                <th className="py-2 px-2 text-center text-[9px] text-white/30 uppercase tracking-wider hidden xl:table-cell" title="Risk/Odul">R:R</th>
               </tr>
             </thead>
             <tbody>
@@ -342,8 +346,8 @@ export default function ModuleNasdaqWatchlist() {
                         <span className="text-[9px] px-1 py-0.5 rounded bg-gold-400/10 text-gold-400/70">{result.segment}</span>
                       </div>
                     </td>
-                    <td className="px-2 py-2.5 text-right text-[11px] font-semibold text-white tabular-nums">
-                      ${(result.quote?.price || result.hermes.price).toFixed(2)}
+                    <td className="px-2 py-2.5 text-right">
+                      <PriceFlashCell price={result.quote?.price || result.hermes.price} className="text-[11px] font-semibold text-white" />
                     </td>
                     <td className={`px-2 py-2.5 text-right text-[11px] font-medium tabular-nums ${changePercent >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
                       {changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%
@@ -351,7 +355,7 @@ export default function ModuleNasdaqWatchlist() {
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
                         terminalSignal === 'STRONG' ? 'text-amber-300 bg-amber-500/15 border-amber-500/30' :
-                        terminalSignal === 'GOOD' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25' :
+                        terminalSignal === 'GOOD' ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' :
                         terminalSignal === 'WEAK' ? 'text-orange-400 bg-orange-500/10 border-orange-500/25' :
                         terminalSignal === 'BAD' ? 'text-red-400 bg-red-500/10 border-red-500/25' :
                         'text-white/35 bg-white/[0.03] border-white/[0.06]'
@@ -359,8 +363,8 @@ export default function ModuleNasdaqWatchlist() {
                     </td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                        tradeSignal === 'STRONG LONG' ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30' :
-                        tradeSignal === 'LONG' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
+                        tradeSignal === 'STRONG LONG' ? 'text-hermes-green bg-hermes-green/15 border-hermes-green/30' :
+                        tradeSignal === 'LONG' ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/20' :
                         tradeSignal === 'SHORT' ? 'text-red-400 bg-red-500/10 border-red-500/20' :
                         tradeSignal === 'STRONG SHORT' ? 'text-red-300 bg-red-500/15 border-red-500/30' :
                         'text-white/35 bg-white/[0.03] border-white/[0.06]'
@@ -370,7 +374,7 @@ export default function ModuleNasdaqWatchlist() {
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
                         aiSignal === 'CONFLUENCE BUY' ? 'text-violet-300 bg-violet-500/15 border-violet-500/30' :
                         aiSignal === 'ALPHA LONG' ? 'text-amber-300 bg-amber-500/15 border-amber-500/30' :
-                        aiSignal === 'HERMES LONG' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25' :
+                        aiSignal === 'HERMES LONG' ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' :
                         aiSignal === 'HERMES SHORT' ? 'text-red-400 bg-red-500/10 border-red-500/25' :
                         aiSignal === 'ALPHA SHORT' ? 'text-red-500 bg-red-600/15 border-red-600/30' :
                         aiSignal === 'CONFLUENCE SELL' ? 'text-fuchsia-400 bg-fuchsia-600/15 border-fuchsia-600/30' :
@@ -390,8 +394,8 @@ export default function ModuleNasdaqWatchlist() {
                     </td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                        fmp?.valuationLabel === 'COK UCUZ' ? 'text-emerald-300 bg-emerald-500/15' :
-                        fmp?.valuationLabel === 'UCUZ' ? 'text-emerald-400 bg-emerald-500/10' :
+                        fmp?.valuationLabel === 'COK UCUZ' ? 'text-hermes-green bg-hermes-green/15' :
+                        fmp?.valuationLabel === 'UCUZ' ? 'text-hermes-green bg-hermes-green/10' :
                         fmp?.valuationLabel === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
                         fmp?.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
                         'text-white/40 bg-white/[0.04]'
@@ -416,6 +420,26 @@ export default function ModuleNasdaqWatchlist() {
                       <span className={`text-[10px] ${result.hermes.multipliers.quality > 0.9 ? 'text-hermes-green' : result.hermes.multipliers.quality < 0.7 ? 'text-red-400' : 'text-gold-300'}`}>
                         {result.hermes.multipliers.quality.toFixed(2)}
                       </span>
+                    </td>
+                    <td className="px-2 py-2.5 text-right hidden xl:table-cell">
+                      {result.priceTarget ? (
+                        <span className={`text-[11px] font-mono font-semibold ${result.priceTarget.targetPct >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                          ${result.priceTarget.targetPrice.toFixed(2)}
+                        </span>
+                      ) : <span className="text-white/20 text-[10px]">—</span>}
+                    </td>
+                    <td className="px-2 py-2.5 text-right hidden xl:table-cell">
+                      {result.priceTarget ? (
+                        <span className="text-[11px] font-mono text-red-400/80">${result.priceTarget.floorPrice.toFixed(2)}</span>
+                      ) : <span className="text-white/20 text-[10px]">—</span>}
+                    </td>
+                    <td className="px-2 py-2.5 text-center hidden xl:table-cell">
+                      {result.priceTarget ? (
+                        <span className={`text-[11px] font-mono font-bold ${
+                          result.priceTarget.riskReward >= 2 ? 'text-hermes-green' :
+                          result.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+                        }`}>{result.priceTarget.riskReward.toFixed(1)}</span>
+                      ) : <span className="text-white/20 text-[10px]">—</span>}
                     </td>
                   </tr>
                 )

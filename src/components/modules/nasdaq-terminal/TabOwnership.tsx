@@ -103,7 +103,7 @@ function InsiderView({ trades }: { trades: InsiderTrade[] }) {
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         <StatCard label="Toplam İşlem" value={String(trades.length)} />
-        <StatCard label="Alım" value={String(purchases.length)} color="emerald" />
+        <StatCard label="Alım" value={String(purchases.length)} color="hermes-green" />
         <StatCard label="Satış" value={String(sales.length)} color="red" />
       </div>
 
@@ -137,7 +137,7 @@ function InsiderView({ trades }: { trades: InsiderTrade[] }) {
                     </td>
                     <td className="px-3 py-1.5 text-center">
                       <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-                        isBuy ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'
+                        isBuy ? 'bg-hermes-green/15 text-hermes-green' : 'bg-red-500/15 text-red-400'
                       }`}>
                         {isBuy ? 'ALIM' : 'SATIŞ'}
                       </span>
@@ -191,7 +191,7 @@ function InstitutionalView({ holders }: { holders: InstitutionalHolder[] }) {
                   </td>
                   <td className="px-3 py-1.5 text-right">
                     <span className={`text-[10px] tabular-nums ${
-                      changePositive ? 'text-emerald-400' : h.change < 0 ? 'text-red-400' : 'text-white/40'
+                      changePositive ? 'text-hermes-green' : h.change < 0 ? 'text-red-400' : 'text-white/40'
                     }`}>
                       {changePositive ? '+' : ''}{h.change?.toLocaleString()}
                     </span>
@@ -249,7 +249,7 @@ function CongressionalView({ trades }: { trades: CongressionalTrade[] }) {
                   </td>
                   <td className="px-3 py-1.5 text-center">
                     <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-                      isBuy ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'
+                      isBuy ? 'bg-hermes-green/15 text-hermes-green' : 'bg-red-500/15 text-red-400'
                     }`}>
                       {isBuy ? 'ALIM' : 'SATIŞ'}
                     </span>
@@ -274,7 +274,7 @@ function StatCard({ label, value, color }: { label: string; value: string; color
     <div className="bg-[#0F0F15] rounded-lg border border-white/5 px-2 sm:px-3 py-2 sm:py-2.5">
       <div className="text-[9px] text-white/30 uppercase mb-1">{label}</div>
       <div className={`text-base sm:text-lg font-bold tabular-nums ${
-        color === 'emerald' ? 'text-emerald-400' :
+        color === 'hermes-green' ? 'text-hermes-green' :
         color === 'red' ? 'text-red-400' :
         'text-white'
       }`}>
@@ -310,8 +310,8 @@ function LiveInsiderFeed() {
       <div className="flex items-center justify-between mb-2 sm:mb-3">
         <h4 className="text-[10px] text-white/30 uppercase tracking-wider">Canli Insider Akisi (RSS)</h4>
         <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[10px] text-emerald-400/60">CANLI</span>
+          <div className="w-1.5 h-1.5 rounded-full bg-hermes-green animate-pulse" />
+          <span className="text-[10px] text-hermes-green/60">CANLI</span>
         </div>
       </div>
       <p className="text-xs text-white/25">

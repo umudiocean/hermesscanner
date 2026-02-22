@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo, useRef, useCallback, memo } from 'react'
+import { useState, useMemo, useRef, useCallback, memo, useEffect } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useNasdaqTradeContext } from '../Layout'
 import { ScanResult } from '@/lib/types'
 import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
+import { PriceFlashCell, SignalBadge, ScoreMiniBar } from '../premium-ui'
 
 // ═══════════════════════════════════════════════════════════════════
 // TRADE AI Module — V15 Pure Z-Score (V377_R6.85_Z55)
@@ -12,7 +13,7 @@ import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 // Skor: <=20 STRONG LONG | 21-30 LONG | 31-69 NOTR | 70-89 SHORT | >=90 STRONG SHORT
 // ═══════════════════════════════════════════════════════════════════
 
-type SortField = 'score' | 'symbol' | 'price' | 'change' | 'signal' | 'rsi' | 'mfi' | 'marketCap' | 'quality' | 'confidence' | 'valuation'
+type SortField = 'score' | 'symbol' | 'price' | 'change' | 'signal' | 'rsi' | 'mfi' | 'marketCap' | 'quality' | 'confidence' | 'valuation' | 'targetPrice' | 'floorPrice' | 'riskReward'
 type SortDir = 'asc' | 'desc'
 type SignalFilter = 'all' | 'strong_long' | 'long' | 'neutral' | 'short' | 'strong_short'
 type SegmentFilter = 'ALL' | 'MEGA' | 'LARGE' | 'MID' | 'SMALL' | 'MICRO'
@@ -118,12 +119,31 @@ function FilterButton({ active, onClick, children, count, variant = 'default' }:
 }
 
 function getValuationStyle(label: string): string {
-  if (label === 'COK UCUZ') return 'text-emerald-300 bg-emerald-500/15'
-  if (label === 'UCUZ') return 'text-emerald-400 bg-emerald-500/10'
+  if (label === 'COK UCUZ') return 'text-hermes-green bg-hermes-green/15'
+  if (label === 'UCUZ') return 'text-hermes-green bg-hermes-green/10'
   if (label === 'NORMAL') return 'text-slate-300 bg-white/[0.04]'
   if (label === 'PAHALI') return 'text-orange-400 bg-orange-500/10'
   if (label === 'COK PAHALI') return 'text-red-400 bg-red-500/10'
   return 'text-white/25 bg-white/[0.03]'
+}
+
+function getZoneStyle(zone: string): string {
+  switch (zone) {
+    case 'BUY_ZONE': return 'text-hermes-green bg-hermes-green/15 border-hermes-green/30'
+    case 'ACCUMULATE': return 'text-hermes-green bg-hermes-green/8 border-hermes-green/20'
+    case 'NEUTRAL': return 'text-slate-300 bg-white/[0.04] border-white/10'
+    case 'DISTRIBUTE': return 'text-orange-400 bg-orange-500/8 border-orange-500/20'
+    case 'SELL_ZONE': return 'text-red-400 bg-red-500/15 border-red-500/30'
+    default: return 'text-white/25 bg-white/[0.03] border-white/5'
+  }
+}
+
+const ZONE_LABELS: Record<string, string> = {
+  BUY_ZONE: 'ALIS',
+  ACCUMULATE: 'BIRIKTR',
+  NEUTRAL: 'NOTR',
+  DISTRIBUTE: 'DAGIT',
+  SELL_ZONE: 'SATIS',
 }
 
 const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlistToggle, inWatchlist, fmpData }: {
@@ -137,7 +157,12 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
 
   return (
     <>
-      <tr className="border-b border-gold-400/5 cursor-pointer transition-all hover:bg-gold-400/[0.03] group">
+      <tr className={`border-b border-gold-400/5 cursor-pointer premium-row group ${
+        hermes.signalType === 'strong_long' ? 'row-glow-strong-long' :
+        hermes.signalType === 'long' ? 'row-glow-long' :
+        hermes.signalType === 'strong_short' ? 'row-glow-strong-short' :
+        hermes.signalType === 'short' ? 'row-glow-short' : ''
+      }`}>
         <td className="px-2 py-3 w-10">
           <button
             onClick={(e) => { e.stopPropagation(); onWatchlistToggle() }}
@@ -153,22 +178,17 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
           </div>
         </td>
         <td className="px-3 py-3 text-right" onClick={onToggle}>
-          <span className="font-mono text-white/90">${quote?.price?.toFixed(2) || hermes.price.toFixed(2)}</span>
+          <PriceFlashCell price={quote?.price || hermes.price} className="font-mono text-white/90 text-sm" />
         </td>
         <td className={`px-3 py-3 text-right font-mono ${(quote?.changePercent ?? 0) >= 0 ? 'text-hermes-green' : 'text-red-400'}`} onClick={onToggle}>
           {quote?.changePercent ? `${quote.changePercent >= 0 ? '+' : ''}${quote.changePercent.toFixed(2)}%` : '-'}
         </td>
         <td className="px-3 py-3" onClick={onToggle}>
-          <div className="flex items-center gap-2">
-            <span className={`font-mono font-bold text-base sm:text-lg w-8 ${getScoreColor(hermes.score)}`}>{Math.round(hermes.score)}</span>
-            <ScoreBar score={hermes.score} />
-          </div>
+          <ScoreMiniBar value={hermes.score} maxWidth={56} />
         </td>
         <td className="px-3 py-3" onClick={onToggle}>
           <div className="flex items-center gap-1.5">
-            <span className={`inline-block px-2 py-1 rounded text-xs font-semibold border ${style.bg} ${style.text} ${style.border}`}>
-              {getSignalLabel(hermes.signalType)}
-            </span>
+            <SignalBadge type={hermes.signalType as 'strong_long' | 'long' | 'neutral' | 'short' | 'strong_short'} label={getSignalLabel(hermes.signalType)} />
             {hermes.delay?.waitingForConfirm && (
               <span className="px-1.5 py-0.5 rounded text-[10px] bg-gold-400/15 text-gold-300 border border-gold-400/30">
                 {hermes.delay.barsRemaining} bar
@@ -196,7 +216,7 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
         </td>
         <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
           <span className={`text-[11px] tabular-nums font-medium ${
-            confidence >= 70 ? 'text-emerald-400/60' : confidence >= 50 ? 'text-amber-400/60' : 'text-white/25'
+            confidence >= 70 ? 'text-hermes-green/60' : confidence >= 50 ? 'text-amber-400/60' : 'text-white/25'
           }`}>{confidence > 0 ? `${confidence}%` : '—'}</span>
         </td>
         <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
@@ -211,10 +231,44 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
             {hermes.multipliers.quality.toFixed(2)}
           </span>
         </td>
+        {/* Target / Floor / R:R / Zone */}
+        <td className="px-3 py-3 text-right hidden xl:table-cell" onClick={onToggle}>
+          {result.priceTarget ? (
+            <div className="flex flex-col items-end">
+              <span className={`font-mono text-xs font-semibold ${result.priceTarget.targetPct >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                ${result.priceTarget.targetPrice.toFixed(2)}
+              </span>
+              <span className="text-[10px] text-white/30">{result.priceTarget.targetPct >= 0 ? '+' : ''}{result.priceTarget.targetPct.toFixed(1)}%</span>
+            </div>
+          ) : <span className="text-white/20 text-[10px]">—</span>}
+        </td>
+        <td className="px-3 py-3 text-right hidden xl:table-cell" onClick={onToggle}>
+          {result.priceTarget ? (
+            <div className="flex flex-col items-end">
+              <span className="font-mono text-xs text-red-400/80">${result.priceTarget.floorPrice.toFixed(2)}</span>
+              <span className="text-[10px] text-white/30">-{result.priceTarget.floorPct.toFixed(1)}%</span>
+            </div>
+          ) : <span className="text-white/20 text-[10px]">—</span>}
+        </td>
+        <td className="px-3 py-3 text-center hidden xl:table-cell" onClick={onToggle}>
+          {result.priceTarget ? (
+            <span className={`font-mono text-xs font-bold ${
+              result.priceTarget.riskReward >= 2 ? 'text-hermes-green' :
+              result.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+            }`}>{result.priceTarget.riskReward.toFixed(1)}</span>
+          ) : <span className="text-white/20 text-[10px]">—</span>}
+        </td>
+        <td className="px-3 py-3 text-center hidden xl:table-cell" onClick={onToggle}>
+          {result.priceTarget ? (
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap border ${getZoneStyle(result.priceTarget.zone)}`}>
+              {ZONE_LABELS[result.priceTarget.zone] || result.priceTarget.zone}
+            </span>
+          ) : <span className="text-white/20 text-[10px]">—</span>}
+        </td>
       </tr>
       {expanded && (
         <tr className="border-b border-gold-400/5 bg-midnight-50/30">
-          <td colSpan={12} className="px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
+          <td colSpan={16} className="px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 text-xs">
               <DetailBlock title="Bilesenler (70/15/15)" items={[
                 { label: '52W Z-Score (70%)', value: hermes.components.point52w.toFixed(1), color: getScoreColor(hermes.components.point52w) },
@@ -283,6 +337,7 @@ export default function ModuleNasdaqTrade() {
 
   const [signalFilter, setSignalFilter] = useState<SignalFilter>('all')
   const [segmentFilter, setSegmentFilter] = useState<SegmentFilter>('ALL')
+  const [valuationFilter, setValuationFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortField, setSortField] = useState<SortField>('score')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
@@ -293,6 +348,7 @@ export default function ModuleNasdaqTrade() {
     return results
       .filter(r => signalFilter === 'all' || r.hermes.signalType === signalFilter)
       .filter(r => segmentFilter === 'ALL' || r.segment === segmentFilter)
+      .filter(r => valuationFilter === 'all' || fmpStocksMap.get(r.symbol)?.valuationLabel === valuationFilter)
       .filter(r => !searchQuery || r.symbol.toLowerCase().includes(searchQuery.toLowerCase()))
       .sort((a, b) => {
         let aVal: number, bVal: number
@@ -308,11 +364,14 @@ export default function ModuleNasdaqTrade() {
           case 'quality': aVal = a.hermes.multipliers.quality; bVal = b.hermes.multipliers.quality; break
           case 'confidence': aVal = fmpStocksMap.get(a.symbol)?.confidence || 0; bVal = fmpStocksMap.get(b.symbol)?.confidence || 0; break
           case 'valuation': aVal = fmpStocksMap.get(a.symbol)?.valuationScore || 0; bVal = fmpStocksMap.get(b.symbol)?.valuationScore || 0; break
+          case 'targetPrice': aVal = a.priceTarget?.targetPct || 0; bVal = b.priceTarget?.targetPct || 0; break
+          case 'floorPrice': aVal = a.priceTarget?.floorPct || 0; bVal = b.priceTarget?.floorPct || 0; break
+          case 'riskReward': aVal = a.priceTarget?.riskReward || 0; bVal = b.priceTarget?.riskReward || 0; break
           default: aVal = a.hermes.score; bVal = b.hermes.score
         }
         return sortDir === 'asc' ? aVal - bVal : bVal - aVal
       })
-  }, [results, signalFilter, segmentFilter, searchQuery, sortField, sortDir, fmpStocksMap])
+  }, [results, signalFilter, segmentFilter, valuationFilter, searchQuery, sortField, sortDir, fmpStocksMap])
 
   const handleSort = (field: SortField) => {
     if (sortField === field) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc')
@@ -354,7 +413,7 @@ export default function ModuleNasdaqTrade() {
   return (
     <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
       {/* Filters */}
-      <div className="bg-midnight/80 rounded-xl border border-gold-400/8 p-2 sm:p-4 mb-2 sm:mb-4">
+      <div className="glass-card rounded-xl p-2 sm:p-4 mb-2 sm:mb-4">
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <span className="text-xs text-gold-400/50 mr-2">Sinyal:</span>
           <FilterButton active={signalFilter === 'all'} onClick={() => setSignalFilter('all')} count={results.length}>Tumu</FilterButton>
@@ -364,11 +423,24 @@ export default function ModuleNasdaqTrade() {
           <FilterButton active={signalFilter === 'short'} onClick={() => setSignalFilter('short')} variant="orange" count={signalCounts.short}>Short</FilterButton>
           <FilterButton active={signalFilter === 'strong_short'} onClick={() => setSignalFilter('strong_short')} variant="red" count={signalCounts.strong_short}>Strong Short</FilterButton>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 mb-3">
           <span className="text-xs text-gold-400/50 mr-2">Market Cap:</span>
           <FilterButton active={segmentFilter === 'ALL'} onClick={() => setSegmentFilter('ALL')} count={getSegmentCount('ALL')}>Tumu</FilterButton>
           {SEGMENTS.map(seg => (
             <FilterButton key={seg} active={segmentFilter === seg} onClick={() => setSegmentFilter(seg)} count={getSegmentCount(seg)}>{seg}</FilterButton>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-gold-400/50 mr-2">Fiyatlama:</span>
+          {[
+            { key: 'all', label: 'Tumu', variant: 'default' as const },
+            { key: 'COK UCUZ', label: 'Cok Ucuz', variant: 'green' as const },
+            { key: 'UCUZ', label: 'Ucuz', variant: 'green' as const },
+            { key: 'NORMAL', label: 'Normal', variant: 'gray' as const },
+            { key: 'PAHALI', label: 'Pahali', variant: 'orange' as const },
+            { key: 'COK PAHALI', label: 'Cok Pahali', variant: 'red' as const },
+          ].map(f => (
+            <FilterButton key={f.key} active={valuationFilter === f.key} onClick={() => setValuationFilter(f.key)} variant={f.variant}>{f.label}</FilterButton>
           ))}
           <div className="ml-auto flex items-center gap-2">
             <input
@@ -403,7 +475,7 @@ export default function ModuleNasdaqTrade() {
       )}
 
       {/* Virtualized Table */}
-      <div className="rounded-xl border border-gold-400/8 bg-midnight/50 overflow-hidden">
+      <div className="glass-card rounded-xl overflow-hidden">
         <div
           ref={scrollContainerRef}
           className="overflow-auto"
@@ -424,12 +496,16 @@ export default function ModuleNasdaqTrade() {
                 <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('confidence')} title="Temel analiz veri tamligi (Confidence %)">Guven <SortIcon field="confidence" /></th>
                 <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('valuation')} title="Fiyatlama seviyesi (COK UCUZ -> COK PAHALI)">Fiyatlama <SortIcon field="valuation" /></th>
                 <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('quality')}>Kalite <SortIcon field="quality" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden xl:table-cell" onClick={() => handleSort('targetPrice')} title="Hedef Fiyat (VWAP+Analist+DCF)">Hedef <SortIcon field="targetPrice" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden xl:table-cell" onClick={() => handleSort('floorPrice')} title="Dip Fiyat (Destek seviyeleri)">Dip <SortIcon field="floorPrice" /></th>
+                <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden xl:table-cell" onClick={() => handleSort('riskReward')} title="Risk/Odul Orani (>1 = olumlu)">R:R <SortIcon field="riskReward" /></th>
+                <th className="px-3 py-3 text-center hidden xl:table-cell" title="Fiyat Bolgesi">Bolge</th>
               </tr>
             </thead>
             <tbody>
               {virtualizer.getVirtualItems().length > 0 && (
                 <tr style={{ height: virtualizer.getVirtualItems()[0].start }}>
-                  <td colSpan={12} />
+                  <td colSpan={16} />
                 </tr>
               )}
               {virtualizer.getVirtualItems().map((virtualRow) => {
@@ -449,14 +525,27 @@ export default function ModuleNasdaqTrade() {
               })}
               {virtualizer.getVirtualItems().length > 0 && (
                 <tr style={{ height: virtualizer.getTotalSize() - (virtualizer.getVirtualItems()[virtualizer.getVirtualItems().length - 1]?.end ?? 0) }}>
-                  <td colSpan={12} />
+                  <td colSpan={16} />
                 </tr>
               )}
             </tbody>
           </table>
           {filteredResults.length === 0 && !loading && (
-            <div className="text-center py-16 text-white/30">
-              {results.length === 0 ? 'Tarama sonucu yok. Yukaridan TARA butonuna basin.' : 'Filtre kriterlerine uyan sonuc yok.'}
+            <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
+              <div className="relative mb-5">
+                <div className="w-16 h-16 rounded-2xl bg-[#141414] border border-gold-400/10 flex items-center justify-center animate-empty-float">
+                  <span className="text-3xl">{results.length === 0 ? '🔍' : '🎯'}</span>
+                </div>
+                <div className="absolute inset-[-24px]" style={{ animation: 'orbit 8s linear infinite' }}>
+                  <div className="w-1.5 h-1.5 rounded-full bg-gold-400/30 absolute top-0 left-1/2 -translate-x-1/2" />
+                </div>
+              </div>
+              <p className="text-sm text-white/40 font-medium">
+                {results.length === 0 ? 'Tarama sonucu yok' : 'Filtre kriterlerine uyan sonuc yok'}
+              </p>
+              <p className="text-[11px] text-white/20 mt-1">
+                {results.length === 0 ? 'Yukaridan TARA butonuna basin' : 'Filtre ayarlarini degistirin'}
+              </p>
             </div>
           )}
         </div>

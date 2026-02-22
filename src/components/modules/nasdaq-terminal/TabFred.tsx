@@ -39,7 +39,7 @@ export default function TabFred() {
   if (!data) return <FredError message="FRED verisi bulunamadi" />
 
   const regimeColors: Record<string, { bg: string; text: string; border: string; emoji: string }> = {
-    GOLDILOCKS: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/25', emoji: '\u2728' },
+    GOLDILOCKS: { bg: 'bg-hermes-green/10', text: 'text-hermes-green', border: 'border-hermes-green/25', emoji: '\u2728' },
     REFLATION: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/25', emoji: '\uD83D\uDD25' },
     STAGFLATION: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/25', emoji: '\u26A0\uFE0F' },
     DEFLATION: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/25', emoji: '\u2744\uFE0F' },
@@ -92,13 +92,13 @@ export default function TabFred() {
           <span className="text-[10px] text-white/25 ml-1">5 makro bilesen bilesimi</span>
           <div className="ml-auto">
             <span className={`text-xl sm:text-2xl font-black tabular-nums ${
-              data.fearGreedV2.composite >= 60 ? 'text-emerald-400' :
+              data.fearGreedV2.composite >= 60 ? 'text-hermes-green' :
               data.fearGreedV2.composite >= 40 ? 'text-slate-300' : 'text-red-400'
             }`}>{data.fearGreedV2.composite}</span>
             <span className="text-xs text-white/30 ml-1">/100</span>
           </div>
         </div>
-        <div className="relative h-3 rounded-full overflow-hidden bg-gradient-to-r from-red-600 via-orange-500 via-slate-400 to-emerald-500 mb-4">
+        <div className="relative h-3 rounded-full overflow-hidden bg-gradient-to-r from-red-600 via-orange-500 via-slate-400 to-hermes-green mb-4">
           <div className="absolute top-0 h-full w-1.5 bg-white shadow-lg shadow-white/50 rounded-full transition-all duration-700"
             style={{ left: `${Math.max(1, Math.min(99, data.fearGreedV2.composite))}%` }} />
         </div>
@@ -113,12 +113,12 @@ export default function TabFred() {
             <div key={c.name} className="bg-white/[0.02] rounded-xl p-3 border border-white/[0.04]">
               <div className="text-[10px] text-white/35 mb-1">{c.name}</div>
               <div className={`text-lg font-black tabular-nums ${
-                c.score >= 60 ? 'text-emerald-400' : c.score >= 40 ? 'text-slate-300' : 'text-red-400'
+                c.score >= 60 ? 'text-hermes-green' : c.score >= 40 ? 'text-slate-300' : 'text-red-400'
               }`}>{c.score}</div>
               <div className="w-full h-1.5 bg-white/[0.05] rounded-full overflow-hidden mt-1.5">
                 <div className="h-full rounded-full transition-all duration-500" style={{
                   width: `${c.score}%`,
-                  backgroundColor: c.score >= 60 ? '#34d399' : c.score >= 40 ? '#94a3b8' : '#f87171'
+                  backgroundColor: c.score >= 60 ? '#62cbc1' : c.score >= 40 ? '#94a3b8' : '#f87171'
                 }} />
               </div>
               <div className="flex justify-between mt-1">
@@ -144,13 +144,13 @@ export default function TabFred() {
               <div className="text-[10px] text-white/30">10Y - 2Y Spread</div>
               <div className={`text-2xl sm:text-3xl font-black tabular-nums ${
                 data.yieldCurve.spread < 0 ? 'text-red-400' :
-                data.yieldCurve.spread < 0.5 ? 'text-orange-400' : 'text-emerald-400'
+                data.yieldCurve.spread < 0.5 ? 'text-orange-400' : 'text-hermes-green'
               }`}>{data.yieldCurve.spread >= 0 ? '+' : ''}{data.yieldCurve.spread.toFixed(2)}%</div>
             </div>
             <div className={`px-3 py-1.5 rounded-xl border text-sm font-bold ${
               data.yieldCurve.status === 'INVERSION' ? 'text-red-400 bg-red-500/10 border-red-500/20' :
               data.yieldCurve.status === 'DIKKAT' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' :
-              data.yieldCurve.status === 'GENIS' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
+              data.yieldCurve.status === 'GENIS' ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/20' :
               'text-slate-300 bg-white/[0.04] border-white/[0.08]'
             }`}>{data.yieldCurve.status}</div>
           </div>
@@ -219,14 +219,14 @@ export default function TabFred() {
               <div className="text-[10px] text-white/30">Issizlik Orani</div>
               <div className={`text-2xl sm:text-3xl font-black tabular-nums ${
                 data.employment.unemploymentRate > 5 ? 'text-red-400' :
-                data.employment.unemploymentRate > 4 ? 'text-orange-400' : 'text-emerald-400'
+                data.employment.unemploymentRate > 4 ? 'text-orange-400' : 'text-hermes-green'
               }`}>%{data.employment.unemploymentRate.toFixed(1)}</div>
             </div>
             <div>
               <div className="text-[10px] text-white/30">Haftalik Basvurular</div>
               <div className={`text-2xl sm:text-3xl font-black tabular-nums ${
                 data.employment.joblessClaims > 300000 ? 'text-red-400' :
-                data.employment.joblessClaims > 250000 ? 'text-orange-400' : 'text-emerald-400'
+                data.employment.joblessClaims > 250000 ? 'text-orange-400' : 'text-hermes-green'
               }`}>{(data.employment.joblessClaims / 1000).toFixed(0)}K</div>
             </div>
           </div>
@@ -251,12 +251,12 @@ export default function TabFred() {
           <div className={`text-xl sm:text-2xl font-black tabular-nums ${
             data.volatility.status === 'PANIC' ? 'text-red-400' :
             data.volatility.status === 'FEAR' ? 'text-orange-400' :
-            data.volatility.status === 'NORMAL' ? 'text-slate-300' : 'text-emerald-400'
+            data.volatility.status === 'NORMAL' ? 'text-slate-300' : 'text-hermes-green'
           }`}>{data.volatility.vix.toFixed(1)}</div>
           <div className={`text-[10px] font-bold mt-1 ${
             data.volatility.status === 'PANIC' ? 'text-red-400' :
             data.volatility.status === 'FEAR' ? 'text-orange-400' :
-            data.volatility.status === 'NORMAL' ? 'text-slate-300' : 'text-emerald-400'
+            data.volatility.status === 'NORMAL' ? 'text-slate-300' : 'text-hermes-green'
           }`}>{data.volatility.status}</div>
           <div className="text-[9px] text-white/15 mt-1">{data.volatility.vixDate}</div>
         </div>
@@ -270,11 +270,11 @@ export default function TabFred() {
           <div className={`text-xl sm:text-2xl font-black tabular-nums ${
             data.creditStress.status === 'CRISIS' ? 'text-red-400' :
             data.creditStress.status === 'HIGH' ? 'text-orange-400' :
-            data.creditStress.status === 'ELEVATED' ? 'text-yellow-400' : 'text-emerald-400'
+            data.creditStress.status === 'ELEVATED' ? 'text-yellow-400' : 'text-hermes-green'
           }`}>{data.creditStress.highYieldSpread.toFixed(2)}%</div>
           <div className={`text-[10px] font-bold mt-1 ${
             data.creditStress.status === 'CRISIS' ? 'text-red-400' :
-            data.creditStress.status === 'HIGH' ? 'text-orange-400' : 'text-emerald-400'
+            data.creditStress.status === 'HIGH' ? 'text-orange-400' : 'text-hermes-green'
           }`}>{data.creditStress.status}</div>
           <div className="text-[9px] text-white/15 mt-1">{data.creditStress.highYieldDate}</div>
         </div>
@@ -301,7 +301,7 @@ export default function TabFred() {
             <span className="text-xs font-bold text-white/50 uppercase">Tuketici Guveni</span>
           </div>
           <div className={`text-xl sm:text-2xl font-black tabular-nums ${
-            data.consumerSentiment.value > 70 ? 'text-emerald-400' :
+            data.consumerSentiment.value > 70 ? 'text-hermes-green' :
             data.consumerSentiment.value > 55 ? 'text-slate-300' : 'text-red-400'
           }`}>{data.consumerSentiment.value.toFixed(1)}</div>
           <div className="text-[10px] text-white/30 mt-1">

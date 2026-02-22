@@ -318,7 +318,7 @@ function CompareRow({
         let color = 'text-white/70'
         if (colorize && v != null && isFinite(v)) {
           if (format === 'percent' || format === 'roePercent') {
-            color = v >= 0 ? 'text-emerald-400' : 'text-red-400'
+            color = v >= 0 ? 'text-hermes-green' : 'text-red-400'
           } else if (format === 'score') {
             const level = getScoreLevel(v)
             color = getScoreColor(level)

@@ -40,6 +40,7 @@ interface WatchlistCoin {
   tradeSignal: TradeSignal
   tradeScore: number
   aiSignal: AISignal
+  priceTarget?: { targetPrice: number; floorPrice: number; targetPct: number; riskReward: number } | null
 }
 
 type SortField = 'symbol' | 'price' | 'change24h' | 'change7d' | 'marketCap' | 'health' | 'risk' | 'confidence' | 'valuation' | 'terminalSignal' | 'tradeSignal' | 'aiSignal'
@@ -603,6 +604,9 @@ export default function ModuleCryptoWatchlist() {
                 <WTH field="confidence" align="center">Guven</WTH>
                 <WTH field="valuation" align="center">Fiyatlama</WTH>
                 <WTH field="risk" align="center">Risk</WTH>
+                <th className="py-2 px-2 text-[10px] font-bold text-white/30 uppercase text-right hidden xl:table-cell" title="Hedef Fiyat">Hedef</th>
+                <th className="py-2 px-2 text-[10px] font-bold text-white/30 uppercase text-right hidden xl:table-cell" title="Dip Fiyat">Dip</th>
+                <th className="py-2 px-2 text-[10px] font-bold text-white/30 uppercase text-center hidden xl:table-cell" title="Risk/Odul Orani">R:R</th>
                 <WTH field="marketCap" align="right">MCap</WTH>
                 <th className="py-2 px-2 text-[10px] font-bold text-white/30 uppercase text-center">Uyarilar</th>
               </tr>
@@ -709,6 +713,28 @@ export default function ModuleCryptoWatchlist() {
                         coin.riskScore >= 50 ? 'text-orange-400' :
                         coin.riskScore >= 30 ? 'text-white/60' : 'text-emerald-400'
                       }`}>{coin.riskScore}</span>
+                    </td>
+                    <td className="px-2 py-2.5 text-right hidden xl:table-cell">
+                      {coin.priceTarget ? (
+                        <span className={`text-[10px] font-mono font-semibold ${(coin.priceTarget.targetPct ?? 0) >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                          ${coin.priceTarget.targetPrice < 1 ? coin.priceTarget.targetPrice.toPrecision(4) : coin.priceTarget.targetPrice.toFixed(2)}
+                        </span>
+                      ) : <span className="text-[10px] text-white/15">—</span>}
+                    </td>
+                    <td className="px-2 py-2.5 text-right hidden xl:table-cell">
+                      {coin.priceTarget ? (
+                        <span className="text-[10px] font-mono text-red-400/80">
+                          ${coin.priceTarget.floorPrice < 1 ? coin.priceTarget.floorPrice.toPrecision(4) : coin.priceTarget.floorPrice.toFixed(2)}
+                        </span>
+                      ) : <span className="text-[10px] text-white/15">—</span>}
+                    </td>
+                    <td className="px-2 py-2.5 text-center hidden xl:table-cell">
+                      {coin.priceTarget ? (
+                        <span className={`text-[10px] font-mono font-bold ${
+                          coin.priceTarget.riskReward >= 2 ? 'text-hermes-green' :
+                          coin.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+                        }`}>{coin.priceTarget.riskReward.toFixed(1)}</span>
+                      ) : <span className="text-[10px] text-white/15">—</span>}
                     </td>
                     <td className="px-2 py-2.5 text-right text-[11px] text-white/50 tabular-nums">{formatMcap(coin.market_cap)}</td>
                     <td className="px-2 py-2.5 text-center">

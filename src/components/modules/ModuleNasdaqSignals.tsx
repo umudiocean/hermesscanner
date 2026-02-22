@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useNasdaqTradeContext } from '../Layout'
 import { getWatchlist, toggleWatchlist } from '@/lib/store'
 import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
+import { PriceFlashCell, ScoreMiniBar } from '../premium-ui'
 
 // ================================================================
 // AI SIGNALS Module — V5
@@ -41,6 +42,11 @@ interface BestSignalItem {
   valuationLabel: string
   overvalScore: number
   overvalLevel: string
+  // Target/Floor price
+  targetPrice: number | null
+  floorPrice: number | null
+  riskReward: number | null
+  zone: string | null
 }
 
 interface FmpStock {
@@ -171,7 +177,7 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     text: 'text-teal-400',
     border: 'border-teal-500/30',
     glow: 'shadow-teal-500/20',
-    gradient: 'from-teal-500/20 to-emerald-500/5',
+    gradient: 'from-teal-500/20 to-hermes-green/5',
     badgeBg: 'bg-teal-500/20',
     icon: '\u{2705}',
   },
@@ -507,6 +513,10 @@ export default function ModuleNasdaqSignals() {
         valuationLabel: fmp.valuationLabel || '',
         overvalScore: fmp.overvalScore || 0,
         overvalLevel: fmp.overvalLevel || 'LOW',
+        targetPrice: r.priceTarget?.targetPrice ?? null,
+        floorPrice: r.priceTarget?.floorPrice ?? null,
+        riskReward: r.priceTarget?.riskReward ?? null,
+        zone: r.priceTarget?.zone ?? null,
       })
       cnt[bestType]++
       cnt.all++
@@ -669,7 +679,7 @@ export default function ModuleNasdaqSignals() {
       )}
 
       {/* Signal Filter Buttons */}
-      <div className="bg-midnight/80 rounded-xl border border-gold-400/8 p-2 sm:p-4 mb-2 sm:mb-4">
+      <div className="glass-card rounded-xl p-2 sm:p-4 mb-2 sm:mb-4">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-xs text-gold-400/50 mr-1">Sinyal:</span>
           <button
@@ -812,7 +822,7 @@ export default function ModuleNasdaqSignals() {
       )}
 
       {/* Table */}
-      <div className="bg-midnight/80 rounded-xl border border-gold-400/8 overflow-hidden">
+      <div className="glass-card rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -865,6 +875,15 @@ export default function ModuleNasdaqSignals() {
                   onClick={() => handleSort('marketCap')} onMouseEnter={() => setTooltip(COLUMN_TIPS.marketCap)} onMouseLeave={() => setTooltip(null)}>
                   M.Cap <SortIcon field="marketCap" />
                 </th>
+                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-white/50 uppercase tracking-wider hidden xl:table-cell" title="Hedef Fiyat">
+                  Hedef
+                </th>
+                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-white/50 uppercase tracking-wider hidden xl:table-cell" title="Dip Fiyat">
+                  Dip
+                </th>
+                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-white/50 uppercase tracking-wider hidden xl:table-cell" title="Risk/Odul">
+                  R:R
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -872,7 +891,7 @@ export default function ModuleNasdaqSignals() {
                 Array.from({ length: 12 }).map((_, i) => <SkeletonRow key={i} />)
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="text-center py-12 text-white/30 text-sm">
+                  <td colSpan={15} className="text-center py-12 text-white/30 text-sm">
                     {counts.all === 0
                       ? 'Veri bekleniyor... NASDAQ TEKNIK ve Hermes AI taramasi tamamlaninca sinyaller gorunecek.'
                       : 'Bu filtreye uygun sinyal bulunamadi.'}
@@ -885,9 +904,13 @@ export default function ModuleNasdaqSignals() {
                     <tr
                       key={`${item.symbol}-${item.signalType}`}
                       className={`
-                        border-b border-gold-400/5 transition-colors duration-150
+                        border-b border-gold-400/5 premium-row
                         ${idx % 2 === 0 ? 'bg-transparent' : 'bg-midnight-50/20'}
-                        hover:bg-gold-400/[0.03]
+                        ${item.signalType === 'confluence_buy' ? 'row-glow-strong-long' :
+                          item.signalType === 'alpha_long' || item.signalType === 'hermes_long' ? 'row-glow-long' :
+                          item.signalType === 'confluence_sell' ? 'row-glow-strong-short' :
+                          item.signalType === 'alpha_short' || item.signalType === 'hermes_short' ? 'row-glow-short' : ''
+                        }
                       `}
                     >
                       {/* Symbol */}
@@ -929,18 +952,7 @@ export default function ModuleNasdaqSignals() {
 
                       {/* Teknik Score */}
                       <td className="px-3 py-2.5 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <div className="w-12 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{
-                                width: `${100 - item.teknikScore}%`,
-                                backgroundColor: item.teknikScore <= 20 ? '#fbbf24' : item.teknikScore <= 40 ? '#34d399' : item.teknikScore < 60 ? '#94a3b8' : item.teknikScore < 80 ? '#fb923c' : '#f87171',
-                              }}
-                            />
-                          </div>
-                          <span className="text-[10px] text-white/60 font-semibold tabular-nums w-5 text-right">{item.teknikScore}</span>
-                        </div>
+                        <ScoreMiniBar value={100 - item.teknikScore} maxWidth={48} />
                       </td>
 
                       {/* H.AI Signal */}
@@ -950,24 +962,13 @@ export default function ModuleNasdaqSignals() {
 
                       {/* AI Score */}
                       <td className="px-3 py-2.5 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <div className="w-12 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{
-                                width: `${item.aiScore}%`,
-                                backgroundColor: item.aiScore >= 85 ? '#fbbf24' : item.aiScore >= 66 ? '#34d399' : item.aiScore >= 33 ? '#94a3b8' : item.aiScore >= 16 ? '#fb923c' : '#f87171',
-                              }}
-                            />
-                          </div>
-                          <span className="text-[10px] text-white/60 font-semibold tabular-nums w-5 text-right">{item.aiScore}</span>
-                        </div>
+                        <ScoreMiniBar value={item.aiScore} maxWidth={48} />
                       </td>
 
                       {/* Guven (Confidence) */}
                       <td className="px-3 py-2.5 text-center">
                         <span className={`text-[11px] tabular-nums font-medium ${
-                          item.confidence >= 70 ? 'text-emerald-400/60' : item.confidence >= 50 ? 'text-amber-400/60' : 'text-white/25'
+                          item.confidence >= 70 ? 'text-hermes-green/60' : item.confidence >= 50 ? 'text-amber-400/60' : 'text-white/25'
                         }`}>{item.confidence > 0 ? `${item.confidence}%` : '—'}</span>
                       </td>
 
@@ -975,8 +976,8 @@ export default function ModuleNasdaqSignals() {
                       <td className="px-3 py-2.5 text-center">
                         {item.valuationLabel ? (
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${
-                            item.valuationLabel === 'COK UCUZ' ? 'text-emerald-300 bg-emerald-500/15' :
-                            item.valuationLabel === 'UCUZ' ? 'text-emerald-400 bg-emerald-500/10' :
+                            item.valuationLabel === 'COK UCUZ' ? 'text-hermes-green bg-hermes-green/15' :
+                            item.valuationLabel === 'UCUZ' ? 'text-hermes-green bg-hermes-green/10' :
                             item.valuationLabel === 'NORMAL' ? 'text-slate-300 bg-white/[0.04]' :
                             item.valuationLabel === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
                             item.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
@@ -987,7 +988,7 @@ export default function ModuleNasdaqSignals() {
 
                       {/* Price */}
                       <td className="px-3 py-2.5 text-right">
-                        <span className="text-xs text-white font-semibold tabular-nums">${item.price.toFixed(2)}</span>
+                        <PriceFlashCell price={item.price} className="text-xs text-white font-semibold" />
                       </td>
 
                       {/* Change % */}
@@ -1000,6 +1001,32 @@ export default function ModuleNasdaqSignals() {
                       {/* Market Cap */}
                       <td className="px-3 py-2.5 text-right">
                         <span className="text-[10px] text-white/50 tabular-nums">{formatMarketCap(item.marketCap)}</span>
+                      </td>
+
+                      {/* Target Price */}
+                      <td className="px-3 py-2.5 text-right hidden xl:table-cell">
+                        {item.targetPrice != null ? (
+                          <span className={`text-xs font-mono font-semibold ${
+                            item.targetPrice > item.price ? 'text-hermes-green' : 'text-red-400'
+                          }`}>${item.targetPrice.toFixed(2)}</span>
+                        ) : <span className="text-white/20 text-[10px]">—</span>}
+                      </td>
+
+                      {/* Floor Price */}
+                      <td className="px-3 py-2.5 text-right hidden xl:table-cell">
+                        {item.floorPrice != null ? (
+                          <span className="text-xs font-mono text-red-400/80">${item.floorPrice.toFixed(2)}</span>
+                        ) : <span className="text-white/20 text-[10px]">—</span>}
+                      </td>
+
+                      {/* R:R */}
+                      <td className="px-3 py-2.5 text-center hidden xl:table-cell">
+                        {item.riskReward != null ? (
+                          <span className={`text-xs font-mono font-bold ${
+                            item.riskReward >= 2 ? 'text-hermes-green' :
+                            item.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+                          }`}>{item.riskReward.toFixed(1)}</span>
+                        ) : <span className="text-white/20 text-[10px]">—</span>}
                       </td>
                     </tr>
                   )

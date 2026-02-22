@@ -30,7 +30,7 @@ export default function DNABarcode({ categories, compact = false }: DNABarcodePr
         // Bar rengi
         const barColor =
           level === 'STRONG' ? 'bg-yellow-400' :
-          level === 'GOOD' ? 'bg-emerald-400' :
+          level === 'GOOD' ? 'bg-hermes-green' :
           level === 'NEUTRAL' ? 'bg-slate-400' :
           level === 'WEAK' ? 'bg-orange-400' :
           'bg-red-400'
@@ -38,7 +38,7 @@ export default function DNABarcode({ categories, compact = false }: DNABarcodePr
         // Bar glow
         const barGlow =
           level === 'STRONG' ? 'shadow-yellow-400/30' :
-          level === 'GOOD' ? 'shadow-emerald-400/30' :
+          level === 'GOOD' ? 'shadow-hermes-green/30' :
           level === 'NEUTRAL' ? '' :
           level === 'WEAK' ? 'shadow-orange-400/30' :
           'shadow-red-400/30'
@@ -87,7 +87,7 @@ export function DNABarcodeMini({ categories }: { categories: FMPScoreBreakdown }
 
         const color =
           level === 'STRONG' ? 'bg-yellow-400' :
-          level === 'GOOD' ? 'bg-emerald-400' :
+          level === 'GOOD' ? 'bg-hermes-green' :
           level === 'NEUTRAL' ? 'bg-slate-500' :
           level === 'WEAK' ? 'bg-orange-400' :
           'bg-red-400'

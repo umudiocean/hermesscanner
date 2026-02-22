@@ -15,7 +15,8 @@ import { getBatchQuotes, getCompanyProfiles } from '@/lib/fmp-client'
 import { calculateHermes } from '@/lib/hermes-engine'
 import { saveScanResults } from '@/lib/scan-store'
 import { updateTrendFromScanResults, getTrendContext, hasTrendCache } from '@/lib/trend-context'
-import { ScanResult, ScanSummary, Segment, OHLCV } from '@/lib/types'
+import { ScanResult, ScanSummary, Segment, OHLCV, PriceTargetData } from '@/lib/types'
+import { computeNasdaqTargetFloor } from '@/lib/target-engine'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { segmentSchema, symbolsParamSchema, validateParams } from '@/lib/validation/schemas'
 import { getBarCache, getBootstrapProgress } from '@/lib/cache/redis-cache'
@@ -101,6 +102,19 @@ async function processSymbol(
       touches: hermes.touches,
     }
 
+    // Compute target/floor price using bands + signal
+    const priceTarget = computeNasdaqTargetFloor({
+      price: hermes.price,
+      signalType: hermes.signalType,
+      score: hermes.score,
+      bands: hermes.bands,
+      indicators: {
+        rsi: hermes.indicators.rsi,
+        mfi: hermes.indicators.mfi,
+        atr: hermes.indicators.atr,
+      },
+    }) as PriceTargetData | null
+
     return {
       symbol,
       segment: computeSegmentFromMarketCap(quote?.marketCap),
@@ -112,6 +126,7 @@ async function processSymbol(
         volume: quote.volume,
         marketCap: quote.marketCap,
       } : undefined,
+      priceTarget,
       timestamp: new Date().toISOString(),
     }
   } catch (err) {

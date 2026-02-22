@@ -40,6 +40,10 @@ interface SignalRow {
   chiLevel: string
   chiScore: number
   shortBlocked: boolean
+  targetPrice?: number | null
+  floorPrice?: number | null
+  targetPct?: number | null
+  riskReward?: number | null
 }
 
 interface DerivativesFundingMap {
@@ -85,6 +89,16 @@ interface CoinData {
   healthIndex?: {
     score: number
     level: 'HEALTHY' | 'CAUTION' | 'RISKY' | 'CRITICAL'
+  } | null
+  priceTarget?: {
+    targetPrice: number
+    floorPrice: number
+    targetPct: number
+    floorPct: number
+    riskReward: number
+    zone: string
+    confidence: number
+    method: string
   } | null
 }
 
@@ -346,6 +360,10 @@ function generateSignalRows(coins: CoinData[], fundingMap: DerivativesFundingMap
       chiLevel,
       chiScore: coin.healthIndex?.score ?? -1,
       shortBlocked: false,
+      targetPrice: coin.priceTarget?.targetPrice ?? null,
+      floorPrice: coin.priceTarget?.floorPrice ?? null,
+      targetPct: coin.priceTarget?.targetPct ?? null,
+      riskReward: coin.priceTarget?.riskReward ?? null,
     })
   }
 
@@ -637,13 +655,16 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                 <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/35 font-semibold whitespace-nowrap">FIYATLAMA</th>
                 <SortHeader field="price">FIYAT</SortHeader>
                 <SortHeader field="change">DEGISIM%</SortHeader>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/35 font-semibold whitespace-nowrap text-right hidden xl:table-cell" title="Hedef Fiyat">HEDEF</th>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/35 font-semibold whitespace-nowrap text-right hidden xl:table-cell" title="Dip Fiyat">DIP</th>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/35 font-semibold whitespace-nowrap text-center hidden xl:table-cell" title="Risk/Odul Orani">R:R</th>
                 <SortHeader field="mcap">MCAP</SortHeader>
               </tr>
             </thead>
             <tbody>
               {loading && Array.from({ length: 8 }).map((_, i) => (
                 <tr key={i} className="border-b border-white/[0.03]">
-                  <td colSpan={13} className="px-3 py-3"><div className="h-4 bg-white/[0.03] animate-pulse rounded-lg" /></td>
+                  <td colSpan={16} className="px-3 py-3"><div className="h-4 bg-white/[0.03] animate-pulse rounded-lg" /></td>
                 </tr>
               ))}
               {!loading && filtered.map(r => {
@@ -744,6 +765,28 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                     </td>
                     <td className={`px-2 py-2 text-right text-[10px] font-medium tabular-nums ${r.change24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {r.change24h >= 0 ? '+' : ''}{r.change24h.toFixed(2)}%
+                    </td>
+                    <td className="px-2 py-2 text-right hidden xl:table-cell">
+                      {r.targetPrice != null ? (
+                        <span className={`text-[10px] font-mono font-semibold ${(r.targetPct ?? 0) >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                          ${r.targetPrice < 1 ? r.targetPrice.toPrecision(4) : r.targetPrice.toFixed(2)}
+                        </span>
+                      ) : <span className="text-[10px] text-white/15">—</span>}
+                    </td>
+                    <td className="px-2 py-2 text-right hidden xl:table-cell">
+                      {r.floorPrice != null ? (
+                        <span className="text-[10px] font-mono text-red-400/80">
+                          ${r.floorPrice < 1 ? r.floorPrice.toPrecision(4) : r.floorPrice.toFixed(2)}
+                        </span>
+                      ) : <span className="text-[10px] text-white/15">—</span>}
+                    </td>
+                    <td className="px-2 py-2 text-center hidden xl:table-cell">
+                      {r.riskReward != null ? (
+                        <span className={`text-[10px] font-mono font-bold ${
+                          r.riskReward >= 2 ? 'text-hermes-green' :
+                          r.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+                        }`}>{r.riskReward.toFixed(1)}</span>
+                      ) : <span className="text-[10px] text-white/15">—</span>}
                     </td>
                     <td className="px-2 py-2 text-right">
                       <span className="text-[10px] text-white/40 tabular-nums">{formatMcap(r.marketCap)}</span>

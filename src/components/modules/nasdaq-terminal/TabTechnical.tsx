@@ -55,12 +55,12 @@ function GaugeBar({ value, min, max, zones, label, tip }: {
 
 function SignalBadge({ type, label }: { type: string, label: string }) {
   const styles: Record<string, string> = {
-    'STRONG_UP': 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30',
-    'UP': 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    'STRONG_UP': 'text-hermes-green bg-hermes-green/15 border-hermes-green/30',
+    'UP': 'text-hermes-green bg-hermes-green/10 border-hermes-green/20',
     'NEUTRAL': 'text-slate-300 bg-white/[0.04] border-white/[0.08]',
     'DOWN': 'text-orange-400 bg-orange-500/10 border-orange-500/20',
     'STRONG_DOWN': 'text-red-400 bg-red-500/15 border-red-500/30',
-    'OVERSOLD': 'text-emerald-400 bg-emerald-500/12 border-emerald-500/25',
+    'OVERSOLD': 'text-hermes-green bg-hermes-green/12 border-hermes-green/25',
     'OVERBOUGHT': 'text-red-400 bg-red-500/12 border-red-500/25',
   }
   const icons: Record<string, React.ReactNode> = {
@@ -206,7 +206,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
             <div className="text-[11px] text-white/30 font-medium mb-1">EMA (20)</div>
             <div className="text-lg font-bold text-white tabular-nums">${fmt(s.ema20)}</div>
-            <span className={`text-xs ${s.priceAboveEma20 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <span className={`text-xs ${s.priceAboveEma20 ? 'text-hermes-green' : 'text-red-400'}`}>
               Fiyat {s.priceAboveEma20 ? 'ustunde' : 'altinda'}
             </span>
           </div>
@@ -223,7 +223,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             value={s.rsi14} min={0} max={100} label="RSI (14)"
             tip="30 alti = asiri satim (al), 70 ustu = asiri alim (sat)"
             zones={[
-              { from: 0, to: 30, color: 'bg-emerald-500/30' },
+              { from: 0, to: 30, color: 'bg-hermes-green/30' },
               { from: 30, to: 70, color: 'bg-white/[0.04]' },
               { from: 70, to: 100, color: 'bg-red-500/30' },
             ]}
@@ -232,7 +232,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             value={s.williams14} min={-100} max={0} label="Williams %R (14)"
             tip="-80 alti = asiri satim, -20 ustu = asiri alim"
             zones={[
-              { from: -100, to: -80, color: 'bg-emerald-500/30' },
+              { from: -100, to: -80, color: 'bg-hermes-green/30' },
               { from: -80, to: -20, color: 'bg-white/[0.04]' },
               { from: -20, to: 0, color: 'bg-red-500/30' },
             ]}
@@ -287,7 +287,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
               const rsiVal = Number(point.rsi ?? 50)
               const h = (rsiVal / 100) * 100
               let color = 'bg-white/20'
-              if (rsiVal < 30) color = 'bg-emerald-500/60'
+              if (rsiVal < 30) color = 'bg-hermes-green/60'
               else if (rsiVal > 70) color = 'bg-red-500/60'
               else color = 'bg-violet-500/40'
               return (
@@ -300,7 +300,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
           <div className="flex justify-between mt-1.5">
             <span className="text-[10px] text-white/20">{data.history.rsi[Math.min(29, data.history.rsi.length - 1)]?.date || ''}</span>
             <div className="flex items-center gap-3">
-              <span className="text-[10px] text-emerald-400/50">--- 30 (asiri satim)</span>
+              <span className="text-[10px] text-hermes-green/50">--- 30 (asiri satim)</span>
               <span className="text-[10px] text-red-400/50">--- 70 (asiri alim)</span>
             </div>
             <span className="text-[10px] text-white/20">{data.history.rsi[0]?.date || ''}</span>

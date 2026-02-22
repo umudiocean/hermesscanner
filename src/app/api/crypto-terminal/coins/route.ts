@@ -11,6 +11,7 @@ import { scoreAllCoins, ScoreAllCoinsResult } from '@/lib/crypto-terminal/crypto
 import { CoinMarket, CryptoTerminalCoin, CryptoScore, CryptoOvervaluation, CryptoHealthIndex, CryptoScorePublic, CryptoOvervaluationPublic, CryptoHealthIndexPublic } from '@/lib/crypto-terminal/coingecko-types'
 import { getDefiLlamaDataBatch, DefiLlamaCoinData } from '@/lib/crypto-terminal/defillama-client'
 import { getMoralisOnChainBatch, extractEVMAddresses, MoralisOnChainResult } from '@/lib/crypto-terminal/moralis-client'
+import { computeCryptoTargetFloor } from '@/lib/crypto-terminal/crypto-target-engine'
 import logger from '@/lib/logger'
 import { providerMonitor } from '@/lib/monitor/provider-monitor'
 
@@ -93,6 +94,30 @@ function transformCoin(
     } : null,
     overvaluation: sanitizeOvervaluation(overvaluations.get(coin.id)),
     healthIndex: sanitizeHealthIndex(healthIndexes.get(coin.id)),
+    priceTarget: (() => {
+      const ov = overvaluations.get(coin.id)
+      const hi = healthIndexes.get(coin.id)
+      const sc = scores.get(coin.id)
+      return computeCryptoTargetFloor({
+        price: coin.current_price,
+        ath: coin.ath ?? 0,
+        atl: coin.atl ?? 0,
+        athChangePct: coin.ath_change_percentage ?? 0,
+        change24h: coin.price_change_percentage_24h_in_currency ?? coin.price_change_percentage_24h ?? 0,
+        change7d: coin.price_change_percentage_7d_in_currency ?? 0,
+        change30d: coin.price_change_percentage_30d_in_currency ?? 0,
+        marketCap: coin.market_cap ?? 0,
+        fdv: coin.fully_diluted_valuation ?? null,
+        tvl: defi?.tvl ?? coin.total_value_locked ?? null,
+        volumeToMcap: coin.market_cap > 0 ? coin.total_volume / coin.market_cap : 0,
+        overvaluationScore: ov?.score ?? 50,
+        overvaluationLevel: ov?.level ?? 'NEUTRAL',
+        healthScore: hi?.score ?? 50,
+        healthLevel: hi?.level ?? 'NEUTRAL',
+        hermesSkor: sc?.total ?? 50,
+        hermesLevel: sc?.level ?? 'NEUTRAL',
+      })
+    })(),
   }
 }
 

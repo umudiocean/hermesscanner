@@ -84,7 +84,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
       {/* Header */}
       <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
         <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-hermes-green to-teal-500 flex items-center justify-center">
             <Globe2 size={20} className="text-white" />
           </div>
           <div>
@@ -99,7 +99,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             <div className="text-[11px] text-white/30 font-medium mb-1">ABD GDP</div>
             <div className="text-base sm:text-lg font-bold text-white">{latestGdp ? fmtBig(latestGdp.value * 1e9) : '--'}</div>
             {gdpGrowth && (
-              <span className={`text-xs ${Number(gdpGrowth) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-xs ${Number(gdpGrowth) >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
                 {Number(gdpGrowth) >= 0 ? '+' : ''}{gdpGrowth}% QoQ
               </span>
             )}
@@ -108,7 +108,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             <div className="text-[11px] text-white/30 font-medium mb-1">TUKETICI GUVENI</div>
             <div className="text-base sm:text-lg font-bold text-white">{latestSentiment ? latestSentiment.value.toFixed(1) : '--'}</div>
             {sentimentChange && (
-              <span className={`text-xs ${Number(sentimentChange) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-xs ${Number(sentimentChange) >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
                 {Number(sentimentChange) >= 0 ? '+' : ''}{sentimentChange}
               </span>
             )}
@@ -131,52 +131,72 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
         {/* GDP Trend */}
-        {data.gdp.length > 0 && (
-          <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
-            <h4 className="text-sm font-bold text-white/60 mb-2 sm:mb-3 flex items-center gap-1.5">
-              <TrendingUp size={14} /> GDP TRENDI (Son {Math.min(12, data.gdp.length)} Ceyrek)
-            </h4>
-            <div className="flex items-end gap-1 h-24">
-              {data.gdp.slice(0, 12).reverse().map((g, i) => {
-                const maxVal = Math.max(...data.gdp.slice(0, 12).map(x => x.value))
-                const minVal = Math.min(...data.gdp.slice(0, 12).map(x => x.value))
-                const range = maxVal - minVal || 1
-                const h = ((g.value - minVal) / range) * 90 + 10
-                return (
-                  <div key={i} className="flex-1 flex flex-col justify-end" title={`${g.date}: ${fmtBig(g.value * 1e9)}`}>
-                    <div className="bg-emerald-500/40 rounded-t-sm hover:bg-emerald-500/60 transition-colors" style={{ height: `${h}%` }} />
-                  </div>
-                )
-              })}
-            </div>
-            <div className="flex justify-between mt-1">
-              <span className="text-[10px] text-white/20">{data.gdp[Math.min(11, data.gdp.length - 1)]?.date}</span>
-              <span className="text-[10px] text-white/20">{data.gdp[0]?.date}</span>
-            </div>
-          </div>
-        )}
+        <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+          <h4 className="text-sm font-bold text-white/60 mb-2 sm:mb-3 flex items-center gap-1.5">
+            <TrendingUp size={14} /> GDP TRENDI {data.gdp.length > 0 ? `(Son ${Math.min(12, data.gdp.length)} Ceyrek)` : ''}
+          </h4>
+          {data.gdp.length > 0 ? (
+            <>
+              <div className="flex items-end gap-1 h-28">
+                {data.gdp.slice(0, 12).reverse().map((g, i) => {
+                  const items = data.gdp.slice(0, 12)
+                  const vals = items.map(x => x.value).filter(v => v > 0)
+                  const maxVal = vals.length > 0 ? Math.max(...vals) : 1
+                  const minVal = vals.length > 0 ? Math.min(...vals) : 0
+                  const range = maxVal - minVal || 1
+                  const h = g.value > 0 ? ((g.value - minVal) / range) * 85 + 15 : 5
+                  return (
+                    <div key={i} className="flex-1 flex flex-col justify-end group/bar" title={`${g.date}: ${fmtBig(g.value * 1e9)}${g.name ? ` (${g.name})` : ''}`}>
+                      <div className="bg-hermes-green/40 rounded-t-sm group-hover/bar:bg-hermes-green/70 transition-all duration-200 relative" style={{ height: `${h}%` }}>
+                        <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] text-white/0 group-hover/bar:text-white/60 whitespace-nowrap transition-all">{g.value > 0 ? fmtBig(g.value * 1e9) : '—'}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="flex justify-between mt-1.5">
+                <span className="text-[10px] text-white/25">{data.gdp[Math.min(11, data.gdp.length - 1)]?.date}</span>
+                <span className="text-[10px] text-white/25">{data.gdp[0]?.date}</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-28 text-white/20 text-xs">Veri bekleniyor...</div>
+          )}
+        </div>
 
         {/* Consumer Sentiment Trend */}
-        {data.consumerSentiment.length > 0 && (
-          <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
-            <h4 className="text-sm font-bold text-white/60 mb-2 sm:mb-3 flex items-center gap-1.5">
-              <Building2 size={14} /> TUKETICI GUVENI TRENDI
-            </h4>
-            <div className="flex items-end gap-1 h-24">
-              {data.consumerSentiment.slice(0, 12).reverse().map((s, i) => {
-                const maxVal = Math.max(...data.consumerSentiment.slice(0, 12).map(x => x.value))
-                const minVal = Math.min(...data.consumerSentiment.slice(0, 12).map(x => x.value))
-                const range = maxVal - minVal || 1
-                const h = ((s.value - minVal) / range) * 90 + 10
-                return (
-                  <div key={i} className="flex-1 flex flex-col justify-end" title={`${s.date}: ${s.value.toFixed(1)}`}>
-                    <div className="bg-blue-500/40 rounded-t-sm hover:bg-blue-500/60 transition-colors" style={{ height: `${h}%` }} />
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
+        <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+          <h4 className="text-sm font-bold text-white/60 mb-2 sm:mb-3 flex items-center gap-1.5">
+            <Building2 size={14} /> TUKETICI GUVENI TRENDI
+          </h4>
+          {data.consumerSentiment.length > 0 ? (
+            <>
+              <div className="flex items-end gap-1 h-28">
+                {data.consumerSentiment.slice(0, 12).reverse().map((s, i) => {
+                  const items = data.consumerSentiment.slice(0, 12)
+                  const vals = items.map(x => x.value).filter(v => v > 0)
+                  const maxVal = vals.length > 0 ? Math.max(...vals) : 1
+                  const minVal = vals.length > 0 ? Math.min(...vals) : 0
+                  const range = maxVal - minVal || 1
+                  const h = s.value > 0 ? ((s.value - minVal) / range) * 85 + 15 : 5
+                  return (
+                    <div key={i} className="flex-1 flex flex-col justify-end group/bar" title={`${s.date}: ${s.value.toFixed(1)}${s.name ? ` (${s.name})` : ''}`}>
+                      <div className="bg-blue-500/40 rounded-t-sm group-hover/bar:bg-blue-500/70 transition-all duration-200 relative" style={{ height: `${h}%` }}>
+                        <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] text-white/0 group-hover/bar:text-white/60 whitespace-nowrap transition-all">{s.value.toFixed(1)}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="flex justify-between mt-1.5">
+                <span className="text-[10px] text-white/25">{data.consumerSentiment[Math.min(11, data.consumerSentiment.length - 1)]?.date}</span>
+                <span className="text-[10px] text-white/25">{data.consumerSentiment[0]?.date}</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-28 text-white/20 text-xs">Veri bekleniyor...</div>
+          )}
+        </div>
       </div>
 
       {/* General News */}
@@ -231,7 +251,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
                     <tr key={i} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
                       <td className="py-1.5 px-2 text-xs text-white/60">{b.sector}</td>
                       <td className="py-1.5 px-2 text-right font-bold text-white">{b.ESGScore.toFixed(1)}</td>
-                      <td className="py-1.5 px-2 text-right text-emerald-400/70">{b.environmentalScore.toFixed(1)}</td>
+                      <td className="py-1.5 px-2 text-right text-hermes-green/70">{b.environmentalScore.toFixed(1)}</td>
                       <td className="py-1.5 px-2 text-right text-blue-400/70">{b.socialScore.toFixed(1)}</td>
                       <td className="py-1.5 px-2 text-right text-violet-400/70">{b.governanceScore.toFixed(1)}</td>
                     </tr>

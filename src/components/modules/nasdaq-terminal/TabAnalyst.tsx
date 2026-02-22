@@ -82,7 +82,7 @@ export default function TabAnalyst({ symbol }: TabAnalystProps) {
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <PriceTargetCard label="Düşük" value={priceTarget.targetLow} color="red" />
             <PriceTargetCard label="Konsensüs" value={priceTarget.targetConsensus} color="violet" />
-            <PriceTargetCard label="Yüksek" value={priceTarget.targetHigh} color="emerald" />
+            <PriceTargetCard label="Yüksek" value={priceTarget.targetHigh} color="hermes-green" />
           </div>
         </div>
       )}
@@ -102,12 +102,12 @@ export default function TabAnalyst({ symbol }: TabAnalystProps) {
 
               return (
                 <div key={i} className={`rounded-lg p-2 text-center border ${
-                  beat ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'
+                  beat ? 'bg-hermes-green/5 border-hermes-green/20' : 'bg-red-500/5 border-red-500/20'
                 }`}>
                   <div className="text-[9px] text-white/30 mb-1">
                     {s.date?.split('-').slice(0, 2).join('/')}
                   </div>
-                  <div className={`text-xs font-bold tabular-nums ${beat ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <div className={`text-xs font-bold tabular-nums ${beat ? 'text-hermes-green' : 'text-red-400'}`}>
                     {beat ? '✓' : '✗'}
                   </div>
                   <div className="text-[9px] text-white/40 mt-0.5 tabular-nums">
@@ -194,13 +194,13 @@ export default function TabAnalyst({ symbol }: TabAnalystProps) {
 function PriceTargetCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className={`rounded-lg p-2 sm:p-3 text-center border ${
-      color === 'emerald' ? 'bg-emerald-500/5 border-emerald-500/15' :
+      color === 'hermes-green' ? 'bg-hermes-green/5 border-hermes-green/15' :
       color === 'red' ? 'bg-red-500/5 border-red-500/15' :
       'bg-violet-500/5 border-violet-500/15'
     }`}>
       <div className="text-[9px] text-white/30 uppercase mb-1">{label}</div>
       <div className={`text-base sm:text-lg font-bold tabular-nums ${
-        color === 'emerald' ? 'text-emerald-400' :
+        color === 'hermes-green' ? 'text-hermes-green' :
         color === 'red' ? 'text-red-400' :
         'text-violet-400'
       }`}>
@@ -217,7 +217,7 @@ function GradeBadge({ grade }: { grade: string }) {
 
   return (
     <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${
-      isPositive ? 'bg-emerald-500/15 text-emerald-400' :
+      isPositive ? 'bg-hermes-green/15 text-hermes-green' :
       isNegative ? 'bg-red-500/15 text-red-400' :
       'bg-white/5 text-white/40'
     }`}>

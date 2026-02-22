@@ -15,8 +15,8 @@ import RedFlags from './RedFlags'
 import SharePanel from '@/components/SharePanel'
 
 function getValuationFromScore(valScore: number): { label: string; style: string } {
-  if (valScore >= 80) return { label: 'COK UCUZ', style: 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30' }
-  if (valScore >= 65) return { label: 'UCUZ', style: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' }
+  if (valScore >= 80) return { label: 'COK UCUZ', style: 'text-hermes-green bg-hermes-green/15 border-hermes-green/30' }
+  if (valScore >= 65) return { label: 'UCUZ', style: 'text-hermes-green bg-hermes-green/10 border-hermes-green/20' }
   if (valScore >= 40) return { label: 'NORMAL', style: 'text-slate-300 bg-white/[0.04] border-white/10' }
   if (valScore >= 25) return { label: 'PAHALI', style: 'text-orange-400 bg-orange-500/10 border-orange-500/20' }
   return { label: 'COK PAHALI', style: 'text-red-400 bg-red-500/10 border-red-500/20' }
@@ -146,7 +146,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
           <div className="flex flex-col items-end gap-1">
             {fmpScore && fmpScore.confidence > 0 && (
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                fmpScore.confidence >= 70 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
+                fmpScore.confidence >= 70 ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/20' :
                 fmpScore.confidence >= 50 ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
                 'text-white/40 bg-white/[0.04] border-white/10'
               }`}>
@@ -167,7 +167,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               ${profile?.price?.toFixed(2) ?? '—'}
             </div>
             <div className={`text-sm tabular-nums ${
-              (profile?.changes ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'
+              (profile?.changes ?? 0) >= 0 ? 'text-hermes-green' : 'text-red-400'
             }`}>
               {(profile?.changes ?? 0) >= 0 ? '+' : ''}{profile?.changes?.toFixed(2)} ({profile?.changesPercentage?.toFixed(2)}%)
             </div>
@@ -210,10 +210,14 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
 
       {/* Score + DNA Barcode + Key Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3">
-        {/* Score Gauge */}
-        <div className="lg:col-span-3 bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4 flex flex-col items-center justify-center">
-          <span className="text-[10px] text-white/30 uppercase tracking-wider mb-2 sm:mb-3">HERMES AI Skor</span>
-          <ScoreGauge score={fmpScore} size="lg" />
+        {/* Score Gauge — Enhanced */}
+        <div className="lg:col-span-3 relative overflow-hidden bg-[#0F0F15] rounded-xl border border-gold-400/15 p-3 sm:p-4 flex flex-col items-center justify-center group/score hover:border-gold-400/30 transition-all duration-500">
+          <div className="absolute inset-0 bg-gradient-to-b from-gold-400/[0.03] to-transparent pointer-events-none" />
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-gold-400/[0.04] rounded-full blur-3xl pointer-events-none group-hover/score:bg-gold-400/[0.08] transition-all duration-700" />
+          <span className="relative text-[10px] text-gold-400/60 uppercase tracking-[0.15em] font-bold mb-2 sm:mb-3">HERMES AI Skor</span>
+          <div className="relative" style={{ filter: 'drop-shadow(0 0 15px rgba(179,148,91,0.15))' }}>
+            <ScoreGauge score={fmpScore} size="lg" />
+          </div>
         </div>
 
         {/* DNA Barcode */}
@@ -294,11 +298,11 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
           {fmpScore && fmpScore.confidence > 0 ? (
             <>
               <span className={`text-2xl font-black tabular-nums ${
-                fmpScore.confidence >= 70 ? 'text-emerald-400' :
+                fmpScore.confidence >= 70 ? 'text-hermes-green' :
                 fmpScore.confidence >= 50 ? 'text-amber-400' : 'text-white/40'
               }`}>{fmpScore.confidence}%</span>
               <span className={`text-[10px] mt-1 font-semibold ${
-                fmpScore.confidence >= 70 ? 'text-emerald-400/70' :
+                fmpScore.confidence >= 70 ? 'text-hermes-green/70' :
                 fmpScore.confidence >= 50 ? 'text-amber-400/70' : 'text-white/30'
               }`}>{fmpScore.confidence >= 70 ? 'YUKSEK' : fmpScore.confidence >= 50 ? 'ORTA' : 'DUSUK'}</span>
             </>
@@ -327,7 +331,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
           {fmpScore ? (
             <>
               <span className={`text-2xl font-black tabular-nums ${
-                fmpScore.total >= 66 ? 'text-emerald-400' :
+                fmpScore.total >= 66 ? 'text-hermes-green' :
                 fmpScore.total >= 33 ? 'text-amber-400' : 'text-red-400'
               }`}>{Math.round(fmpScore.total)}</span>
               <span className={`text-[10px] mt-1 font-semibold ${getScoreColor(fmpScore.level)}`}>
@@ -481,7 +485,7 @@ function MetricCard({
   } else if (thresholds && value != null) {
     if (value < thresholds.danger) textColor = 'text-red-400'
     else if (value < thresholds.warning) textColor = 'text-orange-400'
-    else textColor = 'text-emerald-400'
+    else textColor = 'text-hermes-green'
   }
 
   return (
@@ -505,14 +509,14 @@ function DCFDisplay({ dcfValue, currentPrice }: { dcfValue: number; currentPrice
           <div className="text-xl font-bold text-white tabular-nums">${dcfValue.toFixed(2)}</div>
         </div>
         <div className={`text-right px-3 py-2 rounded-lg ${
-          isUndervalued ? 'bg-emerald-500/10' : 'bg-red-500/10'
+          isUndervalued ? 'bg-hermes-green/10' : 'bg-red-500/10'
         }`}>
           <div className={`text-lg font-bold tabular-nums ${
-            isUndervalued ? 'text-emerald-400' : 'text-red-400'
+            isUndervalued ? 'text-hermes-green' : 'text-red-400'
           }`}>
             {isUndervalued ? '+' : ''}{upside.toFixed(1)}%
           </div>
-          <div className={`text-[9px] ${isUndervalued ? 'text-emerald-400/60' : 'text-red-400/60'}`}>
+          <div className={`text-[9px] ${isUndervalued ? 'text-hermes-green/60' : 'text-red-400/60'}`}>
             {isUndervalued ? 'UCUZ' : 'PAHALI'}
           </div>
         </div>
@@ -521,7 +525,7 @@ function DCFDisplay({ dcfValue, currentPrice }: { dcfValue: number; currentPrice
       {/* Bar */}
       <div className="relative h-2 bg-white/5 rounded-full overflow-hidden">
         <div
-          className={`absolute h-full rounded-full ${isUndervalued ? 'bg-emerald-400' : 'bg-red-400'}`}
+          className={`absolute h-full rounded-full ${isUndervalued ? 'bg-hermes-green' : 'bg-red-400'}`}
           style={{
             width: `${Math.min(100, Math.abs(upside))}%`,
             left: isUndervalued ? '50%' : `${50 - Math.min(50, Math.abs(upside))}%`,
@@ -544,7 +548,7 @@ function AnalystDisplay({
 
   const segments = [
     { label: 'S.Buy', count: consensus.strongBuy, color: 'bg-yellow-400' },
-    { label: 'Buy', count: consensus.buy, color: 'bg-emerald-400' },
+    { label: 'Buy', count: consensus.buy, color: 'bg-hermes-green' },
     { label: 'Hold', count: consensus.hold, color: 'bg-slate-400' },
     { label: 'Sell', count: consensus.sell, color: 'bg-orange-400' },
     { label: 'S.Sell', count: consensus.strongSell, color: 'bg-red-400' },
@@ -590,7 +594,7 @@ function AnalystDisplay({
               ${priceTarget.targetConsensus.toFixed(2)}
             </div>
           </div>
-          <div className={`text-sm font-bold tabular-nums ${targetUpside >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+          <div className={`text-sm font-bold tabular-nums ${targetUpside >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
             {targetUpside >= 0 ? '▲' : '▼'} {Math.abs(targetUpside).toFixed(1)}%
           </div>
         </div>
@@ -725,7 +729,7 @@ function TechnicalSummaryCard({ symbol }: { symbol: string }) {
   if (!tech) return null
 
   const TREND_COLORS: Record<string, string> = {
-    'STRONG_UP': 'text-emerald-400', 'UP': 'text-emerald-400/70',
+    'STRONG_UP': 'text-hermes-green', 'UP': 'text-hermes-green/70',
     'NEUTRAL': 'text-white/40', 'DOWN': 'text-orange-400', 'STRONG_DOWN': 'text-red-400'
   }
   const TREND_LABELS: Record<string, string> = {
@@ -740,15 +744,15 @@ function TechnicalSummaryCard({ symbol }: { symbol: string }) {
         <div className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
           <div className="text-[9px] text-white/30 mb-0.5">RSI (14)</div>
           <div className={`text-base font-bold tabular-nums ${
-            (tech.rsi14 ?? 50) < 30 ? 'text-emerald-400' : (tech.rsi14 ?? 50) > 70 ? 'text-red-400' : 'text-white'
+            (tech.rsi14 ?? 50) < 30 ? 'text-hermes-green' : (tech.rsi14 ?? 50) > 70 ? 'text-red-400' : 'text-white'
           }`}>{tech.rsi14?.toFixed(1) ?? '--'}</div>
           <div className={`text-[9px] ${
-            tech.rsiSignal === 'OVERSOLD' ? 'text-emerald-400/60' : tech.rsiSignal === 'OVERBOUGHT' ? 'text-red-400/60' : 'text-white/25'
+            tech.rsiSignal === 'OVERSOLD' ? 'text-hermes-green/60' : tech.rsiSignal === 'OVERBOUGHT' ? 'text-red-400/60' : 'text-white/25'
           }`}>{tech.rsiSignal === 'OVERSOLD' ? 'Asiri Satim' : tech.rsiSignal === 'OVERBOUGHT' ? 'Asiri Alim' : 'Notr'}</div>
         </div>
         <div className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
           <div className="text-[9px] text-white/30 mb-0.5">SMA CROSS</div>
-          <div className={`text-sm font-bold ${tech.goldenCross ? 'text-emerald-400' : 'text-red-400'}`}>
+          <div className={`text-sm font-bold ${tech.goldenCross ? 'text-hermes-green' : 'text-red-400'}`}>
             {tech.goldenCross ? 'GOLDEN' : 'DEATH'}
           </div>
           <div className="text-[9px] text-white/25">50/200</div>
@@ -767,7 +771,7 @@ function TechnicalSummaryCard({ symbol }: { symbol: string }) {
         <div className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
           <div className="text-[9px] text-white/30 mb-0.5">EMA 20</div>
           <div className="text-sm font-bold text-white tabular-nums">${tech.ema20?.toFixed(2) ?? '--'}</div>
-          <div className={`text-[9px] ${tech.priceAboveEma20 ? 'text-emerald-400/60' : 'text-red-400/60'}`}>
+          <div className={`text-[9px] ${tech.priceAboveEma20 ? 'text-hermes-green/60' : 'text-red-400/60'}`}>
             Fiyat {tech.priceAboveEma20 ? 'ustunde' : 'altinda'}
           </div>
         </div>

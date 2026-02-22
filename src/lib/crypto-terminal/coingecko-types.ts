@@ -591,6 +591,18 @@ export interface CryptoTerminalCoin {
   } | null
   overvaluation?: CryptoOvervaluationPublic | null
   healthIndex?: CryptoHealthIndexPublic | null
+  priceTarget?: CryptoPriceTargetPublic | null
+}
+
+export interface CryptoPriceTargetPublic {
+  targetPrice: number
+  floorPrice: number
+  targetPct: number
+  floorPct: number
+  riskReward: number
+  zone: 'BUY_ZONE' | 'ACCUMULATE' | 'NEUTRAL' | 'DISTRIBUTE' | 'SELL_ZONE'
+  confidence: number
+  method: string
 }
 
 // Client-safe sanitized types (no internal scoring breakdowns)
