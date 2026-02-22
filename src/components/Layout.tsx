@@ -627,9 +627,17 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
 
   return (
     <ScanContext.Provider value={contextValue}>
-      <div className="min-h-screen bg-[#0d0d0d] text-white">
+      <div className="min-h-screen bg-[#0d0d0d] text-white relative">
+        {/* Premium ambient background layers */}
+        <div className="aurora-bg" aria-hidden="true">
+          <div className="aurora-blob-1" />
+          <div className="aurora-blob-2" />
+          <div className="aurora-blob-3" />
+        </div>
+        <div className="neural-grid" aria-hidden="true" />
         {/* ═══ HEADER — Midnight Gold Professional ═══ */}
-        <header className="sticky top-0 z-50 border-b border-gold-400/10 bg-[#111111]/95 backdrop-blur-xl safe-top">
+        <header className="sticky top-0 z-50 bg-[#111111]/95 backdrop-blur-xl safe-top transform-gpu will-change-transform">
+          <div className="header-glow-line" />
           <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6">
             {/* Top Bar */}
             <div className="flex items-center justify-between h-12 sm:h-14">
@@ -724,11 +732,17 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
 
                 <div className="w-px h-5 bg-gold-400/10 hidden lg:block" />
 
-                <div className="hidden lg:flex flex-col items-end">
+                <div className="hidden lg:flex flex-col items-end gap-0.5">
                   {lastRefresh && (
-                    <span className="text-[10px] text-white/35 font-mono">
-                      Last: {lastRefresh?.toLocaleTimeString('en-US', { hour12: false })}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-hermes-green opacity-40 live-dot" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-hermes-green" />
+                      </span>
+                      <span className="text-[10px] text-white/35 font-mono">
+                        {lastRefresh?.toLocaleTimeString('en-US', { hour12: false })}
+                      </span>
+                    </div>
                   )}
                   {isAutoRefreshing && (
                     <span className="text-[10px] text-gold-300 animate-pulse">Refreshing...</span>
@@ -787,6 +801,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
               ))}
             </nav>
           </div>
+          <div className="header-glow-line" />
         </header>
 
         {/* ═══ CONTENT ═══ */}
@@ -799,7 +814,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
           <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 flex flex-col gap-1">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] sm:text-[11px] text-white/25 font-medium tracking-wide truncate">HERMES AI • NASDAQ/NYSE Scanner</span>
-              <span className="hidden md:inline text-[11px] text-white/20 shrink-0">0-20 Strong Long • 21-35 Long • 36-66 Notr • 67-89 Short • 90-100 Strong Short</span>
+              <span className="hidden md:inline text-[11px] text-white/20 shrink-0">Neural Core • Real-Time Analysis</span>
             </div>
             <p className="text-[9px] text-white/15 leading-tight">
               Not financial advice. Signals are algorithmic, based on historical patterns; past performance does not guarantee future results. Always do your own research (DYOR). Use at your own risk.

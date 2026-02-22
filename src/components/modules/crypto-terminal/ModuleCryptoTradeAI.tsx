@@ -281,7 +281,7 @@ export default function ModuleCryptoTradeAI() {
       </div>
 
       {/* Signal Summary Cards */}
-      <div className="grid grid-cols-5 gap-2.5 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 mb-4">
         {([
           { key: 'strong_long' as const, label: 'S. LONG',
             active: 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-amber-500/40 shadow-lg shadow-amber-500/20 scale-[1.03]',

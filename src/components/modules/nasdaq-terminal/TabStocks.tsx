@@ -7,9 +7,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { TrendingUp, TrendingDown, Search, Filter, Shield, Zap, AlertTriangle, Minus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Info, Star, BarChart3, Crown, Building2, Layers, Store, Bug } from 'lucide-react'
+import { TrendingUp, TrendingDown, Search, Filter, Shield, Zap, AlertTriangle, Minus, Info, Star, BarChart3, Crown, Building2, Layers, Store, Bug } from 'lucide-react'
 import { getWatchlist, toggleWatchlist } from '@/lib/store'
 import { computeSegmentFromMarketCap } from '@/lib/symbols'
+import { ScoreMiniBar, PriceFlashCell } from '../../premium-ui'
 
 interface RedFlag {
   severity: 'critical' | 'warning'
@@ -84,13 +85,13 @@ const SEGMENT_CONFIG: { key: SegmentFilter; label: string; desc: string; icon: R
   { key: 'MEGA', label: 'MEGA', desc: '$200B+', icon: <Crown size={13} />, color: 'text-amber-400 bg-amber-500/8 border-amber-500/20 hover:border-amber-500/40' },
   { key: 'LARGE', label: 'LARGE', desc: '$10B-$200B', icon: <Building2 size={13} />, color: 'text-violet-400 bg-violet-500/8 border-violet-500/20 hover:border-violet-500/40' },
   { key: 'MID', label: 'MID', desc: '$2B-$10B', icon: <Store size={13} />, color: 'text-blue-400 bg-blue-500/8 border-blue-500/20 hover:border-blue-500/40' },
-  { key: 'SMALL', label: 'SMALL', desc: '$300M-$2B', icon: <Filter size={13} />, color: 'text-emerald-400 bg-emerald-500/8 border-emerald-500/20 hover:border-emerald-500/40' },
+  { key: 'SMALL', label: 'SMALL', desc: '$300M-$2B', icon: <Filter size={13} />, color: 'text-hermes-green bg-hermes-green/8 border-hermes-green/20 hover:border-hermes-green/40' },
   { key: 'MICRO', label: 'MICRO', desc: '<$300M', icon: <Bug size={13} />, color: 'text-orange-400 bg-orange-500/8 border-orange-500/20 hover:border-orange-500/40' },
 ]
 
 const SIGNAL_CONFIG: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
   STRONG: { color: 'text-amber-400 bg-amber-500/12 border-amber-500/25', icon: <Zap size={12} />, label: 'Guclu' },
-  GOOD: { color: 'text-emerald-400 bg-emerald-500/12 border-emerald-500/25', icon: <TrendingUp size={12} />, label: 'Iyi' },
+  GOOD: { color: 'text-hermes-green bg-hermes-green/12 border-hermes-green/25', icon: <TrendingUp size={12} />, label: 'Iyi' },
   NEUTRAL: { color: 'text-slate-300 bg-white/[0.04] border-white/[0.08]', icon: <Minus size={12} />, label: 'Notr' },
   WEAK: { color: 'text-orange-400 bg-orange-500/12 border-orange-500/25', icon: <AlertTriangle size={12} />, label: 'Zayif' },
   BAD: { color: 'text-red-400 bg-red-500/12 border-red-500/25', icon: <TrendingDown size={12} />, label: 'Kotu' },
@@ -140,8 +141,10 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
     setWatchlist(result.list)
   }, [])
   const [tooltip, setTooltip] = useState<string | null>(null)
-  const pageSize = 50
-
+  const [confidenceFilter, setConfidenceFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all')
+  const [valuationFilter, setValuationFilter] = useState<string>('all')
+  const [signalFilter, setSignalFilter] = useState<string>('all')
+  const [columnFilter, setColumnFilter] = useState<string>('all')
   const [indexMap, setIndexMap] = useState<Record<string, string[]>>({})
 
   useEffect(() => {
@@ -188,6 +191,17 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
     if (segmentFilter !== 'ALL') {
       result = result.filter(s => computeSegmentFromMarketCap(s.marketCap) === segmentFilter)
     }
+    if (confidenceFilter !== 'all') {
+      if (confidenceFilter === 'high') result = result.filter(s => (s.confidence || 0) >= 70)
+      else if (confidenceFilter === 'medium') result = result.filter(s => (s.confidence || 0) >= 50 && (s.confidence || 0) < 70)
+      else if (confidenceFilter === 'low') result = result.filter(s => (s.confidence || 0) < 50)
+    }
+    if (valuationFilter !== 'all') {
+      result = result.filter(s => s.valuationLabel === valuationFilter)
+    }
+    if (signalFilter !== 'all') {
+      result = result.filter(s => s.signal === signalFilter)
+    }
     result.sort((a, b) => {
       const aVal = a[sortField], bVal = b[sortField]
       if (typeof aVal === 'string' && typeof bVal === 'string')
@@ -197,10 +211,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
       return sortDir === 'asc' ? aNum - bNum : bNum - aNum
     })
     return result
-  }, [stocks, search, sectorFilter, segmentFilter, sortField, sortDir, watchlistOnly, watchlist])
-
-  const paginatedStocks = useMemo(() => filteredStocks.slice(page * pageSize, (page + 1) * pageSize), [filteredStocks, page])
-  const totalPages = Math.ceil(filteredStocks.length / pageSize)
+  }, [stocks, search, sectorFilter, segmentFilter, sortField, sortDir, watchlistOnly, watchlist, confidenceFilter, valuationFilter, signalFilter])
 
   const handleSort = useCallback((field: SortField) => {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -255,7 +266,66 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
         </button>
       </div>
 
-      {/* Filters */}
+      {/* GUVEN + FIYATLANMA + SINYAL Filter Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        {/* GUVEN filtre */}
+        <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5">
+          <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold block mb-1.5">Guven Filtresi</span>
+          <div className="flex gap-1 flex-wrap">
+            {[
+              { key: 'all' as const, label: 'Tumu', color: 'text-white/50 bg-white/[0.04] border-white/[0.08]' },
+              { key: 'high' as const, label: '%70+', color: 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' },
+              { key: 'medium' as const, label: '%50-69', color: 'text-amber-400 bg-amber-500/10 border-amber-500/25' },
+              { key: 'low' as const, label: '<%50', color: 'text-red-400 bg-red-500/10 border-red-500/25' },
+            ].map(f => (
+              <button key={f.key} onClick={() => { setConfidenceFilter(f.key); setPage(0) }}
+                className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all ${
+                  confidenceFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/25 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
+                }`}>{f.label}</button>
+            ))}
+          </div>
+        </div>
+        {/* FIYATLANMA filtre */}
+        <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5">
+          <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold block mb-1.5">Fiyatlanma Filtresi</span>
+          <div className="flex gap-1 flex-wrap">
+            {[
+              { key: 'all', label: 'Tumu', color: 'text-white/50 bg-white/[0.04] border-white/[0.08]' },
+              { key: 'COK UCUZ', label: 'Cok Ucuz', color: 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' },
+              { key: 'UCUZ', label: 'Ucuz', color: 'text-hermes-green/80 bg-hermes-green/8 border-hermes-green/20' },
+              { key: 'NORMAL', label: 'Normal', color: 'text-slate-300 bg-white/[0.04] border-white/10' },
+              { key: 'PAHALI', label: 'Pahali', color: 'text-orange-400 bg-orange-500/10 border-orange-500/25' },
+              { key: 'COK PAHALI', label: 'Cok Pahali', color: 'text-red-400 bg-red-500/10 border-red-500/25' },
+            ].map(f => (
+              <button key={f.key} onClick={() => { setValuationFilter(f.key); setPage(0) }}
+                className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all ${
+                  valuationFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/25 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
+                }`}>{f.label}</button>
+            ))}
+          </div>
+        </div>
+        {/* SINYAL filtre */}
+        <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5">
+          <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold block mb-1.5">Sinyal Filtresi</span>
+          <div className="flex gap-1 flex-wrap">
+            {[
+              { key: 'all', label: 'Tumu', color: 'text-white/50 bg-white/[0.04] border-white/[0.08]' },
+              { key: 'STRONG', label: 'Guclu', color: 'text-amber-400 bg-amber-500/10 border-amber-500/25' },
+              { key: 'GOOD', label: 'Iyi', color: 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' },
+              { key: 'NEUTRAL', label: 'Notr', color: 'text-slate-300 bg-white/[0.04] border-white/10' },
+              { key: 'WEAK', label: 'Zayif', color: 'text-orange-400 bg-orange-500/10 border-orange-500/25' },
+              { key: 'BAD', label: 'Kotu', color: 'text-red-400 bg-red-500/10 border-red-500/25' },
+            ].map(f => (
+              <button key={f.key} onClick={() => { setSignalFilter(f.key); setPage(0) }}
+                className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all ${
+                  signalFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/25 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
+                }`}>{f.label}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Search + Column Filter + Counts */}
       <div className="flex flex-col md:flex-row items-start md:items-center gap-2 sm:gap-2.5 justify-between">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative group">
@@ -276,6 +346,27 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
               {SECTORS.map(s => <option key={s} value={s} className="bg-[#151520]">{s}</option>)}
             </select>
           </div>
+          <select value={columnFilter}
+            onChange={e => { setColumnFilter(e.target.value); setSortField(e.target.value === 'all' ? 'signalScore' : e.target.value as SortField); setSortDir('desc'); setPage(0) }}
+            className="px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-white
+                       focus:outline-none focus:border-violet-500/30 cursor-pointer appearance-none transition-all duration-200">
+            <option value="all" className="bg-[#151520]">Sirala: Tumu</option>
+            <option value="signalScore" className="bg-[#151520]">Puan (Yuksek)</option>
+            <option value="confidence" className="bg-[#151520]">Guven (Yuksek)</option>
+            <option value="valuationScore" className="bg-[#151520]">Fiyatlanma</option>
+            <option value="riskScore" className="bg-[#151520]">Risk (Dusuk)</option>
+            <option value="changePercent" className="bg-[#151520]">Degisim %</option>
+            <option value="marketCap" className="bg-[#151520]">Piyasa Degeri</option>
+            <option value="pe" className="bg-[#151520]">F/K Orani</option>
+            <option value="altmanZ" className="bg-[#151520]">Altman Z</option>
+            <option value="piotroski" className="bg-[#151520]">F-Skor</option>
+            <option value="dcfUpside" className="bg-[#151520]">DCF %</option>
+            <option value="roe" className="bg-[#151520]">ROE %</option>
+            <option value="debtEquity" className="bg-[#151520]">Borc/OZ</option>
+            <option value="overvalScore" className="bg-[#151520]">Overval</option>
+            <option value="shortFloat" className="bg-[#151520]">Float %</option>
+            <option value="volume" className="bg-[#151520]">Hacim</option>
+          </select>
         </div>
         <div className="flex items-center gap-4 text-xs text-white/35">
           <span>Toplam: <b className="text-white/80">{stocks.length}</b></span>
@@ -291,9 +382,9 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
         </div>
       )}
 
-      {/* Table */}
+      {/* Table — Virtualized */}
       <div className="bg-[#151520] rounded-2xl border border-white/[0.06] overflow-hidden shadow-xl shadow-black/20">
-        <div className="overflow-x-auto overflow-y-auto max-h-[75vh]" style={{ willChange: 'transform' }}>
+        <div className="overflow-x-auto overflow-y-auto max-h-[80vh]" style={{ willChange: 'transform' }}>
           <table className="w-full border-collapse">
             <thead className="sticky top-0 bg-[#0e0e18] z-10 after:absolute after:left-0 after:right-0 after:bottom-0 after:h-px after:bg-white/[0.08]">
               <tr className="border-b border-white/[0.08]">
@@ -340,14 +431,14 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
               </tr>
             </thead>
             <tbody>
-              {paginatedStocks.map((s, idx) => {
+              {filteredStocks.map((s, idx) => {
                 const sig = SIGNAL_CONFIG[s.signal] || SIGNAL_CONFIG.NEUTRAL
-                // Renk signal level'dan gelir (percentile-bazli, sabit esik degil)
-                const SIGNAL_COLORS: Record<string, string> = { STRONG: '#fbbf24', GOOD: '#34d399', NEUTRAL: '#94a3b8', WEAK: '#fb923c', BAD: '#f87171' }
+                const SIGNAL_COLORS: Record<string, string> = { STRONG: '#fbbf24', GOOD: '#62cbc1', NEUTRAL: '#94a3b8', WEAK: '#fb923c', BAD: '#f87171' }
                 const scoreColor = SIGNAL_COLORS[s.signal] || SIGNAL_COLORS.NEUTRAL
                 return (
-                  <tr key={s.symbol} onClick={() => onSelectSymbol(s.symbol)}
-                    className={`border-b border-white/[0.03] hover:bg-violet-500/[0.06] cursor-pointer transition-all duration-150 ${idx % 2 === 0 ? '' : 'bg-white/[0.01]'}`}>
+                  <tr key={s.symbol}
+                    onClick={() => onSelectSymbol(s.symbol)}
+                    className={`border-b border-white/[0.03] premium-row cursor-pointer transition-colors duration-150 ${idx % 2 === 0 ? '' : 'bg-white/[0.01]'}`}>
                     <td className="px-1.5 py-2">
                       <div className="flex items-center gap-1.5">
                         <button
@@ -387,11 +478,8 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                       </span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <div className="group/score relative flex items-center justify-end gap-1.5 cursor-pointer">
-                        <div className="w-10 h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${s.signalScore}%`, backgroundColor: scoreColor }} />
-                        </div>
-                        <span className="text-[13px] text-white/60 tabular-nums w-6 text-right font-semibold">{s.signalScore}</span>
+                      <div className="group/score relative flex items-center justify-end cursor-pointer">
+                        <ScoreMiniBar value={s.signalScore} maxWidth={40} />
                         {/* Score Breakdown Popup */}
                         <div className="hidden group-hover/score:block absolute z-50 bottom-full right-0 mb-2 w-52 bg-[#141420] border border-white/10 rounded-xl shadow-2xl p-3">
                           <div className="text-[10px] text-white/40 font-semibold mb-2 tracking-wider">HERMES AI SKOR</div>
@@ -410,7 +498,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                               <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all" style={{
                                   width: `${c.val}%`,
-                                  backgroundColor: c.val >= 70 ? '#34d399' : c.val >= 40 ? '#fbbf24' : '#f87171'
+                                  backgroundColor: c.val >= 70 ? '#62cbc1' : c.val >= 40 ? '#fbbf24' : '#f87171'
                                 }} />
                               </div>
                               <span className="text-[10px] tabular-nums text-white/50 w-6 text-right">{c.val}</span>
@@ -427,14 +515,14 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-medium ${
-                        (s.confidence || 0) >= 70 ? 'text-emerald-400/60' : (s.confidence || 0) >= 50 ? 'text-amber-400/60' : 'text-white/25'
+                        (s.confidence || 0) >= 70 ? 'text-hermes-green/60' : (s.confidence || 0) >= 50 ? 'text-amber-400/60' : 'text-white/25'
                       }`}>{s.confidence || 30}%</span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className="text-sm text-white/90 tabular-nums font-medium">${fmtN(s.price, 2)}</span>
+                      <PriceFlashCell price={s.price} className="text-sm text-white/90 font-medium" />
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className={`inline-flex items-center gap-0.5 text-[13px] tabular-nums font-semibold ${s.changePercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <span className={`inline-flex items-center gap-0.5 text-[13px] tabular-nums font-semibold ${s.changePercent >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
                         {s.changePercent >= 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
                         {s.changePercent >= 0 ? '+' : ''}{fmtN(s.changePercent, 2)}%
                       </span>
@@ -447,21 +535,21 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-medium ${
-                        (s.altmanZ || 0) >= 3 ? 'text-emerald-400/70' : (s.altmanZ || 0) >= 1.8 ? 'text-amber-400/70' : (s.altmanZ || 0) > 0 ? 'text-red-400/70' : 'text-white/20'
+                        (s.altmanZ || 0) >= 3 ? 'text-hermes-green/70' : (s.altmanZ || 0) >= 1.8 ? 'text-amber-400/70' : (s.altmanZ || 0) > 0 ? 'text-red-400/70' : 'text-white/20'
                       }`}>{s.altmanZ > 0 ? s.altmanZ.toFixed(1) : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-bold ${
-                        (s.piotroski || 0) >= 7 ? 'text-emerald-400' : (s.piotroski || 0) >= 5 ? 'text-amber-400/70' : (s.piotroski || 0) > 0 ? 'text-orange-400/70' : 'text-white/20'
+                        (s.piotroski || 0) >= 7 ? 'text-hermes-green' : (s.piotroski || 0) >= 5 ? 'text-amber-400/70' : (s.piotroski || 0) > 0 ? 'text-orange-400/70' : 'text-white/20'
                       }`}>{s.piotroski > 0 ? s.piotroski : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-medium ${
-                        (s.dcfUpside || 0) > 20 ? 'text-emerald-400' : (s.dcfUpside || 0) > 0 ? 'text-emerald-400/60' : (s.dcfUpside || 0) < -20 ? 'text-red-400' : (s.dcfUpside || 0) < 0 ? 'text-red-400/60' : 'text-white/20'
+                        (s.dcfUpside || 0) > 20 ? 'text-hermes-green' : (s.dcfUpside || 0) > 0 ? 'text-hermes-green/60' : (s.dcfUpside || 0) < -20 ? 'text-red-400' : (s.dcfUpside || 0) < 0 ? 'text-red-400/60' : 'text-white/20'
                       }`}>{s.dcfUpside ? `${s.dcfUpside > 0 ? '+' : ''}${s.dcfUpside.toFixed(0)}%` : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className={`text-[13px] tabular-nums ${s.roe > 0 ? 'text-emerald-400/70' : s.roe < 0 ? 'text-red-400/70' : 'text-white/25'}`}>
+                      <span className={`text-[13px] tabular-nums ${s.roe > 0 ? 'text-hermes-green/70' : s.roe < 0 ? 'text-red-400/70' : 'text-white/25'}`}>
                         {fmtPct(s.roe)}
                       </span>
                     </td>
@@ -470,7 +558,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-semibold px-1.5 py-0.5 rounded-full ${
-                        (s.riskScore || 50) <= 25 ? 'text-emerald-400 bg-emerald-500/10' :
+                        (s.riskScore || 50) <= 25 ? 'text-hermes-green bg-hermes-green/10' :
                         (s.riskScore || 50) <= 50 ? 'text-amber-400 bg-amber-500/10' :
                         (s.riskScore || 50) <= 75 ? 'text-orange-400 bg-orange-500/10' :
                         'text-red-400 bg-red-500/10'
@@ -478,8 +566,8 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${
-                        s.valuationLabel === 'COK UCUZ' ? 'text-emerald-300 bg-emerald-500/15' :
-                        s.valuationLabel === 'UCUZ' ? 'text-emerald-400 bg-emerald-500/10' :
+                        s.valuationLabel === 'COK UCUZ' ? 'text-hermes-green bg-hermes-green/15' :
+                        s.valuationLabel === 'UCUZ' ? 'text-hermes-green bg-hermes-green/10' :
                         s.valuationLabel === 'NORMAL' ? 'text-slate-300 bg-white/[0.04]' :
                         s.valuationLabel === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
                         s.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
@@ -499,7 +587,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                         <div className="flex flex-wrap gap-0.5 mt-0.5 justify-end">
                           {s.badges.slice(0, 2).map((b, bi) => (
                             <span key={bi} className={`text-[8px] px-1 py-0 rounded ${
-                              b.severity === 'positive' ? 'text-emerald-400 bg-emerald-500/10' :
+                              b.severity === 'positive' ? 'text-hermes-green bg-hermes-green/10' :
                               b.severity === 'negative' ? 'text-red-400 bg-red-500/10' :
                               b.severity === 'warning' ? 'text-amber-400 bg-amber-500/10' :
                               'text-blue-400 bg-blue-500/10'
@@ -510,7 +598,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums ${
-                        (s.shortFloat || 0) >= 90 ? 'text-emerald-400/70' :
+                        (s.shortFloat || 0) >= 90 ? 'text-hermes-green/70' :
                         (s.shortFloat || 0) >= 50 ? 'text-white/45' :
                         (s.shortFloat || 0) > 0 ? 'text-orange-400/70' : 'text-white/15'
                       }`}>{s.shortFloat > 0 ? `${s.shortFloat.toFixed(0)}%` : '\u2014'}</span>
@@ -526,27 +614,10 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
         </div>
       </div>
 
-      {/* Pagination - Modern */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-white/30">
-            Sayfa {page + 1} / {totalPages}
-          </span>
-          <div className="flex items-center gap-0.5">
-            {[
-              { icon: <ChevronsLeft size={14} />, act: () => setPage(0), dis: page === 0 },
-              { icon: <ChevronLeft size={14} />, act: () => setPage(p => Math.max(0, p - 1)), dis: page === 0 },
-              { icon: <ChevronRight size={14} />, act: () => setPage(p => Math.min(totalPages - 1, p + 1)), dis: page >= totalPages - 1 },
-              { icon: <ChevronsRight size={14} />, act: () => setPage(totalPages - 1), dis: page >= totalPages - 1 },
-            ].map((b, i) => (
-              <button key={i} onClick={b.act} disabled={b.dis}
-                className="p-1.5 rounded-lg text-white/40 hover:bg-white/[0.06] hover:text-white/70 disabled:opacity-20 transition-all duration-200">
-                {b.icon}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Total count */}
+      <div className="flex items-center justify-center py-1.5">
+        <span className="text-xs text-white/25">Toplam <b className="text-white/50">{filteredStocks.length}</b> hisse listeleniyor</span>
+      </div>
     </div>
   )
 }

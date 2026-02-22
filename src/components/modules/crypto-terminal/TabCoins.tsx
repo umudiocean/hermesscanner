@@ -220,7 +220,7 @@ function MiniSparkline({ data, isPositive }: { data: number[]; isPositive: boole
   }).join(' ')
 
   return (
-    <svg width={w} height={h} className="inline-block">
+    <svg viewBox={`0 0 ${w} ${h}`} className="inline-block w-full h-auto min-w-0" preserveAspectRatio="none">
       <polyline points={points} fill="none" stroke={isPositive ? '#34d399' : '#f87171'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
@@ -639,6 +639,9 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
               <SortHeader field="risk" className="px-1" align="center" tip="Likidite, FDV dilution, ATH mesafesi ve piyasa degerine gore risk skoru (0-100)">Risk</SortHeader>
               <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-center cursor-default" title="Asiri Deger Skoru — FDV/MCap, ATH yakinligi, balina yogunlugu, momentum yorgunlugu">Overval</th>
               <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-center cursor-default" title="Crypto Health Index — TVL trendi, holder buyumesi, borsa sagligi, likidite derinligi, gelistirici aktivitesi">CHI</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-right cursor-default hidden xl:table-cell" title="Hedef Fiyat — Fibonacci + Fair Value + Momentum + TVL/MCap hibrit hesaplama">Hedef</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-right cursor-default hidden xl:table-cell" title="Dip Fiyat — Fibonacci destek + FDV/MCap basinci + Saglik endeksi">Dip</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-center cursor-default hidden xl:table-cell" title="Risk/Odul orani — yuksek = olumlu">R:R</th>
               <SortHeader field="change1h" className="px-1.5" align="right" tip="Son 1 saatteki fiyat degisimi (%)">1s</SortHeader>
               <SortHeader field="change24h" className="px-1.5" align="right" tip="Son 24 saatteki fiyat degisimi (%)">24s</SortHeader>
               <SortHeader field="change7d" className="px-1.5" align="right" tip="Son 7 gundeki fiyat degisimi (%)">7g</SortHeader>
@@ -752,6 +755,28 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                          coin.healthIndex.level === 'CAUTION' ? 'DIKKAT' :
                          coin.healthIndex.level === 'RISKY' ? 'RISKLI' : 'KRITIK'}
                       </span>
+                    ) : <span className="text-[10px] text-white/15">—</span>}
+                  </td>
+                  <td className="px-1 py-2 text-right hidden xl:table-cell">
+                    {coin.priceTarget ? (
+                      <span className={`text-[10px] font-mono font-semibold ${coin.priceTarget.targetPct >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                        ${coin.priceTarget.targetPrice < 1 ? coin.priceTarget.targetPrice.toPrecision(4) : coin.priceTarget.targetPrice.toFixed(2)}
+                      </span>
+                    ) : <span className="text-[10px] text-white/15">—</span>}
+                  </td>
+                  <td className="px-1 py-2 text-right hidden xl:table-cell">
+                    {coin.priceTarget ? (
+                      <span className="text-[10px] font-mono text-red-400/80">
+                        ${coin.priceTarget.floorPrice < 1 ? coin.priceTarget.floorPrice.toPrecision(4) : coin.priceTarget.floorPrice.toFixed(2)}
+                      </span>
+                    ) : <span className="text-[10px] text-white/15">—</span>}
+                  </td>
+                  <td className="px-1 py-2 text-center hidden xl:table-cell">
+                    {coin.priceTarget ? (
+                      <span className={`text-[10px] font-mono font-bold ${
+                        coin.priceTarget.riskReward >= 2 ? 'text-hermes-green' :
+                        coin.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+                      }`}>{coin.priceTarget.riskReward.toFixed(1)}</span>
                     ) : <span className="text-[10px] text-white/15">—</span>}
                   </td>
                   <td className="px-1.5 py-2 text-right"><ChangeCell value={coin.change1h} /></td>

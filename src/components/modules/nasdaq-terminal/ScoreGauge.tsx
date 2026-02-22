@@ -62,7 +62,7 @@ export default function ScoreGauge({ score, size = 'lg', showLabel = true, anima
   // SVG renk (tailwind class'larını SVG'de kullanamayız, direkt renk)
   const svgColors: Record<string, { stroke: string; glow: string }> = {
     STRONG: { stroke: '#facc15', glow: 'rgba(250,204,21,0.3)' },
-    GOOD: { stroke: '#34d399', glow: 'rgba(52,211,153,0.3)' },
+    GOOD: { stroke: '#62cbc1', glow: 'rgba(52,211,153,0.3)' },
     NEUTRAL: { stroke: '#94a3b8', glow: 'rgba(148,163,184,0.15)' },
     WEAK: { stroke: '#fb923c', glow: 'rgba(251,146,60,0.3)' },
     BAD: { stroke: '#f87171', glow: 'rgba(248,113,113,0.3)' },
@@ -72,7 +72,7 @@ export default function ScoreGauge({ score, size = 'lg', showLabel = true, anima
   return (
     <div className="flex flex-col items-center gap-2">
       <div className={`relative shadow-lg ${glow}`} style={{ width: d.size, height: d.size }}>
-        <svg width={d.size} height={d.size} className="-rotate-90">
+        <svg width={d.size} height={d.size} viewBox={`0 0 ${d.size} ${d.size}`} className="w-full h-full -rotate-90">
           {/* Background track */}
           <circle
             cx={d.size / 2}
@@ -114,14 +114,14 @@ export default function ScoreGauge({ score, size = 'lg', showLabel = true, anima
       {showLabel && (
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${
           level === 'STRONG' ? 'bg-yellow-500/15 border-yellow-500/30' :
-          level === 'GOOD' ? 'bg-emerald-500/15 border-emerald-500/30' :
+          level === 'GOOD' ? 'bg-hermes-green/15 border-hermes-green/30' :
           level === 'NEUTRAL' ? 'bg-slate-500/15 border-slate-500/30' :
           level === 'WEAK' ? 'bg-orange-500/15 border-orange-500/30' :
           'bg-red-500/15 border-red-500/30'
         }`}>
           <div className={`w-1.5 h-1.5 rounded-full ${
             level === 'STRONG' ? 'bg-yellow-400' :
-            level === 'GOOD' ? 'bg-emerald-400' :
+            level === 'GOOD' ? 'bg-hermes-green' :
             level === 'NEUTRAL' ? 'bg-slate-400' :
             level === 'WEAK' ? 'bg-orange-400' :
             'bg-red-400'

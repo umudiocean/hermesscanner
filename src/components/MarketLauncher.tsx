@@ -194,7 +194,7 @@ export default function MarketLauncher({ onSelectMarket }: MarketLauncherProps) 
         </div>
 
         {/* ═══ MARKET CARDS ═══ */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-5">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-5">
           {MARKETS.map((market, index) => (
             <MarketCard
               key={market.id}

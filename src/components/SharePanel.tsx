@@ -103,6 +103,8 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
 
+  const domain = typeof window !== 'undefined' ? window.location.origin : 'https://hermesai.app'
+
   const shareText = [
     `${type === 'stock' ? '📊' : '🪙'} ${title}${subtitle ? ` — ${subtitle}` : ''}`,
     price ? `${type === 'stock' ? '💰' : '💎'} Fiyat: ${price}${change ? ` (${change})` : ''}` : '',
@@ -110,7 +112,7 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
     '',
     `"${SLOGAN.replace('\n', ' ')}"`,
     '',
-    '🔗 hermesai.app',
+    `🔗 ${domain}`,
   ].filter(Boolean).join('\n')
 
   const handleShare = (platform: typeof PLATFORMS[number]) => {
@@ -138,21 +140,22 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
     <div ref={panelRef} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className={`group flex items-center gap-1.5 px-3 py-1.5 sm:py-2 rounded-xl border text-xs font-bold transition-all duration-300 ${
+        className={`group relative flex items-center gap-1.5 px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold transition-all duration-300 overflow-hidden ${
           open
-            ? `bg-${accentColor}-500/15 border-${accentColor}-500/30 text-${accentColor === 'gold' ? 'gold-300' : 'amber-400'}`
-            : `bg-white/[0.04] border-white/8 text-white/50 hover:bg-white/[0.08] hover:border-white/15 hover:text-white/70`
-        } hover:scale-[1.03]`}
+            ? `bg-gradient-to-r from-gold-500/20 to-amber-500/15 border-gold-400/40 text-gold-300 shadow-lg shadow-gold-500/15`
+            : `bg-gradient-to-r from-gold-500/10 to-amber-500/8 border-gold-400/20 text-gold-400 hover:from-gold-500/20 hover:to-amber-500/15 hover:border-gold-400/40 hover:text-gold-300 hover:shadow-lg hover:shadow-gold-500/15`
+        } hover:scale-[1.05]`}
       >
-        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <span className="absolute inset-0 bg-gradient-to-r from-gold-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <svg className="w-4 h-4 relative z-[1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
         </svg>
-        Paylas
+        <span className="relative z-[1]">Paylas</span>
       </button>
 
       {open && (
         <div className="absolute right-0 top-full mt-2 z-50 animate-fade-in">
-          <div className="bg-[#131318] border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/40 p-3 w-[280px]"
+          <div className="bg-[#131318] border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/40 p-3 w-[280px] max-w-[calc(100vw-2rem)]"
             style={{ backdropFilter: 'blur(20px)' }}>
 
             {/* Header */}

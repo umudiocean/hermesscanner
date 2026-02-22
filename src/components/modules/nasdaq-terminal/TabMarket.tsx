@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { TrendingUp, TrendingDown, Activity, BarChart3, Globe, DollarSign, Calendar, ArrowUpRight, ArrowDownRight, Info, Zap, Gauge, Shield, AlertTriangle, ChevronRight, Radio } from 'lucide-react'
+import { FearGreedBar } from '../../premium-ui'
 import { MarketDashboardData, MarketGainerLoser, IndexQuote, SectorPerformance, TreasuryRate, EconomicEvent } from '@/lib/fmp-terminal/fmp-types'
 import type { FredDashboardData, FearGreedComponents } from '@/lib/fred-client'
 
@@ -132,8 +133,8 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
     )
 
     let label: string, color: string
-    if (composite >= 75) { label = 'GUCLU YUKSELIS'; color = '#34d399' }
-    else if (composite >= 60) { label = 'YUKSELIS'; color = '#6ee7b7' }
+    if (composite >= 75) { label = 'GUCLU YUKSELIS'; color = '#62cbc1' }
+    else if (composite >= 60) { label = 'YUKSELIS'; color = '#62cbc1' }
     else if (composite >= 45) { label = 'NOTR'; color = '#94a3b8' }
     else if (composite >= 30) { label = 'DUSUS'; color = '#fb923c' }
     else { label = 'GUCLU DUSUS'; color = '#f87171' }
@@ -152,42 +153,13 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       {hermesPulse && <HermesPulseGauge pulse={hermesPulse} />}
 
       {/* ═══ FEAR & GREED INDEX BAR ═══ */}
-      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
-        <div className="flex items-center justify-between mb-2 sm:mb-3">
-          <div className="flex items-center gap-2">
-            <Activity size={16} className="text-violet-400" />
-            <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Korku & Acgozluluk Endeksi</h3>
-            <span className="text-[10px] text-white/25 ml-1">Piyasa duyarlilik olceri</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={`text-xl sm:text-2xl font-black tabular-nums ${
-              (data.fearGreedIndex ?? 50) <= 20 ? 'text-red-500' :
-              (data.fearGreedIndex ?? 50) <= 40 ? 'text-orange-400' :
-              (data.fearGreedIndex ?? 50) <= 60 ? 'text-slate-300' :
-              (data.fearGreedIndex ?? 50) <= 80 ? 'text-emerald-400' :
-              'text-emerald-300'
-            }`}>{data.fearGreedIndex ?? 50}</span>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-              (data.fearGreedIndex ?? 50) <= 20 ? 'text-red-400 bg-red-500/15' :
-              (data.fearGreedIndex ?? 50) <= 40 ? 'text-orange-400 bg-orange-500/15' :
-              (data.fearGreedIndex ?? 50) <= 60 ? 'text-slate-300 bg-white/[0.06]' :
-              (data.fearGreedIndex ?? 50) <= 80 ? 'text-emerald-400 bg-emerald-500/15' :
-              'text-emerald-300 bg-emerald-500/20'
-            }`}>{data.fearGreedLabel ?? 'NEUTRAL'}</span>
-          </div>
+      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20 glass-card">
+        <div className="flex items-center gap-2 mb-3">
+          <Activity size={16} className="text-violet-400" />
+          <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Korku & Acgozluluk Endeksi</h3>
+          <span className="text-[10px] text-white/25 ml-1">Piyasa duyarlilik olceri</span>
         </div>
-        {/* Gradient bar */}
-        <div className="relative h-3 rounded-full overflow-hidden bg-gradient-to-r from-red-600 via-orange-500 via-yellow-400 via-slate-400 via-emerald-400 to-emerald-500">
-          <div className="absolute top-0 h-full w-1 bg-white shadow-lg shadow-white/50 rounded-full transition-all duration-700"
-            style={{ left: `${Math.max(1, Math.min(99, data.fearGreedIndex ?? 50))}%` }} />
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="text-[9px] text-red-400/60">Asiri Korku</span>
-          <span className="text-[9px] text-orange-400/50">Korku</span>
-          <span className="text-[9px] text-white/30">Notr</span>
-          <span className="text-[9px] text-emerald-400/50">Acgozluluk</span>
-          <span className="text-[9px] text-emerald-400/60">Asiri Acgozluluk</span>
-        </div>
+        <FearGreedBar value={data.fearGreedIndex ?? 50} label={data.fearGreedLabel ?? 'NEUTRAL'} />
       </div>
 
       {/* ═══ FEAR & GREED v2 (FRED Bazli) ═══ */}
@@ -216,19 +188,19 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
                 <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
                   <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
                   <circle cx="60" cy="60" r="50" fill="none"
-                    stroke={trend.trendColor === 'emerald' ? '#34d399' : trend.trendColor === 'red' ? '#f87171' : '#94a3b8'}
+                    stroke={trend.trendColor === 'emerald' ? '#62cbc1' : trend.trendColor === 'red' ? '#f87171' : '#94a3b8'}
                     strokeWidth="10" strokeLinecap="round"
                     strokeDasharray={`${trend.trendScore * 3.14} 314`}
                     className="transition-all duration-1000" />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className={`text-3xl font-black tabular-nums ${trend.trendColor === 'emerald' ? 'text-emerald-400' : trend.trendColor === 'red' ? 'text-red-400' : 'text-slate-300'}`}>
+                  <span className={`text-3xl font-black tabular-nums ${trend.trendColor === 'emerald' ? 'text-hermes-green' : trend.trendColor === 'red' ? 'text-red-400' : 'text-slate-300'}`}>
                     {trend.trendScore}
                   </span>
                   <span className="text-[10px] text-white/40">/100</span>
                 </div>
               </div>
-              <span className={`mt-2 text-sm font-bold tracking-wide ${trend.trendColor === 'emerald' ? 'text-emerald-400' : trend.trendColor === 'red' ? 'text-red-400' : 'text-slate-400'}`}>
+              <span className={`mt-2 text-sm font-bold tracking-wide ${trend.trendColor === 'emerald' ? 'text-hermes-green' : trend.trendColor === 'red' ? 'text-red-400' : 'text-slate-400'}`}>
                 {trend.trendLabel}
               </span>
             </div>
@@ -258,22 +230,22 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
               <div className="text-5xl mb-2">
                 {wallStreet.icon === 'bull' ? '\u{1F402}' : wallStreet.icon === 'bear' ? '\u{1F43B}' : wallStreet.icon === 'neutral_up' ? '\u{1F4C8}' : '\u{1F4C9}'}
               </div>
-              <div className={`text-2xl font-black tabular-nums ${wallStreet.sentiment >= 50 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <div className={`text-2xl font-black tabular-nums ${wallStreet.sentiment >= 50 ? 'text-hermes-green' : 'text-red-400'}`}>
                 {wallStreet.sentiment}%
               </div>
-              <span className={`text-sm font-semibold ${wallStreet.sentiment >= 50 ? 'text-emerald-400/80' : 'text-red-400/80'}`}>
+              <span className={`text-sm font-semibold ${wallStreet.sentiment >= 50 ? 'text-hermes-green/80' : 'text-red-400/80'}`}>
                 {wallStreet.label}
               </span>
             </div>
 
             {/* Breakdown */}
             <div className="space-y-2.5">
-              <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-500/8 border border-emerald-500/15">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-hermes-green/8 border border-hermes-green/15">
                 <div className="flex items-center gap-2">
-                  <ArrowUpRight size={14} className="text-emerald-400" />
+                  <ArrowUpRight size={14} className="text-hermes-green" />
                   <span className="text-xs text-white/60">Yukselenler</span>
                 </div>
-                <span className="text-sm font-bold text-emerald-400 tabular-nums">{wallStreet.gainerCount}</span>
+                <span className="text-sm font-bold text-hermes-green tabular-nums">{wallStreet.gainerCount}</span>
               </div>
               <div className="flex items-center justify-between p-2 rounded-lg bg-red-500/8 border border-red-500/15">
                 <div className="flex items-center gap-2">
@@ -288,7 +260,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
                   <span className="text-xs text-white/60">Aktif Hacim</span>
                 </div>
                 <span className="text-xs text-white/50">
-                  <span className="text-emerald-400 font-bold">{wallStreet.activeUp}</span>
+                  <span className="text-hermes-green font-bold">{wallStreet.activeUp}</span>
                   <span className="text-white/30 mx-1">/</span>
                   <span className="text-red-400 font-bold">{wallStreet.activeDown}</span>
                 </span>
@@ -345,7 +317,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
             const total = data.sectorPerformance.length || 1
             const breadthRatio = posCount / total
             const regime = breadthRatio >= 0.7 ? 'RISK-ON' : breadthRatio >= 0.4 ? 'NEUTRAL' : 'RISK-OFF'
-            const regimeColor = regime === 'RISK-ON' ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/25' : regime === 'RISK-OFF' ? 'text-red-400 bg-red-500/15 border-red-500/25' : 'text-slate-300 bg-white/[0.06] border-white/[0.1]'
+            const regimeColor = regime === 'RISK-ON' ? 'text-hermes-green bg-hermes-green/15 border-hermes-green/25' : regime === 'RISK-OFF' ? 'text-red-400 bg-red-500/15 border-red-500/25' : 'text-slate-300 bg-white/[0.06] border-white/[0.1]'
             return (
               <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border ${regimeColor}`}>
                 {regime} ({posCount}/{total})
@@ -367,15 +339,15 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
                     <div key={i} className="flex items-center gap-2">
                       <span className="text-[11px] text-white/50 w-24 truncate">{sp.sector}</span>
                       <div className="flex-1 h-4 relative bg-white/[0.03] rounded-md overflow-hidden">
-                        <div className={`absolute top-0 h-full rounded-md transition-all duration-500 ${isPos ? 'left-1/2 bg-emerald-500/30' : 'right-1/2 bg-red-500/30'}`}
+                        <div className={`absolute top-0 h-full rounded-md transition-all duration-500 ${isPos ? 'left-1/2 bg-hermes-green/30' : 'right-1/2 bg-red-500/30'}`}
                           style={{ width: `${barWidth / 2}%` }} />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className={`text-[10px] font-bold tabular-nums ${isPos ? 'text-emerald-400' : 'text-red-400'}`}>
+                          <span className={`text-[10px] font-bold tabular-nums ${isPos ? 'text-hermes-green' : 'text-red-400'}`}>
                             {isPos ? '+' : ''}{pct.toFixed(2)}%
                           </span>
                         </div>
                       </div>
-                      <span className={`text-[10px] w-5 text-center ${isPos ? 'text-emerald-400/60' : 'text-red-400/60'}`}>
+                      <span className={`text-[10px] w-5 text-center ${isPos ? 'text-hermes-green/60' : 'text-red-400/60'}`}>
                         {isPos ? '\u25B2' : '\u25BC'}
                       </span>
                     </div>
@@ -396,7 +368,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       {/* ═══ ROW 3: MOVERS ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
         <MoversCard title="En Cok Yukselen" desc="Bugun en fazla artan hisseler" items={data.topGainers}
-          type="gainer" icon={<ArrowUpRight size={16} className="text-emerald-400" />} onSelect={onSelectSymbol} />
+          type="gainer" icon={<ArrowUpRight size={16} className="text-hermes-green" />} onSelect={onSelectSymbol} />
         <MoversCard title="En Cok Dusen" desc="Bugun en fazla dusen hisseler" items={data.topLosers}
           type="loser" icon={<ArrowDownRight size={16} className="text-red-400" />} onSelect={onSelectSymbol} />
         <MoversCard title="En Yuksek Hacim" desc="En cok alim-satim yapilan hisseler" items={data.mostActive}
@@ -406,14 +378,14 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       {/* ═══ ROW 3.5: BUYUK PARA AKISI (V3) ═══ */}
       <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
         <div className="flex items-center gap-2 mb-3">
-          <DollarSign size={16} className="text-emerald-400/60" />
+          <DollarSign size={16} className="text-hermes-green/60" />
           <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">Buyuk Para Akisi</h3>
           <p className="text-[11px] text-white/25 ml-1">Kurumsal yatirimci yonu</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
             <div className="text-[11px] text-white/30 mb-1">Yukselenler Gucu</div>
-            <div className="text-base font-bold text-emerald-400 tabular-nums">
+            <div className="text-base font-bold text-hermes-green tabular-nums">
               {data.topGainers.slice(0, 5).reduce((s, g) => s + Math.abs(g.changesPercentage || 0), 0).toFixed(1)}%
             </div>
             <div className="text-[10px] text-white/20">Top 5 ort. yukselis</div>
@@ -440,7 +412,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
               const ratio = upCount / total
               return (
                 <>
-                  <div className={`text-base font-bold tabular-nums ${ratio > 0.5 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <div className={`text-base font-bold tabular-nums ${ratio > 0.5 ? 'text-hermes-green' : 'text-red-400'}`}>
                     {ratio > 0.6 ? 'ALICI' : ratio < 0.4 ? 'SATICI' : 'DENGELI'}
                   </div>
                   <div className="text-[10px] text-white/20">{(ratio * 100).toFixed(0)}% pozitif</div>
@@ -472,7 +444,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
 
 function TrendBar({ label, value, desc }: { label: string; value: number; desc: string }) {
   const clampedValue = Math.max(0, Math.min(100, value))
-  const color = clampedValue >= 60 ? '#34d399' : clampedValue >= 40 ? '#94a3b8' : '#f87171'
+  const color = clampedValue >= 60 ? '#62cbc1' : clampedValue >= 40 ? '#94a3b8' : '#f87171'
   return (
     <div>
       <div className="flex items-center justify-between mb-0.5">
@@ -503,7 +475,7 @@ function IndexCard({ index }: { index: IndexQuote }) {
           <span className="text-xs text-white/35 font-medium">{name}</span>
           {desc && <p className="text-[10px] text-white/15">{desc}</p>}
         </div>
-        <span className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${isUp ? 'bg-emerald-500/12 text-emerald-400' : 'bg-red-500/12 text-red-400'}`}>
+        <span className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${isUp ? 'bg-hermes-green/12 text-hermes-green' : 'bg-red-500/12 text-red-400'}`}>
           {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
           {Math.abs(pct).toFixed(2)}%
         </span>
@@ -512,7 +484,7 @@ function IndexCard({ index }: { index: IndexQuote }) {
         <span className="text-xl sm:text-2xl font-bold text-white/90 tabular-nums group-hover:text-white transition-colors">
           {price.toLocaleString('en-US', { maximumFractionDigits: 2 })}
         </span>
-        <span className={`text-sm tabular-nums ${isUp ? 'text-emerald-400/70' : 'text-red-400/70'}`}>
+        <span className={`text-sm tabular-nums ${isUp ? 'text-hermes-green/70' : 'text-red-400/70'}`}>
           {isUp ? '+' : ''}{change.toFixed(2)}
         </span>
       </div>
@@ -521,7 +493,7 @@ function IndexCard({ index }: { index: IndexQuote }) {
         <div className="mt-2 flex items-center gap-1">
           <span className="text-[10px] text-white/25 tabular-nums">{index.dayLow.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
           <div className="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden relative">
-            <div className="absolute h-full bg-gradient-to-r from-red-400/40 via-violet-400/60 to-emerald-400/40 rounded-full"
+            <div className="absolute h-full bg-gradient-to-r from-red-400/40 via-violet-400/60 to-hermes-green/40 rounded-full"
               style={{ width: `${Math.min(100, ((price - index.dayLow) / (index.dayHigh - index.dayLow)) * 100)}%` }} />
           </div>
           <span className="text-[10px] text-white/25 tabular-nums">{index.dayHigh.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
@@ -542,11 +514,11 @@ function SectorTile({ sector }: { sector: SectorPerformance }) {
     <div className="rounded-xl p-3 border border-white/[0.05] hover:border-white/[0.12] transition-all duration-200 cursor-default"
       style={{
         backgroundColor: isUp
-          ? `rgba(52,211,153,${0.04 + intensity * 0.12})`
+          ? `rgba(98,203,193,${0.04 + intensity * 0.12})`
           : `rgba(248,113,113,${0.04 + intensity * 0.12})`,
       }}>
       <div className="text-[11px] text-white/50 truncate mb-1 font-medium">{sector.sector || 'Unknown'}</div>
-      <div className={`flex items-center gap-0.5 text-base font-bold tabular-nums ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+      <div className={`flex items-center gap-0.5 text-base font-bold tabular-nums ${isUp ? 'text-hermes-green' : 'text-red-400'}`}>
         {isUp ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
         {isUp ? '+' : ''}{pct.toFixed(2)}%
       </div>
@@ -571,7 +543,7 @@ function TreasuryDisplay({ treasury }: { treasury: TreasuryRate }) {
 
   return (
     <div className="flex items-start gap-4 mt-2">
-      <div className="flex-1 grid grid-cols-7 gap-1.5">
+      <div className="flex-1 grid grid-cols-4 sm:grid-cols-7 gap-1.5">
         {rates.map(r => (
           <div key={r.label} className="text-center">
             <span className="block text-[10px] text-white/35 mb-1">{r.label}</span>
@@ -583,12 +555,12 @@ function TreasuryDisplay({ treasury }: { treasury: TreasuryRate }) {
           </div>
         ))}
       </div>
-      <div className={`shrink-0 px-3 py-2 rounded-xl border text-center min-w-[100px] ${inverted ? 'bg-red-500/8 border-red-500/15' : 'bg-emerald-500/8 border-emerald-500/15'}`}>
+      <div className={`shrink-0 px-2 sm:px-3 py-2 rounded-xl border text-center min-w-0 sm:min-w-[100px] ${inverted ? 'bg-red-500/8 border-red-500/15' : 'bg-hermes-green/8 border-hermes-green/15'}`}>
         <div className="flex items-center gap-1 justify-center mb-1">
-          <Info size={11} className={inverted ? 'text-red-400/60' : 'text-emerald-400/60'} />
+          <Info size={11} className={inverted ? 'text-red-400/60' : 'text-hermes-green/60'} />
           <span className="text-[10px] text-white/40">2Y-10Y</span>
         </div>
-        <span className={`text-base font-bold tabular-nums ${inverted ? 'text-red-400' : 'text-emerald-400'}`}>
+        <span className={`text-base font-bold tabular-nums ${inverted ? 'text-red-400' : 'text-hermes-green'}`}>
           {spread >= 0 ? '+' : ''}{spread.toFixed(2)}%
         </span>
         {inverted && <p className="text-[9px] text-red-400/50 mt-1">Ters yield egrisi</p>}
@@ -631,7 +603,7 @@ function MoversCard({ title, desc, items, type, icon, onSelect }: {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-white/40 tabular-nums">${price.toFixed(2)}</span>
-                <span className={`flex items-center gap-0.5 text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded-full ${isUp ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                <span className={`flex items-center gap-0.5 text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded-full ${isUp ? 'bg-hermes-green/10 text-hermes-green' : 'bg-red-500/10 text-red-400'}`}>
                   {isUp ? '+' : ''}{pct.toFixed(2)}%
                 </span>
               </div>
@@ -672,7 +644,7 @@ function FearGreedV2({ fg }: { fg: FearGreedComponents }) {
     : fg.composite >= 20 ? 'KORKU'
     : 'ASIRI KORKU'
 
-  const barColor = fg.composite >= 60 ? 'text-emerald-400'
+  const barColor = fg.composite >= 60 ? 'text-hermes-green'
     : fg.composite >= 40 ? 'text-slate-300'
     : 'text-red-400'
 
@@ -695,14 +667,14 @@ function FearGreedV2({ fg }: { fg: FearGreedComponents }) {
         <div className="flex items-center gap-2">
           <span className={`text-xl sm:text-2xl font-black tabular-nums ${barColor}`}>{fg.composite}</span>
           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-            fg.composite >= 60 ? 'text-emerald-400 bg-emerald-500/15' :
+            fg.composite >= 60 ? 'text-hermes-green bg-hermes-green/15' :
             fg.composite >= 40 ? 'text-slate-300 bg-white/[0.06]' :
             'text-red-400 bg-red-500/15'
           }`}>{label}</span>
         </div>
       </div>
       {/* Gradient bar */}
-      <div className="relative h-2.5 rounded-full overflow-hidden bg-gradient-to-r from-red-600 via-orange-500 via-slate-400 to-emerald-500 mb-3">
+      <div className="relative h-2.5 rounded-full overflow-hidden bg-gradient-to-r from-red-600 via-orange-500 via-slate-400 to-hermes-green mb-3">
         <div className="absolute top-0 h-full w-1 bg-white shadow-lg shadow-white/50 rounded-full transition-all duration-700"
           style={{ left: `${Math.max(1, Math.min(99, fg.composite))}%` }} />
       </div>
@@ -712,13 +684,13 @@ function FearGreedV2({ fg }: { fg: FearGreedComponents }) {
           <div key={c.name} className="text-center">
             <div className="text-[10px] text-white/35 mb-1 truncate">{c.name}</div>
             <div className={`text-sm font-bold tabular-nums ${
-              c.score >= 60 ? 'text-emerald-400' : c.score >= 40 ? 'text-slate-300' : 'text-red-400'
+              c.score >= 60 ? 'text-hermes-green' : c.score >= 40 ? 'text-slate-300' : 'text-red-400'
             }`}>{c.score}</div>
             <div className="w-full h-1 bg-white/[0.05] rounded-full overflow-hidden mt-1">
               <div className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${c.score}%`,
-                  backgroundColor: c.score >= 60 ? '#34d399' : c.score >= 40 ? '#94a3b8' : '#f87171'
+                  backgroundColor: c.score >= 60 ? '#62cbc1' : c.score >= 40 ? '#94a3b8' : '#f87171'
                 }} />
             </div>
             <div className="text-[9px] text-white/20 mt-0.5">{c.weight}</div>
@@ -735,21 +707,21 @@ function MacroRadarCards({ fred }: { fred: FredDashboardData & { fearGreedV2: Fe
   const yc = fred.yieldCurve
   const ycColor = yc.status === 'INVERSION' ? 'text-red-400 bg-red-500/10 border-red-500/20'
     : yc.status === 'DIKKAT' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20'
-    : yc.status === 'GENIS' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+    : yc.status === 'GENIS' ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/20'
     : 'text-slate-300 bg-white/[0.04] border-white/[0.08]'
 
   const csColor = fred.creditStress.status === 'CRISIS' ? 'text-red-400'
     : fred.creditStress.status === 'HIGH' ? 'text-orange-400'
     : fred.creditStress.status === 'ELEVATED' ? 'text-yellow-400'
-    : 'text-emerald-400'
+    : 'text-hermes-green'
 
   const vColor = fred.volatility.status === 'PANIC' ? 'text-red-400'
     : fred.volatility.status === 'FEAR' ? 'text-orange-400'
     : fred.volatility.status === 'NORMAL' ? 'text-slate-300'
-    : 'text-emerald-400'
+    : 'text-hermes-green'
 
   const regimeColor: Record<string, string> = {
-    GOLDILOCKS: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/25',
+    GOLDILOCKS: 'text-hermes-green bg-hermes-green/15 border-hermes-green/25',
     REFLATION: 'text-amber-400 bg-amber-500/15 border-amber-500/25',
     STAGFLATION: 'text-red-400 bg-red-500/15 border-red-500/25',
     DEFLATION: 'text-blue-400 bg-blue-500/15 border-blue-500/25',
@@ -1032,7 +1004,7 @@ function HermesPulseGauge({ pulse }: {
 
             <div className="space-y-2.5">
               {components.map((comp, i) => {
-                const barColor = comp.value >= 60 ? '#34d399' : comp.value >= 45 ? '#94a3b8' : '#fb923c'
+                const barColor = comp.value >= 60 ? '#62cbc1' : comp.value >= 45 ? '#94a3b8' : '#fb923c'
                 return (
                   <div key={i} className="flex items-center gap-3 group">
                     <span className="text-[10px] w-3 text-center" style={{ color: `${barColor}80` }}>{comp.icon}</span>
@@ -1056,7 +1028,7 @@ function HermesPulseGauge({ pulse }: {
             {/* Mini summary tags */}
             <div className="flex items-center gap-2 mt-4 flex-wrap">
               {[
-                { label: '5 Modul Aktif', color: 'text-emerald-400/60 bg-emerald-500/8' },
+                { label: '5 Modul Aktif', color: 'text-hermes-green/60 bg-hermes-green/8' },
                 { label: 'Tum hisseler', color: 'text-violet-400/60 bg-violet-500/8' },
                 { label: 'Canli Veri', color: 'text-blue-400/60 bg-blue-500/8' },
               ].map((tag, i) => (
