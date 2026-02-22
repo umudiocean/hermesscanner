@@ -70,7 +70,7 @@ interface TabStocksProps {
   onSelectSymbol: (symbol: string) => void
 }
 
-type SortField = keyof Pick<StockRow, 'symbol' | 'companyName' | 'sector' | 'price' | 'changePercent' | 'marketCap' | 'pe' | 'roe' | 'debtEquity' | 'dividendYield' | 'volume' | 'signalScore' | 'confidence' | 'altmanZ' | 'piotroski' | 'dcfUpside' | 'riskScore' | 'valuationScore' | 'shortFloat' | 'overvalScore'>
+type SortField = keyof Pick<StockRow, 'symbol' | 'companyName' | 'sector' | 'price' | 'changePercent' | 'marketCap' | 'pe' | 'roe' | 'debtEquity' | 'dividendYield' | 'volume' | 'signalScore' | 'confidence' | 'altmanZ' | 'piotroski' | 'dcfUpside' | 'riskScore' | 'valuationScore' | 'shortFloat' | 'overvalScore' | 'priceTarget' | 'yearLow'>
 type SortDir = 'asc' | 'desc'
 type SegmentFilter = 'ALL' | 'MEGA' | 'LARGE' | 'MID' | 'SMALL' | 'MICRO'
 
@@ -424,6 +424,12 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                   tip={COLUMN_TIPS.valuation} onTip={setTooltip} />
                 <ThC field="overvalScore" label="OVERVAL" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
                   tip={COLUMN_TIPS.overval} onTip={setTooltip} />
+                <ThC field="priceTarget" label="HEDEF" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
+                  tip="Analist konsensus hedef fiyat" onTip={setTooltip} />
+                <ThC field="yearLow" label="DIP" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
+                  tip="52 hafta dip fiyat (yillik en dusuk)" onTip={setTooltip} />
+                <ThC field="priceTarget" label="R:R" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
+                  tip="Risk/Reward orani (hedef kazanc / dip kayip)" onTip={setTooltip} />
                 <ThC field="shortFloat" label="FLOAT" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
                   tip={COLUMN_TIPS.shortFloat} onTip={setTooltip} />
                 <ThC field="volume" label="HACIM" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
@@ -595,6 +601,40 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                           ))}
                         </div>
                       )}
+                    </td>
+                    {/* HEDEF (Analist Konsensus Target) */}
+                    <td className="px-1 py-2 text-right">
+                      {s.priceTarget > 0 ? (
+                        <div className="flex flex-col items-end">
+                          <span className={`font-mono text-[11px] font-semibold ${
+                            s.priceTarget > s.price ? 'text-hermes-green' : s.priceTarget < s.price ? 'text-red-400' : 'text-white/50'
+                          }`}>${s.priceTarget.toFixed(2)}</span>
+                          <span className="text-[9px] text-white/25">{s.price > 0 ? `${((s.priceTarget - s.price) / s.price * 100) >= 0 ? '+' : ''}${((s.priceTarget - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
+                        </div>
+                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                    </td>
+                    {/* DIP (52W Low) */}
+                    <td className="px-1 py-2 text-right">
+                      {s.yearLow > 0 ? (
+                        <div className="flex flex-col items-end">
+                          <span className="font-mono text-[11px] text-red-400/70">${s.yearLow.toFixed(2)}</span>
+                          <span className="text-[9px] text-white/25">{s.price > 0 ? `${((s.yearLow - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
+                        </div>
+                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                    </td>
+                    {/* R:R */}
+                    <td className="px-1 py-2 text-right">
+                      {(() => {
+                        const upside = s.priceTarget > 0 && s.price > 0 ? s.priceTarget - s.price : 0
+                        const downside = s.yearLow > 0 && s.price > 0 ? s.price - s.yearLow : 0
+                        const rr = downside > 0 ? upside / downside : 0
+                        if (rr <= 0) return <span className="text-white/15">{'\u2014'}</span>
+                        return (
+                          <span className={`font-mono text-[11px] font-bold ${
+                            rr >= 2 ? 'text-hermes-green' : rr >= 1 ? 'text-gold-300' : 'text-red-400'
+                          }`}>{rr.toFixed(1)}</span>
+                        )
+                      })()}
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums ${

@@ -335,13 +335,16 @@ export default function ModuleCryptoTradeAI() {
                 <th className="text-center px-3 py-2.5 cursor-pointer select-none hover:text-white/50" onClick={() => handleSort('confidence')}>Guven <SortIcon k="confidence" /></th>
                 <th className="text-center px-3 py-2.5 cursor-pointer select-none hover:text-white/50" onClick={() => handleSort('valuation')}>Fiyatlama <SortIcon k="valuation" /></th>
                 <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/50 hidden lg:table-cell" onClick={() => handleSort('vwapDist')}>VWAP % <SortIcon k="vwapDist" /></th>
+                <th className="text-right px-3 py-2.5 hidden xl:table-cell">Hedef</th>
+                <th className="text-right px-3 py-2.5 hidden xl:table-cell">Dip</th>
+                <th className="text-center px-3 py-2.5 hidden xl:table-cell">R:R</th>
                 <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/50 hidden md:table-cell" onClick={() => handleSort('mcap')}>MCap <SortIcon k="mcap" /></th>
                 <th className="text-center px-3 py-2.5 w-10">Takip</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.03]">
               {loading && items.length === 0 && Array.from({ length: 12 }).map((_, i) => (
-                <tr key={i}><td colSpan={13} className="px-3 py-3"><div className="h-4 bg-white/[0.04] animate-pulse rounded" /></td></tr>
+                <tr key={i}><td colSpan={16} className="px-3 py-3"><div className="h-4 bg-white/[0.04] animate-pulse rounded" /></td></tr>
               ))}
               {sortedItems.slice(0, 200).map(s => {
                 const ai = s.tradeAI
@@ -397,6 +400,36 @@ export default function ModuleCryptoTradeAI() {
                     </td>
                     <td className={`px-3 py-2 text-right text-[10px] hidden lg:table-cell ${ai.vwapDistPct < -3 ? 'text-emerald-400' : ai.vwapDistPct > 3 ? 'text-red-400' : 'text-white/30'}`}>
                       {ai.vwapDistPct > 0 ? '+' : ''}{ai.vwapDistPct.toFixed(1)}%
+                    </td>
+                    {/* Hedef (upperInner band) */}
+                    <td className="px-3 py-2 text-right hidden xl:table-cell">
+                      {ai.bands.upperInner > 0 ? (
+                        <div className="flex flex-col items-end">
+                          <span className={`font-mono text-[10px] font-semibold ${ai.bands.upperInner > s.current_price ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {formatPrice(ai.bands.upperInner)}
+                          </span>
+                          <span className="text-[8px] text-white/20">{s.current_price > 0 ? `${((ai.bands.upperInner - s.current_price) / s.current_price * 100) >= 0 ? '+' : ''}${((ai.bands.upperInner - s.current_price) / s.current_price * 100).toFixed(1)}%` : ''}</span>
+                        </div>
+                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                    </td>
+                    {/* Dip (lowerInner band) */}
+                    <td className="px-3 py-2 text-right hidden xl:table-cell">
+                      {ai.bands.lowerInner > 0 ? (
+                        <div className="flex flex-col items-end">
+                          <span className="font-mono text-[10px] text-red-400/70">{formatPrice(ai.bands.lowerInner)}</span>
+                          <span className="text-[8px] text-white/20">{s.current_price > 0 ? `${((ai.bands.lowerInner - s.current_price) / s.current_price * 100).toFixed(1)}%` : ''}</span>
+                        </div>
+                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                    </td>
+                    {/* R:R */}
+                    <td className="px-3 py-2 text-center hidden xl:table-cell">
+                      {(() => {
+                        const upside = ai.bands.upperInner > 0 ? ai.bands.upperInner - s.current_price : 0
+                        const downside = ai.bands.lowerInner > 0 ? s.current_price - ai.bands.lowerInner : 0
+                        const rr = downside > 0 ? upside / downside : 0
+                        if (rr <= 0) return <span className="text-white/15">{'\u2014'}</span>
+                        return <span className={`font-mono text-[10px] font-bold ${rr >= 2 ? 'text-emerald-400' : rr >= 1 ? 'text-amber-400' : 'text-red-400'}`}>{rr.toFixed(1)}</span>
+                      })()}
                     </td>
                     <td className="px-3 py-2 text-right text-[10px] text-white/25 hidden md:table-cell">{formatMcap(s.market_cap)}</td>
                     <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>

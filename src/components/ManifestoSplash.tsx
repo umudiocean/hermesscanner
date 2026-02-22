@@ -100,7 +100,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
   const d = (ms: number) => ({ transitionDelay: `${ms}ms` })
 
   return (
-    <div className={`fixed inset-0 z-[100] bg-black transition-all duration-600 ${closing ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}>
+    <div className={`fixed inset-0 z-[100] bg-black transition-all duration-600 overflow-y-auto overflow-x-hidden ${closing ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}>
 
       <canvas ref={canvasRef} className="absolute inset-0 z-0" />
 
@@ -112,7 +112,18 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
         <div className="absolute top-0 left-1/2 w-[1px] h-full bg-gradient-to-b from-transparent via-white/[0.03] to-transparent" />
       </div>
 
-      <div className="relative z-10 h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-12 overflow-hidden">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-12 py-16">
+
+        {/* Mobile close button — always visible at top-right */}
+        <button
+          onClick={handleClose}
+          className="fixed top-4 right-4 z-[110] w-10 h-10 flex items-center justify-center rounded-full bg-white/[0.08] border border-white/[0.15] text-white/60 hover:text-white hover:bg-white/[0.15] transition-all duration-300"
+          aria-label="Kapat"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
 
         {/* Logo + Title */}
         <div className={`flex items-center gap-3 mb-6 lg:mb-8 transition-all duration-700 ${p(1) ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6'}`}>
@@ -250,7 +261,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
         </div>
 
         <div className={`mt-4 lg:mt-6 text-center transition-all duration-700 ${p(5) ? 'opacity-100' : 'opacity-0'}`} style={d(600)}>
-          <button onClick={handleClose} className="text-[10px] text-white/15 hover:text-white/40 transition-colors duration-300 tracking-widest uppercase">
+          <button onClick={handleClose} className="text-xs text-white/40 hover:text-white/70 transition-colors duration-300 tracking-widest uppercase px-4 py-2 rounded-lg border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.04]">
             Kapat &times;
           </button>
         </div>
