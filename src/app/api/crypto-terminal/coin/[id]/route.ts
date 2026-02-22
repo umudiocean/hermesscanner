@@ -99,17 +99,28 @@ export async function GET(
       derivatives: coinDerivatives,
     })
 
+    // HERMES_FIX: S10-DETAIL 2026-02-19 — Keep categories for detail UI, strip missingInputs
+    const sanitizedScore = score ? {
+      total: score.total,
+      level: score.level,
+      categories: score.categories,
+      confidence: score.confidence,
+      degraded: score.degraded,
+    } : null
+
     return NextResponse.json({
       detail,
-      score,
+      score: sanitizedScore,
       derivatives: coinDerivatives.slice(0, 20),
       tickers: (tickers as unknown[]).slice(0, 50),
       timestamp: new Date().toISOString(),
     })
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
+    // HERMES_FIX: S4-DETAIL 2026-02-19 — Don't leak raw error to client
+    const errMsg = err instanceof Error ? err.message : String(err)
+    console.error(`[CRYPTO] Coin detail failed: ${errMsg}`)
     return NextResponse.json(
-      { error: 'Failed to fetch coin detail', message, timestamp: new Date().toISOString() },
+      { error: 'Failed to fetch coin detail', timestamp: new Date().toISOString() },
       { status: 500 },
     )
   }

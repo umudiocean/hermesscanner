@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export function middleware(request: NextRequest) {
+// HERMES_FIX: DISTRIBUTED_RATE_LIMIT 2026-02-19 SEVERITY: HIGH
+// Replaced in-memory Map rate limiter with Upstash Redis (distributed).
+// In serverless, each function instance has separate memory — in-memory Map
+// is ineffective. Upstash @upstash/ratelimit provides atomic sliding window
+// shared across all instances.
+//
+// Graceful fallback: If Redis unavailable → in-memory (same as before).
+// Bot blocking remains synchronous (no Redis dependency).
+
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const response = NextResponse.next()
 
   // ─── Admin Auth Protection ─────────────────────────────────────
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
@@ -22,8 +34,26 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // ─── Bot Blocking on Sensitive API Routes (synchronous, no Redis) ──
+  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/admin/')) {
+    const ua = request.headers.get('user-agent') || ''
+    const isBot = /bot|crawler|spider|scraper|python-requests|httpie|curl\/|wget\//i.test(ua)
+    if (isBot) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // HERMES_FIX: DISTRIBUTED_RATE_LIMIT — Redis-backed sliding window (60 req/min per IP+route)
+    // Falls back to in-memory if Redis unavailable
+    const ip = getClientIP(request)
+    const routeGroup = pathname.split('/').slice(0, 4).join('/')
+    const rlResult = await checkRateLimit(`${ip}:${routeGroup}`, 60, 60_000)
+
+    if (!rlResult.allowed) {
+      return rateLimitResponse(rlResult.retryAfterMs)
+    }
+  }
+
   // ─── Analytics: Page View + Unique Visitor ─────────────────────
-  // Fire-and-forget tracking for non-API, non-static page requests
   if (!pathname.startsWith('/api/') &&
       !pathname.startsWith('/_next/') &&
       !pathname.startsWith('/admin/login') &&
@@ -33,26 +63,22 @@ export function middleware(request: NextRequest) {
     const referrer = request.headers.get('referer') || undefined
     const ua = request.headers.get('user-agent') || undefined
 
-    // Edge-compatible: use waitUntil if available, otherwise fire-and-forget
-    // Middleware runs on Edge, so we use fetch to our own tracking endpoint
     const trackUrl = new URL('/api/admin/track', request.url)
     trackUrl.searchParams.set('p', pathname)
     if (referrer) trackUrl.searchParams.set('r', referrer)
     if (ua) trackUrl.searchParams.set('ua', ua.slice(0, 200))
     trackUrl.searchParams.set('ip', ip)
 
-    // Non-blocking fire-and-forget
     fetch(trackUrl.toString(), { method: 'POST' }).catch(() => {})
   }
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
   matcher: [
     '/admin/:path*',
     '/api/admin/:path*',
-    // Match main pages for analytics
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

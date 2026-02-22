@@ -6,18 +6,15 @@ import { getWatchlist, toggleWatchlist } from '@/lib/store'
 import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 
 // ================================================================
-// BEST SIGNALS Module — V15
-// NASDAQ TEKNIK (52W teknik analiz) + HERMES AI Terminal (temel analiz)
-// capraz sinyal birlestirme — 8 sinyal kategorisi
+// AI SIGNALS Module — V5
+// NASDAQ TEKNIK + HERMES AI Terminal + Overvaluation Motor
+// 6 sinyal: CONFLUENCE BUY/SELL, ALPHA LONG/SHORT, HERMES LONG/SHORT
 //
-// ALPHA LONG   = Strong Long (TEKNIK) + STRONG (AI)  — En guclu alis
-// HERMES LONG  = Strong Long (TEKNIK) + GOOD (AI)    — Guvenli alis
-// SMART LONG   = Long (TEKNIK)        + STRONG (AI)  — Akilli alis
-// SIGNAL LONG  = Long (TEKNIK)        + GOOD (AI)    — Standart alis
-// SIGNAL SHORT = Short (TEKNIK)       + WEAK (AI)    — Standart satis
-// SMART SHORT  = Short (TEKNIK)       + BAD (AI)     — Akilli satis
-// HERMES SHORT = Strong Short (TEKNIK)+ WEAK (AI)    — Guclu satis
-// ALPHA SHORT  = Strong Short (TEKNIK)+ BAD (AI)     — En guclu satis
+// V5 Yenilikler:
+//   - Overvaluation Score (0-100) short sinyalleri guclendirir
+//   - SQUEEZE GUARD: shortFloat > 20% + yukselis → short engellenir
+//   - CONFLUENCE SELL: Overval HIGH dahil edildi (AI BAD olmasa bile)
+//   - ALPHA SHORT: Overval EXTREME (>=80) dahil edildi
 // ================================================================
 
 type BestSignalType =
@@ -42,6 +39,8 @@ interface BestSignalItem {
   // FMP extras
   confidence: number
   valuationLabel: string
+  overvalScore: number
+  overvalLevel: string
 }
 
 interface FmpStock {
@@ -64,9 +63,14 @@ interface FmpStock {
   valuationScore?: number
   valuationLabel?: string
   categories?: {
-    valuation: number; health: number; growth: number; analyst: number
-    insider: number; institutional: number; sector: number; congressional: number
+    valuation: number; health: number; growth: number; analyst: number; quality: number
+    momentum: number; sector: number; smartMoney: number
   }
+  // V5 fields
+  overvalScore?: number
+  overvalLevel?: string
+  badges?: Array<{ type: string; label: string; severity: string }>
+  shortFloat?: number
 }
 
 // SADECE 6 SINYAL — Gorselde gorunen final liste
@@ -238,37 +242,58 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
   },
 }
 
-// ─── Combination map: teknikSignalType + aiSignal + risk => BestSignalType ───
-// SADECE 6 SINYAL: confluence_buy, alpha_long, hermes_long, hermes_short, alpha_short, confluence_sell
-function matchSignal(teknikSignalType: string, aiSignal: string, riskScore?: number): BestSignalType | null {
-  // LONG sinyalleri (Teknik: strong_long veya long)
-  if (teknikSignalType === 'strong_long' || teknikSignalType === 'long') {
-    // CONFLUENCE BUY: Teknik guclu + AI STRONG + Risk dusuk
+// ─── Combination map: teknikSignalType + aiSignal + risk + overval => BestSignalType ───
+// V5: Overvaluation Score ile guclendirilmis short sinyaller
+// SQUEEZE_GUARD: shortFloat > 20% + yukselis → SHORT sinyaller engellenir
+function matchSignal(
+  teknikSignalType: string,
+  aiSignal: string,
+  riskScore?: number,
+  overvalScore?: number,
+  overvalLevel?: string,
+  shortFloat?: number,
+  changePercent?: number,
+): BestSignalType | null {
+  const isLong = teknikSignalType === 'strong_long' || teknikSignalType === 'long'
+  const isShort = teknikSignalType === 'strong_short' || teknikSignalType === 'short'
+
+  // LONG sinyalleri
+  if (isLong) {
     if ((aiSignal === 'STRONG' || aiSignal === 'GOOD') && riskScore !== undefined && riskScore <= 35) {
       return 'confluence_buy'
     }
-    // ALPHA LONG: Teknik guclu + AI STRONG
     if (aiSignal === 'STRONG') {
       return 'alpha_long'
     }
-    // HERMES LONG: Teknik guclu + AI GOOD veya NEUTRAL
     if (aiSignal === 'GOOD' || aiSignal === 'NEUTRAL') {
       return 'hermes_long'
     }
   }
 
-  // SHORT sinyalleri (Teknik: strong_short veya short)
-  if (teknikSignalType === 'strong_short' || teknikSignalType === 'short') {
-    // CONFLUENCE SELL: Teknik guclu + AI BAD + Risk yuksek
-    if ((aiSignal === 'BAD' || aiSignal === 'WEAK') && riskScore !== undefined && riskScore >= 65) {
-      return 'confluence_sell'
+  // SHORT sinyalleri — V5: Overvaluation Score destegi
+  if (isShort) {
+    // SQUEEZE GUARD: Yuksek short float + yukselis = short sinyal engelle
+    if ((shortFloat ?? 0) > 20 && (changePercent ?? 0) > 2) {
+      return null
     }
-    // ALPHA SHORT: Teknik guclu + AI BAD
-    if (aiSignal === 'BAD') {
+
+    const overval = overvalScore ?? 0
+    const hasHighOverval = overval >= 65 || overvalLevel === 'HIGH' || overvalLevel === 'EXTREME'
+
+    // CONFLUENCE SELL: Teknik short + (AI BAD veya OVERVAL HIGH) + Risk yuksek
+    if (riskScore !== undefined && riskScore >= 65) {
+      if ((aiSignal === 'BAD' || aiSignal === 'WEAK') || hasHighOverval) {
+        return 'confluence_sell'
+      }
+    }
+
+    // ALPHA SHORT: Teknik short + AI BAD veya Overvaluation EXTREME
+    if (aiSignal === 'BAD' || (overvalLevel === 'EXTREME' && overval >= 80)) {
       return 'alpha_short'
     }
-    // HERMES SHORT: Teknik guclu + AI WEAK veya NEUTRAL
-    if (aiSignal === 'WEAK' || aiSignal === 'NEUTRAL') {
+
+    // HERMES SHORT: Teknik short + (AI WEAK/NEUTRAL veya Overval HIGH)
+    if (aiSignal === 'WEAK' || aiSignal === 'NEUTRAL' || hasHighOverval) {
       return 'hermes_short'
     }
   }
@@ -459,7 +484,11 @@ export default function ModuleNasdaqSignals() {
       const fmp = fmpMap.get(r.symbol)
       if (!fmp) continue
 
-      const bestType = matchSignal(r.hermes.signalType, fmp.signal, fmp.riskScore)
+      const bestType = matchSignal(
+        r.hermes.signalType, fmp.signal, fmp.riskScore,
+        fmp.overvalScore, fmp.overvalLevel, fmp.shortFloat,
+        fmp.changePercent,
+      )
       if (!bestType) continue
 
       items.push({
@@ -476,6 +505,8 @@ export default function ModuleNasdaqSignals() {
         sector: fmp.sector || '-',
         confidence: fmp.confidence || 0,
         valuationLabel: fmp.valuationLabel || '',
+        overvalScore: fmp.overvalScore || 0,
+        overvalLevel: fmp.overvalLevel || 'LOW',
       })
       cnt[bestType]++
       cnt.all++

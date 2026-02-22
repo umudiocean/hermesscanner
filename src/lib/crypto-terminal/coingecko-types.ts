@@ -7,14 +7,15 @@
 
 export type CryptoScoreLevel = 'STRONG' | 'GOOD' | 'NEUTRAL' | 'WEAK' | 'BAD'
 
+// HERMES_FIX: F19 2026-02-19 — Comments synced to V2 CRYPTO_SCORE_WEIGHTS below
 export interface CryptoScoreBreakdown {
-  marketStructure: number   // 0-100 (agirlik: 17%) — mcap rank, supply ratio, mcap size
-  momentum: number          // 0-100 (agirlik: 15%) — 1h/24h/7d/30d price change
-  volume: number            // 0-100 (agirlik: 13%) — volume/mcap percentile, abs volume
-  sentiment: number         // 0-100 (agirlik: 10%) — community, developer, public interest
-  fundamentals: number      // 0-100 (agirlik: 13%) — TVL, FDV/mcap, supply ratio
-  onchain: number           // 0-100 (agirlik: 15%) — holder conc, growth, smart money, DEX liq
-  exchange: number          // 0-100 (agirlik: 7%)  — exchange count, trust score spread
+  marketStructure: number   // 0-100 (agirlik: 15%) — mcap rank, supply ratio, mcap size
+  momentum: number          // 0-100 (agirlik: 13%) — 1h/24h/7d/30d price change
+  volume: number            // 0-100 (agirlik: 12%) — volume/mcap percentile, abs volume
+  sentiment: number         // 0-100 (agirlik: 6%)  — community, developer, public interest
+  fundamentals: number      // 0-100 (agirlik: 18%) — TVL, FDV/mcap, supply, DefiLlama revenue
+  onchain: number           // 0-100 (agirlik: 20%) — Moralis holders, smart money, DEX liq
+  exchange: number          // 0-100 (agirlik: 6%)  — exchange count, trust score spread
   derivatives: number       // 0-100 (agirlik: 10%) — funding z-score, OI, spread
 }
 
@@ -28,16 +29,18 @@ export interface CryptoScore {
   timestamp: string
 }
 
-// K13: Revised weights — 6/6 AI Consensus (On-Chain 10→15%, Derivatives 5→10%)
+// V2 Weights — 6 AI Consensus + DefiLlama + Moralis real data integration
+// On-Chain 15→20% (Moralis real holder/whale data), Fundamentals 13→18% (DefiLlama TVL+revenue)
+// Sentiment 10→6% (noisy/low signal), Exchange 7→6% (stable metric)
 export const CRYPTO_SCORE_WEIGHTS: Record<keyof CryptoScoreBreakdown, number> = {
-  marketStructure: 0.17,
-  momentum: 0.15,
-  volume: 0.13,
-  sentiment: 0.10,
-  fundamentals: 0.13,
-  onchain: 0.15,      // Was 0.10 — critical for crypto, now with real data
-  exchange: 0.07,
-  derivatives: 0.10,  // Was 0.05 — funding z-score + OI is key signal
+  marketStructure: 0.15,  // Was 0.17
+  momentum: 0.13,         // Was 0.15
+  volume: 0.12,           // Was 0.13
+  sentiment: 0.06,        // Was 0.10 — reduced (noisy)
+  fundamentals: 0.18,     // Was 0.13 — increased (DefiLlama TVL + protocol revenue)
+  onchain: 0.20,          // Was 0.15 — increased (Moralis real holder + smart money data)
+  exchange: 0.06,         // Was 0.07
+  derivatives: 0.10,      // Same — funding z-score + OI
 }
 
 export const CRYPTO_CATEGORY_LABELS: Record<keyof CryptoScoreBreakdown, string> = {
@@ -50,6 +53,14 @@ export const CRYPTO_CATEGORY_LABELS: Record<keyof CryptoScoreBreakdown, string> 
   exchange: 'Borsa',
   derivatives: 'Turev',
 }
+
+// HERMES_FIX: CLIENT_BUNDLE_WEIGHTS 2026-02-19 SEVERITY: HIGH
+// Ordered category keys for client-side iteration without exposing weight values.
+// Client components MUST use this instead of CRYPTO_SCORE_WEIGHTS.
+export const CRYPTO_CATEGORY_KEYS: (keyof CryptoScoreBreakdown)[] = [
+  'onchain', 'fundamentals', 'marketStructure', 'momentum',
+  'volume', 'derivatives', 'sentiment', 'exchange',
+]
 
 // Score level helpers
 export function getCryptoScoreLevel(score: number): CryptoScoreLevel {
@@ -464,10 +475,11 @@ export interface TreasuryCompany {
 }
 
 // Fear & Greed (crypto-specific)
+// HERMES_FIX: S6-TYPE 2026-02-19 — components made optional (not sent to client)
 export interface CryptoFearGreed {
   index: number
   label: string
-  components: {
+  components?: {
     btcDominance: number
     volumeMomentum: number
     priceMomentum: number
@@ -530,6 +542,7 @@ export interface CryptoMarketDashboard {
   globalDefi: GlobalDeFiData['data'] | null
   trending: TrendingData | null
   fearGreed: CryptoFearGreed | null
+  alternativeFG: AlternativeFearGreedData | null
   topGainers: CoinMarket[]
   topLosers: CoinMarket[]
   btcDominance: number
@@ -565,7 +578,75 @@ export interface CryptoTerminalCoin {
   fdv: number | null
   tvl: number | null
   sparkline7d: number[]
-  score: CryptoScore | null
+  // HERMES_FIX: S1-TYPE 2026-02-19 — Sanitized types for client (no internal breakdowns)
+  score: CryptoScorePublic | null
+  defiLlama?: {
+    tvl: number | null
+    tvlChange1d: number | null
+    tvlChange7d: number | null
+    revenue24h: number | null
+    fees24h: number | null
+    category: string | null
+    protocolName: string | null
+  } | null
+  overvaluation?: CryptoOvervaluationPublic | null
+  healthIndex?: CryptoHealthIndexPublic | null
+}
+
+// Client-safe sanitized types (no internal scoring breakdowns)
+export interface CryptoScorePublic {
+  total: number
+  level: CryptoScoreLevel
+  confidence: number
+  degraded: boolean
+}
+
+export interface CryptoOvervaluationPublic {
+  score: number
+  level: CryptoOvervaluation['level']
+}
+
+export interface CryptoHealthIndexPublic {
+  score: number
+  level: CryptoHealthIndex['level']
+}
+
+// ─── Crypto Overvaluation Score ─────────────────────────────────────
+// Identifies overvalued tokens — used for short signal filtering
+export interface CryptoOvervaluation {
+  score: number             // 0-100 (higher = more overvalued)
+  level: 'EXTREME' | 'HIGH' | 'MODERATE' | 'FAIR' | 'UNDERVALUED'
+  components: {
+    fdvMcapRatio: number    // FDV/MCap (>3x = bad)
+    athProximity: number    // How close to ATH (near ATH = risky)
+    whaleConcentration: number // High concentration = dump risk
+    momentumExhaustion: number // Sharp recent rise without fundamentals
+    supplyInflation: number   // Low circulating/total = future dilution
+  }
+}
+
+// ─── Crypto Health Index (CHI) ──────────────────────────────────────
+// Composite health metric — analogous to Altman Z-Score for stocks
+export interface CryptoHealthIndex {
+  score: number             // 0-100
+  level: 'HEALTHY' | 'CAUTION' | 'RISKY' | 'CRITICAL'
+  components: {
+    tvlTrend: number        // TVL stability and growth
+    holderGrowth: number    // Address count growth trend
+    exchangeHealth: number  // Listing quality + trust scores
+    liquidityDepth: number  // Volume/mcap + DEX liquidity
+    developmentActivity: number // GitHub commits, PRs
+  }
+}
+
+// ─── Alternative.me Fear & Greed (independent source) ────────────────
+export interface AlternativeFearGreedData {
+  current: number
+  label: string
+  yesterday: number | null
+  weekAgo: number | null
+  monthAgo: number | null
+  history: Array<{ date: string; value: number; label: string }>
 }
 
 // Newly listed coins

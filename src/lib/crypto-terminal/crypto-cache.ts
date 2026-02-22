@@ -155,18 +155,30 @@ export async function getStaleWhileRevalidate<T>(
 
   const stale = getMemoryCache<T>(key, staleAge)
   if (stale !== null) {
+    // HERMES_FIX: SWR-LOG 2026-02-19 SEVERITY: HIGH — was silently swallowing
     fetcher().then(data => {
       setMemoryCache(key, data)
       setRedisCache(`crypto:${key}`, data, staleAge).catch(() => {})
       setDiskCache(key, data).catch(() => {})
-    }).catch(() => {})
+    }).catch(err => {
+      logger.warn('SWR background revalidation failed', { module: 'cryptoCache', key, error: err instanceof Error ? err.message : String(err) })
+    })
     return stale
   }
 
+  // HERMES_FIX: SWR_REVALIDATION 2026-02-19 SEVERITY: MEDIUM
+  // Redis hit now triggers background revalidation (was: serve-only, no refresh)
   const redisKey = `crypto:${key}`
   const redis = await getRedisCache<T>(redisKey)
   if (redis !== null) {
     setMemoryCache(key, redis)
+    fetcher().then(data => {
+      setMemoryCache(key, data)
+      setRedisCache(redisKey, data, staleAge).catch(() => {})
+      setDiskCache(key, data).catch(() => {})
+    }).catch(err => {
+      logger.warn('SWR redis background revalidation failed', { module: 'cryptoCache', key, error: err instanceof Error ? err.message : String(err) })
+    })
     return redis
   }
 
@@ -178,7 +190,9 @@ export async function getStaleWhileRevalidate<T>(
       setMemoryCache(key, data)
       setRedisCache(redisKey, data, staleAge).catch(() => {})
       setDiskCache(key, data).catch(() => {})
-    }).catch(() => {})
+    }).catch(err => {
+      logger.warn('SWR disk background revalidation failed', { module: 'cryptoCache', key, error: err instanceof Error ? err.message : String(err) })
+    })
     return disk
   }
 

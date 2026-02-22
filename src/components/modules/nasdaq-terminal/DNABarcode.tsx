@@ -2,8 +2,7 @@
 
 // ═══════════════════════════════════════════════════════════════════
 // HERMES AI TERMINAL - DNA Barcode Component
-// V3: 10 kategori horizontal bar chart (+Technical, +Momentum)
-// İmza tasarım öğesi
+// V5: 8 kategori horizontal bar chart (Smart Money merged)
 // ═══════════════════════════════════════════════════════════════════
 
 import { FMPScoreBreakdown, FMP_SCORE_WEIGHTS, CATEGORY_LABELS, getScoreLevel, getScoreColor } from '@/lib/fmp-terminal/fmp-types'
@@ -15,8 +14,8 @@ interface DNABarcodeProps {
 
 const CATEGORY_ORDER: (keyof FMPScoreBreakdown)[] = [
   'valuation', 'health', 'growth',
-  'analyst', 'momentum', 'sector',
-  'insider', 'institutional', 'congressional',
+  'analyst', 'quality', 'momentum',
+  'sector', 'smartMoney',
 ]
 
 export default function DNABarcode({ categories, compact = false }: DNABarcodeProps) {

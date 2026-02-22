@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════
-// FMP Terminal - All Stocks List API (V2 — 8-Category Scoring)
+// HERMES AI Terminal - All Stocks List API (V5)
 // GET /api/fmp-terminal/stocks
-// Returns all stocks with 8-category percentile-based scoring
-// 6 AI Consensus: Percentile normalization, Altman Z gate, DCF reliability
+// 8-category scoring (Smart Money merged), badges, overvaluation motor,
+// sector-aware Altman Z, 3D confidence, earnings surprises
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -19,7 +19,7 @@ import {
   createDefaultInput, computeRiskScore,
   ScoreInputMetrics, RiskScore
 } from '@/lib/fmp-terminal/fmp-score-engine'
-import { FMPScore, RedFlag, computeScoreThresholds } from '@/lib/fmp-terminal/fmp-types'
+import { FMPScore, RedFlag, computeScoreThresholds, StockBadge, OvervaluationResult } from '@/lib/fmp-terminal/fmp-types'
 
 const FMP_BASE = 'https://financialmodelingprep.com/stable'
 const SECTORS_FILE = path.join(process.cwd(), 'data', 'sectors.json')
@@ -57,21 +57,18 @@ interface StockRow {
   avgVolume: number
   beta: number
   evEbitda: number
-  // V2 Scoring
+  // V5 Scoring (8 category — Smart Money merged)
   signal: string
   signalScore: number
-  // V4 8-Category Breakdown (Technical kaldirildi)
   categories: {
     valuation: number
     health: number
     growth: number
     analyst: number
     quality: number
-    insider: number
-    institutional: number
     momentum: number
     sector: number
-    congressional: number
+    smartMoney: number
   }
   confidence: number
   redFlags: RedFlag[]
@@ -91,6 +88,12 @@ interface StockRow {
   valuationLabel: string
   // Short Interest
   shortFloat: number
+  // V5 NEW
+  badges: StockBadge[]
+  overvalScore: number
+  overvalLevel: string
+  yearHigh: number
+  yearLow: number
 }
 
 // ─── CSV Parser ────────────────────────────────────────────────────
@@ -134,7 +137,7 @@ export async function GET(request: NextRequest) {
   try {
     const hermesSymbols = new Set(getSymbols('ALL'))
 
-    const stocks = await getCached<StockRow[]>('fmp_stocks_v6_fixed_thresholds', CACHE_TTL.QUOTE, async () => {
+    const stocks = await getCached<StockRow[]>('fmp_stocks_v7_badges_overval', CACHE_TTL.QUOTE, async () => {
       console.log('[FMP Stocks V2] Fetching bulk data for 8-category scoring...')
 
       // ═══════════════════════════════════════════════════════════
@@ -155,7 +158,7 @@ export async function GET(request: NextRequest) {
       // ═══════════════════════════════════════════════════════════
       // STEP 2: BULK DATA FETCHES (parallel)
       // ═══════════════════════════════════════════════════════════
-      type MetricsData = { pe: number; pb: number; roe: number; de: number; cr: number; dy: number; evEbitda: number; pfcf: number; ic: number; fcfps: number; pegRatio: number; netIncPerShare: number; bvPerShare: number; grossProfitMargin: number }
+      type MetricsData = { pe: number; pb: number; roe: number; de: number; cr: number; dy: number; evEbitda: number; pfcf: number; ic: number; fcfps: number; pegRatio: number; netIncPerShare: number; bvPerShare: number; grossProfitMargin: number; priceToSales: number }
       type ScoreData = { altmanZ: number; piotroski: number }
       type DCFData = { dcf: number; stockPrice: number }
       type AnalystData = { strongBuy: number; buy: number; hold: number; sell: number; strongSell: number; consensus: string }
@@ -169,21 +172,17 @@ export async function GET(request: NextRequest) {
       const targetMap = new Map<string, PriceTargetData>()
       const growthMap = new Map<string, GrowthData>()
 
-      // Parallel fetch: ratios, scores, dcf, analyst, price-targets, growth, key-metrics, sector-perf
-      const [ratiosRes, scoresRes, dcfRes, analystRes, targetRes, growthRes, keyMetricsRes, sectorPerfRes] = await Promise.allSettled([
+      // Parallel fetch: ratios, scores, dcf, analyst, price-targets, growth, key-metrics, sector-perf, earnings-surprises
+      const [ratiosRes, scoresRes, dcfRes, analystRes, targetRes, growthRes, keyMetricsRes, sectorPerfRes, earningsSurprisesRes] = await Promise.allSettled([
         fmpFetch('/ratios-ttm-bulk'),
         fmpFetch('/scores-bulk'),
         fmpFetch('/dcf-bulk'),
         fmpFetch('/upgrades-downgrades-consensus-bulk'),
         fmpFetch('/price-target-summary-bulk'),
-        // Fetch growth data — use previous year for most complete dataset
-        // (current year has very few stocks since most haven't reported yet)
         fmpFetch('/income-statement-growth-bulk', { year: String(new Date().getFullYear() - 1), period: 'annual' }),
         fmpFetch('/key-metrics-ttm-bulk'),
-        // Sector performance — find last weekday
         (() => {
           const d = new Date()
-          // Go back to find last weekday
           for (let i = 0; i <= 5; i++) {
             const check = new Date(d)
             check.setDate(check.getDate() - i)
@@ -193,6 +192,7 @@ export async function GET(request: NextRequest) {
           }
           return fmpFetch('/sector-performance-snapshot', { date: d.toISOString().split('T')[0] })
         })(),
+        fmpFetch('/earnings-surprises-bulk'),
       ])
 
       // Parse Ratios TTM Bulk
@@ -221,6 +221,7 @@ export async function GET(request: NextRequest) {
                 netIncPerShare: nips,
                 bvPerShare: bvps,
                 grossProfitMargin: safeNum(row.grossProfitMarginTTM),
+                priceToSales: safeNum(row.priceToSalesRatioTTM),
               })
             }
           }
@@ -246,6 +247,7 @@ export async function GET(request: NextRequest) {
                 netIncPerShare: nips,
                 bvPerShare: bvps,
                 grossProfitMargin: safeNum(m.grossProfitMarginTTM),
+                priceToSales: safeNum(m.priceToSalesRatioTTM),
               })
             }
           }
@@ -495,6 +497,47 @@ export async function GET(request: NextRequest) {
         } catch (e) { console.warn('[V3] Sector perf parse error:', e) }
       }
 
+      // Parse Earnings Surprises Bulk (beat/miss counts for badges)
+      type EarningsData = { beatCount: number; missCount: number; lastSurprise: number }
+      const earningsMap = new Map<string, EarningsData>()
+      if (earningsSurprisesRes.status === 'fulfilled' && earningsSurprisesRes.value.ok) {
+        try {
+          const text = await earningsSurprisesRes.value.text()
+          // earnings-surprises-bulk returns per-quarter rows — aggregate last 4
+          const rawMap = new Map<string, Array<{ actual: number; estimated: number }>>()
+          const parseRows = (rows: Array<Record<string, string | number>>) => {
+            for (const row of rows) {
+              const sym = String(row.symbol || '')
+              if (!sym || !hermesSymbols.has(sym)) continue
+              const actual = safeNum(row.actualEarningResult ?? row.actual)
+              const estimated = safeNum(row.estimatedEarning ?? row.estimated)
+              if (!rawMap.has(sym)) rawMap.set(sym, [])
+              const arr = rawMap.get(sym)!
+              if (arr.length < 4) arr.push({ actual, estimated })
+            }
+          }
+          if (isCSV(text)) {
+            parseRows(parseCSV(text) as unknown as Array<Record<string, string | number>>)
+          } else if (text.startsWith('[')) {
+            parseRows(JSON.parse(text))
+          }
+          for (const [sym, quarters] of rawMap) {
+            let beat = 0, miss = 0, lastSurp = 0
+            for (let qi = 0; qi < quarters.length; qi++) {
+              const q = quarters[qi]
+              if (q.estimated !== 0) {
+                const diff = q.actual - q.estimated
+                if (diff > 0) beat++
+                else if (diff < 0) miss++
+                if (qi === 0) lastSurp = q.estimated !== 0 ? ((q.actual - q.estimated) / Math.abs(q.estimated)) * 100 : 0
+              }
+            }
+            earningsMap.set(sym, { beatCount: beat, missCount: miss, lastSurprise: lastSurp })
+          }
+          console.log(`[V5] Earnings surprises: ${earningsMap.size} stocks`)
+        } catch (e) { console.warn('[V5] Earnings surprises parse error:', e) }
+      }
+
       // ═══════════════════════════════════════════════════════════
       // STEP 3: COMPANY SCREENER (missing sectors)
       // ═══════════════════════════════════════════════════════════
@@ -533,6 +576,7 @@ export async function GET(request: NextRequest) {
       const quotesMap = new Map<string, {
         symbol: string; price: number; change: number; changePercent: number
         volume: number; avgVolume: number; name: string; marketCap: number; pe: number; beta: number
+        yearHigh: number; yearLow: number
       }>()
 
       try {
@@ -560,6 +604,8 @@ export async function GET(request: NextRequest) {
                     marketCap: safeNum(q.marketCap),
                     pe: safeNum(q.pe),
                     beta: safeNum(q.beta),
+                    yearHigh: safeNum(q.yearHigh),
+                    yearLow: safeNum(q.yearLow),
                   })
                 }
               }
@@ -632,8 +678,26 @@ export async function GET(request: NextRequest) {
 
         // Momentum — from batch-quote data
         input.changePercent = quote.changePercent
-        input.priceChange1M = quote.changePercent  // Use daily change as proxy for now
+        input.priceChange1M = quote.changePercent
         input.volumeRatio = quote.avgVolume > 0 ? quote.volume / quote.avgVolume : 0
+
+        // V5: 52W High/Low + P/S + Earnings
+        input.yearHigh = quote.yearHigh
+        input.yearLow = quote.yearLow
+        // 6M change proxy: 52W range'deki pozisyona gore -30% ile +30% arasi tahmin
+        if (quote.yearHigh > 0 && quote.yearLow > 0 && quote.yearHigh > quote.yearLow) {
+          const midpoint = (quote.yearHigh + quote.yearLow) / 2
+          input.priceChange6M = ((quote.price - midpoint) / midpoint) * 60
+        }
+        input.priceToSales = met?.priceToSales || 0
+
+        const earn = earningsMap.get(sym)
+        input.earningsBeatCount = earn?.beatCount || 0
+        input.earningsMissCount = earn?.missCount || 0
+        input.lastEpsSurprise = earn?.lastSurprise || 0
+
+        // Short float
+        input.shortFloat = Math.min(100, shareFloatMap.get(sym)?.freeFloat || 0)
 
         // Sector — from sector-performance-snapshot
         input.sectorPerformance1M = sectorPerfMap.get(sector) || 0
@@ -650,105 +714,7 @@ export async function GET(request: NextRequest) {
       console.log(`[V3] Scored: ${allScores.size} stocks | Thresholds: STRONG>=${thresholds.strong} GOOD>=${thresholds.good} WEAK<=${thresholds.weak} BAD<=${thresholds.bad}`)
 
       // ═══════════════════════════════════════════════════════════
-      // STEP 5.5: SECTOR MEDIANS (for valuation z-scores)
-      // ═══════════════════════════════════════════════════════════
-      const sectorPEs: Record<string, number[]> = {}
-      const sectorEvEbitdas: Record<string, number[]> = {}
-      for (const sym of hermesSymbols) {
-        const sec = sectorsMap.get(sym) || 'Unknown'
-        const met2 = metricsMap.get(sym)
-        if (met2?.pe && met2.pe > 0 && met2.pe < 500) {
-          if (!sectorPEs[sec]) sectorPEs[sec] = []
-          sectorPEs[sec].push(met2.pe)
-        }
-        if (met2?.evEbitda && met2.evEbitda > 0 && met2.evEbitda < 200) {
-          if (!sectorEvEbitdas[sec]) sectorEvEbitdas[sec] = []
-          sectorEvEbitdas[sec].push(met2.evEbitda)
-        }
-      }
-      function median(arr: number[]): number {
-        if (arr.length === 0) return 0
-        const s = [...arr].sort((a, b) => a - b)
-        const mid = Math.floor(s.length / 2)
-        return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2
-      }
-      function stddev(arr: number[]): number {
-        if (arr.length < 2) return 1
-        const m = arr.reduce((s, v) => s + v, 0) / arr.length
-        return Math.sqrt(arr.reduce((s, v) => s + (v - m) ** 2, 0) / arr.length) || 1
-      }
-      const sectorPEMedian: Record<string, number> = {}
-      const sectorPEStd: Record<string, number> = {}
-      const sectorEvMedian: Record<string, number> = {}
-      const sectorEvStd: Record<string, number> = {}
-      for (const sec of Object.keys(sectorPEs)) {
-        sectorPEMedian[sec] = median(sectorPEs[sec])
-        sectorPEStd[sec] = stddev(sectorPEs[sec])
-      }
-      for (const sec of Object.keys(sectorEvEbitdas)) {
-        sectorEvMedian[sec] = median(sectorEvEbitdas[sec])
-        sectorEvStd[sec] = stddev(sectorEvEbitdas[sec])
-      }
-
-      function computeValuationComposite(
-        sym2: string, price2: number, dcfVal2: number,
-        pe2: number, pegRatio2: number, evEbitda2: number,
-        fcfYield2: number, sector2: string
-      ): { score: number; label: string } {
-        let total = 0
-        let weightUsed = 0
-
-        // DCF Upside (30%)
-        if (dcfVal2 > 0 && price2 > 0) {
-          const upside = ((dcfVal2 - price2) / price2) * 100
-          const norm = Math.max(0, Math.min(100, 50 + upside * 0.5))
-          total += norm * 0.30
-          weightUsed += 0.30
-        }
-
-        // PE sector z-score (25%) — inverted: lower PE = higher score
-        if (pe2 > 0 && pe2 < 500 && sectorPEMedian[sector2]) {
-          const z = (pe2 - sectorPEMedian[sector2]) / (sectorPEStd[sector2] || 1)
-          const norm = Math.max(0, Math.min(100, 50 - z * 20))
-          total += norm * 0.25
-          weightUsed += 0.25
-        }
-
-        // PEG (20%) — lower is better
-        if (pegRatio2 > 0 && pegRatio2 < 10) {
-          const norm = Math.max(0, Math.min(100, 100 - pegRatio2 * 25))
-          total += norm * 0.20
-          weightUsed += 0.20
-        }
-
-        // EV/EBITDA sector z-score (15%) — inverted
-        if (evEbitda2 > 0 && evEbitda2 < 200 && sectorEvMedian[sector2]) {
-          const z = (evEbitda2 - sectorEvMedian[sector2]) / (sectorEvStd[sector2] || 1)
-          const norm = Math.max(0, Math.min(100, 50 - z * 20))
-          total += norm * 0.15
-          weightUsed += 0.15
-        }
-
-        // FCF Yield (10%) — higher is better
-        if (fcfYield2 > 0) {
-          const norm = Math.max(0, Math.min(100, fcfYield2 * 10))
-          total += norm * 0.10
-          weightUsed += 0.10
-        }
-
-        const score = weightUsed > 0 ? Math.round(total / weightUsed) : 50
-        let label: string
-        if (score >= 80) label = 'COK UCUZ'
-        else if (score >= 65) label = 'UCUZ'
-        else if (score >= 40) label = 'NORMAL'
-        else if (score >= 25) label = 'PAHALI'
-        else label = 'COK PAHALI'
-
-        return { score, label }
-      }
-
-      // ═══════════════════════════════════════════════════════════
-      // STEP 6: BUILD FINAL RESULT
+      // STEP 6: BUILD FINAL RESULT (V5 — badges, overval, yearHigh/Low)
       // ═══════════════════════════════════════════════════════════
       const result: StockRow[] = []
 
@@ -770,13 +736,6 @@ export async function GET(request: NextRequest) {
         const dcfVal = dcf?.dcf || 0
         const dcfUpside = dcfVal > 0 && quote.price > 0 ? ((dcfVal - quote.price) / quote.price) * 100 : 0
 
-        const sector = sectorsMap.get(sym) || 'Unknown'
-        const valuation = computeValuationComposite(
-          sym, quote.price, dcfVal, pe,
-          met?.pegRatio || 0, met?.evEbitda || 0,
-          kmResult?.freeCashFlowYieldTTM || 0, sector
-        )
-
         result.push({
           symbol: sym,
           companyName: quote.name || sym,
@@ -795,12 +754,12 @@ export async function GET(request: NextRequest) {
           avgVolume: quote.avgVolume,
           beta: quote.beta || 0,
           evEbitda: met?.evEbitda || 0,
-          // V2 Score
+          // V5 Score
           signal: fmpScore?.level || 'NEUTRAL',
           signalScore: fmpScore?.total || 50,
           categories: fmpScore?.categories || {
             valuation: 50, health: 50, growth: 50, analyst: 50, quality: 50,
-            insider: 50, institutional: 50, momentum: 50, sector: 50, congressional: 50,
+            momentum: 50, sector: 50, smartMoney: 50,
           },
           confidence: fmpScore?.confidence || 30,
           redFlags: fmpScore?.redFlags || [],
@@ -814,9 +773,16 @@ export async function GET(request: NextRequest) {
           analystConsensus: analyst?.consensus || '',
           riskScore: risk.total,
           riskLevel: risk.level,
-          valuationScore: valuation.score,
-          valuationLabel: valuation.label,
+          // Valuation — from score engine
+          valuationScore: fmpScore?.valuationScore ?? 50,
+          valuationLabel: fmpScore?.valuationLabel ?? 'NORMAL',
           shortFloat: Math.min(100, shareFloatMap.get(sym)?.freeFloat || 0),
+          // V5 NEW
+          badges: fmpScore?.badges || [],
+          overvalScore: fmpScore?.overvaluation?.score ?? 0,
+          overvalLevel: fmpScore?.overvaluation?.level ?? 'LOW' as const,
+          yearHigh: quote.yearHigh,
+          yearLow: quote.yearLow,
         })
       }
 
@@ -833,7 +799,7 @@ export async function GET(request: NextRequest) {
       count: stocks.length,
       thresholds: currentThresholds,
       timestamp: new Date().toISOString(),
-      version: 'v3-10cat-percentile',
+      version: 'v5-8cat-smart-money-badges',
     })
   } catch (error) {
     console.error('[FMP Terminal /stocks V2] Error:', (error as Error).message)

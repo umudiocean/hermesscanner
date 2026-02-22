@@ -8,16 +8,14 @@
 export type FMPScoreLevel = 'STRONG' | 'GOOD' | 'NEUTRAL' | 'WEAK' | 'BAD'
 
 export interface FMPScoreBreakdown {
-  valuation: number       // 0-100 (agirlik: 20%)
-  health: number          // 0-100 (agirlik: 19%)
-  growth: number          // 0-100 (agirlik: 15%)
+  valuation: number       // 0-100 (agirlik: 22%)
+  health: number          // 0-100 (agirlik: 20%)
+  growth: number          // 0-100 (agirlik: 14%)
   analyst: number         // 0-100 (agirlik: 11%)
-  quality: number         // 0-100 (agirlik: 8%)
-  insider: number         // 0-100 (agirlik: 5%)
-  institutional: number   // 0-100 (agirlik: 5%)
-  momentum: number        // 0-100 (agirlik: 8%)
-  sector: number          // 0-100 (agirlik: 6%)
-  congressional: number   // 0-100 (agirlik: 3%)
+  quality: number         // 0-100 (agirlik: 12%)
+  momentum: number        // 0-100 (agirlik: 11%)
+  sector: number          // 0-100 (agirlik: 5%)
+  smartMoney: number      // 0-100 (agirlik: 5%) — Insider+Inst+Congress birlesti
 }
 
 export interface FMPScore {
@@ -29,6 +27,10 @@ export interface FMPScore {
   gated: boolean          // Altman Z < 1.8 gate aktif mi?
   degraded: boolean       // confidence < 50 ise true
   missingInputs: string[] // Eksik veri kategorileri
+  badges: StockBadge[]    // V5 badge sistemi
+  overvaluation: OvervaluationResult  // V5 short sinyal motoru
+  valuationScore: number  // V5 valuation composite 0-100
+  valuationLabel: ValuationLabel  // V5 valuation label
   timestamp: string
 }
 
@@ -619,16 +621,14 @@ export interface ComparisonItem {
 // ─── Score Engine Config ───────────────────────────────────────────
 
 export const FMP_SCORE_WEIGHTS = {
-  valuation: 0.20,
-  health: 0.19,
-  growth: 0.15,
+  valuation: 0.22,
+  health: 0.20,
+  growth: 0.14,
   analyst: 0.11,
-  quality: 0.08,
-  momentum: 0.08,
-  sector: 0.06,
-  insider: 0.05,
-  institutional: 0.05,
-  congressional: 0.03,
+  quality: 0.12,
+  momentum: 0.11,
+  sector: 0.05,
+  smartMoney: 0.05,
 } as const
 
 /** Sabit sinyal esikleri (2026-02-18 KILITLI) */
@@ -958,9 +958,31 @@ export const CATEGORY_LABELS: Record<keyof FMPScoreBreakdown, string> = {
   growth: 'Buyume',
   analyst: 'Analist Gorusu',
   quality: 'Kalite',
-  insider: 'Iceriden Bilgi',
-  institutional: 'Kurumsal Akis',
   momentum: 'Momentum',
   sector: 'Sektor Momentum',
-  congressional: 'Kongre Islemleri',
+  smartMoney: 'Akilli Para',
+}
+
+// V5 Badge types
+export type BadgeType =
+  | 'KAZANC_GUCLU' | 'KAZANC_ZAYIF'
+  | 'BUBBLE_RISKI' | 'SQUEEZE_RISKI'
+  | 'AKIN_YUKSELIS' | 'AKIN_DUSUS'
+  | 'HEDEF_YUKARI' | 'HEDEF_ASAGI'
+  | 'GENIS_MOAT' | 'DAR_MOAT'
+  | 'VALUE_TRAP'
+
+export interface StockBadge {
+  type: BadgeType
+  label: string
+  color: string
+  tooltip?: string
+}
+
+export type ValuationLabel = 'COK UCUZ' | 'UCUZ' | 'NORMAL' | 'PAHALI' | 'COK PAHALI'
+
+export interface OvervaluationResult {
+  score: number
+  level: 'LOW' | 'MEDIUM' | 'HIGH' | 'EXTREME'
+  triggers: string[]
 }

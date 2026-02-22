@@ -5,7 +5,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Eye, Globe, ExternalLink, TrendingUp, TrendingDown, Activity, Users, Code, Zap, X, ArrowRight, Shield, Star } from 'lucide-react'
-import { CoinDetail, CryptoScore, Derivative, getCryptoScoreColor, CRYPTO_SCORE_LABELS, CRYPTO_CATEGORY_LABELS, CRYPTO_SCORE_WEIGHTS, CryptoScoreBreakdown } from '@/lib/crypto-terminal/coingecko-types'
+// HERMES_FIX: CLIENT_BUNDLE_WEIGHTS 2026-02-19 — Removed CRYPTO_SCORE_WEIGHTS import (proprietary IP)
+import { CoinDetail, CryptoScore, Derivative, getCryptoScoreColor, CRYPTO_SCORE_LABELS, CRYPTO_CATEGORY_LABELS, CRYPTO_CATEGORY_KEYS, CryptoScoreBreakdown } from '@/lib/crypto-terminal/coingecko-types'
 import SharePanel from '@/components/SharePanel'
 
 type ValuationTag = 'COK UCUZ' | 'UCUZ' | 'NORMAL' | 'PAHALI' | 'COK PAHALI'
@@ -487,12 +488,11 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
         <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 hover:border-white/[0.12] transition-all duration-300">
           <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider mb-2 sm:mb-3">HERMES AI Skor Dagilimi</h3>
           <div className="space-y-2">
-            {(Object.keys(CRYPTO_SCORE_WEIGHTS) as (keyof CryptoScoreBreakdown)[])
+            {CRYPTO_CATEGORY_KEYS
               .slice()
               .sort((a, b) => (score.categories[b] ?? 0) - (score.categories[a] ?? 0))
               .map(key => {
               const value = score.categories[key]
-              const weight = CRYPTO_SCORE_WEIGHTS[key]
               const barColor = value >= 70 ? 'bg-emerald-400' : value >= 50 ? 'bg-amber-400' : value >= 30 ? 'bg-orange-400' : 'bg-red-400'
               return (
                 <div key={key} className="flex items-center gap-2">
@@ -501,7 +501,6 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
                     <div className={`h-full rounded-full ${barColor} transition-all duration-700`} style={{ width: `${Math.max(2, value)}%` }} />
                   </div>
                   <span className={`w-8 text-[10px] text-right tabular-nums font-medium ${value >= 70 ? 'text-emerald-400' : value >= 50 ? 'text-amber-400' : value >= 30 ? 'text-orange-400' : 'text-red-400'}`}>{Math.round(value)}</span>
-                  <span className="w-8 text-[8px] text-white/20 text-right">{Math.round(weight * 100)}%</span>
                 </div>
               )
             })}

@@ -6,7 +6,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { GitCompare, X } from 'lucide-react'
 import type { CoinDetail, CryptoScore, CryptoScoreBreakdown } from '@/lib/crypto-terminal/coingecko-types'
-import { getCryptoScoreColor, CRYPTO_CATEGORY_LABELS, CRYPTO_SCORE_WEIGHTS } from '@/lib/crypto-terminal/coingecko-types'
+// HERMES_FIX: CLIENT_BUNDLE_WEIGHTS 2026-02-19 — Removed CRYPTO_SCORE_WEIGHTS import (proprietary IP)
+import { getCryptoScoreColor, CRYPTO_CATEGORY_LABELS, CRYPTO_CATEGORY_KEYS } from '@/lib/crypto-terminal/coingecko-types'
 
 interface TabCompareProps {
   coinIds: string[]
@@ -308,7 +309,7 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
                     <span className={`text-sm font-bold ${getCryptoScoreColor(score.level)}`}>{score.total}</span>
                   </div>
                   <div className="space-y-1">
-                    {(Object.keys(CRYPTO_SCORE_WEIGHTS) as (keyof CryptoScoreBreakdown)[])
+                    {CRYPTO_CATEGORY_KEYS
                       .slice()
                       .sort((a, b) => (score.categories[b] ?? 0) - (score.categories[a] ?? 0))
                       .map(key => {

@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next'
 
+// HERMES_FIX: SRCMAP 2026-02-19 SEVERITY: MEDIUM
+// Disable browser source maps in production to protect scoring algorithm IP
 const nextConfig: NextConfig = {
+  productionBrowserSourceMaps: false,
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',

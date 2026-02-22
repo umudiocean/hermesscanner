@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextResponse } from 'next/server'
+import logger from '@/lib/logger'
 import {
   fetchGlobalData, fetchGlobalDeFi, fetchTrending,
   fetchCoinsMarkets, fetchTopGainersLosers,
@@ -12,7 +13,9 @@ import { getCached, CRYPTO_CACHE_TTL } from '@/lib/crypto-terminal/crypto-cache'
 import {
   GlobalData, GlobalDeFiData, TrendingData,
   CoinMarket, CryptoFearGreed, CryptoMarketDashboard,
+  AlternativeFearGreedData,
 } from '@/lib/crypto-terminal/coingecko-types'
+import { fetchAlternativeFearGreed } from '@/lib/crypto-terminal/alternative-fg-client'
 
 export const dynamic = 'force-dynamic'
 
@@ -102,18 +105,21 @@ function computeCryptoFearGreed(
   else if (index <= 85) label = 'GREED'
   else label = 'EXTREME GREED'
 
-  return { index, label, components }
+  // HERMES_FIX: S6 2026-02-19 SEVERITY: HIGH
+  // Only return index and label to client — component weights are proprietary IP
+  return { index, label }
 }
 
 export async function GET() {
   try {
     // Fetch all data in parallel (cached individually)
-    const [globalRes, defiRes, trendingRes, coinsRes, gainersLosersRes] = await Promise.allSettled([
+    const [globalRes, defiRes, trendingRes, coinsRes, gainersLosersRes, altFGRes] = await Promise.allSettled([
       getCached<GlobalData>('crypto-global', CRYPTO_CACHE_TTL.GLOBAL, () => fetchGlobalData() as Promise<GlobalData>),
       getCached<GlobalDeFiData>('crypto-defi', CRYPTO_CACHE_TTL.GLOBAL, () => fetchGlobalDeFi() as Promise<GlobalDeFiData>),
       getCached<TrendingData>('crypto-trending', CRYPTO_CACHE_TTL.TRENDING, () => fetchTrending() as Promise<TrendingData>),
       getCached<CoinMarket[]>('crypto-coins-top100', CRYPTO_CACHE_TTL.COINS_LIST, () => fetchCoinsMarkets(1, 100, false) as Promise<CoinMarket[]>),
       getCached<{ top_gainers: unknown[]; top_losers: unknown[] }>('crypto-gainers-losers', CRYPTO_CACHE_TTL.GAINERS_LOSERS, () => fetchTopGainersLosers('24h') as Promise<{ top_gainers: unknown[]; top_losers: unknown[] }>),
+      getCached<AlternativeFearGreedData>('crypto-alt-fg', CRYPTO_CACHE_TTL.GLOBAL, () => fetchAlternativeFearGreed(30) as Promise<AlternativeFearGreedData>),
     ])
 
     const global = globalRes.status === 'fulfilled' ? globalRes.value?.data ?? null : null
@@ -121,11 +127,11 @@ export async function GET() {
     const trending = trendingRes.status === 'fulfilled' ? trendingRes.value : null
     const coins = coinsRes.status === 'fulfilled' ? coinsRes.value ?? [] : []
     const gainersLosers = gainersLosersRes.status === 'fulfilled' ? gainersLosersRes.value : null
+    const alternativeFG = altFGRes.status === 'fulfilled' ? altFGRes.value : null
 
-    // Compute Fear & Greed
+    // Compute our internal Fear & Greed
     const fearGreed = computeCryptoFearGreed(global, coins, trending)
 
-    // Sort coins for gainers/losers if CoinGecko gainers endpoint fails
     const sortedByChange = [...coins].sort((a, b) =>
       (b.price_change_percentage_24h ?? 0) - (a.price_change_percentage_24h ?? 0))
     const topGainers = (gainersLosers?.top_gainers as CoinMarket[]) ?? sortedByChange.slice(0, 10)
@@ -136,6 +142,7 @@ export async function GET() {
       globalDefi,
       trending,
       fearGreed,
+      alternativeFG,
       topGainers,
       topLosers,
       btcDominance: global?.market_cap_percentage?.btc ?? 0,
@@ -148,9 +155,14 @@ export async function GET() {
 
     return NextResponse.json(dashboard)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
+    // HERMES_FIX: S7 2026-02-19 SEVERITY: MEDIUM
+    // Log full error server-side, return generic message to client
+    logger.error('Crypto market fetch failed', {
+      module: 'crypto-market',
+      error: err instanceof Error ? err.message : String(err),
+    })
     return NextResponse.json(
-      { error: 'Failed to fetch market data', message, timestamp: new Date().toISOString() },
+      { error: 'Failed to fetch market data', timestamp: new Date().toISOString() },
       { status: 500 },
     )
   }

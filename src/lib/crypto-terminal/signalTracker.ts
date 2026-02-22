@@ -1,6 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════
 // HERMES AI CRYPTO TERMINAL — Signal Performance Tracker (K7)
 // Client-side localStorage tracker for signal hit rates
+//
+// HERMES_FIX: SIGNAL_TRACKER_LOGGING 2026-02-19 SEVERITY: MEDIUM
+// All localStorage operations use safeLocalStorage() wrapper.
+// Silent .catch(() => {}) is permanently banned per ARTICLE 13.
+// Errors are surfaced via console.warn for debugging.
 // ═══════════════════════════════════════════════════════════════════
 
 export interface TrackedSignal {
@@ -33,30 +38,85 @@ export interface SignalStats {
 const STORAGE_KEY = 'hermes-crypto-signal-tracker'
 const MAX_SIGNALS = 500
 const SIGNAL_EXPIRY_MS = 72 * 60 * 60 * 1000 // 72 hours
+const PRUNE_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+
+// HERMES_FIX: SIGNAL_TRACKER_LOGGING — Safe localStorage wrapper
+// Handles: SSR (no window), private browsing, quota exceeded, corrupt data
+function safeGetItem(key: string): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return window.localStorage.getItem(key)
+  } catch (err) {
+    console.warn(`[SignalTracker] localStorage.getItem("${key}") failed:`, err)
+    return null
+  }
+}
+
+function safeSetItem(key: string, value: string): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    window.localStorage.setItem(key, value)
+    return true
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+      console.warn('[SignalTracker] localStorage quota exceeded — pruning old signals')
+      pruneOldSignals()
+      try {
+        window.localStorage.setItem(key, value)
+        return true
+      } catch (retryErr) {
+        console.error('[SignalTracker] Write failed after prune:', retryErr)
+        return false
+      }
+    }
+    console.warn(`[SignalTracker] localStorage.setItem("${key}") failed:`, err)
+    return false
+  }
+}
+
+function safeRemoveItem(key: string): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(key)
+  } catch (err) {
+    console.warn(`[SignalTracker] localStorage.removeItem("${key}") failed:`, err)
+  }
+}
+
+function pruneOldSignals(): void {
+  try {
+    const raw = safeGetItem(STORAGE_KEY)
+    if (!raw) return
+    const signals: TrackedSignal[] = JSON.parse(raw)
+    const cutoff = Date.now() - PRUNE_AGE_MS
+    const kept = signals.filter(s => s.timestamp >= cutoff)
+    const pruned = signals.length - kept.length
+    if (pruned > 0) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(kept.slice(-100)))
+      console.info(`[SignalTracker] Pruned ${pruned} signals older than 30 days`)
+    }
+  } catch (err) {
+    console.error('[SignalTracker] pruneOldSignals failed:', err)
+  }
+}
 
 export function loadTrackedSignals(): TrackedSignal[] {
-  if (typeof window === 'undefined') return []
+  const raw = safeGetItem(STORAGE_KEY)
+  if (!raw) return []
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored) return []
-    return JSON.parse(stored) as TrackedSignal[]
-  } catch {
+    return JSON.parse(raw) as TrackedSignal[]
+  } catch (err) {
+    console.warn('[SignalTracker] Failed to parse stored signals, resetting:', err)
+    safeRemoveItem(STORAGE_KEY)
     return []
   }
 }
 
 export function saveTrackedSignals(signals: TrackedSignal[]): void {
-  if (typeof window === 'undefined') return
-  try {
-    // Keep only last MAX_SIGNALS
-    const trimmed = signals.slice(-MAX_SIGNALS)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
-  } catch {
-    // Storage full — clear oldest
-    try {
-      const trimmed = signals.slice(-100)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
-    } catch { /* */ }
+  const trimmed = signals.slice(-MAX_SIGNALS)
+  const ok = safeSetItem(STORAGE_KEY, JSON.stringify(trimmed))
+  if (!ok && trimmed.length > 100) {
+    safeSetItem(STORAGE_KEY, JSON.stringify(trimmed.slice(-100)))
   }
 }
 
@@ -99,7 +159,6 @@ export function updateSignalStatus(
     ? ((currentPrice - signal.entryPrice) / signal.entryPrice) * 100
     : ((signal.entryPrice - currentPrice) / signal.entryPrice) * 100
 
-  // Check TP
   if (isLong && currentPrice >= signal.tpPrice) {
     signal.status = 'TP_HIT'
     signal.closePrice = currentPrice
@@ -110,9 +169,7 @@ export function updateSignalStatus(
     signal.closePrice = currentPrice
     signal.closeTimestamp = Date.now()
     signal.pnlPercent = pnl
-  }
-  // Check SL
-  else if (isLong && currentPrice <= signal.slPrice) {
+  } else if (isLong && currentPrice <= signal.slPrice) {
     signal.status = 'SL_HIT'
     signal.closePrice = currentPrice
     signal.closeTimestamp = Date.now()
@@ -122,9 +179,7 @@ export function updateSignalStatus(
     signal.closePrice = currentPrice
     signal.closeTimestamp = Date.now()
     signal.pnlPercent = pnl
-  }
-  // Check expiry
-  else if (Date.now() - signal.timestamp > SIGNAL_EXPIRY_MS) {
+  } else if (Date.now() - signal.timestamp > SIGNAL_EXPIRY_MS) {
     signal.status = 'EXPIRED'
     signal.closePrice = currentPrice
     signal.closeTimestamp = Date.now()
@@ -146,7 +201,6 @@ export function getSignalStats(): SignalStats {
   const avgPnl = closed.length > 0 ? closed.reduce((s, c) => s + (c.pnlPercent || 0), 0) / closed.length : 0
   const winRate = tpHit + slHit > 0 ? (tpHit / (tpHit + slHit)) * 100 : 0
 
-  // Best/worst signal types
   const signalPnls: Record<string, number[]> = {}
   for (const s of closed) {
     if (!signalPnls[s.signal]) signalPnls[s.signal] = []
@@ -168,6 +222,5 @@ export function getSignalStats(): SignalStats {
 }
 
 export function clearSignalHistory(): void {
-  if (typeof window === 'undefined') return
-  localStorage.removeItem(STORAGE_KEY)
+  safeRemoveItem(STORAGE_KEY)
 }

@@ -199,6 +199,45 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
               })}
             </div>
           )}
+
+          {/* Alternative.me Fear & Greed (independent source) */}
+          {data.alternativeFG && (
+            <div className="mt-3 p-2.5 bg-white/[0.02] rounded-xl border border-white/[0.04]">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] text-white/30 uppercase tracking-wider font-bold">Alternative.me F&G (Bagimsiz)</span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-black tabular-nums ${
+                    data.alternativeFG.current <= 25 ? 'text-red-500' :
+                    data.alternativeFG.current <= 45 ? 'text-orange-400' :
+                    data.alternativeFG.current <= 55 ? 'text-slate-300' :
+                    data.alternativeFG.current <= 75 ? 'text-emerald-400' :
+                    'text-emerald-300'
+                  }`}>{data.alternativeFG.current}</span>
+                  <span className="text-[10px] text-white/50">{data.alternativeFG.label}</span>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-1.5">
+                {data.alternativeFG.yesterday != null && (
+                  <div className="text-[9px]">
+                    <span className="text-white/20">Dun: </span>
+                    <span className="text-white/50 tabular-nums">{data.alternativeFG.yesterday}</span>
+                  </div>
+                )}
+                {data.alternativeFG.weekAgo != null && (
+                  <div className="text-[9px]">
+                    <span className="text-white/20">1 Hafta: </span>
+                    <span className="text-white/50 tabular-nums">{data.alternativeFG.weekAgo}</span>
+                  </div>
+                )}
+                {data.alternativeFG.monthAgo != null && (
+                  <div className="text-[9px]">
+                    <span className="text-white/20">1 Ay: </span>
+                    <span className="text-white/50 tabular-nums">{data.alternativeFG.monthAgo}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

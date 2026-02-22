@@ -38,10 +38,10 @@ interface StockRow {
   evEbitda: number
   signal: string
   signalScore: number
-  // V4 8-Category (Technical kaldirildi)
+  // V5 8-Category (Smart Money merged)
   categories: {
     valuation: number; health: number; growth: number; analyst: number; quality: number
-    insider: number; institutional: number; momentum: number; sector: number; congressional: number
+    momentum: number; sector: number; smartMoney: number
   }
   confidence: number
   redFlags: RedFlag[]
@@ -57,13 +57,19 @@ interface StockRow {
   valuationScore: number
   valuationLabel: string
   shortFloat: number
+  // V5
+  badges: Array<{ type: string; label: string; severity: string; description?: string }>
+  overvalScore: number
+  overvalLevel: string
+  yearHigh: number
+  yearLow: number
 }
 
 interface TabStocksProps {
   onSelectSymbol: (symbol: string) => void
 }
 
-type SortField = keyof Pick<StockRow, 'symbol' | 'companyName' | 'sector' | 'price' | 'changePercent' | 'marketCap' | 'pe' | 'roe' | 'debtEquity' | 'dividendYield' | 'volume' | 'signalScore' | 'confidence' | 'altmanZ' | 'piotroski' | 'dcfUpside' | 'riskScore' | 'valuationScore' | 'shortFloat'>
+type SortField = keyof Pick<StockRow, 'symbol' | 'companyName' | 'sector' | 'price' | 'changePercent' | 'marketCap' | 'pe' | 'roe' | 'debtEquity' | 'dividendYield' | 'volume' | 'signalScore' | 'confidence' | 'altmanZ' | 'piotroski' | 'dcfUpside' | 'riskScore' | 'valuationScore' | 'shortFloat' | 'overvalScore'>
 type SortDir = 'asc' | 'desc'
 type SegmentFilter = 'ALL' | 'MEGA' | 'LARGE' | 'MID' | 'SMALL' | 'MICRO'
 
@@ -110,6 +116,8 @@ const COLUMN_TIPS: Record<string, string> = {
   volume: 'ISLEM HACMI — Bugun gerceklesen toplam alim-satim adedi. Yuksek hacim = piyasa ilgisi var',
   valuation: 'FIYATLAMA — Hissenin ucuz mu pahali mi oldugunu gosterir. DCF, sektore gore F/K, PEG orani, EV/EBITDA ve serbest nakit akis getirisi bilesenidir. COK UCUZ = Altin firsat, UCUZ = Uygun, NORMAL = Dengeli, PAHALI = Yuksek, COK PAHALI = Asiri pahali',
   shortFloat: 'HALKA ACIK ORAN (%) — Hisse senetlerinin yuzde kacinin serbest piyasada islem gordugunu gosterir. %90+ = Cok yuksek likidite, %50-90 = Normal, <%50 = Dusuk likidite (buyuk hissedar agirlikli)',
+  overval: 'OVERVAL — Asiri degerlenme skoru (0-100). Yuksek = hisse pahali + momentum kirilmis + analist hedefinin altinda. SHORT sinyalleri icin kullanilir. EXTREME(70+), HIGH(50+), MEDIUM(30+), LOW(<30)',
+  badges: 'BADGES — Otomatik tespit edilen durumlar: KAZANC GUCLU (earnings beat), BUBBLE RISKI, SQUEEZE RISKI, VALUE TRAP, GENIS MOAT vb.',
 }
 
 export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
@@ -323,6 +331,8 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                   tip={COLUMN_TIPS.risk} onTip={setTooltip} />
                 <ThC field="valuationScore" label="FIYATLAMA" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
                   tip={COLUMN_TIPS.valuation} onTip={setTooltip} />
+                <ThC field="overvalScore" label="OVERVAL" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
+                  tip={COLUMN_TIPS.overval} onTip={setTooltip} />
                 <ThC field="shortFloat" label="FLOAT" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
                   tip={COLUMN_TIPS.shortFloat} onTip={setTooltip} />
                 <ThC field="volume" label="HACIM" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
@@ -386,16 +396,14 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                         <div className="hidden group-hover/score:block absolute z-50 bottom-full right-0 mb-2 w-52 bg-[#141420] border border-white/10 rounded-xl shadow-2xl p-3">
                           <div className="text-[10px] text-white/40 font-semibold mb-2 tracking-wider">HERMES AI SKOR</div>
                           {[
-                            { label: 'Degerleme', val: s.categories?.valuation || 0, w: 20 },
-                            { label: 'Saglik', val: s.categories?.health || 0, w: 19 },
-                            { label: 'Buyume', val: s.categories?.growth || 0, w: 15 },
+                            { label: 'Degerleme', val: s.categories?.valuation || 0, w: 22 },
+                            { label: 'Saglik', val: s.categories?.health || 0, w: 20 },
+                            { label: 'Buyume', val: s.categories?.growth || 0, w: 14 },
                             { label: 'Analist', val: s.categories?.analyst || 0, w: 11 },
-                            { label: 'Kalite', val: s.categories?.quality || 0, w: 8 },
-                            { label: 'Momentum', val: s.categories?.momentum || 0, w: 8 },
-                            { label: 'Sektor', val: s.categories?.sector || 0, w: 6 },
-                            { label: 'Insider', val: s.categories?.insider || 0, w: 5 },
-                            { label: 'Kurumsal', val: s.categories?.institutional || 0, w: 5 },
-                            { label: 'Kongre', val: s.categories?.congressional || 0, w: 3 },
+                            { label: 'Kalite', val: s.categories?.quality || 0, w: 12 },
+                            { label: 'Momentum', val: s.categories?.momentum || 0, w: 11 },
+                            { label: 'Sektor', val: s.categories?.sector || 0, w: 5 },
+                            { label: 'Smart Money', val: s.categories?.smartMoney || 0, w: 5 },
                           ].sort((a, b) => b.val - a.val).map(c => (
                             <div key={c.label} className="flex items-center gap-1.5 mb-1">
                               <span className="text-[10px] text-white/40 w-16 truncate">{c.label}</span>
@@ -477,6 +485,28 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                         s.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
                         'text-white/25 bg-white/[0.03]'
                       }`}>{s.valuationLabel || 'N/A'}</span>
+                    </td>
+                    <td className="px-1 py-2 text-right">
+                      {(s.overvalScore || 0) > 0 ? (
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${
+                          s.overvalLevel === 'EXTREME' ? 'text-fuchsia-300 bg-fuchsia-500/20' :
+                          s.overvalLevel === 'HIGH' ? 'text-red-400 bg-red-500/15' :
+                          s.overvalLevel === 'MEDIUM' ? 'text-orange-400 bg-orange-500/10' :
+                          'text-white/30 bg-white/[0.03]'
+                        }`}>{s.overvalScore}</span>
+                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                      {(s.badges?.length || 0) > 0 && (
+                        <div className="flex flex-wrap gap-0.5 mt-0.5 justify-end">
+                          {s.badges.slice(0, 2).map((b, bi) => (
+                            <span key={bi} className={`text-[8px] px-1 py-0 rounded ${
+                              b.severity === 'positive' ? 'text-emerald-400 bg-emerald-500/10' :
+                              b.severity === 'negative' ? 'text-red-400 bg-red-500/10' :
+                              b.severity === 'warning' ? 'text-amber-400 bg-amber-500/10' :
+                              'text-blue-400 bg-blue-500/10'
+                            }`} title={b.description || b.label}>{b.label}</span>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums ${

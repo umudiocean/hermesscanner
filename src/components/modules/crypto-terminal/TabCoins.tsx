@@ -5,7 +5,8 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { TrendingUp, TrendingDown, Search, Zap, AlertTriangle, Minus, ChevronLeft, ChevronRight, Star, X, Crown, Gem, Layers, Coins, Activity, Flame, BarChart3, Eye } from 'lucide-react'
-import { CryptoTerminalCoin, CryptoScoreLevel, CryptoScoreBreakdown, CRYPTO_SCORE_LABELS, CRYPTO_SCORE_WEIGHTS, CRYPTO_CATEGORY_LABELS } from '@/lib/crypto-terminal/coingecko-types'
+// HERMES_FIX: CLIENT_BUNDLE_WEIGHTS 2026-02-19 — Removed CRYPTO_SCORE_WEIGHTS import (proprietary IP)
+import { CryptoTerminalCoin, CryptoScoreLevel, CryptoScoreBreakdown, CRYPTO_SCORE_LABELS, CRYPTO_CATEGORY_LABELS, CRYPTO_CATEGORY_KEYS } from '@/lib/crypto-terminal/coingecko-types'
 import { getCoinCategories, getCategoryStyle, inferCategoryFromName, CryptoCategory } from '@/lib/crypto-terminal/crypto-categories'
 
 interface TabCoinsProps {
@@ -177,43 +178,17 @@ function CoinCategoryTags({ coin }: { coin: CryptoTerminalCoin }) {
   )
 }
 
+// HERMES_FIX: S1-UI 2026-02-19 SEVERITY: HIGH
+// Score breakdown popup removed from bulk list — category data is proprietary IP.
+// Full breakdown is available on the detail page (/coin/[id]) only.
 function ScoreWithBreakdown({ coin, sigCfg }: { coin: CryptoTerminalCoin; sigCfg: { badge: string } }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const cats = coin.score?.categories
   return (
-    <div className="relative inline-block" ref={ref}>
-      <span
-        className={`text-[11px] font-bold tabular-nums cursor-help ${sigCfg.badge}`}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-      >
+    <div className="relative inline-block">
+      <span className={`text-[11px] font-bold tabular-nums ${sigCfg.badge}`}>
         {coin.score!.total}
       </span>
-      {open && cats && (
-        <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 w-52 bg-[#1a1a2e] border border-white/10 rounded-xl p-3 shadow-2xl shadow-black/50 pointer-events-none">
-          <div className="text-[10px] font-bold text-white/60 mb-2 text-center uppercase tracking-wider">Skor Dagılımı</div>
-          {(Object.keys(CRYPTO_SCORE_WEIGHTS) as (keyof CryptoScoreBreakdown)[]).map(key => {
-            const val = cats[key] ?? 0
-            const w = CRYPTO_SCORE_WEIGHTS[key]
-            return (
-              <div key={key} className="flex items-center gap-1.5 mb-1">
-                <span className="text-[9px] text-white/40 w-16 truncate">{CRYPTO_CATEGORY_LABELS[key]}</span>
-                <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${val >= 70 ? 'bg-emerald-400' : val >= 40 ? 'bg-amber-400' : 'bg-red-400'}`}
-                    style={{ width: `${val}%` }}
-                  />
-                </div>
-                <span className="text-[9px] text-white/50 w-6 text-right tabular-nums">{Math.round(val)}</span>
-                <span className="text-[8px] text-white/20 w-6 text-right">{Math.round(w * 100)}%</span>
-              </div>
-            )
-          })}
-          {coin.score!.degraded && (
-            <div className="text-[8px] text-orange-400/60 mt-1.5 text-center">⚠ Eksik veri — skor yaklaşık</div>
-          )}
-        </div>
+      {coin.score!.degraded && (
+        <span className="ml-0.5 text-[8px] text-orange-400/50" title="Eksik veri — skor yaklasik">~</span>
       )}
     </div>
   )
@@ -636,18 +611,20 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
             {/* Skor */}<col style={{ width: '3%' }} />
             {/* Guven */}<col style={{ width: '4%' }} />
             {/* Fiyatlama */}<col style={{ width: '5.5%' }} />
-            {/* Risk */}<col style={{ width: '4%' }} />
-            {/* 1s */}<col style={{ width: '5%' }} />
-            {/* 24s */}<col style={{ width: '5%' }} />
-            {/* 7g */}<col style={{ width: '5%' }} />
-            {/* 30g */}<col style={{ width: '5%' }} />
-            {/* Piyasa Deg */}<col style={{ width: '8%' }} />
-            {/* Hacim 24s */}<col style={{ width: '6.5%' }} />
+            {/* Risk */}<col style={{ width: '3.5%' }} />
+            {/* Overval */}<col style={{ width: '4.5%' }} />
+            {/* CHI */}<col style={{ width: '4%' }} />
+            {/* 1s */}<col style={{ width: '4.5%' }} />
+            {/* 24s */}<col style={{ width: '4.5%' }} />
+            {/* 7g */}<col style={{ width: '4.5%' }} />
+            {/* 30g */}<col style={{ width: '4.5%' }} />
+            {/* Piyasa Deg */}<col style={{ width: '7%' }} />
+            {/* Hacim 24s */}<col style={{ width: '6%' }} />
             {/* TVL */}<col style={{ width: '5%' }} />
-            {/* Arz */}<col style={{ width: '3.5%' }} />
-            {/* FDV/MC */}<col style={{ width: '3.5%' }} />
-            {/* V/MC */}<col style={{ width: '4.5%' }} />
-            {/* 7g Sparkline */}<col style={{ width: '5%' }} />
+            {/* Arz */}<col style={{ width: '3%' }} />
+            {/* FDV/MC */}<col style={{ width: '3%' }} />
+            {/* V/MC */}<col style={{ width: '4%' }} />
+            {/* 7g Sparkline */}<col style={{ width: '4.5%' }} />
           </colgroup>
           <thead className="sticky top-0 bg-[#0c0c14] z-10">
             <tr>
@@ -660,6 +637,8 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
               <SortHeader field="confidence" className="px-1" align="center" tip="Veri kalitesi guveni — kac kategoride gercek veri var (%30-95)">Guven</SortHeader>
               <SortHeader field="valuation" className="px-1" align="center" tip="ATH mesafesi + FDV/MCap orani + arz oranina gore fiyatlama etiketi">Fiyatlama</SortHeader>
               <SortHeader field="risk" className="px-1" align="center" tip="Likidite, FDV dilution, ATH mesafesi ve piyasa degerine gore risk skoru (0-100)">Risk</SortHeader>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-center cursor-default" title="Asiri Deger Skoru — FDV/MCap, ATH yakinligi, balina yogunlugu, momentum yorgunlugu">Overval</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-center cursor-default" title="Crypto Health Index — TVL trendi, holder buyumesi, borsa sagligi, likidite derinligi, gelistirici aktivitesi">CHI</th>
               <SortHeader field="change1h" className="px-1.5" align="right" tip="Son 1 saatteki fiyat degisimi (%)">1s</SortHeader>
               <SortHeader field="change24h" className="px-1.5" align="right" tip="Son 24 saatteki fiyat degisimi (%)">24s</SortHeader>
               <SortHeader field="change7d" className="px-1.5" align="right" tip="Son 7 gundeki fiyat degisimi (%)">7g</SortHeader>
@@ -744,6 +723,36 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                         </span>
                       )
                     })()}
+                  </td>
+                  <td className="px-1 py-2 text-center">
+                    {coin.overvaluation ? (
+                      <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${
+                        coin.overvaluation.level === 'EXTREME' ? 'text-red-400 bg-red-500/15' :
+                        coin.overvaluation.level === 'HIGH' ? 'text-orange-400 bg-orange-500/10' :
+                        coin.overvaluation.level === 'MODERATE' ? 'text-white/50 bg-white/[0.04]' :
+                        coin.overvaluation.level === 'FAIR' ? 'text-emerald-400 bg-emerald-500/10' :
+                        'text-emerald-300 bg-emerald-500/15'
+                      }`}>
+                        {coin.overvaluation.level === 'EXTREME' ? 'ASIRI' :
+                         coin.overvaluation.level === 'HIGH' ? 'YUKSEK' :
+                         coin.overvaluation.level === 'MODERATE' ? 'ORTA' :
+                         coin.overvaluation.level === 'FAIR' ? 'UYGUN' : 'UCUZ'}
+                      </span>
+                    ) : <span className="text-[10px] text-white/15">—</span>}
+                  </td>
+                  <td className="px-1 py-2 text-center">
+                    {coin.healthIndex ? (
+                      <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${
+                        coin.healthIndex.level === 'HEALTHY' ? 'text-emerald-400 bg-emerald-500/15' :
+                        coin.healthIndex.level === 'CAUTION' ? 'text-amber-400 bg-amber-500/10' :
+                        coin.healthIndex.level === 'RISKY' ? 'text-orange-400 bg-orange-500/10' :
+                        'text-red-400 bg-red-500/15'
+                      }`}>
+                        {coin.healthIndex.level === 'HEALTHY' ? 'SAGLIKLI' :
+                         coin.healthIndex.level === 'CAUTION' ? 'DIKKAT' :
+                         coin.healthIndex.level === 'RISKY' ? 'RISKLI' : 'KRITIK'}
+                      </span>
+                    ) : <span className="text-[10px] text-white/15">—</span>}
                   </td>
                   <td className="px-1.5 py-2 text-right"><ChangeCell value={coin.change1h} /></td>
                   <td className="px-1.5 py-2 text-right"><ChangeCell value={coin.change24h} /></td>
