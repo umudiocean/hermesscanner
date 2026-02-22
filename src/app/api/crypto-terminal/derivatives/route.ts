@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server'
 import { fetchDerivatives, fetchDerivativeExchanges } from '@/lib/crypto-terminal/coingecko-client'
 import { getCached, CRYPTO_CACHE_TTL } from '@/lib/crypto-terminal/crypto-cache'
 import { Derivative, DerivativeExchange } from '@/lib/crypto-terminal/coingecko-types'
+import { providerMonitor } from '@/lib/monitor/provider-monitor'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,6 +58,9 @@ export async function GET() {
     const avgFundingAll = validFunding.length > 0
       ? validFunding.reduce((s, p) => s + (p.funding_rate ?? 0), 0) / validFunding.length
       : 0
+
+    // HERMES_FIX: PROVIDER_MONITOR_v1 — Record freshness for SLA tracking
+    providerMonitor.recordDataFetch('derivatives').catch(() => {})
 
     return NextResponse.json({
       tickers: tickers.slice(0, 100),

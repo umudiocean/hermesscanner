@@ -21,6 +21,7 @@ import { segmentSchema, symbolsParamSchema, validateParams } from '@/lib/validat
 import { getBarCache, getBootstrapProgress } from '@/lib/cache/redis-cache'
 // setBarCache removed — scan is read-only from Redis
 import { isRedisAvailable } from '@/lib/cache/redis-client'
+import { providerMonitor } from '@/lib/monitor/provider-monitor'
 
 export const maxDuration = 300
 
@@ -82,10 +83,28 @@ async function processSymbol(
     const quote = ctx.quotes.get(symbol)
     const hermes = calculateHermes(bars, {}, undefined, trendCtx)
 
+    // HERMES_FIX: S10 2026-02-19 SEVERITY: HIGH
+    // Strip raw Z-scores, components, multipliers, filters from client response.
+    // Only expose score, signal, signalType, and band levels (needed for chart overlay).
+    const sanitizedHermes = {
+      score: hermes.score,
+      signal: hermes.signal,
+      signalType: hermes.signalType,
+      indicators: {
+        rsi: Math.round(hermes.indicators.rsi * 10) / 10,
+        mfi: Math.round(hermes.indicators.mfi * 10) / 10,
+        adx: Math.round(hermes.indicators.adx * 10) / 10,
+        atr: hermes.indicators.atr,
+        volRatio: Math.round(hermes.indicators.volRatio * 100) / 100,
+      },
+      bands: hermes.bands,
+      touches: hermes.touches,
+    }
+
     return {
       symbol,
       segment: computeSegmentFromMarketCap(quote?.marketCap),
-      hermes,
+      hermes: sanitizedHermes as unknown as typeof hermes,
       quote: quote ? {
         price: quote.price,
         change: quote.change,
@@ -95,7 +114,11 @@ async function processSymbol(
       } : undefined,
       timestamp: new Date().toISOString(),
     }
-  } catch {
+  } catch (err) {
+    // HERMES_FIX: S11 2026-02-19 SEVERITY: MEDIUM — was silently swallowing
+    if (err instanceof Error) {
+      console.warn(`[SCAN] processSymbol ${symbol} failed: ${err.message}`)
+    }
     return null
   }
 }
@@ -257,6 +280,9 @@ export async function GET(request: NextRequest) {
     const summary = buildSummary(results, segment, duration, errorCount)
 
     saveScanResults(segment, results, summary)
+
+    // HERMES_FIX: PROVIDER_MONITOR_v1 — Record scan freshness for SLA tracking
+    providerMonitor.recordDataFetch('scan').catch(() => {})
 
     if (ctx.profileMap.size > 0) {
       updateTrendFromScanResults(results, ctx.profileMap)

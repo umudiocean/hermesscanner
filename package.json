@@ -9,6 +9,7 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "verify": "npm run type-check && npm run build",
+    "sentinel:regression": "npx tsx src/scripts/sentinel-regression.ts",
     "sync-symbols": "node scripts/sync-symbols-from-trade.js"
   },
   "dependencies": {

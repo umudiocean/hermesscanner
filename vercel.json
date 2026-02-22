@@ -19,6 +19,18 @@
     {
       "path": "/api/cron/auto",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/health-check",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/refresh/crypto",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/refresh/stocks",
+      "schedule": "0 * * * *"
     }
   ]
 }

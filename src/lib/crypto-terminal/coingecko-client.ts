@@ -6,6 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import logger, { classifyError } from '../logger'
+import { providerMonitor } from '../monitor/provider-monitor'
 
 const CG_BASE = 'https://pro-api.coingecko.com/api/v3'
 const GT_BASE = 'https://pro-api.coingecko.com/api/v3' // GeckoTerminal via Pro (endpoints include /onchain prefix)
@@ -114,9 +115,11 @@ function recordSuccess(endpoint: string, durationMs: number): void {
   m.lastCall = Date.now()
   m.consecutiveFailures = 0
   m.circuitOpen = false
+  // HERMES_FIX: PROVIDER_MONITOR_v1 — Record to Redis for health endpoint
+  providerMonitor.recordSuccess('coingecko').catch(() => {})
 }
 
-function recordFailure(endpoint: string, durationMs: number, error: string): void {
+function recordFailure(endpoint: string, durationMs: number, error: string, httpStatus = 0): void {
   const m = getMetrics(endpoint)
   m.calls++
   m.errors++
@@ -131,6 +134,8 @@ function recordFailure(endpoint: string, durationMs: number, error: string): voi
       module: 'coingeckoClient', endpoint, consecutiveFailures: m.consecutiveFailures,
     })
   }
+  // HERMES_FIX: PROVIDER_MONITOR_v1 — Record to Redis for health endpoint
+  providerMonitor.recordError('coingecko', httpStatus).catch(() => {})
 }
 
 // ─── API Key ────────────────────────────────────────────────────────
@@ -213,18 +218,18 @@ export async function cgApiFetch<T = unknown>(
           const retryAfter = parseInt(res.headers.get('retry-after') || '5', 10) * 1000
           logger.warn(`CG rate limited, waiting ${retryAfter}ms`, { module: 'coingeckoClient', endpoint })
           await new Promise(r => setTimeout(r, retryAfter))
-          recordFailure(endpoint, duration, '429 Rate Limited')
+          recordFailure(endpoint, duration, '429 Rate Limited', 429)
           continue
         }
 
         if (!res.ok) {
           const statusText = `${res.status} ${res.statusText}`
           if (res.status >= 400 && res.status < 500 && res.status !== 429) {
-            recordFailure(endpoint, duration, statusText)
+            recordFailure(endpoint, duration, statusText, res.status)
             throw new Error(`CG API error: ${statusText} for ${endpoint}`)
           }
           lastError = new Error(`CG API error: ${statusText} for ${endpoint}`)
-          recordFailure(endpoint, duration, statusText)
+          recordFailure(endpoint, duration, statusText, res.status)
           if (attempt < maxRetries - 1) {
             const delay = config.retryBaseMs * Math.pow(2, attempt)
             logger.warn(`CG retry ${attempt + 1}/${maxRetries} after ${delay}ms`, {
@@ -256,7 +261,8 @@ export async function cgApiFetch<T = unknown>(
         }
       }
     }
-    throw lastError
+    // HERMES_FIX: CG-ERR 2026-02-19 SEVERITY: HIGH — lastError could be undefined
+    throw lastError ?? new Error(`CG API failed after ${maxRetries} retries: ${endpoint}`)
   }
 
   const promise = executeRequest().finally(() => {

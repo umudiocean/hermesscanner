@@ -1,0 +1,82 @@
+{
+  "description": "Crypto signal engine determinism test cases",
+  "cases": [
+    {
+      "desc": "Strong long + high fundamental + low risk + healthy → CONFLUENCE_BUY",
+      "inputs": {
+        "teknikSignalType": "strong_long",
+        "fundamentalScore": 85,
+        "riskLevel": "LOW",
+        "overvalLevel": "FAIR",
+        "chiLevel": "HEALTHY"
+      },
+      "expected": "confluence_buy"
+    },
+    {
+      "desc": "Long + strong AI + healthy → ALPHA_LONG",
+      "inputs": {
+        "teknikSignalType": "long",
+        "fundamentalScore": 82,
+        "riskLevel": "MODERATE",
+        "overvalLevel": "FAIR",
+        "chiLevel": "HEALTHY"
+      },
+      "expected": "alpha_long"
+    },
+    {
+      "desc": "Long + good AI → HERMES_LONG",
+      "inputs": {
+        "teknikSignalType": "long",
+        "fundamentalScore": 65,
+        "riskLevel": "MODERATE",
+        "overvalLevel": "FAIR",
+        "chiLevel": "STABLE"
+      },
+      "expected": "hermes_long"
+    },
+    {
+      "desc": "Short + bad AI + high risk + overvalued → CONFLUENCE_SELL",
+      "inputs": {
+        "teknikSignalType": "strong_short",
+        "fundamentalScore": 15,
+        "riskLevel": "HIGH",
+        "overvalLevel": "EXTREME",
+        "chiLevel": "CRITICAL"
+      },
+      "expected": "confluence_sell"
+    },
+    {
+      "desc": "Short + bad AI → ALPHA_SHORT",
+      "inputs": {
+        "teknikSignalType": "short",
+        "fundamentalScore": 10,
+        "riskLevel": "MODERATE",
+        "overvalLevel": "FAIR",
+        "chiLevel": "STABLE"
+      },
+      "expected": "alpha_short"
+    },
+    {
+      "desc": "Short + weak AI → HERMES_SHORT",
+      "inputs": {
+        "teknikSignalType": "short",
+        "fundamentalScore": 30,
+        "riskLevel": "MODERATE",
+        "overvalLevel": "FAIR",
+        "chiLevel": "STABLE"
+      },
+      "expected": "hermes_short"
+    },
+    {
+      "desc": "Neutral technical → no signal",
+      "inputs": {
+        "teknikSignalType": "neutral",
+        "fundamentalScore": 50,
+        "riskLevel": "MODERATE",
+        "overvalLevel": "FAIR",
+        "chiLevel": "STABLE"
+      },
+      "expected": null
+    }
+  ]
+}

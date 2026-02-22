@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import logger, { classifyError } from '../logger'
+import { providerMonitor } from '../monitor/provider-monitor'
 
 const FMP_BASE = 'https://financialmodelingprep.com/stable'
 
@@ -112,6 +113,7 @@ function recordSuccess(endpoint: string, durationMs: number): void {
   const m = getMetrics(endpoint)
   m.calls++
   m.totalDurationMs += durationMs
+  providerMonitor.recordSuccess('fmp').catch(() => {})
   m.lastCall = Date.now()
   m.consecutiveFailures = 0
   m.circuitOpen = false
@@ -121,6 +123,7 @@ function recordFailure(endpoint: string, durationMs: number, error: string, conf
   const m = getMetrics(endpoint)
   m.calls++
   m.errors++
+  providerMonitor.recordError('fmp', 0).catch(() => {})
   m.totalDurationMs += durationMs
   m.lastCall = Date.now()
   m.lastError = error

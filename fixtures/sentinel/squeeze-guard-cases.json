@@ -1,0 +1,113 @@
+{
+  "description": "Squeeze guard determinism test cases — all results must match exactly",
+  "cases": [
+    {
+      "desc": "Extreme funding spike (fundingZScore > 2.3) → immediate block",
+      "inputs": {
+        "fundingRate": 0.0015,
+        "fundingZScore": 2.8,
+        "openInterestChange24hPct": 5,
+        "openInterestChange7dPct": 10,
+        "priceChange1hPct": 1.0,
+        "priceChange4hPct": 2.0,
+        "priceChange24hPct": 4.0,
+        "volume24h": 500000000,
+        "spreadPct": 0.05,
+        "realizedVolatilityZ": 0.5,
+        "marketCapRank": 10,
+        "dataFreshnessMinutes": 5
+      },
+      "expectedBlocked": true,
+      "expectedReason": "EXTREME_FUNDING"
+    },
+    {
+      "desc": "Crowding + momentum ignition together → cascade block",
+      "inputs": {
+        "fundingRate": 0.001,
+        "fundingZScore": 2.0,
+        "openInterestChange24hPct": 15,
+        "openInterestChange7dPct": 25,
+        "priceChange1hPct": 3.0,
+        "priceChange4hPct": 7.0,
+        "priceChange24hPct": 14.0,
+        "volume24h": 200000000,
+        "spreadPct": 0.1,
+        "realizedVolatilityZ": 1.0,
+        "marketCapRank": 30,
+        "dataFreshnessMinutes": 5
+      },
+      "expectedBlocked": true,
+      "expectedReason": "CROWDING_AND_MOMENTUM"
+    },
+    {
+      "desc": "Thin liquidity + high spread → composite block",
+      "inputs": {
+        "fundingRate": 0.0005,
+        "fundingZScore": 1.0,
+        "openInterestChange24hPct": 5,
+        "openInterestChange7dPct": 8,
+        "priceChange1hPct": 1.0,
+        "priceChange4hPct": 2.0,
+        "priceChange24hPct": 5.0,
+        "dexLiquidityUSD": 300000,
+        "volume24h": 10000000,
+        "spreadPct": 0.5,
+        "realizedVolatilityZ": 2.0,
+        "marketCapRank": 150,
+        "dataFreshnessMinutes": 5
+      },
+      "expectedBlocked": true
+    },
+    {
+      "desc": "Normal conditions — all safe → short allowed",
+      "inputs": {
+        "fundingRate": 0.0003,
+        "fundingZScore": 0.5,
+        "openInterestChange24hPct": 3,
+        "openInterestChange7dPct": 5,
+        "priceChange1hPct": -1.2,
+        "priceChange4hPct": -2.0,
+        "priceChange24hPct": -3.0,
+        "dexLiquidityUSD": 15000000,
+        "volume24h": 800000000,
+        "spreadPct": 0.02,
+        "realizedVolatilityZ": 0.3,
+        "marketCapRank": 5,
+        "dataFreshnessMinutes": 2
+      },
+      "expectedBlocked": false,
+      "expectedReason": null
+    },
+    {
+      "desc": "Missing funding data → fail-closed block",
+      "inputs": {
+        "priceChange1hPct": -1.0,
+        "priceChange24hPct": -2.0,
+        "volume24h": 500000000,
+        "marketCapRank": 10,
+        "dataFreshnessMinutes": 3
+      },
+      "expectedBlocked": true,
+      "expectedReason": "DATA_INCOMPLETE"
+    },
+    {
+      "desc": "High volatility regime → vol expansion block",
+      "inputs": {
+        "fundingRate": 0.0002,
+        "fundingZScore": 0.3,
+        "openInterestChange24hPct": 2,
+        "openInterestChange7dPct": 3,
+        "priceChange1hPct": 0.5,
+        "priceChange4hPct": 1.0,
+        "priceChange24hPct": 2.0,
+        "dexLiquidityUSD": 400000,
+        "volume24h": 50000000,
+        "spreadPct": 0.4,
+        "realizedVolatilityZ": 2.5,
+        "marketCapRank": 200,
+        "dataFreshnessMinutes": 5
+      },
+      "expectedBlocked": true
+    }
+  ]
+}
