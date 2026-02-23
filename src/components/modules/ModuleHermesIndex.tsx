@@ -875,7 +875,7 @@ export default function ModuleHermesIndex() {
                   ))}
                 </div>
                 <div className="mt-2 pt-2 border-t border-white/[0.04] text-[9px] text-white/30 text-center">
-                  {total} hisse — Saglikli: {((counts.STRONG + counts.GOOD) / total * 100).toFixed(0)}% | Risk: {((counts.WEAK + counts.BAD) / total * 100).toFixed(0)}%
+                  Tum hisseler — Saglikli: {((counts.STRONG + counts.GOOD) / total * 100).toFixed(0)}% | Risk: {((counts.WEAK + counts.BAD) / total * 100).toFixed(0)}%
                 </div>
               </div>
             )

@@ -419,7 +419,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
                 <Zap size={18} className="text-amber-400" />
                 <div>
                   <h3 className="text-sm font-bold text-white/80 uppercase tracking-wider">HERMES AI Endeks Paneli</h3>
-                  <p className="text-[10px] text-white/35">10 endeks, 2064 hissenin HERMES AI puanlamasi</p>
+                  <p className="text-[10px] text-white/35">10 endeks, HERMES AI puanlamasi</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -1383,7 +1383,7 @@ function HermesAIScoreSummary() {
         ))}
       </div>
       <div className="mt-3 pt-2 border-t border-white/[0.04] flex items-center justify-between text-[9px] text-white/30">
-        <span>{stats.total} hisse analiz edildi</span>
+        <span>Tum hisseler analiz edildi</span>
         <span className="text-red-400/60">Risk: {riskPct}%</span>
       </div>
     </div>
