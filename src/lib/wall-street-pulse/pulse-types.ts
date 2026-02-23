@@ -14,6 +14,23 @@ export interface PulseComponent {
   rawValue?: number
 }
 
+export interface ForecastSignal {
+  label: string
+  type: 'bullish' | 'bearish' | 'info'
+  description: string
+}
+
+export type MarketRegime = 'EXTREME' | 'HIGH_VOL' | 'LOW_VOL' | 'NORMAL'
+
+export interface ForecastData {
+  bias: 'POZITIF' | 'NEGATIF' | 'NOTR'
+  confidence: number        // 0-100
+  regime: MarketRegime
+  specialSignals: ForecastSignal[]
+  isGoldenSignal: boolean
+  boostApplied: number      // +/- composite boost from special signals
+}
+
 export interface PulseData {
   composite: number    // 0-100
   level: PulseLevel
@@ -23,6 +40,7 @@ export interface PulseData {
   smartMoney: SmartMoneyData
   earnings: EarningsPulseData
   shortSqueeze: ShortSqueezeStock[]
+  forecast: ForecastData
   timestamp: string
   marketOpen: boolean
 }

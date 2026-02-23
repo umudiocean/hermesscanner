@@ -784,3 +784,49 @@ button, a, [role="button"] {
   -webkit-mask-composite: xor; mask-composite: exclude;
   padding: 1px;
 }
+
+/* ═══ V4 FORECAST ANIMATIONS ═══ */
+
+@keyframes signal-fire {
+  0% { box-shadow: 0 0 4px rgba(98,203,193,0.2), inset 0 0 4px rgba(98,203,193,0.05); }
+  50% { box-shadow: 0 0 16px rgba(98,203,193,0.5), inset 0 0 8px rgba(98,203,193,0.1); }
+  100% { box-shadow: 0 0 4px rgba(98,203,193,0.2), inset 0 0 4px rgba(98,203,193,0.05); }
+}
+@keyframes signal-fire-red {
+  0% { box-shadow: 0 0 4px rgba(239,68,68,0.2), inset 0 0 4px rgba(239,68,68,0.05); }
+  50% { box-shadow: 0 0 16px rgba(239,68,68,0.5), inset 0 0 8px rgba(239,68,68,0.1); }
+  100% { box-shadow: 0 0 4px rgba(239,68,68,0.2), inset 0 0 4px rgba(239,68,68,0.05); }
+}
+@keyframes signal-fire-gold {
+  0% { box-shadow: 0 0 4px rgba(179,148,91,0.2), inset 0 0 4px rgba(179,148,91,0.05); }
+  50% { box-shadow: 0 0 20px rgba(179,148,91,0.6), inset 0 0 10px rgba(179,148,91,0.15); }
+  100% { box-shadow: 0 0 4px rgba(179,148,91,0.2), inset 0 0 4px rgba(179,148,91,0.05); }
+}
+.signal-fire-green { animation: signal-fire 2s ease-in-out infinite; }
+.signal-fire-red { animation: signal-fire-red 2s ease-in-out infinite; }
+.signal-fire-gold { animation: signal-fire-gold 2.5s ease-in-out infinite; }
+
+@keyframes confidence-fill {
+  from { width: 0%; }
+  to { width: var(--conf-width, 50%); }
+}
+.confidence-bar { animation: confidence-fill 1.2s ease-out forwards; }
+
+@keyframes badge-enter {
+  0% { opacity: 0; transform: scale(0.6) translateY(4px); }
+  60% { opacity: 1; transform: scale(1.1) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.badge-enter { animation: badge-enter 0.5s ease-out forwards; }
+
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); opacity: 0.8; }
+  100% { transform: rotate(360deg); opacity: 0.8; }
+}
+.radar-sweep { animation: radar-sweep 3s linear infinite; }
+
+@keyframes combo-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+.combo-pulse { animation: combo-pulse 1.5s ease-in-out infinite; }

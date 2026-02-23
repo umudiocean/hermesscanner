@@ -10,6 +10,9 @@ import {
   ShortSqueezeStock,
   AnalystMomentumData,
   SectorRotationData,
+  ForecastData,
+  ForecastSignal,
+  MarketRegime,
   getPulseLevel,
   getPulseLevelLabel,
 } from './pulse-types'
@@ -382,6 +385,9 @@ export function calculatePulse(inputs: PulseInputs): PulseData {
 
   const level = getPulseLevel(composite)
 
+  // V4 Forecast Intelligence
+  const forecast = computeForecast(composite, breadth, earningsData, inputs.vixValue, vixScore, inputs.sectorPerformance)
+
   return {
     composite,
     level,
@@ -391,7 +397,92 @@ export function calculatePulse(inputs: PulseInputs): PulseData {
     smartMoney,
     earnings: earningsData,
     shortSqueeze: squeeze,
+    forecast,
     timestamp: new Date().toISOString(),
     marketOpen: inputs.marketOpen,
+  }
+}
+
+// ─── V4 FORECAST INTELLIGENCE ────────────────────────────────────
+
+function computeForecast(
+  composite: number,
+  breadth: BreadthData,
+  earnings: EarningsPulseData,
+  vixRaw: number | null,
+  vixScore: number,
+  sectorPerf: SectorPerf[],
+): ForecastData {
+  // Regime detection
+  let regime: MarketRegime = 'NORMAL'
+  if (vixRaw != null) {
+    if (vixRaw >= 30) regime = 'EXTREME'
+    else if (vixRaw >= 22) regime = 'HIGH_VOL'
+    else if (vixRaw <= 13) regime = 'LOW_VOL'
+  } else {
+    if (vixScore <= 20) regime = 'EXTREME'
+    else if (vixScore <= 40) regime = 'HIGH_VOL'
+    else if (vixScore >= 85) regime = 'LOW_VOL'
+  }
+
+  // Special signals
+  const specials: ForecastSignal[] = []
+  const advPct = breadth.total > 0 ? (breadth.advancing / breadth.total) * 100 : 50
+
+  if (advPct < 25) specials.push({ label: 'BREADTH < 25%', type: 'bullish', description: 'Extreme low breadth — mean reversion potential' })
+  if (advPct > 80) specials.push({ label: 'EUPHORIA', type: 'bearish', description: 'Extreme optimism — contrarian caution' })
+  if (regime === 'EXTREME') specials.push({ label: 'EXTREME VOL', type: 'bullish', description: 'VIX 30+ — panic environment, buying opportunity' })
+  if (regime === 'LOW_VOL') specials.push({ label: 'LOW VOL', type: 'info', description: 'VIX < 13 — complacency, volatility may spike' })
+  if (breadth.newLows > breadth.newHighs * 3 && breadth.newLows > 20) {
+    specials.push({ label: 'CAPITULATION', type: 'bullish', description: `${breadth.newLows} stocks near 52W low` })
+  }
+  if (breadth.newHighs > breadth.newLows * 3 && breadth.newHighs > 30) {
+    specials.push({ label: 'BREAKOUT WAVE', type: 'info', description: `${breadth.newHighs} stocks at 52W high` })
+  }
+  if (earnings.beatRate > 75) specials.push({ label: 'EARNINGS STRONG', type: 'bullish', description: `Beat rate ${earnings.beatRate.toFixed(0)}%` })
+  if (earnings.beatRate < 40) specials.push({ label: 'EARNINGS WEAK', type: 'bearish', description: `Beat rate ${earnings.beatRate.toFixed(0)}%` })
+
+  // Sector rotation signal
+  let offSum = 0, defSum = 0, offN = 0, defN = 0
+  for (const s of sectorPerf) {
+    const chg = Number(s.changesPercentage) || 0
+    if (OFFENSIVE.includes(s.sector)) { offSum += chg; offN++ }
+    if (DEFENSIVE.includes(s.sector)) { defSum += chg; defN++ }
+  }
+  const riskAppetite = (offN > 0 ? offSum / offN : 0) - (defN > 0 ? defSum / defN : 0)
+  if (riskAppetite < -1.5) specials.push({ label: 'RISK-OFF', type: 'bearish', description: 'Defensive sectors outperforming' })
+  if (riskAppetite > 1.5) specials.push({ label: 'RISK-ON', type: 'bullish', description: 'Offensive sectors leading' })
+
+  // Confidence
+  const bullishCount = specials.filter(s => s.type === 'bullish').length
+  const bearishCount = specials.filter(s => s.type === 'bearish').length
+  const maxAlign = Math.max(bullishCount, bearishCount)
+  const totalPossible = Math.max(specials.length, 1)
+  const confidence = clamp(Math.round((maxAlign / totalPossible) * 100), 10, 100)
+
+  // Boost from special signals
+  let boost = 0
+  if (bullishCount >= 2) boost = 15
+  else if (bullishCount === 1) boost = 8
+  if (bearishCount >= 2) boost = -15
+  else if (bearishCount === 1 && boost === 0) boost = -8
+
+  const adjustedComposite = clamp(composite + boost, 0, 100)
+  const isGoldenSignal = specials.length >= 3 && bullishCount >= 2
+
+  let bias: 'POZITIF' | 'NEGATIF' | 'NOTR' = 'NOTR'
+  if (adjustedComposite >= 65 && confidence >= 50) bias = 'POZITIF'
+  else if (adjustedComposite >= 72 && confidence >= 37) bias = 'POZITIF'
+  else if (adjustedComposite <= 35 && confidence >= 50) bias = 'NEGATIF'
+  else if (adjustedComposite <= 28 && confidence >= 37) bias = 'NEGATIF'
+  else if (isGoldenSignal) bias = 'POZITIF'
+
+  return {
+    bias,
+    confidence,
+    regime,
+    specialSignals: specials,
+    isGoldenSignal,
+    boostApplied: boost,
   }
 }

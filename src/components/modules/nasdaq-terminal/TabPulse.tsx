@@ -359,6 +359,133 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
         <CollapseSection title="Short Squeeze Radar" icon={<AlertTriangle size={14} />}>
           <SqueezePanel data={pulse} onSelectSymbol={onSelectSymbol} />
         </CollapseSection>
+
+        <CollapseSection title="Ongoru Zekasi (V4 Model)" icon={<Shield size={14} />} defaultOpen={true}>
+          <ForecastIntelligence data={pulse} />
+        </CollapseSection>
+      </div>
+    </div>
+  )
+}
+
+// ─── Forecast Intelligence (V4 Model) ─────────────────────────────
+
+function ForecastIntelligence({ data }: { data: PulseData }) {
+  const composite = data.composite
+  const fc = data.forecast
+
+  if (!fc) return <div className="text-white/30 text-xs py-4">Ongoru verisi hesaplaniyor...</div>
+
+  const specials = fc.specialSignals || []
+  const regime = fc.regime || 'NORMAL'
+  const isGolden = fc.isGoldenSignal
+
+  const biasColor = fc.bias === 'POZITIF' ? 'text-emerald-400' : fc.bias === 'NEGATIF' ? 'text-red-400' : 'text-white/50'
+
+  const vixComp = data.components.find(c => c.id === 'vix')
+  const vixRaw = vixComp?.rawValue
+
+  const regimeConfig: Record<string, { label: string; color: string; bg: string; desc: string }> = {
+    EXTREME: { label: 'EXTREME VOL', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', desc: 'Yuksek volatilite — mean reversion agirligi arttirildi' },
+    HIGH_VOL: { label: 'HIGH VOL', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20', desc: 'Yukari volatilite — makro agirligi yukseldi' },
+    LOW_VOL: { label: 'LOW VOL', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', desc: 'Dusuk volatilite — momentum agirligi arttirildi' },
+    NORMAL: { label: 'NORMAL', color: 'text-white/50', bg: 'bg-white/[0.03] border-white/[0.06]', desc: 'Standart piyasa kosullari — dengeli agirliklar' },
+  }
+  const rc = regimeConfig[regime]
+
+  return (
+    <div className="space-y-3">
+      {/* Regime + Forecast Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {/* Market Regime */}
+        <div className={`rounded-xl border p-3 ${rc.bg}`}>
+          <div className="flex items-center gap-2 mb-1">
+            <Activity size={12} className={rc.color} />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">PIYASA REJIMI</span>
+          </div>
+          <div className={`text-lg font-bold ${rc.color}`}>{rc.label}</div>
+          <div className="text-[10px] text-white/30 mt-0.5">{rc.desc}</div>
+          {vixRaw != null && (
+            <div className="text-[10px] text-white/20 mt-1 font-mono">VIX: {vixRaw.toFixed(1)}</div>
+          )}
+        </div>
+
+        {/* Forecast Summary */}
+        <div className={`rounded-xl border p-3 ${isGolden ? 'bg-gold-400/[0.06] border-gold-400/30 signal-fire-gold' : composite >= 65 ? 'bg-emerald-500/[0.04] border-emerald-500/20' : composite <= 35 ? 'bg-red-500/[0.04] border-red-500/20' : 'bg-white/[0.03] border-white/[0.06]'}`}>
+          <div className="flex items-center gap-2 mb-1">
+            <Zap size={12} className="text-gold-300" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">ONGORU</span>
+            {isGolden && (
+              <span className="badge-enter px-1.5 py-0.5 rounded-full bg-gold-400/20 border border-gold-400/40 text-[9px] font-bold text-gold-300 combo-pulse">GOLDEN</span>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <div className={`text-2xl font-black tabular-nums ${biasColor}`}>{fc.bias}</div>
+            <div>
+              <div className="text-[10px] text-white/40">Composite: {composite}/100 {fc.boostApplied !== 0 && <span className={fc.boostApplied > 0 ? 'text-emerald-400' : 'text-red-400'}>(+{fc.boostApplied})</span>}</div>
+              <div className="text-[9px] text-white/20">{specials.length} ozel sinyal | Guven: %{fc.confidence}</div>
+            </div>
+          </div>
+          {isGolden && (
+            <div className="mt-2 text-[9px] text-gold-300/60">
+              Backtest: 3+ sinyal combo — 1G hit %68.8, 3G hit %81.2
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Special Signals */}
+      {specials.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Target size={12} className="text-gold-300" />
+            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">OZEL SINYALLER</span>
+            <span className="text-[9px] text-white/20 ml-auto">{specials.length} aktif</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            {specials.map((s, i) => (
+              <div
+                key={i}
+                className={`badge-enter flex items-start gap-2 rounded-lg border px-3 py-2 ${
+                  s.type === 'bullish' ? 'bg-emerald-500/[0.06] border-emerald-500/20' :
+                  s.type === 'bearish' ? 'bg-red-500/[0.06] border-red-500/20' :
+                  'bg-white/[0.03] border-white/[0.06]'
+                }`}
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <span className={`shrink-0 mt-0.5 ${s.type === 'bullish' ? 'text-emerald-400' : s.type === 'bearish' ? 'text-red-400' : 'text-blue-400'}`}>
+                  {s.type === 'bullish' ? <ArrowUpRight size={12} /> : s.type === 'bearish' ? <ArrowDownRight size={12} /> : <Activity size={12} />}
+                </span>
+                <div className="min-w-0">
+                  <span className={`text-[11px] font-bold ${s.type === 'bullish' ? 'text-emerald-400' : s.type === 'bearish' ? 'text-red-400' : 'text-blue-400'}`}>{s.label}</span>
+                  <div className="text-[9px] text-white/30 mt-0.5">{s.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Backtest Performance Footer */}
+      <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-2.5">
+        <div className="flex items-center gap-2 mb-1.5">
+          <Shield size={10} className="text-white/25" />
+          <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wider">V4 BACKTEST PERFORMANSI (10 YIL)</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="text-[9px] text-white/25">Genel Hit</div>
+            <div className="text-[11px] font-bold text-white/50 tabular-nums">%59.1</div>
+          </div>
+          <div>
+            <div className="text-[9px] text-white/25">Golden 1G</div>
+            <div className="text-[11px] font-bold text-emerald-400 tabular-nums">%68.8</div>
+          </div>
+          <div>
+            <div className="text-[9px] text-white/25">Golden 3G</div>
+            <div className="text-[11px] font-bold text-emerald-400 tabular-nums">%81.2</div>
+          </div>
+        </div>
       </div>
     </div>
   )
