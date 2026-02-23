@@ -229,8 +229,8 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { id: 'pulse', label: 'WALL STREET NABZI', icon: <Activity size={16} />, desc: '12 bilesenli piyasa nabiz endeksi — breadth, smart money, earnings, korku/hirs' },
   { id: 'market', label: 'PIYASA & TREND', icon: <Globe size={16} />, desc: 'Piyasa trendi, endeks skorlari, sektor rotasyonu' },
+  { id: 'pulse', label: 'WALL STREET NABZI', icon: <Activity size={16} />, desc: '12 bilesenli piyasa nabiz endeksi — breadth, smart money, earnings, korku/hirs' },
   { id: 'stocks', label: 'HISSELER', icon: <BarChart3 size={16} />, desc: 'Tum hisseler ve puanlama' },
   { id: 'stock', label: 'DETAY', icon: <Eye size={16} />, desc: 'Hisse detay analizi' },
   { id: 'financials', label: 'FINANSALLAR', icon: <PieChart size={16} />, desc: 'Gelir tablosu, bilanco' },
@@ -243,7 +243,7 @@ const TABS: TabConfig[] = [
 ]
 
 export default function ModuleNasdaqTerminal() {
-  const [activeTab, setActiveTab] = useState<HermesTab>('pulse')
+  const [activeTab, setActiveTab] = useState<HermesTab>('market')
   const [selectedSymbol, setSelectedSymbol] = useState<string>('')
   const [compareSymbols, setCompareSymbols] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')

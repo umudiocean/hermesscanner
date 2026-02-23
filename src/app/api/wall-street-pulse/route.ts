@@ -123,25 +123,40 @@ async function computePulseData(): Promise<PulseData> {
 // ─── Data Fetchers ──────────────────────────────────────────────
 
 async function fetchStockQuotes(): Promise<StockQuote[]> {
-  // Use the same stocks API — already cached
-  const res = await fetch(`${getBaseUrl()}/api/fmp-terminal/stocks`, { cache: 'no-store' })
-  if (!res.ok) return []
-  const data = await res.json()
-  if (!Array.isArray(data)) return []
+  try {
+    const { getSymbols } = await import('@/lib/symbols')
+    const symbols = getSymbols('ALL')
+    const quotes: StockQuote[] = []
+    const batchSize = 100
 
-  return data.map((s: Record<string, unknown>) => ({
-    symbol: String(s.symbol || ''),
-    price: Number(s.price) || 0,
-    changesPercentage: Number(s.changePercent) || 0,
-    volume: Number(s.volume) || 0,
-    avgVolume: Number(s.avgVolume) || 0,
-    yearHigh: Number(s.yearHigh) || 0,
-    yearLow: Number(s.yearLow) || 0,
-    marketCap: Number(s.marketCap) || 0,
-    beta: Number(s.beta) || undefined,
-    sector: String(s.sector || ''),
-    shortFloat: Number(s.shortFloat) || undefined,
-  }))
+    for (let i = 0; i < symbols.length; i += batchSize) {
+      const batch = symbols.slice(i, i + batchSize)
+      try {
+        const data = await fmpApiFetch<Record<string, unknown>[]>('/batch-quote', { symbols: batch.join(',') })
+        if (Array.isArray(data)) {
+          for (const s of data) {
+            quotes.push({
+              symbol: String(s.symbol || ''),
+              price: Number(s.price) || 0,
+              changesPercentage: Number(s.changesPercentage) || 0,
+              volume: Number(s.volume) || 0,
+              avgVolume: Number(s.avgVolume) || 0,
+              yearHigh: Number(s.yearHigh) || 0,
+              yearLow: Number(s.yearLow) || 0,
+              marketCap: Number(s.marketCap) || 0,
+              beta: s.beta != null ? Number(s.beta) : undefined,
+              sector: undefined,
+              shortFloat: undefined,
+            })
+          }
+        }
+      } catch { /* skip batch on error */ }
+    }
+    return quotes
+  } catch (e) {
+    logger.error(`[Pulse] fetchStockQuotes failed: ${(e as Error).message}`)
+    return []
+  }
 }
 
 async function fetchAnalystConsensus(): Promise<AnalystConsensus[]> {
@@ -191,11 +206,6 @@ async function fetchCongressTradesAll(chamber: 'senate' | 'house'): Promise<Cong
 
 function getResult<T>(settled: PromiseSettledResult<T>, fallback: T): T {
   return settled.status === 'fulfilled' ? settled.value : fallback
-}
-
-function getBaseUrl(): string {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
-  return `http://localhost:${process.env.PORT || 3000}`
 }
 
 function checkMarketOpen(): boolean {

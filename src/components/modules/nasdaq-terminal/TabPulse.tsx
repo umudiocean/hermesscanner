@@ -88,29 +88,30 @@ function ComponentBar({ name, value, weight, icon, available }: { name: string; 
 // ─── Breadth Panel ────────────────────────────────────────────────
 
 function BreadthPanel({ data }: { data: PulseData }) {
-  const b = data.breadth
+  const b = data?.breadth
   if (!b || b.total === 0) return <div className="text-white/30 text-xs py-4">Breadth verisi yok</div>
 
   const advPct = ((b.advancing / b.total) * 100).toFixed(1)
   const decPct = ((b.declining / b.total) * 100).toFixed(1)
-  const midPct = ((b.aboveMidpointPct) * 100).toFixed(1)
+  const midPct = (((b.aboveMidpointPct ?? 0)) * 100).toFixed(1)
+  const adRatio = b.advanceDeclineRatio ?? 0
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <MiniMetric label="Yukselen" value={`${b.advancing}`} sub={`${advPct}%`} color="text-emerald-400" />
-      <MiniMetric label="Dusen" value={`${b.declining}`} sub={`${decPct}%`} color="text-red-400" />
-      <MiniMetric label="52H Zirve" value={`${b.newHighs}`} sub={`yakin`} color="text-gold-300" />
-      <MiniMetric label="52H Dip" value={`${b.newLows}`} sub={`yakin`} color="text-red-400" />
-      <MiniMetric label="A/D Orani" value={b.advanceDeclineRatio.toFixed(2)} sub="" color={b.advanceDeclineRatio > 1 ? 'text-emerald-400' : 'text-red-400'} />
-      <MiniMetric label="Orta Nokta Ustu" value={`${midPct}%`} sub={`${b.aboveMidpoint} hisse`} color={b.aboveMidpointPct > 0.5 ? 'text-emerald-400' : 'text-red-400'} />
+      <MiniMetric label="Yukselen" value={`${b.advancing ?? 0}`} sub={`${advPct}%`} color="text-emerald-400" />
+      <MiniMetric label="Dusen" value={`${b.declining ?? 0}`} sub={`${decPct}%`} color="text-red-400" />
+      <MiniMetric label="52H Zirve" value={`${b.newHighs ?? 0}`} sub={`yakin`} color="text-gold-300" />
+      <MiniMetric label="52H Dip" value={`${b.newLows ?? 0}`} sub={`yakin`} color="text-red-400" />
+      <MiniMetric label="A/D Orani" value={adRatio.toFixed(2)} sub="" color={adRatio > 1 ? 'text-emerald-400' : 'text-red-400'} />
+      <MiniMetric label="Orta Nokta Ustu" value={`${midPct}%`} sub={`${b.aboveMidpoint ?? 0} hisse`} color={(b.aboveMidpointPct ?? 0) > 0.5 ? 'text-emerald-400' : 'text-red-400'} />
       <MiniMetric label="Toplam" value={`${b.total}`} sub="hisse" color="text-white/60" />
-      <MiniMetric label="Degismez" value={`${b.unchanged}`} sub="" color="text-white/40" />
+      <MiniMetric label="Degismez" value={`${b.unchanged ?? 0}`} sub="" color="text-white/40" />
 
       {/* Stacked bar */}
       <div className="col-span-2 lg:col-span-4 mt-1">
         <div className="h-4 rounded-full overflow-hidden flex bg-white/[0.04]">
           <div className="bg-emerald-500/80 transition-all duration-500" style={{ width: `${advPct}%` }} />
-          <div className="bg-white/10 transition-all duration-500" style={{ width: `${((b.unchanged / b.total) * 100)}%` }} />
+          <div className="bg-white/10 transition-all duration-500" style={{ width: `${b.total > 0 ? ((b.unchanged / b.total) * 100) : 0}%` }} />
           <div className="bg-red-500/80 transition-all duration-500" style={{ width: `${decPct}%` }} />
         </div>
         <div className="flex justify-between mt-1 text-[9px]">
@@ -125,15 +126,18 @@ function BreadthPanel({ data }: { data: PulseData }) {
 // ─── Smart Money Panel ────────────────────────────────────────────
 
 function SmartMoneyPanel({ data }: { data: PulseData }) {
-  const sm = data.smartMoney
+  const sm = data?.smartMoney
+  if (!sm) return <div className="text-white/30 text-xs py-4">Smart Money verisi yok</div>
+  const iRatio = sm.insiderRatio ?? 50
+  const cRatio = sm.congressRatio ?? 50
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-      <MiniMetric label="Insider Alis" value={`${sm.insiderNetBuys}`} sub="islem" color="text-emerald-400" />
-      <MiniMetric label="Insider Satis" value={`${sm.insiderNetSells}`} sub="islem" color="text-red-400" />
-      <MiniMetric label="Insider Oran" value={`${sm.insiderRatio.toFixed(0)}%`} sub="alis" color={sm.insiderRatio > 50 ? 'text-emerald-400' : 'text-red-400'} />
-      <MiniMetric label="Kongre Alis" value={`${sm.congressBuys}`} sub="" color="text-emerald-400" />
-      <MiniMetric label="Kongre Satis" value={`${sm.congressSells}`} sub="" color="text-red-400" />
-      <MiniMetric label="Kongre Oran" value={`${sm.congressRatio.toFixed(0)}%`} sub="alis" color={sm.congressRatio > 50 ? 'text-emerald-400' : 'text-red-400'} />
+      <MiniMetric label="Insider Alis" value={`${sm.insiderNetBuys ?? 0}`} sub="islem" color="text-emerald-400" />
+      <MiniMetric label="Insider Satis" value={`${sm.insiderNetSells ?? 0}`} sub="islem" color="text-red-400" />
+      <MiniMetric label="Insider Oran" value={`${iRatio.toFixed(0)}%`} sub="alis" color={iRatio > 50 ? 'text-emerald-400' : 'text-red-400'} />
+      <MiniMetric label="Kongre Alis" value={`${sm.congressBuys ?? 0}`} sub="" color="text-emerald-400" />
+      <MiniMetric label="Kongre Satis" value={`${sm.congressSells ?? 0}`} sub="" color="text-red-400" />
+      <MiniMetric label="Kongre Oran" value={`${cRatio.toFixed(0)}%`} sub="alis" color={cRatio > 50 ? 'text-emerald-400' : 'text-red-400'} />
     </div>
   )
 }
@@ -141,12 +145,15 @@ function SmartMoneyPanel({ data }: { data: PulseData }) {
 // ─── Earnings Panel ───────────────────────────────────────────────
 
 function EarningsPanel({ data }: { data: PulseData }) {
-  const e = data.earnings
+  const e = data?.earnings
+  if (!e) return <div className="text-white/30 text-xs py-4">Kazanc verisi yok</div>
+  const beatRate = e.beatRate ?? 50
+  const avgSurp = e.avgSurprise ?? 0
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <MiniMetric label="Beat" value={`${e.beatCount}`} sub={`${e.beatRate.toFixed(0)}%`} color="text-emerald-400" />
-      <MiniMetric label="Miss" value={`${e.missCount}`} sub="" color="text-red-400" />
-      <MiniMetric label="Ort. Surpriz" value={`${e.avgSurprise > 0 ? '+' : ''}${e.avgSurprise.toFixed(1)}%`} sub="" color={e.avgSurprise > 0 ? 'text-emerald-400' : 'text-red-400'} />
+      <MiniMetric label="Beat" value={`${e.beatCount ?? 0}`} sub={`${beatRate.toFixed(0)}%`} color="text-emerald-400" />
+      <MiniMetric label="Miss" value={`${e.missCount ?? 0}`} sub="" color="text-red-400" />
+      <MiniMetric label="Ort. Surpriz" value={`${avgSurp > 0 ? '+' : ''}${avgSurp.toFixed(1)}%`} sub="" color={avgSurp > 0 ? 'text-emerald-400' : 'text-red-400'} />
       <MiniMetric label="Trend" value={e.trend === 'improving' ? 'Iyilesiyor' : e.trend === 'declining' ? 'Kotelesyor' : 'Sabit'} sub="" color={e.trend === 'improving' ? 'text-emerald-400' : e.trend === 'declining' ? 'text-red-400' : 'text-white/50'} />
     </div>
   )
@@ -174,9 +181,9 @@ function SqueezePanel({ data, onSelectSymbol }: { data: PulseData; onSelectSymbo
           {list.slice(0, 15).map(s => (
             <tr key={s.symbol} className="border-b border-white/[0.03] hover:bg-white/[0.02] cursor-pointer" onClick={() => onSelectSymbol?.(s.symbol)}>
               <td className="py-1.5 px-1 font-mono text-gold-300">{s.symbol}</td>
-              <td className="py-1.5 px-1 text-right text-orange-400">{s.shortFloat.toFixed(1)}%</td>
-              <td className={`py-1.5 px-1 text-right ${s.dayChange > 0 ? 'text-emerald-400' : 'text-red-400'}`}>{s.dayChange > 0 ? '+' : ''}{s.dayChange.toFixed(2)}%</td>
-              <td className={`py-1.5 px-1 text-right ${s.volumeSpike > 2 ? 'text-gold-300' : 'text-white/50'}`}>{s.volumeSpike.toFixed(1)}x</td>
+              <td className="py-1.5 px-1 text-right text-orange-400">{(s.shortFloat ?? 0).toFixed(1)}%</td>
+              <td className={`py-1.5 px-1 text-right ${(s.dayChange ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'}`}>{(s.dayChange ?? 0) > 0 ? '+' : ''}{(s.dayChange ?? 0).toFixed(2)}%</td>
+              <td className={`py-1.5 px-1 text-right ${(s.volumeSpike ?? 0) > 2 ? 'text-gold-300' : 'text-white/50'}`}>{(s.volumeSpike ?? 0).toFixed(1)}x</td>
               <td className="py-1.5 px-1 text-right">
                 <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${s.squeezeScore >= 60 ? 'bg-red-500/20 text-red-300' : s.squeezeScore >= 40 ? 'bg-orange-500/15 text-orange-300' : 'bg-white/5 text-white/40'}`}>
                   {s.squeezeScore}
@@ -319,10 +326,10 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
 
       {/* ── Quick Stats Row ───────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <QuickStat label="A/D Orani" value={pulse.breadth.advanceDeclineRatio.toFixed(2)} good={pulse.breadth.advanceDeclineRatio > 1} icon={<BarChart3 size={14} />} />
-        <QuickStat label="52H Zirve/Dip" value={`${pulse.breadth.newHighs}/${pulse.breadth.newLows}`} good={pulse.breadth.newHighs > pulse.breadth.newLows} icon={<TrendingUp size={14} />} />
-        <QuickStat label="Kazanc Beat" value={`${pulse.earnings.beatRate.toFixed(0)}%`} good={pulse.earnings.beatRate > 60} icon={<Zap size={14} />} />
-        <QuickStat label="Squeeze Aday" value={`${pulse.shortSqueeze.length}`} good={false} icon={<AlertTriangle size={14} />} />
+        <QuickStat label="A/D Orani" value={(pulse.breadth?.advanceDeclineRatio ?? 0).toFixed(2)} good={(pulse.breadth?.advanceDeclineRatio ?? 0) > 1} icon={<BarChart3 size={14} />} />
+        <QuickStat label="52H Zirve/Dip" value={`${pulse.breadth?.newHighs ?? 0}/${pulse.breadth?.newLows ?? 0}`} good={(pulse.breadth?.newHighs ?? 0) > (pulse.breadth?.newLows ?? 0)} icon={<TrendingUp size={14} />} />
+        <QuickStat label="Kazanc Beat" value={`${(pulse.earnings?.beatRate ?? 50).toFixed(0)}%`} good={(pulse.earnings?.beatRate ?? 50) > 60} icon={<Zap size={14} />} />
+        <QuickStat label="Squeeze Aday" value={`${pulse.shortSqueeze?.length ?? 0}`} good={false} icon={<AlertTriangle size={14} />} />
       </div>
 
       {/* ── Collapse Panels ──────────────────────────────── */}
