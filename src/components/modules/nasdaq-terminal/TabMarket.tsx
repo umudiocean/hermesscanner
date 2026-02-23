@@ -301,8 +301,8 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       {/* ═══ HERMES AI PULSE — Tum Sistem Nabzi ═══ */}
       {hermesPulse && <HermesPulseGauge pulse={hermesPulse} />}
 
-      {/* ═══ WALL STREET PULSE MINI — Piyasa Acilis Ongoru ═══ */}
-      <WallStreetPulseMini />
+      {/* ═══ PIYASA ACILIS ONGORU — mevcut market verisinden ═══ */}
+      {data && <MarketOpenForecast data={data} />}
 
       {/* ═══ FEAR & GREED INDEX BAR ═══ */}
       <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20 glass-card">
@@ -1368,110 +1368,74 @@ function HermesPulseGauge({ pulse }: {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// WALL STREET PULSE MINI — Piyasa Acilis Ongoru Karti
-// Pulse tab'indan veri cekerek piyasa & trend'e mini ozet gosterir
+// PIYASA ACILIS ONGORU — Mevcut market verisinden hesaplama
+// Harici API cagirmaz, sadece data prop'undan turetir
 // ═══════════════════════════════════════════════════════════════════
 
-function WallStreetPulseMini() {
-  const [pulse, setPulse] = useState<{ composite: number; level: string; levelLabel: string; breadth?: { advancing: number; declining: number; newHighs: number; newLows: number; total: number }; earnings?: { beatRate: number }; shortSqueeze?: { symbol: string; squeezeScore: number }[]; components?: { id: string; name: string; value: number; available: boolean }[]; marketOpen: boolean } | null>(null)
+function MarketOpenForecast({ data }: { data: MarketDashboardData }) {
+  const signals: { label: string; value: string; positive: boolean }[] = []
 
-  useEffect(() => {
-    fetch('/api/wall-street-pulse')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d && typeof d.composite === 'number') setPulse(d) })
-      .catch(() => {})
-  }, [])
+  // 1. Endeks trendi
+  const idxs = data.indexes || []
+  const idxUp = idxs.filter((i: IndexQuote) => (i.changesPercentage ?? 0) > 0).length
+  const idxDown = idxs.filter((i: IndexQuote) => (i.changesPercentage ?? 0) < 0).length
+  if (idxs.length > 0) signals.push({ label: 'Endeks Trendi', value: `${idxUp} yukselen / ${idxDown} dusen`, positive: idxUp > idxDown })
 
-  if (!pulse) return null
+  // 2. Gainer vs Loser gucu
+  const gainers = data.topGainers || []
+  const losers = data.topLosers || []
+  const gStr = gainers.length > 0 ? gainers.reduce((s: number, g: MarketGainerLoser) => s + Math.abs(g.changesPercentage || 0), 0) / gainers.length : 0
+  const lStr = losers.length > 0 ? losers.reduce((s: number, l: MarketGainerLoser) => s + Math.abs(l.changesPercentage || 0), 0) / losers.length : 0
+  signals.push({ label: 'Gainer/Loser Gucu', value: `+${gStr.toFixed(1)}% / -${lStr.toFixed(1)}%`, positive: gStr > lStr })
 
-  const levelColors: Record<string, string> = {
-    EXTREME_FEAR: 'text-red-400 border-red-500/20 bg-red-500/5',
-    FEAR: 'text-red-300 border-red-500/15 bg-red-500/5',
-    NEUTRAL: 'text-slate-300 border-white/10 bg-white/[0.02]',
-    GREED: 'text-emerald-400 border-emerald-500/15 bg-emerald-500/5',
-    EXTREME_GREED: 'text-gold-300 border-gold-400/20 bg-gold-400/5',
-  }
+  // 3. Sektor genisligi
+  const sectors = data.sectorPerformance || []
+  const secUp = sectors.filter((s: SectorPerformance) => (Number(s.changesPercentage) || 0) > 0).length
+  const secTotal = sectors.length || 1
+  signals.push({ label: 'Sektor Genisligi', value: `${secUp}/${secTotal} pozitif`, positive: secUp > secTotal / 2 })
 
-  const cls = levelColors[pulse.level] || levelColors.NEUTRAL
-  const comps = pulse.components || []
-  const topBullish = comps.filter(c => c.available && c.value >= 60).sort((a, b) => b.value - a.value).slice(0, 3)
-  const topBearish = comps.filter(c => c.available && c.value < 40).sort((a, b) => a.value - b.value).slice(0, 3)
+  // 4. Aktif hacim yonu
+  const actives = data.mostActive || []
+  const actUp = actives.filter((a: MarketGainerLoser) => (a.changesPercentage ?? 0) > 0).length
+  const actDown = actives.filter((a: MarketGainerLoser) => (a.changesPercentage ?? 0) < 0).length
+  signals.push({ label: 'Aktif Hacim Yonu', value: `${actUp} yukari / ${actDown} asagi`, positive: actUp > actDown })
 
-  const openingBias = pulse.composite >= 60 ? 'Pozitif Acilis Beklentisi' : pulse.composite <= 40 ? 'Negatif Acilis Beklentisi' : 'Notr Acilis Beklentisi'
-  const biasIcon = pulse.composite >= 60 ? '▲' : pulse.composite <= 40 ? '▼' : '─'
-  const biasColor = pulse.composite >= 60 ? 'text-emerald-400' : pulse.composite <= 40 ? 'text-red-400' : 'text-white/50'
-
-  const b = pulse.breadth
-  const e = pulse.earnings
-  const sq = pulse.shortSqueeze || []
+  // Composite: kac sinyal pozitif?
+  const posCount = signals.filter(s => s.positive).length
+  const totalSig = signals.length
+  const pct = totalSig > 0 ? Math.round((posCount / totalSig) * 100) : 50
+  const bias = pct >= 65 ? 'POZITIF ACILIS BEKLENTISI' : pct <= 35 ? 'NEGATIF ACILIS BEKLENTISI' : 'NOTR ACILIS BEKLENTISI'
+  const biasColor = pct >= 65 ? 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5' : pct <= 35 ? 'text-red-400 border-red-500/20 bg-red-500/5' : 'text-slate-300 border-white/10 bg-white/[0.02]'
+  const biasIcon = pct >= 65 ? '▲' : pct <= 35 ? '▼' : '─'
 
   return (
-    <div className={`rounded-2xl border p-3 sm:p-4 shadow-xl shadow-black/20 ${cls}`}>
+    <div className={`rounded-2xl border p-3 sm:p-4 shadow-xl shadow-black/20 ${biasColor}`}>
       <div className="flex items-center gap-2 mb-3">
-        <Activity size={16} className="text-gold-300" />
-        <span className="text-xs font-bold uppercase tracking-wider text-gold-300">Wall Street Nabzi</span>
-        <span className="text-[10px] text-white/30 ml-auto">{pulse.marketOpen ? 'CANLI' : 'SON KAPANIS'}</span>
+        <Zap size={14} className="text-gold-300" />
+        <span className="text-xs font-bold uppercase tracking-wider text-gold-300">PIYASA ACILIS ONGORU</span>
+        <span className="text-[10px] text-white/25 ml-auto">{posCount}/{totalSig} sinyal pozitif</span>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="flex items-center gap-3">
-          <div className="text-4xl font-black tabular-nums" style={{ color: pulse.level === 'EXTREME_FEAR' ? '#ef4444' : pulse.level === 'FEAR' ? '#f87171' : pulse.level === 'GREED' ? '#62cbc1' : pulse.level === 'EXTREME_GREED' ? '#B3945B' : '#94a3b8' }}>
-            {pulse.composite}
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-white/70">{pulse.levelLabel}</div>
-            <div className={`text-xs font-medium ${biasColor}`}>{biasIcon} {openingBias}</div>
-          </div>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="text-3xl font-black tabular-nums" style={{ color: pct >= 65 ? '#62cbc1' : pct <= 35 ? '#ef4444' : '#94a3b8' }}>
+          {pct}%
         </div>
-
-        <div className="flex gap-4 text-[11px]">
-          {b && (
-            <>
-              <div>
-                <span className="text-white/30">A/D</span>
-                <div className="flex gap-1.5">
-                  <span className="text-emerald-400 font-mono">{b.advancing ?? 0}</span>
-                  <span className="text-white/20">/</span>
-                  <span className="text-red-400 font-mono">{b.declining ?? 0}</span>
-                </div>
-              </div>
-              <div>
-                <span className="text-white/30">52H H/L</span>
-                <div className="flex gap-1.5">
-                  <span className="text-emerald-400 font-mono">{b.newHighs ?? 0}</span>
-                  <span className="text-white/20">/</span>
-                  <span className="text-red-400 font-mono">{b.newLows ?? 0}</span>
-                </div>
-              </div>
-            </>
-          )}
-          {e && (
-            <div>
-              <span className="text-white/30">Beat %</span>
-              <div className="text-white/70 font-mono">{(e.beatRate ?? 50).toFixed(0)}%</div>
-            </div>
-          )}
-          <div>
-            <span className="text-white/30">Squeeze</span>
-            <div className="text-orange-400 font-mono">{sq.length}</div>
-          </div>
+        <div>
+          <div className="text-sm font-semibold text-white/70">{bias}</div>
+          <div className="text-[10px] text-white/30">{biasIcon} Mevcut piyasa verisinden turetildi</div>
         </div>
       </div>
 
-      {(topBullish.length > 0 || topBearish.length > 0) && (
-        <div className="flex flex-wrap gap-2 mt-3 pt-2 border-t border-white/[0.06]">
-          {topBullish.map(c => (
-            <span key={c.id} className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              ▲ {c.name} {(c.value ?? 0).toFixed(0)}
+      <div className="grid grid-cols-2 gap-2">
+        {signals.map((s, i) => (
+          <div key={i} className="flex items-center justify-between bg-white/[0.02] rounded-lg px-2.5 py-1.5">
+            <span className="text-[10px] text-white/50">{s.label}</span>
+            <span className={`text-[10px] font-mono ${s.positive ? 'text-emerald-400' : 'text-red-400'}`}>
+              {s.positive ? '▲' : '▼'} {s.value}
             </span>
-          ))}
-          {topBearish.map(c => (
-            <span key={c.id} className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
-              ▼ {c.name} {(c.value ?? 0).toFixed(0)}
-            </span>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

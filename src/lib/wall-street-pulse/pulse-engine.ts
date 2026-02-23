@@ -37,8 +37,11 @@ function clamp(v: number, min: number, max: number): number {
 }
 
 function normalizeRange(value: number, minBad: number, maxGood: number): number {
+  if (value == null || isNaN(value)) return 50
   if (maxGood === minBad) return 50
-  return clamp(((value - minBad) / (maxGood - minBad)) * 100, 0, 100)
+  const result = ((value - minBad) / (maxGood - minBad)) * 100
+  if (isNaN(result)) return 50
+  return clamp(result, 0, 100)
 }
 
 function directionFromDelta(current: number, previous: number): 'up' | 'down' | 'flat' {
@@ -137,7 +140,9 @@ export function computeBreadth(stocks: StockQuote[]): BreadthData {
 
 function scoreBreadth(b: BreadthData): number {
   if (b.total === 0) return 50
-  const advPct = b.advancing / b.total
+  const active = b.advancing + b.declining
+  if (active === 0) return 50
+  const advPct = b.advancing / active
   return clamp(advPct * 100, 0, 100)
 }
 
@@ -243,15 +248,17 @@ export function scoreSectorRotation(sectors: SectorPerf[]): { score: number; dat
   }
   let offSum = 0, offCount = 0, defSum = 0, defCount = 0
   const mapped = sectors.map(s => {
+    const chg = Number(s.changesPercentage) || 0
     const isOff = OFFENSIVE.includes(s.sector)
     const isDef = DEFENSIVE.includes(s.sector)
-    if (isOff) { offSum += s.changesPercentage; offCount++ }
-    if (isDef) { defSum += s.changesPercentage; defCount++ }
-    return { name: s.sector, change: s.changesPercentage, type: (isOff ? 'offensive' : 'defensive') as 'offensive' | 'defensive' }
+    if (isOff) { offSum += chg; offCount++ }
+    if (isDef) { defSum += chg; defCount++ }
+    return { name: s.sector, change: chg, type: (isOff ? 'offensive' : 'defensive') as 'offensive' | 'defensive' }
   })
   const offAvg = offCount > 0 ? offSum / offCount : 0
   const defAvg = defCount > 0 ? defSum / defCount : 0
   const diff = offAvg - defAvg
+  if (isNaN(diff)) return { score: 50, data: { offensiveScore: 50, defensiveScore: 50, rotationDirection: 'neutral', sectors: mapped } }
   const direction: 'risk-on' | 'neutral' | 'risk-off' = diff > 0.3 ? 'risk-on' : diff < -0.3 ? 'risk-off' : 'neutral'
   const offScore = normalizeRange(offAvg, -3, 3)
   const defScore = normalizeRange(defAvg, -3, 3)
@@ -357,15 +364,19 @@ export function calculatePulse(inputs: PulseInputs): PulseData {
     { id: 'institutional', name: 'Kurumsal Akis', value: instScore, weight: WEIGHTS.institutional, available: Math.abs(inputs.institutionalDelta) > 0.001, source: 'FMP institutional', description: 'Net kurumsal alis/satis degisimi', direction: 'flat' },
   ]
 
+  // NaN guard: force all values to valid numbers
+  for (const c of components) {
+    if (c.value == null || isNaN(c.value)) c.value = 50
+  }
+
   // Adaptive weighting: skip unavailable components
   const active = components.filter(c => c.available)
   const totalWeight = active.reduce((s, c) => s + c.weight, 0)
 
-  let composite = 0
+  let composite = 50
   if (totalWeight > 0) {
-    composite = active.reduce((s, c) => s + c.value * (c.weight / totalWeight), 0)
-  } else {
-    composite = 50
+    const raw = active.reduce((s, c) => s + c.value * (c.weight / totalWeight), 0)
+    composite = isNaN(raw) ? 50 : raw
   }
   composite = Math.round(clamp(composite, 0, 100))
 

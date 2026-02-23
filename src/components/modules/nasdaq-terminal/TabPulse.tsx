@@ -286,8 +286,10 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
   const availableCount = useMemo(() => pulse?.components.filter(c => c.available).length || 0, [pulse])
 
   if (loading) return <PulseLoadingSkeleton />
-  if (error) return <div className="text-center py-12 text-red-400/60"><AlertTriangle className="mx-auto mb-2" size={24} /><p className="text-sm">Pulse yuklenemedi: {error}</p></div>
+  if (error) return <div className="text-center py-12 text-red-400/60"><AlertTriangle className="mx-auto mb-2" size={24} /><p className="text-sm">Pulse yuklenemedi: {error}</p><button onClick={fetchPulse} className="mt-3 px-4 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-xs font-medium hover:from-violet-500 hover:to-blue-500 transition-all">Tekrar Dene</button></div>
   if (!pulse) return null
+
+  const safeComposite = typeof pulse.composite === 'number' && !isNaN(pulse.composite) ? pulse.composite : 50
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -299,7 +301,7 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             <Activity size={14} className="text-gold-300" />
             <span className="text-xs font-semibold text-gold-300 tracking-wider">WALL STREET NABZI</span>
           </div>
-          <RadialGauge value={pulse.composite} size={220} />
+          <RadialGauge value={safeComposite} size={220} />
           <div className="flex items-center gap-2 mt-2 text-[10px] text-white/30">
             <span>{availableCount}/12 bilesen aktif</span>
             <span>•</span>
