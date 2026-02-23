@@ -16,12 +16,16 @@ export async function GET() {
   const completed = await getBootstrapCheckpoint()
 
   const allSymbols = getCleanSymbols('ALL')
+  const totalSymbols = allSymbols.length
   const completedSet = new Set(completed || [])
   const skippedSet = new Set(skipped || [])
   const missing = allSymbols.filter(s => !completedSet.has(s) && !skippedSet.has(s))
 
+  const progressData = progress || { completed: 0, total: totalSymbols, status: 'not_started', lastSymbol: '' }
+  if (progressData.total === 0 && totalSymbols > 0) progressData.total = totalSymbols
+
   return NextResponse.json({
-    progress: progress || { completed: 0, total: 0, status: 'not_started' },
+    progress: progressData,
     barCacheCount: barCount,
     skipped: skipped || [],
     skippedCount: skippedSet.size,

@@ -291,8 +291,29 @@ export default function AdminDashboard() {
 
   useEffect(() => { fetchBootstrapStatus() }, [fetchBootstrapStatus])
   useEffect(() => {
-    const interval = setInterval(fetchBootstrapStatus, 30_000)
+    const interval = setInterval(
+      fetchBootstrapStatus,
+      bootstrap.status === 'running' ? 5_000 : 30_000
+    )
     return () => clearInterval(interval)
+  }, [fetchBootstrapStatus, bootstrap.status])
+
+  const [bootstrapTriggering, setBootstrapTriggering] = useState(false)
+  const triggerBootstrap = useCallback(async () => {
+    setBootstrapTriggering(true)
+    try {
+      const res = await fetch('/api/admin/trigger-bootstrap', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        setBootstrap(prev => ({ ...prev, error: data.error || data.message || 'Bootstrap baslatilamadi' }))
+      } else {
+        await fetchBootstrapStatus()
+      }
+    } catch (e) {
+      setBootstrap(prev => ({ ...prev, error: (e as Error).message }))
+    } finally {
+      setBootstrapTriggering(false)
+    }
   }, [fetchBootstrapStatus])
 
   // ── Symbols sync ──
@@ -446,6 +467,8 @@ export default function AdminDashboard() {
                 bootstrap={bootstrap}
                 symbolsSync={symbolsSync}
                 onRefresh={refreshNasdaq}
+                onTriggerBootstrap={triggerBootstrap}
+                bootstrapTriggering={bootstrapTriggering}
               />
             )}
 
@@ -700,11 +723,13 @@ function OverviewTab({
 // NASDAQ TAB
 // ═══════════════════════════════════════════════════════════════════
 
-function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh }: {
+function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstrap, bootstrapTriggering }: {
   status: MarketStatus
   bootstrap: BootstrapState
   symbolsSync: { tradeReady: string[]; tradeReadyCount: number; insufficient: string[]; insufficientCount: number } | null
   onRefresh: () => void
+  onTriggerBootstrap: () => Promise<void>
+  bootstrapTriggering: boolean
 }) {
   return (
     <div className="space-y-4">
@@ -724,7 +749,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh }: {
         {/* NASDAQ Overview */}
         <Card title="NASDAQ Durumu" icon={TrendingUp}>
           <div className="grid grid-cols-2 gap-4 mb-3">
-            <Stat label="Toplam Hisse" value={status.stockCount.toLocaleString()} />
+            <Stat label="Evren" value={(symbolsSync ? (symbolsSync.tradeReadyCount + symbolsSync.insufficientCount) : status.stockCount).toLocaleString()} />
             <Stat label="Son Guncelleme" value={
               status.lastRefresh ? new Date(status.lastRefresh).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '-'
             } />
@@ -788,7 +813,17 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh }: {
             {bootstrap.error && (
               <p className="text-[10px] text-red-400 bg-red-500/10 rounded-lg px-2 py-1">{bootstrap.error}</p>
             )}
-            <p className="text-[9px] text-white/40 leading-relaxed">
+            {(bootstrap.status === 'not_started' || bootstrap.status === 'unknown' || bootstrap.status === 'partial') && (
+              <button
+                onClick={onTriggerBootstrap}
+                disabled={bootstrapTriggering}
+                className="mt-2 w-full py-2 rounded-xl bg-gradient-to-r from-[#B3945B]/20 to-amber-500/15 border border-[#B3945B]/40 text-[#B3945B] text-xs font-semibold hover:from-[#B3945B]/30 hover:to-amber-500/25 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                {bootstrapTriggering ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                {bootstrapTriggering ? 'Baslatiliyor...' : 'Bootstrap Baslat'}
+              </button>
+            )}
+            <p className="text-[9px] text-white/40 leading-relaxed mt-2">
               %100 otomatik. Cron her 5 dakikada calisir: bootstrap tamamlanmamissa devam eder,
               tamamlanmissa Redis&apos;ten skor hesaplar ve sonuclari kaydeder.
             </p>

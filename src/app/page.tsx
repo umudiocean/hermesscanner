@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import MarketLauncher, { MarketId } from '@/components/MarketLauncher'
 import Layout, { ModuleId } from '@/components/Layout'
@@ -185,16 +186,42 @@ function MarketNavBar({ activeMarket, onSelectMarket, onBack }: { activeMarket: 
   )
 }
 
-export default function Home() {
+const MARKET_IDS: MarketId[] = ['nasdaq', 'europe', 'crypto', 'bist100', 'forex']
+const PERSIST_KEY = 'hermes_active_market'
+
+function HomeContent() {
+  const searchParams = useSearchParams()
   const [activeMarket, setActiveMarket] = useState<MarketId | null>(null)
   const [showManifesto, setShowManifesto] = useState(true)
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const fromUrl = searchParams.get('market')
+    const fromStorage = localStorage.getItem(PERSIST_KEY)
+    const m = fromUrl || fromStorage
+    if (m && MARKET_IDS.includes(m as MarketId)) {
+      setActiveMarket(m as MarketId)
+    }
+  }, [searchParams])
+
   const handleSelectMarket = useCallback((market: MarketId) => {
     setActiveMarket(market)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(PERSIST_KEY, market)
+      const url = new URL(window.location.href)
+      url.searchParams.set('market', market)
+      window.history.replaceState({}, '', url.toString())
+    }
   }, [])
 
   const handleBackToLauncher = useCallback(() => {
     setActiveMarket(null)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(PERSIST_KEY)
+      const url = new URL(window.location.href)
+      url.searchParams.delete('market')
+      window.history.replaceState({}, '', url.toString())
+    }
   }, [])
 
   if (showManifesto) {
@@ -308,6 +335,18 @@ export default function Home() {
         onBack={handleBackToLauncher}
       />
     </div>
+  )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-gold-400/30 border-t-gold-400 rounded-full animate-spin" />
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   )
 }
 
