@@ -259,7 +259,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
   }, [watchlist])
 
   // Scan function
-  const MIN_TRUSTED_CACHE = 1500
+  const MIN_TRUSTED_CACHE = 50
 
   const runScan = useCallback(async () => {
     setLoading(true)
@@ -334,10 +334,11 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
           setLastAutoRefresh(now)
           console.log(`[Layout] Scan complete: ${allResults.length} results`)
         } else {
-          setError('No scan results — bootstrap may not be complete yet. Check admin panel.')
+          setError('Tarama sonucu bulunamadi. Veriler yukleniyor, lutfen birkas saniye bekleyin...')
+          setTimeout(() => runScan(), 10000)
         }
       } else {
-        setError('Scan failed — server returned an error')
+        setError('Sunucu hatasi — tarama yapilamadi. Sayfayi yenileyin veya admin panelini kontrol edin.')
       }
 
       setLoading(false)

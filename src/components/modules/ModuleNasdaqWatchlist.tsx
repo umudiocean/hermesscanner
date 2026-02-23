@@ -292,10 +292,28 @@ export default function ModuleNasdaqWatchlist() {
       {watchlistResults.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 sm:py-20 text-center">
           <Star size={40} className="text-white/10 mb-4" />
-          <h3 className="text-base sm:text-lg font-semibold text-white/60 mb-2">Izleme Listesi Bos</h3>
-          <p className="text-sm text-white/35 max-w-md">
-            Hisse eklemek icin TRADE AI modulunde yildiza tiklayin veya ustteki "Hisse Ekle" butonuyla arama yapin.
-          </p>
+          {watchlist.length > 0 && results.length === 0 ? (
+            <>
+              <h3 className="text-base sm:text-lg font-semibold text-white/60 mb-2">Tarama Bekleniyor</h3>
+              <p className="text-sm text-white/35 max-w-md">
+                {watchlist.length} hisse izleme listenizde. Trade AI taramasi tamamlandiginda veriler burada gorunecek.
+              </p>
+            </>
+          ) : watchlist.length > 0 ? (
+            <>
+              <h3 className="text-base sm:text-lg font-semibold text-white/60 mb-2">Veri Eslesmesi Bekleniyor</h3>
+              <p className="text-sm text-white/35 max-w-md">
+                {watchlist.length} hisse izleme listenizde ama tarama sonuclarinda bulunamadi.
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-base sm:text-lg font-semibold text-white/60 mb-2">Izleme Listesi Bos</h3>
+              <p className="text-sm text-white/35 max-w-md">
+                Hisse eklemek icin TRADE AI modulunde yildiza tiklayin veya ustteki &quot;Hisse Ekle&quot; butonuyla arama yapin.
+              </p>
+            </>
+          )}
         </div>
       )}
 

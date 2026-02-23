@@ -95,7 +95,12 @@ export default function EuropeLayout({ children, onBack }: { children: (activeMo
   const isRefreshingRef = useRef(false)
   const resultsRef = useRef<ScanResult[]>([])
 
-  useEffect(() => { setWatchlist(getWatchlist()) }, [])
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('hermes_eu_watchlist')
+      if (stored) setWatchlist(JSON.parse(stored))
+    } catch { /* */ }
+  }, [])
 
   // Fetch EU Terminal stocks
   useEffect(() => {

@@ -518,9 +518,9 @@ export default function ModuleNasdaqTrade() {
       </div>
 
       {/* Error */}
-      {error && (
-        <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 mb-4">
-          Hata: {error}
+      {error && !loading && (
+        <div className="text-sm text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 mb-4">
+          {error}
         </div>
       )}
 

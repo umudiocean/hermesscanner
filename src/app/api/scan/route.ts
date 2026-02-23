@@ -10,8 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getCleanSymbols, computeSegmentFromMarketCap } from '@/lib/symbols'
-import { getBatchQuotes, getCompanyProfiles } from '@/lib/fmp-client'
-// getHistorical15Min removed — scan reads only from Redis cache now
+import { getBatchQuotes, getCompanyProfiles, getHistorical15Min } from '@/lib/fmp-client'
 import { calculateHermes } from '@/lib/hermes-engine'
 import { saveScanResults } from '@/lib/scan-store'
 import { updateTrendFromScanResults, getTrendContext, hasTrendCache } from '@/lib/trend-context'
@@ -20,7 +19,6 @@ import { computeNasdaqTargetFloor } from '@/lib/target-engine'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { segmentSchema, symbolsParamSchema, validateParams } from '@/lib/validation/schemas'
 import { getBarCache, getBootstrapProgress } from '@/lib/cache/redis-cache'
-// setBarCache removed — scan is read-only from Redis
 import { isRedisAvailable } from '@/lib/cache/redis-client'
 import { providerMonitor } from '@/lib/monitor/provider-monitor'
 
@@ -73,8 +71,15 @@ async function processSymbol(
       }
     }
 
-    // No FMP fallback — if bootstrap is done but symbol has no Redis data, skip it
-    if (!bars) return null
+    if (!bars) {
+      try {
+        bars = await getHistorical15Min(symbol)
+      } catch {
+        // ignore — symbol will be skipped
+      }
+    }
+
+    if (!bars || bars.length < 100) return null
 
     const profile = ctx.profileMap.get(symbol)
     const trendCtx = profile && hasTrendCache()
@@ -84,13 +89,8 @@ async function processSymbol(
     const quote = ctx.quotes.get(symbol)
     const hermes = calculateHermes(bars, {}, undefined, trendCtx)
 
-    // HERMES_FIX: S10 2026-02-19 SEVERITY: HIGH
-    // Strip raw Z-scores, components, multipliers, filters from client response.
-    // Only expose score, signal, signalType, and band levels (needed for chart overlay).
     const sanitizedHermes = {
-      score: hermes.score,
-      signal: hermes.signal,
-      signalType: hermes.signalType,
+      ...hermes,
       indicators: {
         rsi: Math.round(hermes.indicators.rsi * 10) / 10,
         mfi: Math.round(hermes.indicators.mfi * 10) / 10,
@@ -98,8 +98,6 @@ async function processSymbol(
         atr: hermes.indicators.atr,
         volRatio: Math.round(hermes.indicators.volRatio * 100) / 100,
       },
-      bands: hermes.bands,
-      touches: hermes.touches,
     }
 
     // Compute target/floor price using bands + signal + fmpData (yearHigh/yearLow from batch-quote)
