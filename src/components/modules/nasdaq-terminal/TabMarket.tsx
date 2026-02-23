@@ -2,7 +2,7 @@
 
 // ═══════════════════════════════════════════════════════════════════
 // HERMES AI TERMINAL - Tab: PIYASA & TREND
-// Piyasa nabzi, trend gucu, Wall Street nabzi, sektor trendi
+// Piyasa nabzi, trend gucu, AI skor ozeti, sektor trendi
 // Font: %25 buyutulmus
 // ═══════════════════════════════════════════════════════════════════
 
@@ -320,7 +320,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       {/* ═══ MAKRO RADAR (FRED) ═══ */}
       {fredData && <MacroRadarCards fred={fredData} />}
 
-      {/* ═══ ROW 1: TREND GUCU + WALL STREET NABZI + ENDEKSLER ═══ */}
+      {/* ═══ ROW 1: TREND GUCU + HERMES AI SKOR + ENDEKSLER ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3">
 
         {/* Trend Gucu Gauge */}
@@ -366,60 +366,8 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
           </div>
         )}
 
-        {/* Wall Street Nabzi */}
-        {wallStreet && (
-          <div className="lg:col-span-3 bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
-            <div className="flex items-center gap-2 mb-4">
-              <Shield size={18} className="text-amber-400" />
-              <div>
-                <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Wall Street Nabzi</h3>
-                <p className="text-[11px] text-white/40">Kurumsal alis-satis duyarliligi</p>
-              </div>
-            </div>
-
-            {/* Sentiment Score */}
-            <div className="flex flex-col items-center mb-4">
-              <div className="text-5xl mb-2">
-                {wallStreet.icon === 'bull' ? '\u{1F402}' : wallStreet.icon === 'bear' ? '\u{1F43B}' : wallStreet.icon === 'neutral_up' ? '\u{1F4C8}' : '\u{1F4C9}'}
-              </div>
-              <div className={`text-2xl font-black tabular-nums ${wallStreet.sentiment >= 50 ? 'text-hermes-green' : 'text-red-400'}`}>
-                {wallStreet.sentiment}%
-              </div>
-              <span className={`text-sm font-semibold ${wallStreet.sentiment >= 50 ? 'text-hermes-green/80' : 'text-red-400/80'}`}>
-                {wallStreet.label}
-              </span>
-            </div>
-
-            {/* Breakdown */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between p-2 rounded-lg bg-hermes-green/8 border border-hermes-green/15">
-                <div className="flex items-center gap-2">
-                  <ArrowUpRight size={14} className="text-hermes-green" />
-                  <span className="text-xs text-white/60">Yukselenler</span>
-                </div>
-                <span className="text-sm font-bold text-hermes-green tabular-nums">{wallStreet.gainerCount}</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-red-500/8 border border-red-500/15">
-                <div className="flex items-center gap-2">
-                  <ArrowDownRight size={14} className="text-red-400" />
-                  <span className="text-xs text-white/60">Dusenler</span>
-                </div>
-                <span className="text-sm font-bold text-red-400 tabular-nums">{wallStreet.loserCount}</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-                <div className="flex items-center gap-2">
-                  <Activity size={14} className="text-violet-400" />
-                  <span className="text-xs text-white/60">Aktif Hacim</span>
-                </div>
-                <span className="text-xs text-white/60">
-                  <span className="text-hermes-green font-bold">{wallStreet.activeUp}</span>
-                  <span className="text-white/40 mx-1">/</span>
-                  <span className="text-red-400 font-bold">{wallStreet.activeDown}</span>
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* HERMES AI Skor Ozeti */}
+        <HermesAIScoreSummary />
 
         {/* Index Cards */}
         <div className="lg:col-span-6">
@@ -1371,6 +1319,76 @@ function HermesPulseGauge({ pulse }: {
 // PIYASA ACILIS ONGORU — Mevcut market verisinden hesaplama
 // Harici API cagirmaz, sadece data prop'undan turetir
 // ═══════════════════════════════════════════════════════════════════
+
+function HermesAIScoreSummary() {
+  const [stats, setStats] = useState<{ total: number; strong: number; good: number; neutral: number; weak: number; bad: number; avgScore: number } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/fmp-terminal/stocks')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d?.stocks) return
+        const stocks = d.stocks as Array<{ signalScore: number; signal: string }>
+        let total = 0, strong = 0, good = 0, neutral = 0, weak = 0, bad = 0, sumScore = 0
+        for (const s of stocks) {
+          total++
+          sumScore += s.signalScore || 0
+          if (s.signal === 'STRONG') strong++
+          else if (s.signal === 'GOOD') good++
+          else if (s.signal === 'NEUTRAL') neutral++
+          else if (s.signal === 'WEAK') weak++
+          else if (s.signal === 'BAD') bad++
+        }
+        setStats({ total, strong, good, neutral, weak, bad, avgScore: total > 0 ? sumScore / total : 50 })
+      })
+      .catch(() => {})
+  }, [])
+
+  if (!stats) return <div className="lg:col-span-3 bg-[#151520] rounded-2xl border border-white/[0.06] p-4 animate-pulse"><div className="h-40 bg-white/[0.03] rounded-xl" /></div>
+
+  const healthPct = stats.total > 0 ? Math.round(((stats.strong + stats.good) / stats.total) * 100) : 50
+  const riskPct = stats.total > 0 ? Math.round(((stats.weak + stats.bad) / stats.total) * 100) : 0
+  const healthColor = healthPct >= 40 ? 'text-hermes-green' : healthPct >= 25 ? 'text-gold-300' : 'text-red-400'
+  const healthLabel = healthPct >= 40 ? 'GUCLU PIYASA' : healthPct >= 25 ? 'DENGELI' : 'ZAYIF PIYASA'
+
+  return (
+    <div className="lg:col-span-3 bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+      <div className="flex items-center gap-2 mb-4">
+        <Shield size={18} className="text-violet-400" />
+        <div>
+          <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">HERMES AI Skor</h3>
+          <p className="text-[11px] text-white/40">Temel analiz piyasa saglik ozeti</p>
+        </div>
+      </div>
+      <div className="flex flex-col items-center mb-4">
+        <div className={`text-3xl font-black tabular-nums ${healthColor}`}>{healthPct}%</div>
+        <span className={`text-xs font-semibold ${healthColor}`}>{healthLabel}</span>
+        <span className="text-[10px] text-white/30 mt-0.5">Ort. Skor: {stats.avgScore.toFixed(0)} / 100</span>
+      </div>
+      <div className="space-y-1.5">
+        {[
+          { label: 'STRONG', count: stats.strong, color: 'bg-gold-400', text: 'text-gold-300' },
+          { label: 'GOOD', count: stats.good, color: 'bg-hermes-green', text: 'text-hermes-green' },
+          { label: 'NOTR', count: stats.neutral, color: 'bg-slate-500', text: 'text-slate-400' },
+          { label: 'WEAK', count: stats.weak, color: 'bg-orange-400', text: 'text-orange-400' },
+          { label: 'BAD', count: stats.bad, color: 'bg-red-500', text: 'text-red-400' },
+        ].map(row => (
+          <div key={row.label} className="flex items-center gap-2">
+            <span className={`text-[10px] w-14 ${row.text} font-bold`}>{row.label}</span>
+            <div className="flex-1 h-2 rounded-full bg-white/[0.04] overflow-hidden">
+              <div className={`h-full rounded-full ${row.color} transition-all duration-700`} style={{ width: `${stats.total > 0 ? (row.count / stats.total) * 100 : 0}%` }} />
+            </div>
+            <span className="text-[10px] text-white/50 font-mono w-8 text-right">{row.count}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 pt-2 border-t border-white/[0.04] flex items-center justify-between text-[9px] text-white/30">
+        <span>{stats.total} hisse analiz edildi</span>
+        <span className="text-red-400/60">Risk: {riskPct}%</span>
+      </div>
+    </div>
+  )
+}
 
 function MarketOpenForecast({ data }: { data: MarketDashboardData }) {
   const signals: { label: string; value: string; positive: boolean }[] = []

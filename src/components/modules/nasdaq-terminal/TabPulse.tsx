@@ -154,7 +154,7 @@ function EarningsPanel({ data }: { data: PulseData }) {
       <MiniMetric label="Beat" value={`${e.beatCount ?? 0}`} sub={`${beatRate.toFixed(0)}%`} color="text-emerald-400" />
       <MiniMetric label="Miss" value={`${e.missCount ?? 0}`} sub="" color="text-red-400" />
       <MiniMetric label="Ort. Surpriz" value={`${avgSurp > 0 ? '+' : ''}${avgSurp.toFixed(1)}%`} sub="" color={avgSurp > 0 ? 'text-emerald-400' : 'text-red-400'} />
-      <MiniMetric label="Trend" value={e.trend === 'improving' ? 'Iyilesiyor' : e.trend === 'declining' ? 'Kotelesyor' : 'Sabit'} sub="" color={e.trend === 'improving' ? 'text-emerald-400' : e.trend === 'declining' ? 'text-red-400' : 'text-white/50'} />
+      <MiniMetric label="Trend" value={e.trend === 'improving' ? 'Iyilesiyor' : e.trend === 'declining' ? 'Kotulesyor' : 'Sabit'} sub="" color={e.trend === 'improving' ? 'text-emerald-400' : e.trend === 'declining' ? 'text-red-400' : 'text-white/50'} />
     </div>
   )
 }
@@ -306,6 +306,7 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             <span>{availableCount}/12 bilesen aktif</span>
             <span>•</span>
             <span>{lastUpdate}</span>
+            {!pulse.marketOpen && <><span>•</span><span className="text-orange-400/60">Kapali — son kapanis verileri</span></>}
             <button onClick={fetchPulse} className="text-white/20 hover:text-white/50 transition-colors ml-1"><RefreshCw size={10} /></button>
           </div>
           {pulse.marketOpen && <span className="mt-1 text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">MARKET OPEN</span>}
@@ -316,13 +317,20 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
         <div className="bg-[#0c0c14] rounded-2xl border border-white/[0.06] p-4">
           <div className="flex items-center gap-2 mb-3">
             <Brain size={14} className="text-violet-400" />
-            <span className="text-xs font-semibold text-white/60 tracking-wider">12 BILESEN DGILIMI</span>
+            <span className="text-xs font-semibold text-white/60 tracking-wider">12 BILESEN DAGILIMI</span>
           </div>
           <div className="space-y-0.5">
             {sorted.map(c => (
               <ComponentBar key={c.id} name={c.name} value={c.value} weight={c.weight} icon={getComponentIcon(c.id)} available={c.available} />
             ))}
           </div>
+          {sorted.filter(c => !c.available).length > 0 && (
+            <div className="mt-2 pt-2 border-t border-white/[0.04]">
+              <p className="text-[9px] text-white/25">
+                {!pulse.marketOpen ? 'Piyasa kapali — bazi bilesenlerin canli verisi yok (insider, kongre, analist, kazanc, put/call, kurumsal). Piyasa acildiginda aktif olur.' : 'Bazi bilesenler icin veri alinamiyor.'}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

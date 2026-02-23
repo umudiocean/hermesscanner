@@ -432,6 +432,7 @@ export default function ModuleHermesIndex() {
   const [loadingFmp, setLoadingFmp] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [indexMembership, setIndexMembership] = useState<Record<string, string[]>>({})
+  const [pulseData, setPulseData] = useState<{ composite: number; level: string; levelLabel: string; marketOpen: boolean; components?: { id: string; name: string; value: number; available: boolean }[] } | null>(null)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -440,15 +441,17 @@ export default function ModuleHermesIndex() {
     async function fetchData() {
       try {
         setLoadingFmp(true)
-        const [stocksRes, marketRes, macroRes] = await Promise.all([
+        const [stocksRes, marketRes, macroRes, pulseRes] = await Promise.all([
           fetch('/api/fmp-terminal/stocks'),
           fetch('/api/fmp-terminal/market'),
           fetch('/api/fmp-terminal/macro').catch(() => null),
+          fetch('/api/wall-street-pulse').catch(() => null),
         ])
         if (!cancelled) {
           if (stocksRes.ok) { const d = await stocksRes.json(); setFmpStocks(d.stocks || []) }
           if (marketRes.ok) { const d = await marketRes.json(); setMarketData(d) }
           if (macroRes?.ok) { const d = await macroRes.json(); setIndexMembership(d.indexMembership || {}) }
+          if (pulseRes?.ok) { const d = await pulseRes.json(); if (d && typeof d.composite === 'number') setPulseData(d) }
         }
       } catch { /* silent */ } finally { if (!cancelled) setLoadingFmp(false) }
     }
@@ -737,6 +740,147 @@ export default function ModuleHermesIndex() {
           </div>
         </div>
         <SignalDistBar counts={indexStats.signalCounts} total={indexStats.n} />
+      </div>
+
+      {/* ═══ PREMIUM: WALL STREET PULSE + PIYASA ONGORU + AI SKOR DAGILIMI ═══ */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-4">
+        {/* Wall Street Pulse Mini */}
+        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm">💓</span>
+            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Wall Street Nabzi</span>
+            {pulseData && <span className={`ml-auto text-[8px] px-1.5 py-0.5 rounded-full font-bold border ${pulseData.marketOpen ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-white/30 border-white/[0.06]'}`}>{pulseData.marketOpen ? 'CANLI' : 'KAPALI'}</span>}
+          </div>
+          {pulseData ? (
+            <div className="flex flex-col items-center">
+              <div className="relative w-24 h-24 mb-2">
+                <svg className="w-24 h-24 -rotate-90" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="32" fill="none" stroke="currentColor" strokeWidth="5" className="text-white/[0.04]" />
+                  <circle cx="40" cy="40" r="32" fill="none"
+                    stroke={pulseData.composite >= 60 ? '#62CBC1' : pulseData.composite <= 40 ? '#EF4444' : '#94a3b8'}
+                    strokeWidth="5" strokeDasharray={`${(pulseData.composite / 100) * 201} 201`} strokeLinecap="round"
+                    className="transition-all duration-1000" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className={`text-2xl font-black tabular-nums ${pulseData.composite >= 60 ? 'text-hermes-green' : pulseData.composite <= 40 ? 'text-red-400' : 'text-white/60'}`}>
+                    <AnimatedNumber value={pulseData.composite} decimals={0} />
+                  </span>
+                </div>
+              </div>
+              <span className={`text-xs font-bold ${pulseData.composite >= 60 ? 'text-hermes-green' : pulseData.composite <= 40 ? 'text-red-400' : 'text-white/50'}`}>{pulseData.levelLabel}</span>
+              <div className="mt-2 w-full space-y-0.5">
+                {(pulseData.components || []).filter(c => c.available).slice(0, 5).map(c => (
+                  <div key={c.id} className="flex items-center gap-1.5">
+                    <span className="text-[8px] text-white/35 w-20 truncate">{c.name}</span>
+                    <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                      <div className={`h-full rounded-full ${c.value >= 60 ? 'bg-emerald-500' : c.value >= 40 ? 'bg-slate-500' : 'bg-red-500'}`} style={{ width: `${c.value}%` }} />
+                    </div>
+                    <span className="text-[8px] text-white/40 font-mono w-5">{c.value.toFixed(0)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center py-4 text-white/25 text-xs">Pulse verisi bekleniyor...</div>
+          )}
+        </div>
+
+        {/* Piyasa Acilis Ongoru */}
+        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm">🔮</span>
+            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Piyasa Ongoru</span>
+          </div>
+          {(() => {
+            const signals: { label: string; positive: boolean }[] = []
+            if (indexStats) {
+              signals.push({ label: `Sinyal Dagilimi: ${indexStats.longPct.toFixed(0)}% Long`, positive: indexStats.longPct > 40 })
+              signals.push({ label: `Sektor Genisligi: ${indexStats.sectorStats.filter(s => s.avgChange > 0).length}/${indexStats.sectorStats.length} pozitif`, positive: indexStats.sectorStats.filter(s => s.avgChange > 0).length > indexStats.sectorStats.length / 2 })
+              signals.push({ label: `AI Konsensus: ${aiConsensus.toFixed(0)}% uyum`, positive: aiConsensus > 40 })
+            }
+            if (fmpStocks.length > 0) {
+              const strongGood = fmpStocks.filter(s => s.signal === 'STRONG' || s.signal === 'GOOD').length
+              signals.push({ label: `Temel Analiz: ${Math.round((strongGood / fmpStocks.length) * 100)}% saglikli`, positive: strongGood > fmpStocks.length * 0.3 })
+            }
+            if (pulseData) {
+              signals.push({ label: `Wall Street: ${pulseData.composite} (${pulseData.levelLabel})`, positive: pulseData.composite >= 50 })
+            }
+            const posCount = signals.filter(s => s.positive).length
+            const totalSig = signals.length || 1
+            const pct = Math.round((posCount / totalSig) * 100)
+            const bias = pct >= 65 ? 'POZITIF BEKLENTI' : pct <= 35 ? 'NEGATIF BEKLENTI' : 'NOTR BEKLENTI'
+            const biasColor = pct >= 65 ? 'text-hermes-green' : pct <= 35 ? 'text-red-400' : 'text-white/50'
+            return (
+              <div>
+                <div className="flex flex-col items-center mb-3">
+                  <div className={`text-4xl font-black tabular-nums ${biasColor}`}>{pct}%</div>
+                  <span className={`text-xs font-bold ${biasColor}`}>{bias}</span>
+                  <span className="text-[9px] text-white/30 mt-0.5">{posCount}/{signals.length} sinyal pozitif</span>
+                </div>
+                <div className="space-y-1.5">
+                  {signals.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2 text-[10px]">
+                      <span className={s.positive ? 'text-hermes-green' : 'text-red-400'}>{s.positive ? '▲' : '▼'}</span>
+                      <span className="text-white/50">{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+        </div>
+
+        {/* HERMES AI Skor Dagilimi */}
+        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm">📊</span>
+            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">AI Skor Dagilimi</span>
+          </div>
+          {fmpStocks.length > 0 ? (() => {
+            const counts = { STRONG: 0, GOOD: 0, NEUTRAL: 0, WEAK: 0, BAD: 0 }
+            for (const s of fmpStocks) {
+              if (s.signal === 'STRONG') counts.STRONG++
+              else if (s.signal === 'GOOD') counts.GOOD++
+              else if (s.signal === 'NEUTRAL') counts.NEUTRAL++
+              else if (s.signal === 'WEAK') counts.WEAK++
+              else if (s.signal === 'BAD') counts.BAD++
+            }
+            const total = fmpStocks.length || 1
+            const bars = [
+              { key: 'STRONG', color: '#B3945B', count: counts.STRONG },
+              { key: 'GOOD', color: '#62CBC1', count: counts.GOOD },
+              { key: 'NOTR', color: '#64748b', count: counts.NEUTRAL },
+              { key: 'WEAK', color: '#fb923c', count: counts.WEAK },
+              { key: 'BAD', color: '#ef4444', count: counts.BAD },
+            ]
+            return (
+              <div>
+                <div className="flex h-6 rounded-lg overflow-hidden gap-px mb-3">
+                  {bars.filter(b => b.count > 0).map(b => (
+                    <div key={b.key} className="flex items-center justify-center transition-all duration-700" style={{ flex: b.count, backgroundColor: b.color }}>
+                      {(b.count / total * 100) > 5 && <span className="text-[9px] font-bold text-white/80">{b.count}</span>}
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-1.5">
+                  {bars.map(b => (
+                    <div key={b.key} className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
+                      <span className="text-[10px] text-white/50 w-12">{b.key}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(b.count / total) * 100}%`, backgroundColor: b.color }} />
+                      </div>
+                      <span className="text-[10px] font-mono text-white/40 w-12 text-right">{b.count} ({((b.count / total) * 100).toFixed(0)}%)</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 pt-2 border-t border-white/[0.04] text-[9px] text-white/30 text-center">
+                  {total} hisse — Saglikli: {((counts.STRONG + counts.GOOD) / total * 100).toFixed(0)}% | Risk: {((counts.WEAK + counts.BAD) / total * 100).toFixed(0)}%
+                </div>
+              </div>
+            )
+          })() : <div className="text-xs text-white/25 py-8 text-center">Veri bekleniyor...</div>}
+        </div>
       </div>
 
       {/* ═══ MARKET BREADTH + AI CONSENSUS ═══ */}
