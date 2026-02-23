@@ -11,7 +11,6 @@ import { useNasdaqTradeContext } from '../Layout'
 import { ScanResult } from '@/lib/types'
 import { Star, Trash2, Download, Search, Plus, ChevronUp, ChevronDown } from 'lucide-react'
 import { PriceFlashCell } from '../premium-ui'
-import { getSymbols } from '@/lib/symbols'
 import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 
 type TerminalSignal = 'STRONG' | 'GOOD' | 'NEUTRAL' | 'WEAK' | 'BAD'
@@ -99,8 +98,6 @@ export default function ModuleNasdaqWatchlist() {
   const [searchResults, setSearchResults] = useState<string[]>([])
   const [showSearch, setShowSearch] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
-  const allSymbols = useMemo(() => getSymbols('ALL'), [])
-
   const watchlistResults = useMemo(() => {
     const filtered = results.filter(r => watchlist.includes(r.symbol))
     return filtered.sort((a, b) => {
@@ -153,10 +150,23 @@ export default function ModuleNasdaqWatchlist() {
       setSearchResults([])
       return
     }
-    const q = searchQuery.toUpperCase().trim()
-    const matched = allSymbols.filter(s => s.startsWith(q) || s.includes(q)).slice(0, 15)
-    setSearchResults(matched)
-  }, [searchQuery, showSearch, allSymbols])
+    const q = searchQuery.trim()
+    let cancelled = false
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/nasdaq-terminal/search?q=${encodeURIComponent(q)}&limit=15`)
+        if (!res.ok) return
+        const data = await res.json()
+        if (cancelled) return
+        const syms = (data.results || []).map((r: { symbol: string }) => r.symbol)
+        setSearchResults(syms)
+      } catch {
+        if (cancelled) return
+        setSearchResults([])
+      }
+    }, 200)
+    return () => { cancelled = true; clearTimeout(t) }
+  }, [searchQuery, showSearch])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

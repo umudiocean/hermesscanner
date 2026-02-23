@@ -188,14 +188,24 @@ function MarketNavBar({ activeMarket, onSelectMarket, onBack }: { activeMarket: 
 
 const MARKET_IDS: MarketId[] = ['nasdaq', 'europe', 'crypto', 'bist100', 'forex']
 const PERSIST_KEY = 'hermes_active_market'
+const MANIFESTO_CLOSED_KEY = 'hermes_manifesto_closed'
 
 function HomeContent() {
   const searchParams = useSearchParams()
-  const [activeMarket, setActiveMarket] = useState<MarketId | null>(null)
-  const [showManifesto, setShowManifesto] = useState(true)
+  const [activeMarket, setActiveMarket] = useState<MarketId | null>(() => {
+    if (typeof window === 'undefined') return null
+    const p = new URLSearchParams(window.location.search)
+    const fromUrl = p.get('market')
+    const fromStorage = localStorage.getItem(PERSIST_KEY)
+    const m = fromUrl || fromStorage
+    return (m && MARKET_IDS.includes(m as MarketId)) ? (m as MarketId) : null
+  })
+  const [showManifesto, setShowManifesto] = useState(() => {
+    if (typeof window === 'undefined') return true
+    return !localStorage.getItem(MANIFESTO_CLOSED_KEY)
+  })
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
     const fromUrl = searchParams.get('market')
     const fromStorage = localStorage.getItem(PERSIST_KEY)
     const m = fromUrl || fromStorage
@@ -225,7 +235,14 @@ function HomeContent() {
   }, [])
 
   if (showManifesto) {
-    return <ManifestoSplash onClose={() => setShowManifesto(false)} />
+    return (
+      <ManifestoSplash
+        onClose={() => {
+          setShowManifesto(false)
+          if (typeof window !== 'undefined') localStorage.setItem(MANIFESTO_CLOSED_KEY, '1')
+        }}
+      />
+    )
   }
 
   // Show launcher if no market selected

@@ -176,7 +176,7 @@ export default function AdminDashboard() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const d = await res.json()
       setNasdaqStatus({
-        stockCount: d.count || d.stocks?.length || 0,
+        stockCount: d.evrenCount ?? d.count ?? d.stocks?.length ?? 0,
         lastRefresh: d.timestamp || new Date().toISOString(),
         loading: false, error: null, refreshing: false,
       })
