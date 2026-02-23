@@ -8,12 +8,14 @@ import {
   getBootstrapSkipped,
   getBootstrapCheckpoint,
 } from '@/lib/cache/redis-cache'
+import { isRedisAvailable } from '@/lib/cache/redis-client'
 
 export async function GET() {
-  const progress = await getBootstrapProgress()
-  const barCount = await getBarCacheCount()
-  const skipped = await getBootstrapSkipped()
-  const completed = await getBootstrapCheckpoint()
+  const redisAvailable = isRedisAvailable()
+  const progress = redisAvailable ? await getBootstrapProgress() : null
+  const barCount = redisAvailable ? await getBarCacheCount() : 0
+  const skipped = redisAvailable ? await getBootstrapSkipped() : []
+  const completed = redisAvailable ? await getBootstrapCheckpoint() : []
 
   const allSymbols = getCleanSymbols('ALL')
   const totalSymbols = allSymbols.length
@@ -25,6 +27,7 @@ export async function GET() {
   if (progressData.total === 0 && totalSymbols > 0) progressData.total = totalSymbols
 
   return NextResponse.json({
+    redisAvailable,
     progress: progressData,
     barCacheCount: barCount,
     skipped: skipped || [],

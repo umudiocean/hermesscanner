@@ -53,6 +53,7 @@ interface BootstrapState {
   status: string
   barCacheCount: number
   error: string | null
+  redisAvailable: boolean
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
   })
 
   const [bootstrap, setBootstrap] = useState<BootstrapState>({
-    completed: 0, total: 0, lastSymbol: '', status: 'unknown', barCacheCount: 0, error: null,
+    completed: 0, total: 0, lastSymbol: '', status: 'unknown', barCacheCount: 0, error: null, redisAvailable: true,
   })
   const [symbolsSync, setSymbolsSync] = useState<{
     tradeReady: string[]; tradeReadyCount: number;
@@ -276,6 +277,7 @@ export default function AdminDashboard() {
       const res = await fetch('/api/admin/bootstrap-status')
       if (res.ok) {
         const d = await res.json()
+        const redisOk = d.redisAvailable !== false
         setBootstrap(prev => ({
           ...prev,
           completed: d.progress?.completed || 0,
@@ -283,7 +285,8 @@ export default function AdminDashboard() {
           lastSymbol: d.progress?.lastSymbol || '',
           status: d.progress?.status || 'not_started',
           barCacheCount: d.barCacheCount || 0,
-          error: null,
+          error: redisOk ? null : 'Redis (Upstash / Vercel KV) gerekli. Vercel Dashboard > Storage > KV ekleyin veya Upstash Redis baglayin.',
+          redisAvailable: redisOk,
         }))
       }
     } catch { /* silent */ }
@@ -779,6 +782,17 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
         {/* Bootstrap */}
         <Card title="Trade AI Bootstrap" icon={Database}>
           <div className="space-y-3">
+            {!bootstrap.redisAvailable && (
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30">
+                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="text-[11px] text-amber-300">
+                  <strong>Redis gerekli.</strong> Trade AI icin Upstash Redis veya Vercel KV gerekir.
+                  Vercel Dashboard &gt; Storage &gt; KV ekleyin veya upstash.com ile Redis olusturun.
+                  <code className="block mt-1.5 text-[10px] text-white/60">UPSTASH_REDIS_REST_URL</code>
+                  <code className="block text-[10px] text-white/60">UPSTASH_REDIS_REST_TOKEN</code>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <Stat label="Redis Bar Cache" value={bootstrap.barCacheCount} sub="hisse" />
               <Stat label="Durum" value={
@@ -816,11 +830,11 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
             {(bootstrap.status === 'not_started' || bootstrap.status === 'unknown' || bootstrap.status === 'partial') && (
               <button
                 onClick={onTriggerBootstrap}
-                disabled={bootstrapTriggering}
-                className="mt-2 w-full py-2 rounded-xl bg-gradient-to-r from-[#B3945B]/20 to-amber-500/15 border border-[#B3945B]/40 text-[#B3945B] text-xs font-semibold hover:from-[#B3945B]/30 hover:to-amber-500/25 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                disabled={bootstrapTriggering || !bootstrap.redisAvailable}
+                className="mt-2 w-full py-2 rounded-xl bg-gradient-to-r from-[#B3945B]/20 to-amber-500/15 border border-[#B3945B]/40 text-[#B3945B] text-xs font-semibold hover:from-[#B3945B]/30 hover:to-amber-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
                 {bootstrapTriggering ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                {bootstrapTriggering ? 'Baslatiliyor...' : 'Bootstrap Baslat'}
+                {bootstrapTriggering ? 'Baslatiliyor...' : bootstrap.redisAvailable ? 'Bootstrap Baslat' : 'Redis gerekli'}
               </button>
             )}
             <p className="text-[9px] text-white/40 leading-relaxed mt-2">
@@ -833,6 +847,11 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
         {/* Symbol Sync */}
         <Card title="Trade AI Sembol Senkronizasyonu" icon={Activity}>
           <div className="space-y-3">
+            {!bootstrap.redisAvailable && symbolsSync && symbolsSync.tradeReadyCount === 0 && (
+              <p className="text-[10px] text-amber-400/90">
+                Trade-ready 0: Redis yoksa tarama sonuclari kaydedilmez. Redis ekleyip Bootstrap calistirin.
+              </p>
+            )}
             {symbolsSync ? (
               <>
                 <div className="grid grid-cols-2 gap-3">
