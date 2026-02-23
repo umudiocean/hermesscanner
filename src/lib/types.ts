@@ -12,24 +12,31 @@ export interface OHLCV {
 }
 
 export interface HermesConfig {
-  // VWAP period (daily bars) - Tek kanal: 52 Hafta
-  vwap_52w_len: number   // 52 hafta × 5 işgünü = 260 daily bar
+  // VWAP period (bar count)
+  vwap_52w_len: number
 
   // ATR
   atr_length: number
 
-  // Scoring weights (sum = 100) - 70/15/15 backtest optimal
-  weight_52w: number     // Z-Score ağırlığı: %70
-  weight_mfi: number     // MFI ağırlığı: %15
-  weight_rsi: number     // RSI ağırlığı: %15
+  // Scoring weights (sum = 100)
+  weight_52w: number
+  weight_mfi: number
+  weight_rsi: number
 
   // Indicator periods
   rsi_length: number
   mfi_length: number
   adx_length: number
 
-  // Z-Score window (daily bars) - Backtest optimal: 340
+  // Z-Score window (bar count)
   zscore_len_52w: number
+
+  // TANH divisor for z-score → 0-100 mapping
+  tanh_div?: number
+
+  // Entry thresholds
+  long_th?: number
+  short_th?: number
 }
 
 export type SignalType = 'strong_long' | 'long' | 'neutral' | 'short' | 'strong_short'

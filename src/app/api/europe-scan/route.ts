@@ -1,7 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════
 // HERMES AI — Europe Trade AI Scan API
 // GET /api/europe-scan?symbols=HSBA.L,SAP.DE,...
-// Uses hermes-engine with Europe-specific params (V360_Z51, BPD 34)
+// Uses hermes-engine with Europe DAILY data (FMP 15min EU limited)
+// V360_Z51, BPD 1 (daily) — minBars ~231, daily data always available
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -9,34 +10,51 @@ import { getEuropeSymbols, fetchEuropeSymbolsFromFMP } from '@/lib/europe-symbol
 import { EUROPE_TRADE_CONFIG } from '@/lib/europe-config'
 import { computeSegmentFromMarketCap } from '@/lib/europe-symbols'
 import { calculateHermes } from '@/lib/hermes-engine'
-import { getBatchQuotes, getHistorical15Min } from '@/lib/fmp-client'
+import { getBatchQuotes, getHistoricalDaily } from '@/lib/fmp-client'
 import { ScanResult } from '@/lib/types'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import { setMemoryCache } from '@/lib/fmp-terminal/fmp-cache'
 
 export const maxDuration = 120
+
+// Europe: DAILY bars (BPD=1) — FMP 15min for EU symbols often limited/empty
+// vwap 360d, zscore 51d → minBars = 51 + 180 = 231
+const EUROPE_DAILY_CONFIG = {
+  vwap_52w_len: EUROPE_TRADE_CONFIG.vwapDays * 1,     // 360 bars
+  zscore_len_52w: EUROPE_TRADE_CONFIG.zscoreDays * 1,  // 51 bars
+  tanh_div: EUROPE_TRADE_CONFIG.tanhDiv,               // 7
+  long_th: EUROPE_TRADE_CONFIG.longTh,                 // 35
+  short_th: EUROPE_TRADE_CONFIG.shortTh,               // 85
+}
+
+const MIN_BARS_EUROPE = 231 // zscore 51 + vwap 360/2
 
 async function processSymbol(
   symbol: string,
   quotes: Map<string, { price: number; change: number; changePercent: number; volume: number; marketCap: number }>,
+  failLog: { count: number; samples: Array<{ symbol: string; err: string }> },
 ): Promise<ScanResult | null> {
   try {
-    const bars = await getHistorical15Min(symbol)
-    if (!bars || bars.length < 500) return null
+    let bars = await getHistoricalDaily(symbol, 1500)
+    // If cached data is too short, force refresh to get longer history
+    if (bars && bars.length < EUROPE_DAILY_CONFIG.vwap_52w_len + EUROPE_DAILY_CONFIG.zscore_len_52w) {
+      bars = await getHistoricalDaily(symbol, 1500, true)
+    }
+    if (!bars || bars.length < MIN_BARS_EUROPE) {
+      if (failLog.count < 5) {
+        failLog.samples.push({ symbol, err: bars ? `bars=${bars.length}<${MIN_BARS_EUROPE}` : 'no bars' })
+        failLog.count++
+      }
+      return null
+    }
 
     const quote = quotes.get(symbol)
 
-    const config = {
-      vwap_52w_len: EUROPE_TRADE_CONFIG.vwapDays * EUROPE_TRADE_CONFIG.bpd,
-      zscore_len_52w: EUROPE_TRADE_CONFIG.zscoreDays * EUROPE_TRADE_CONFIG.bpd,
-    }
+    const hermes = calculateHermes(bars, EUROPE_DAILY_CONFIG)
 
-    const hermes = calculateHermes(bars, config)
-
-    // Sanitize hermes for client (strip internal fields, same as NASDAQ scan)
+    // Include all hermes fields (same structure as NASDAQ scan)
     const sanitizedHermes = {
-      score: hermes.score,
-      signal: hermes.signal,
-      signalType: hermes.signalType,
+      ...hermes,
       indicators: {
         rsi: Math.round(hermes.indicators.rsi * 10) / 10,
         mfi: Math.round(hermes.indicators.mfi * 10) / 10,
@@ -44,11 +62,6 @@ async function processSymbol(
         atr: hermes.indicators.atr,
         volRatio: Math.round(hermes.indicators.volRatio * 100) / 100,
       },
-      bands: hermes.bands,
-      touches: hermes.touches,
-      price: hermes.price,
-      dataPoints: hermes.dataPoints,
-      hasEnough52w: hermes.hasEnough52w,
     }
 
     return {
@@ -67,7 +80,11 @@ async function processSymbol(
       priceTarget: null,
       timestamp: new Date().toISOString(),
     }
-  } catch {
+  } catch (err) {
+    if (failLog.count < 5) {
+      failLog.samples.push({ symbol, err: (err as Error).message })
+      failLog.count++
+    }
     return null
   }
 }
@@ -78,6 +95,7 @@ export async function GET(request: NextRequest) {
   if (!allowed) return rateLimitResponse(retryAfterMs)
 
   const symbolsParam = request.nextUrl.searchParams.get('symbols')
+  const limitParam = request.nextUrl.searchParams.get('limit')
   let symbols: string[]
   if (symbolsParam) {
     symbols = symbolsParam.split(',').filter(Boolean)
@@ -85,6 +103,10 @@ export async function GET(request: NextRequest) {
     const dynamicSyms = await fetchEuropeSymbolsFromFMP()
     symbols = dynamicSyms.length > 100 ? dynamicSyms : getEuropeSymbols('ALL')
   }
+  const limit = limitParam ? Math.min(parseInt(limitParam, 10) || 0, 200) : 0
+  if (limit > 0) symbols = symbols.slice(0, limit)
+
+  const failLog = { count: 0, samples: [] as Array<{ symbol: string; err: string }> }
 
   try {
     const quotes = await getBatchQuotes(symbols)
@@ -94,7 +116,7 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i < symbols.length; i += BATCH) {
       const batch = symbols.slice(i, i + BATCH)
       const batchResults = await Promise.allSettled(
-        batch.map(sym => processSymbol(sym, quotes))
+        batch.map(sym => processSymbol(sym, quotes, failLog))
       )
       for (const r of batchResults) {
         if (r.status === 'fulfilled' && r.value) results.push(r.value)
@@ -111,6 +133,12 @@ export async function GET(request: NextRequest) {
       short: results.filter(r => r.hermes.signalType === 'short').length,
       strongShort: results.filter(r => r.hermes.signalType === 'strong_short').length,
       timestamp: new Date().toISOString(),
+    }
+
+    if (results.length > 0) {
+      setMemoryCache('europe_scan_latest', { results, summary })
+    } else if (failLog.samples.length > 0) {
+      console.warn('[EU Scan] 0 results. Sample failures:', JSON.stringify(failLog.samples))
     }
 
     return NextResponse.json({ results, summary })

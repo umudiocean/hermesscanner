@@ -299,8 +299,8 @@ function tanh(x: number): number {
   return (e2x - 1) / (e2x + 1)
 }
 
-function zscoreTo100(zs: number): number {
-  return 50 + 50 * tanh(zs / TANH_DIV)
+function zscoreTo100(zs: number, tanhDiv?: number): number {
+  return 50 + 50 * tanh(zs / (tanhDiv || TANH_DIV))
 }
 
 // V7: RSI nonlinear strong mapping — uçlarda hassas, ortada yumuşak
@@ -429,7 +429,7 @@ export function calculateHermes(
   const lowerOuter = zsCenter - 2.0 * zStd
 
   // Z-Score → skor (backtest ile birebir)
-  const point52w = hasEnough ? zscoreTo100(zscore) : 50
+  const point52w = hasEnough ? zscoreTo100(zscore, cfg.tanh_div) : 50
 
   // ═══ GOSTERGELER (15dk bardan — bilgi amacli) ═══
   const rsiArr = calcRsi(close, cfg.rsi_length)
@@ -477,18 +477,20 @@ export function calculateHermes(
                          mfiVal >= ENTRY_FILTERS.MFI_SHORT &&
                          adxVal <= ENTRY_FILTERS.ADX_MAX
 
-  // L30_S90: <=20 STRONG LONG | 21-30 LONG | 31-69 NOTR | 70-89 SHORT | >=90 STRONG SHORT
-  // Pine Script ile BIREBIR AYNI esikler (HSV2_NASDAQ_TRADE_AI_V15_30m.pine)
+  // Configurable thresholds: config > ENTRY_FILTERS > default
+  const longTh = cfg.long_th ?? ENTRY_FILTERS.LONG_TH
+  const shortTh = cfg.short_th ?? ENTRY_FILTERS.SHORT_TH
+
   if (totalScore <= 20) {
     signal = 'STRONG LONG'
     signalType = 'strong_long'
-  } else if (totalScore <= ENTRY_FILTERS.LONG_TH) {
+  } else if (totalScore <= longTh) {
     signal = 'LONG'
     signalType = 'long'
-  } else if (totalScore < (ENTRY_FILTERS.SHORT_TH - 20)) {
+  } else if (totalScore < (shortTh - 20)) {
     signal = 'NOTR'
     signalType = 'neutral'
-  } else if (totalScore < ENTRY_FILTERS.SHORT_TH) {
+  } else if (totalScore < shortTh) {
     signal = 'SHORT'
     signalType = 'short'
   } else {

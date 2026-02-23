@@ -148,7 +148,7 @@ export default function EuropeLayout({ children, onBack }: { children: (activeMo
         }
       }
       setProgress('Avrupa borsalari taraniyor...')
-      const scanRes = await fetch('/api/europe-scan')
+      const scanRes = await fetch('/api/europe-scan?limit=200')
       if (!scanRes.ok) throw new Error(`Scan failed: ${scanRes.status}`)
       const data = await scanRes.json()
       setResults(data.results || []); resultsRef.current = data.results || []

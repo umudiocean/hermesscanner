@@ -213,7 +213,10 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: {
             <span className={`mt-2 text-xs font-bold px-3 py-1 rounded-full border ${getScoreBg(fmpScore.total)}`}>
               {fmpScore.level}
             </span>
-            {fmpScore.confidence > 0 && (
+            {fmpScore.degraded && (
+              <span className="text-[9px] text-amber-400 mt-2">Veri sinirli (Avrupa)</span>
+            )}
+            {fmpScore.confidence > 0 && !fmpScore.degraded && (
               <span className="text-[9px] text-white/40 mt-2">Guven: {fmpScore.confidence}%</span>
             )}
           </div>
@@ -222,19 +225,26 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: {
             <div className="space-y-2">
               {Object.entries(fmpScore.categories)
                 .sort((a, b) => (FMP_SCORE_WEIGHTS[b[0] as keyof typeof FMP_SCORE_WEIGHTS] || 0) - (FMP_SCORE_WEIGHTS[a[0] as keyof typeof FMP_SCORE_WEIGHTS] || 0))
-                .map(([cat, val]) => (
-                  <div key={cat} className="flex items-center gap-3">
-                    <span className="text-[10px] text-white/50 w-20 font-medium">{CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] || cat}</span>
-                    <span className="text-[9px] text-white/30 w-8 text-right">{FMP_SCORE_WEIGHTS[cat as keyof typeof FMP_SCORE_WEIGHTS] || 0}%</span>
-                    <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-500" style={{
-                        width: `${val}%`,
-                        backgroundColor: val >= 70 ? '#62cbc1' : val >= 50 ? '#fbbf24' : val >= 30 ? '#fb923c' : '#f87171',
-                      }} />
+                .map(([cat, val]) => {
+                  const hasNoData = fmpScore.missingInputs?.includes(cat)
+                  const displayVal = hasNoData ? 'N/A' : String(val)
+                  const barWidth = hasNoData ? 0 : val
+                  return (
+                    <div key={cat} className="flex items-center gap-3">
+                      <span className="text-[10px] text-white/50 w-20 font-medium">{CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] || cat}</span>
+                      <span className="text-[9px] text-white/30 w-8 text-right">{FMP_SCORE_WEIGHTS[cat as keyof typeof FMP_SCORE_WEIGHTS] || 0}%</span>
+                      <div className="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                        {!hasNoData && (
+                          <div className="h-full rounded-full transition-all duration-500" style={{
+                            width: `${barWidth}%`,
+                            backgroundColor: val >= 70 ? '#62cbc1' : val >= 50 ? '#fbbf24' : val >= 30 ? '#fb923c' : '#f87171',
+                          }} />
+                        )}
+                      </div>
+                      <span className={`text-[11px] tabular-nums font-bold w-10 text-right ${hasNoData ? 'text-white/30' : getScoreColor(val)}`}>{displayVal}</span>
                     </div>
-                    <span className={`text-[11px] tabular-nums font-bold w-7 text-right ${getScoreColor(val)}`}>{val}</span>
-                  </div>
-                ))}
+                  )
+                })}
             </div>
           </div>
         </div>
