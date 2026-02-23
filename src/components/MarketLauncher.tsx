@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Image from 'next/image'
 
 // ═══════════════════════════════════════════════════════════════════
 // HERMES AI — Market Launcher
@@ -23,7 +24,7 @@ interface MarketConfig {
 const MARKETS: MarketConfig[] = [
   { id: 'nasdaq', name: 'NASDAQ', subtitle: 'US Equities & Technology', icon: '🇺🇸', accentRgb: '179,148,91', stats: 'Tum NASDAQ hisseleri • Neural Core', status: 'active', badge: 'LIVE' },
   { id: 'crypto', name: 'CRYPTO', subtitle: 'Digital Assets & DeFi', icon: '₿', accentRgb: '245,158,11', stats: 'Tum coinler • CoinGecko Analyst', status: 'active', badge: 'LIVE' },
-  { id: 'europe', name: 'EUROPE', subtitle: 'DAX • CAC 40 • FTSE', icon: '🇪🇺', accentRgb: '59,130,246', stats: 'Tum Avrupa hisseleri', status: 'coming_soon' },
+  { id: 'europe', name: 'EUROPE', subtitle: 'LSE • XETRA • Euronext • SIX • BMI', icon: '🇪🇺', accentRgb: '59,130,246', stats: '8 Borsa • 500+ Hisse • Neural Core', status: 'active', badge: 'LIVE' },
   { id: 'bist100', name: 'BIST 100', subtitle: 'Borsa Istanbul', icon: '🇹🇷', accentRgb: '239,68,68', stats: 'Tum BIST hisseleri', status: 'coming_soon' },
   { id: 'forex', name: 'FOREX', subtitle: 'Major & Cross Pairs', icon: '💱', accentRgb: '16,185,129', stats: 'Tum major pariteler', status: 'coming_soon' },
 ]
@@ -39,6 +40,7 @@ export default function MarketLauncher({ onSelectMarket }: MarketLauncherProps) 
   const [showCards, setShowCards] = useState(false)
   const [showSubtitle, setShowSubtitle] = useState(false)
   const [showLine, setShowLine] = useState(false)
+  const [showMissionModal, setShowMissionModal] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -179,17 +181,30 @@ export default function MarketLauncher({ onSelectMarket }: MarketLauncherProps) 
               <div className="absolute -inset-x-8 -inset-y-4 bg-gradient-to-r from-transparent via-gold-400/[0.03] to-transparent rounded-2xl blur-xl" />
               <div className="relative">
                 <p className="text-base sm:text-lg md:text-xl font-semibold text-white/60 tracking-wide leading-relaxed">
-                  Veriye hukmeden,{' '}
+                  Veriye hükmeden,{' '}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-amber-400 to-gold-300 font-bold">
-                    paraya hukmeder.
+                    paraya hükmeder.
                   </span>
                 </p>
                 <p className="mt-1.5 text-sm sm:text-base text-white/40 font-light tracking-wide">
-                  Hermes AI ile guc artik{' '}
+                  Hermes AI ile güç artık{' '}
                   <span className="text-white/60 font-medium">herkesin.</span>
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* ═══ PLATFORM INFO BADGES ═══ */}
+          <div className={`mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3 transition-all duration-[1600ms] delay-700 ${showSubtitle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/20">
+              %100 UCRETSIZ
+            </span>
+            <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-violet-500/10 text-violet-400/80 border border-violet-500/20">
+              %100 YAPAY ZEKA
+            </span>
+            <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-gold-400/10 text-gold-400/80 border border-gold-400/20">
+              TURKCE
+            </span>
           </div>
         </div>
 
@@ -208,13 +223,254 @@ export default function MarketLauncher({ onSelectMarket }: MarketLauncherProps) 
           ))}
         </div>
 
+        {/* ═══ DARUSSAFAKA MISSION SECTION ═══ */}
+        <div className={`mt-10 sm:mt-16 transition-all duration-[1800ms] delay-[1200ms] ${showCards ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="relative max-w-4xl mx-auto">
+            {/* Warm ambient glow behind section */}
+            <div className="absolute inset-0 -inset-x-8 bg-gradient-to-b from-amber-900/[0.04] via-gold-400/[0.02] to-transparent rounded-3xl blur-2xl pointer-events-none" />
+
+            <div className="relative rounded-2xl border border-gold-400/[0.08] bg-[#0a0a0a]/80 backdrop-blur-sm overflow-hidden">
+              {/* Top gold accent */}
+              <div className="h-px bg-gradient-to-r from-transparent via-gold-400/30 to-transparent" />
+
+              <div className="p-5 sm:p-8 md:p-10">
+                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+
+                  {/* Left: Image */}
+                  <div className="relative flex-shrink-0 w-40 h-52 sm:w-48 sm:h-64 md:w-56 md:h-72 rounded-2xl overflow-hidden gentle-float">
+                    <Image
+                      src="/images/hermes-darussafaka.png"
+                      alt="Hermes AI ile Bir Cocuga Isik Ol"
+                      fill
+                      className="object-cover object-top lantern-glow"
+                      sizes="(max-width: 768px) 160px, 224px"
+                      priority
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-3 left-3 right-3 text-center">
+                      <p className="text-[10px] font-bold text-gold-300/90 tracking-wider uppercase">Darüşşafaka</p>
+                    </div>
+                  </div>
+
+                  {/* Right: Story */}
+                  <div className="flex-1 text-center md:text-left">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white/90 mb-4 leading-tight">
+                      Hayatta bazı yatırımlar vardır;{' '}
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-amber-400 to-gold-300">
+                        karşılığı parayla ölçülmez.
+                      </span>
+                    </h3>
+
+                    <div className="relative pl-4 border-l-2 border-gold-400/20 space-y-3 mb-5">
+                      <p className="text-sm text-white/50 leading-relaxed">
+                        Annesini çok erken yaşta kaybetmiş ve kendi imkânlarıyla okuyarak bugünlere ulaşmış biri olarak,
+                        eğitimin bir çocuğun hayatındaki değerini çok iyi biliyorum.
+                      </p>
+                      <p className="text-sm text-white/50 leading-relaxed">
+                        Kazandığımız tüm geliri, maddi imkânları sınırlı çocukların eğitimi için{' '}
+                        <span className="text-gold-300/80 font-semibold">Darüşşafaka</span>&#39;ya bağışlıyoruz.
+                      </p>
+                    </div>
+
+                    <p className="text-sm sm:text-base font-medium text-white/60 italic mb-5 leading-relaxed">
+                      &ldquo;Gerçek başarı, bir hayatın değişmesine vesile olmaktır.
+                      Bana verilebilecek en güzel hediye — bir çocuğun gözlerindeki{' '}
+                      <span className="text-gold-300 font-bold not-italic">umuttur.</span>&rdquo;
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-3">
+                      <a
+                        href="https://fonzip.com/darussafaka/fundraising-campaigns/hermes-ai-ile-gelecege-yatirim"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600/30 via-gold-400/25 to-amber-600/30 border border-gold-400/30 hover:border-gold-400/50 text-gold-300 font-bold text-sm tracking-wide transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/15 hover:scale-[1.03]"
+                      >
+                        <span className="heart-beat text-base">&#10084;&#65039;</span>
+                        <span>Bağış Yap ve Umut Ol</span>
+                        <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                      </a>
+                      <button
+                        onClick={() => setShowMissionModal(true)}
+                        className="text-xs text-white/30 hover:text-white/60 underline underline-offset-2 transition-colors"
+                      >
+                        Hikayemizin Tamamı
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom gold accent */}
+              <div className="h-px bg-gradient-to-r from-transparent via-gold-400/15 to-transparent" />
+            </div>
+          </div>
+        </div>
+
         {/* Footer */}
-        <div className={`text-center mt-8 sm:mt-16 transition-all duration-1000 delay-700 ${showCards ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`text-center mt-8 sm:mt-12 transition-all duration-1000 delay-700 ${showCards ? 'opacity-100' : 'opacity-0'}`}>
           <p className="text-[11px] text-white/8 tracking-[0.3em] uppercase font-light">
             Neural Core • Pure Z-Score • Multi-Market Intelligence Platform
           </p>
         </div>
       </div>
+
+      {/* ═══ MISSION MODAL ═══ */}
+      {showMissionModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop-in"
+          style={{ backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
+          onClick={() => setShowMissionModal(false)}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl border border-gold-400/15 bg-[#0c0c0c] modal-content-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowMissionModal(false)}
+              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/10 transition-all"
+            >
+              &#10005;
+            </button>
+
+            {/* Modal top accent */}
+            <div className="h-px bg-gradient-to-r from-transparent via-gold-400/40 to-transparent" />
+
+            {/* Image banner */}
+            <div className="relative w-full h-48 sm:h-64 overflow-hidden">
+              <Image
+                src="/images/hermes-darussafaka.png"
+                alt="Hermes AI — Darüşşafaka"
+                fill
+                className="object-cover object-center"
+                sizes="640px"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c] via-[#0c0c0c]/50 to-transparent" />
+              <div className="absolute bottom-4 left-6 right-6">
+                <h2 className="text-xl sm:text-2xl font-black text-white/95 leading-tight">
+                  Hermes AI ile{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-amber-400">
+                    Bir Çocuğa Işık Ol
+                  </span>
+                </h2>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 sm:p-8 space-y-6">
+              {/* Vizyon */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-6 h-6 rounded-lg bg-violet-500/15 border border-violet-500/25 flex items-center justify-center text-xs">&#127891;</span>
+                  <h3 className="text-sm font-bold text-white/80 tracking-wide uppercase">Vizyon</h3>
+                </div>
+                <p className="text-sm text-white/50 leading-relaxed">
+                  Seeking Alpha, TipRanks ve benzeri global platformlardan daha fazlasını{' '}
+                  <span className="text-gold-300/80 font-semibold">Hermes AI tamamen ücretsiz ve Türkçe</span> olarak sunuyor.
+                  Bu yazılımı 7 yıllık bir emekle inşa ettim. Bilgiye erişimi herkese ücretsiz açmayı seçtim.
+                </p>
+              </div>
+
+              {/* Neden Ucretsiz */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-6 h-6 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-xs">&#128161;</span>
+                  <h3 className="text-sm font-bold text-white/80 tracking-wide uppercase">Neden Ücretsiz?</h3>
+                </div>
+                <p className="text-sm text-white/50 leading-relaxed">
+                  Hermes AI yalnızca ticari bir yazılım değil.{' '}
+                  <span className="text-white/70 font-medium">Finansal özgürlüğün herkes için mümkün olduğuna</span> inanan bir vizyondur.
+                  Kurucusu olarak zaten kazanıyorum. Platformu ücretli bir modele taşımak yerine, bilgiyi paylaşmayı seçtim.
+                </p>
+              </div>
+
+              {/* Amac */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-6 h-6 rounded-lg bg-gold-400/15 border border-gold-400/25 flex items-center justify-center text-xs">&#127775;</span>
+                  <h3 className="text-sm font-bold text-white/80 tracking-wide uppercase">Amacımız</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-white/50 leading-relaxed">
+                  <li className="flex items-start gap-2">
+                    <span className="text-gold-400/60 mt-0.5">&#9656;</span>
+                    Türk gençlerinin yanlış yatırım kararlarını doğru kararlarla değiştirmesine yardımcı olmak
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-gold-400/60 mt-0.5">&#9656;</span>
+                    Veri temelli düşünmeyi yaygınlaştırmak
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-gold-400/60 mt-0.5">&#9656;</span>
+                    Bilgiye erişimi olanın güçlü olduğu bu dünyada, gücü eşitlemek
+                  </li>
+                </ul>
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-gradient-to-r from-transparent via-gold-400/15 to-transparent" />
+
+              {/* Kişisel Hikaye */}
+              <div className="relative pl-5 border-l-2 border-gold-400/25">
+                <p className="text-sm text-white/55 leading-relaxed italic">
+                  &ldquo;Annesini çok erken yaşta kaybetmiş ve kendi imkânlarıyla okuyarak bugünlere ulaşmış biri olarak,
+                  eğitimin bir çocuğun hayatındaki değerini çok iyi biliyorum.
+                  Bu kampanyayı da annesi veya babası hayatta olmayan çocukların eğitimine katkı sunabilmek için oluşturuyorum.&rdquo;
+                </p>
+              </div>
+
+              <div className="text-center space-y-3">
+                <p className="text-base font-semibold text-white/70 leading-relaxed">
+                  Kazandığımız tüm geliri, maddi imkânları sınırlı çocukların eğitimi için{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-amber-400 font-bold">Darüşşafaka&#39;ya</span> bağışlıyoruz.
+                </p>
+                <p className="text-sm text-white/40">
+                  Gerçek kazanç, bir çocuğun yarınlara umutla bakabilmesidir.<br />
+                  Gerçek başarı, bir hayatın değişmesine vesile olmaktır.
+                </p>
+                <p className="text-sm font-medium text-gold-300/80 italic">
+                  &ldquo;Bana verilebilecek en güzel hediye; bir çocuğun gözlerindeki umuttur.&rdquo;
+                </p>
+              </div>
+
+              {/* CTA */}
+              <div className="flex flex-col items-center gap-3 pt-2">
+                <a
+                  href="https://fonzip.com/darussafaka/fundraising-campaigns/hermes-ai-ile-gelecege-yatirim"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-3 px-8 py-3.5 rounded-xl bg-gradient-to-r from-amber-600/30 via-gold-400/25 to-amber-600/30 border border-gold-400/35 hover:border-gold-400/60 text-gold-300 font-bold text-base tracking-wide transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/20 hover:scale-[1.04]"
+                >
+                  <span className="heart-beat text-lg">&#10084;&#65039;</span>
+                  <span>Bagis Yap ve Umut Ol</span>
+                  <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+                <p className="text-[11px] text-white/20 tracking-wide">
+                  Darüşşafaka Cemiyeti resmi bağış sayfası (Fonzip)
+                </p>
+              </div>
+
+              {/* Hermes Coin notu */}
+              <div className="rounded-xl bg-white/[0.02] border border-white/[0.05] p-4 text-center">
+                <p className="text-xs text-white/30 leading-relaxed">
+                  Hermes AI ekosisteminin parçası olan{' '}
+                  <span className="text-amber-400/60 font-semibold">Hermes Coin</span> (BSC Smart Contract) ileride
+                  platform içi bazı premium avantajlara erişim sağlayabilir.
+                </p>
+                <p className="mt-2 text-[10px] text-white/15 font-mono break-all">
+                  0x9495aB3549338BF14aD2F86CbcF79C7b574bba37
+                </p>
+              </div>
+            </div>
+
+            {/* Modal bottom accent */}
+            <div className="h-px bg-gradient-to-r from-transparent via-gold-400/20 to-transparent" />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -15,6 +15,8 @@ export interface NasdaqPriceTarget {
   zone: PriceZone
   confidence: number      // 0-100
   method: 'hybrid' | 'technical' | 'fundamental'
+  /** RULE-P4: floorPrice > targetPrice = nonsensical support/resistance */
+  floorAboveTarget?: boolean
 }
 
 export type PriceZone = 'BUY_ZONE' | 'ACCUMULATE' | 'NEUTRAL' | 'DISTRIBUTE' | 'SELL_ZONE'
@@ -267,6 +269,7 @@ export function computeNasdaqTargetFloor(input: NasdaqTargetInput): NasdaqPriceT
 
   const zone = computeZone(input.price, targetPrice, floorPrice)
   const confidence = computeConfidence(input)
+  const floorAboveTarget = floorPrice > targetPrice
 
   const hasFundamental = !!(input.fmpData?.targetConsensus || input.fmpData?.dcf)
   const method = hasFundamental ? 'hybrid' : 'technical'
@@ -274,6 +277,7 @@ export function computeNasdaqTargetFloor(input: NasdaqTargetInput): NasdaqPriceT
   return {
     targetPrice,
     floorPrice,
+    floorAboveTarget,
     targetPct: Math.round(targetPct * 100) / 100,
     floorPct: Math.round(floorPct * 100) / 100,
     riskReward,

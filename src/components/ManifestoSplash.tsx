@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 
 interface ManifestoSplashProps {
   onClose: () => void
@@ -18,6 +19,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
       setTimeout(() => setPhase(3), 1200),
       setTimeout(() => setPhase(4), 1800),
       setTimeout(() => setPhase(5), 2400),
+      setTimeout(() => setPhase(6), 3000),
     ]
     return () => timers.forEach(clearTimeout)
   }, [])
@@ -58,7 +60,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
         if (n.x < 0 || n.x > w) n.vx *= -1
         if (n.y < 0 || n.y > h) n.vy *= -1
       }
-      ctx.strokeStyle = 'rgba(255,255,255,0.03)'
+      ctx.strokeStyle = 'rgba(179,148,91,0.04)'
       ctx.lineWidth = 0.5
       for (let i = 0; i < count; i++) {
         for (let j = i + 1; j < count; j++) {
@@ -75,8 +77,8 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
         }
       }
       for (const n of nodes) {
-        ctx.globalAlpha = 0.15
-        ctx.fillStyle = '#fff'
+        ctx.globalAlpha = 0.12
+        ctx.fillStyle = 'rgba(179,148,91,0.6)'
         ctx.beginPath()
         ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2)
         ctx.fill()
@@ -100,24 +102,23 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
   const d = (ms: number) => ({ transitionDelay: `${ms}ms` })
 
   return (
-    <div className={`fixed inset-0 z-[100] bg-black transition-all duration-600 overflow-y-auto overflow-x-hidden ${closing ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}>
+    <div className={`fixed inset-0 z-[100] bg-[#060606] transition-all duration-600 overflow-y-auto overflow-x-hidden ${closing ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}>
 
       <canvas ref={canvasRef} className="absolute inset-0 z-0" />
 
+      {/* Warm ambient glows */}
       <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-white/[0.015] blur-[150px] animate-pulse" style={{ animationDuration: '6s' }} />
-        <div className="absolute top-[20%] left-[15%] w-[200px] h-[200px] rounded-full bg-white/[0.01] blur-[80px] animate-pulse" style={{ animationDuration: '10s' }} />
-        <div className="absolute bottom-[15%] right-[10%] w-[250px] h-[250px] rounded-full bg-white/[0.008] blur-[90px] animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent animate-manifesto-scan" />
-        <div className="absolute top-0 left-1/2 w-[1px] h-full bg-gradient-to-b from-transparent via-white/[0.03] to-transparent" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-amber-900/[0.03] blur-[150px] animate-pulse" style={{ animationDuration: '6s' }} />
+        <div className="absolute top-[20%] left-[15%] w-[200px] h-[200px] rounded-full bg-gold-400/[0.02] blur-[80px] animate-pulse" style={{ animationDuration: '10s' }} />
+        <div className="absolute bottom-[15%] right-[10%] w-[250px] h-[250px] rounded-full bg-amber-800/[0.02] blur-[90px] animate-pulse" style={{ animationDuration: '8s' }} />
       </div>
 
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-12 py-16">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-8 lg:px-12 py-12 sm:py-16">
 
-        {/* Mobile close button — always visible at top-right */}
+        {/* Close button */}
         <button
           onClick={handleClose}
-          className="fixed top-4 right-4 z-[110] w-10 h-10 flex items-center justify-center rounded-full bg-white/[0.08] border border-white/[0.15] text-white/60 hover:text-white hover:bg-white/[0.15] transition-all duration-300"
+          className="fixed top-4 right-4 z-[110] w-10 h-10 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.12] text-white/50 hover:text-white hover:bg-white/[0.12] transition-all duration-300"
           aria-label="Kapat"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -125,134 +126,174 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
           </svg>
         </button>
 
-        {/* Logo + Title */}
-        <div className={`flex items-center gap-3 mb-6 lg:mb-8 transition-all duration-700 ${p(1) ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6'}`}>
-          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center animate-manifesto-logo-pulse">
+        {/* Logo */}
+        <div className={`flex items-center gap-3 mb-5 lg:mb-7 transition-all duration-700 ${p(1) ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6'}`}>
+          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
             <svg className="w-6 h-6 lg:w-7 lg:h-7" viewBox="0 0 32 32" fill="none">
-              <path d="M4 22 L8.5 17 L13 19.5 L18 13 L22.5 16 L28 10" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
-              <circle cx="16" cy="7" r="2" fill="rgba(255,255,255,0.5)" />
-              <circle cx="6" cy="10" r="1.5" fill="rgba(255,255,255,0.3)" />
-              <circle cx="26" cy="12" r="1.5" fill="rgba(255,255,255,0.3)" />
-              <line x1="6" y1="10" x2="16" y2="7" stroke="rgba(255,255,255,0.15)" strokeWidth="0.8" />
-              <line x1="16" y1="7" x2="26" y2="12" stroke="rgba(255,255,255,0.15)" strokeWidth="0.8" />
+              <path d="M4 22 L8.5 17 L13 19.5 L18 13 L22.5 16 L28 10" stroke="rgba(179,148,91,0.9)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="16" cy="7" r="2" fill="rgba(179,148,91,0.5)" />
+              <circle cx="6" cy="10" r="1.5" fill="rgba(179,148,91,0.3)" />
+              <circle cx="26" cy="12" r="1.5" fill="rgba(179,148,91,0.3)" />
+              <line x1="6" y1="10" x2="16" y2="7" stroke="rgba(179,148,91,0.15)" strokeWidth="0.8" />
+              <line x1="16" y1="7" x2="26" y2="12" stroke="rgba(179,148,91,0.15)" strokeWidth="0.8" />
             </svg>
           </div>
-          <h1 className="text-xl lg:text-2xl font-black tracking-tight text-white leading-none">
-            HERMES <span className="text-white/50">AI</span>
+          <h1 className="text-xl lg:text-2xl font-black tracking-tight leading-none">
+            <span className="text-white/90">HERMES</span>{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-amber-400 to-gold-300">AI</span>
           </h1>
         </div>
 
         {/* Hero Statement */}
-        <div className={`text-center mb-5 lg:mb-7 max-w-4xl transition-all duration-800 ${p(2) ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}`}>
+        <div className={`text-center mb-4 lg:mb-6 max-w-4xl transition-all duration-800 ${p(2) ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}`}>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white leading-tight tracking-tight uppercase">
             {'Türk kullanıcılar için tasarlanan bu platform tamamen '}
-            <span className="text-red-400">{'ücretsizdir.'}</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-400">{'ücretsizdir.'}</span>
           </h2>
-          <p className="mt-2 text-sm sm:text-base lg:text-lg text-white/70 font-medium tracking-wide uppercase">
+          <p className="mt-2 text-sm sm:text-base lg:text-lg text-white/60 font-medium tracking-wide uppercase">
             {'ChatGPT, Claude, Kimi ve Gemini gücüyle, '}
-            <span className="text-red-400">{'%100 yapay zeka'}</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-400 font-bold">{'%100 yapay zeka'}</span>
             {' desteklidir.'}
           </p>
         </div>
 
-        {/* Animated Divider */}
+        {/* Badges */}
+        <div className={`flex flex-wrap items-center justify-center gap-2 mb-5 lg:mb-7 transition-all duration-800 ${p(2) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={d(300)}>
+          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/20">
+            %100 ÜCRETSİZ
+          </span>
+          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-violet-500/10 text-violet-400/80 border border-violet-500/20">
+            %100 YAPAY ZEKA
+          </span>
+          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-gold-400/10 text-gold-400/80 border border-gold-400/20">
+            TÜRKÇE
+          </span>
+        </div>
+
+        {/* Divider */}
         <div className={`mb-5 lg:mb-7 transition-all duration-1000 ${p(2) ? 'opacity-100' : 'opacity-0'}`}>
           <div className="relative flex items-center gap-3">
-            <div className={`h-[1px] bg-gradient-to-r from-transparent to-white/30 transition-all duration-1000 ${p(2) ? 'w-16 lg:w-24' : 'w-0'}`} />
-            <div className={`w-1.5 h-1.5 rounded-full bg-white/40 transition-all duration-500 ${p(2) ? 'scale-100' : 'scale-0'}`} style={d(400)} />
-            <div className={`h-[1px] bg-gradient-to-l from-transparent to-white/30 transition-all duration-1000 ${p(2) ? 'w-16 lg:w-24' : 'w-0'}`} />
+            <div className={`h-[1px] bg-gradient-to-r from-transparent to-gold-400/30 transition-all duration-1000 ${p(2) ? 'w-16 lg:w-24' : 'w-0'}`} />
+            <div className={`w-1.5 h-1.5 rounded-full bg-gold-400/50 transition-all duration-500 ${p(2) ? 'scale-100' : 'scale-0'}`} style={d(400)} />
+            <div className={`h-[1px] bg-gradient-to-l from-transparent to-gold-400/30 transition-all duration-1000 ${p(2) ? 'w-16 lg:w-24' : 'w-0'}`} />
           </div>
         </div>
 
-        {/* 3-Column Horizontal Layout */}
-        <div className={`w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 transition-all duration-800 ${p(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        {/* ═══ MAIN CONTENT: 3 COLUMNS ═══ */}
+        <div className={`w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 transition-all duration-800 ${p(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
 
-          {/* Left Column */}
-          <div className="flex flex-col gap-2 lg:gap-3">
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
-              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/40 mb-2">Vizyon</p>
-              <p className="text-xs lg:text-sm text-white/70 leading-relaxed">
+          {/* ═══ LEFT COLUMN: Vizyon + Amac ═══ */}
+          <div className="flex flex-col gap-3">
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
+              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold-400/50 mb-2">Vizyon</p>
+              <p className="text-xs lg:text-sm text-white/65 leading-relaxed">
                 {'Seeking Alpha, TipRanks ve benzeri global platformlardan daha fazlasını '}
-                <span className="text-white font-semibold">{'Hermes AI tamamen ücretsiz ve Türkçe'}</span>{' olarak sunuyor.'}
+                <span className="text-white/90 font-semibold">{'Hermes AI tamamen ücretsiz ve Türkçe'}</span>{' olarak sunuyor.'}
               </p>
-              <p className="mt-2 text-xs text-white/60 leading-relaxed">
+              <p className="mt-2 text-xs text-white/50 leading-relaxed">
                 {'Bu yazılımı 7 yıllık bir emekle inşa ettim. Bilgiye erişimi herkese ücretsiz açmayı seçtim.'}
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
-              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/40 mb-2">{'Amaç'}</p>
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
+              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold-400/50 mb-2">Amaç</p>
               <div className="space-y-1.5">
                 {[
                   'Türk gençlerinin yanlış yatırım kararlarını doğru kararlarla değiştirmesine yardımcı olmak',
                   'Veri temelli düşünmeyi yaygınlaştırmak',
-                  'Bilgiye erişimi olanın güçlü olduğu bir dünyada, gücü eşitlemek',
+                  'Bilgiye erişimi olanın güçlü olduğu bu dünyada, gücü eşitlemek',
                 ].map((item, i) => (
-                  <div key={i} className={`flex items-center gap-2 transition-all duration-500 ${p(4) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`} style={d(i * 150)}>
-                    <div className="w-1 h-1 rounded-full bg-white/40 shrink-0" />
-                    <span className="text-[11px] lg:text-xs text-white/60">{item}</span>
+                  <div key={i} className={`flex items-start gap-2 transition-all duration-500 ${p(4) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`} style={d(i * 150)}>
+                    <div className="w-1 h-1 rounded-full bg-gold-400/40 shrink-0 mt-1.5" />
+                    <span className="text-[11px] lg:text-xs text-white/55">{item}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* Center Column — Slogan */}
-          <div className={`flex items-center justify-center transition-all duration-1000 ${p(4) ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
-            <div className="relative w-full">
-              <div className="absolute -inset-4 bg-white/[0.02] rounded-2xl blur-2xl animate-pulse" style={{ animationDuration: '4s' }} />
-              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-white/[0.1] via-transparent to-white/[0.06] animate-manifesto-border-spin" />
-              <div className="relative rounded-2xl border border-white/[0.1] bg-black/80 backdrop-blur-md px-5 py-6 lg:px-6 lg:py-8 text-center">
-                <div className="animate-manifesto-text-glow">
-                  <p className="text-lg sm:text-xl lg:text-2xl font-black text-white leading-snug tracking-tight">
-                    {'Veriye hükmeden,'}
-                  </p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-black text-white/80 leading-snug tracking-tight">
-                    {'paraya hükmeder.'}
-                  </p>
-                </div>
-                <div className="mt-3 h-[1px] w-12 mx-auto bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                <p className="mt-3 text-sm lg:text-base text-white/60 font-medium">
-                  {'Hermes AI ile güç artık '}<span className="text-white/90 font-bold">{'herkesin.'}</span>
+          {/* ═══ CENTER COLUMN: Darussafaka Mission ═══ */}
+          <div className={`flex items-stretch transition-all duration-1000 ${p(4) ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+            <div className="relative w-full rounded-2xl border border-gold-400/[0.12] bg-gradient-to-b from-amber-950/[0.08] to-transparent overflow-hidden">
+              {/* Gold top accent */}
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gold-400/30 to-transparent" />
+
+              {/* Image */}
+              <div className="relative w-full h-44 sm:h-52 lg:h-48 overflow-hidden">
+                <Image
+                  src="/images/hermes-darussafaka.png"
+                  alt="Hermes AI ile Bir Çocuğa Işık Ol"
+                  fill
+                  className="object-cover object-top lantern-glow"
+                  sizes="(max-width: 768px) 100vw, 350px"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent" />
+              </div>
+
+              {/* Content */}
+              <div className="px-4 pb-4 lg:px-5 lg:pb-5 -mt-4 relative z-10">
+                <h3 className="text-base lg:text-lg font-bold text-white/90 mb-2 leading-snug">
+                  Hayatta bazı yatırımlar vardır;{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-amber-400">
+                    karşılığı parayla ölçülmez.
+                  </span>
+                </h3>
+                <p className="text-[11px] lg:text-xs text-white/45 leading-relaxed mb-3">
+                  Kazandığımız tüm geliri, maddi imkânları sınırlı çocukların eğitimi için{' '}
+                  <span className="text-gold-300/80 font-semibold">Darüşşafaka</span>&#39;ya bağışlıyoruz.
                 </p>
+                <p className="text-[11px] text-white/35 italic leading-relaxed mb-4">
+                  &ldquo;Gerçek kazanç, bir çocuğun yarınlara umutla bakabilmesidir.&rdquo;
+                </p>
+
+                <a
+                  href="https://fonzip.com/darussafaka/fundraising-campaigns/hermes-ai-ile-gelecege-yatirim"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600/25 via-gold-400/20 to-amber-600/25 border border-gold-400/25 hover:border-gold-400/45 text-gold-300 font-bold text-xs tracking-wide transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/15 hover:scale-[1.03]"
+                >
+                  <span className="heart-beat">&#10084;&#65039;</span>
+                  <span>Bağış Yap ve Umut Ol</span>
+                  <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
               </div>
             </div>
           </div>
 
-          {/* Right Column */}
-          <div className="flex flex-col gap-2 lg:gap-3">
-            <div className={`rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(4) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`}>
-              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/40 mb-2">{'Neden Ücretsiz?'}</p>
-              <p className="text-xs text-white/60 leading-relaxed">
-                {'Çünkü Hermes AI yalnızca ticari bir yazılım değil. '}
-                <span className="text-white/90 font-medium">{'Finansal özgürlüğün herkes için mümkün olduğuna inanan bir vizyondur.'}</span>
+          {/* ═══ RIGHT COLUMN: Neden Ucretsiz + Ekosistem + Giris ═══ */}
+          <div className="flex flex-col gap-3">
+            <div className={`rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(4) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`}>
+              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold-400/50 mb-2">Neden Ücretsiz?</p>
+              <p className="text-xs text-white/55 leading-relaxed">
+                {'Hermes AI yalnızca ticari bir yazılım değil. '}
+                <span className="text-white/85 font-medium">{'Finansal özgürlüğün herkes için mümkün olduğuna inanan bir vizyondur.'}</span>
               </p>
-              <p className="mt-2 text-[11px] text-white/50 leading-relaxed">
+              <p className="mt-2 text-[11px] text-white/40 leading-relaxed">
                 {'Kurucusu olarak zaten kazanıyorum. Platformu ücretli bir modele taşımak yerine, bilgiyi paylaşmayı seçtim.'}
               </p>
             </div>
 
-            <div className={`rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(5) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`} style={d(200)}>
-              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/40 mb-1.5">Ekosistem Notu</p>
-              <p className="text-[11px] text-white/65 leading-relaxed">
+            <div className={`rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(5) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`} style={d(200)}>
+              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold-400/50 mb-1.5">Ekosistem Notu</p>
+              <p className="text-[11px] text-white/50 leading-relaxed">
                 {'Hermes AI ekosisteminin parçası olan '}
-                <span className="text-white/80 font-medium">Hermes Coin</span>
+                <span className="text-amber-400/70 font-medium">Hermes Coin</span>
                 {' (BSC Smart Contract) ileride platform içi bazı premium avantajlara erişim sağlayabilir.'}
               </p>
-              <code className="block mt-1.5 text-[8px] text-white/40 font-mono bg-white/[0.04] px-2 py-1 rounded select-all break-all">
+              <code className="block mt-1.5 text-[8px] text-white/30 font-mono bg-white/[0.03] px-2 py-1 rounded select-all break-all">
                 0x9495ab3549338bf14ad2f86cbcf79c7b574bba37
               </code>
-              <p className="mt-1.5 text-[10px] text-white/40 italic">
-                {'Detaylar ilerleyen süreçte resmi olarak duyurulacaktır.'}
-              </p>
             </div>
 
             <div className={`transition-all duration-700 ${p(5) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={d(400)}>
               <button
                 onClick={handleClose}
-                className="w-full group flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/[0.08] border border-white/[0.18] text-white/80 text-sm font-bold tracking-wider hover:bg-white/[0.16] hover:text-white hover:border-white/35 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-white/5"
+                className="w-full group flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-gold-400/10 to-amber-500/10 border border-gold-400/20 text-gold-300/90 text-sm font-bold tracking-wider hover:from-gold-400/20 hover:to-amber-500/20 hover:border-gold-400/35 hover:text-gold-300 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-gold-400/10"
               >
-                {'Platforma Giriş Yap'}
+                Platforma Giriş Yap
                 <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -261,8 +302,9 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
           </div>
         </div>
 
-        <div className={`mt-4 lg:mt-6 text-center transition-all duration-700 ${p(5) ? 'opacity-100' : 'opacity-0'}`} style={d(600)}>
-          <button onClick={handleClose} className="text-xs text-white/50 hover:text-white/70 transition-colors duration-300 tracking-widest uppercase px-4 py-2 rounded-lg border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.04]">
+        {/* Bottom close */}
+        <div className={`mt-5 lg:mt-7 text-center transition-all duration-700 ${p(6) ? 'opacity-100' : 'opacity-0'}`} style={d(200)}>
+          <button onClick={handleClose} className="text-xs text-white/30 hover:text-white/60 transition-colors duration-300 tracking-widest uppercase px-4 py-2 rounded-lg border border-white/[0.06] hover:border-white/15 hover:bg-white/[0.03]">
             Kapat &times;
           </button>
         </div>

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import MarketLauncher, { MarketId } from '@/components/MarketLauncher'
 import Layout, { ModuleId } from '@/components/Layout'
+import EuropeLayout, { EuropeModuleId } from '@/components/EuropeLayout'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import ManifestoSplash from '@/components/ManifestoSplash'
 
@@ -44,12 +45,34 @@ const ModuleCryptoTerminal = dynamic(() => import('@/components/modules/crypto-t
   ssr: false,
 })
 
+// Europe modules
+const ModuleEuropeTerminal = dynamic(() => import('@/components/modules/europe-terminal/ModuleEuropeTerminal'), {
+  loading: () => <ModuleSkeleton />,
+  ssr: false,
+})
+const ModuleEuropeTrade = dynamic(() => import('@/components/modules/ModuleEuropeTrade'), {
+  loading: () => <ModuleSkeleton />,
+  ssr: false,
+})
+const ModuleEuropeSignals = dynamic(() => import('@/components/modules/ModuleEuropeSignals'), {
+  loading: () => <ModuleSkeleton />,
+  ssr: false,
+})
+const ModuleEuropeWatchlist = dynamic(() => import('@/components/modules/ModuleEuropeWatchlist'), {
+  loading: () => <ModuleSkeleton />,
+  ssr: false,
+})
+const ModuleEuropeIndex = dynamic(() => import('@/components/modules/ModuleEuropeIndex'), {
+  loading: () => <ModuleSkeleton />,
+  ssr: false,
+})
+
 function ModuleSkeleton() {
   return (
     <div className="flex items-center justify-center min-h-[50vh]">
       <div className="flex flex-col items-center gap-3">
         <div className="w-10 h-10 border-2 border-gold-400/30 border-t-gold-400 rounded-full animate-spin" />
-        <span className="text-sm text-white/40">Loading module...</span>
+        <span className="text-sm text-white/40">Modul yukleniyor...</span>
       </div>
     </div>
   )
@@ -58,7 +81,7 @@ function ModuleSkeleton() {
 const MARKET_NAV: { id: MarketId; label: string; icon: string; accentColor: string; status: 'live' | 'soon' }[] = [
   { id: 'nasdaq', label: 'NASDAQ BORSASI', icon: '🇺🇸', accentColor: 'rgb(179,148,91)', status: 'live' },
   { id: 'crypto', label: 'CRYPTO', icon: '₿', accentColor: 'rgb(245,158,11)', status: 'live' },
-  { id: 'europe', label: 'AVRUPA BORSALARI', icon: '🇪🇺', accentColor: 'rgb(59,130,246)', status: 'soon' },
+  { id: 'europe', label: 'AVRUPA BORSALARI', icon: '🇪🇺', accentColor: 'rgb(59,130,246)', status: 'live' },
   { id: 'bist100', label: 'BORSA ISTANBUL', icon: '🇹🇷', accentColor: 'rgb(239,68,68)', status: 'soon' },
   { id: 'forex', label: 'FOREX', icon: '💱', accentColor: 'rgb(16,185,129)', status: 'soon' },
 ]
@@ -75,7 +98,7 @@ function MarketNavBar({ activeMarket, onSelectMarket, onBack }: { activeMarket: 
             title="Ana sayfaya don"
           >
             <span className="text-sm">←</span>
-            <span className="hidden sm:inline">Markets</span>
+            <span className="hidden sm:inline">Piyasalar</span>
           </button>
 
           <div className="w-px h-5 bg-white/[0.06] shrink-0 mr-1" />
@@ -213,12 +236,52 @@ export default function Home() {
           }
 
           return (
-            <ErrorBoundary fallbackTitle={`Module error: ${activeModule}`}>
-              {content}
-            </ErrorBoundary>
+              <ErrorBoundary fallbackTitle={`Modul hatasi: ${activeModule}`}>
+                {content}
+              </ErrorBoundary>
           )
         }}
       </Layout>
+      </div>
+    )
+  }
+
+  // EUROPE market — active
+  if (activeMarket === 'europe') {
+    return (
+      <div className="min-h-screen bg-[#0d0d0d]">
+        <MarketNavBar activeMarket={activeMarket} onSelectMarket={handleSelectMarket} onBack={handleBackToLauncher} />
+        <EuropeLayout onBack={undefined}>
+          {(activeModule: EuropeModuleId) => {
+            let content: React.ReactNode
+
+            switch (activeModule) {
+              case 'europe-terminal':
+                content = <ModuleEuropeTerminal />
+                break
+              case 'europe-trade':
+                content = <ModuleEuropeTrade />
+                break
+              case 'europe-signals':
+                content = <ModuleEuropeSignals />
+                break
+              case 'europe-watchlist':
+                content = <ModuleEuropeWatchlist />
+                break
+              case 'europe-index':
+                content = <ModuleEuropeIndex />
+                break
+              default:
+                content = <ModuleEuropeTerminal />
+            }
+
+            return (
+              <ErrorBoundary fallbackTitle={`Modul hatasi: ${activeModule}`}>
+                {content}
+              </ErrorBoundary>
+            )
+          }}
+        </EuropeLayout>
       </div>
     )
   }
@@ -228,7 +291,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-[#0d0d0d]">
         <MarketNavBar activeMarket={activeMarket} onSelectMarket={handleSelectMarket} onBack={handleBackToLauncher} />
-        <ErrorBoundary fallbackTitle="Crypto Terminal error">
+        <ErrorBoundary fallbackTitle="Crypto Terminal hatasi">
           <ModuleCryptoTerminal />
         </ErrorBoundary>
         <ScrollToTopBtn />

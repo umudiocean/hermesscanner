@@ -830,3 +830,43 @@ button, a, [role="button"] {
   50% { opacity: 0.85; transform: scale(1.03); }
 }
 .combo-pulse { animation: combo-pulse 1.5s ease-in-out infinite; }
+
+/* ═══ MISSION MODAL / ABOUT ANIMATIONS ═══ */
+
+@keyframes lantern-glow {
+  0%, 100% { filter: brightness(1) drop-shadow(0 0 8px rgba(179,148,91,0.2)); }
+  50% { filter: brightness(1.08) drop-shadow(0 0 20px rgba(179,148,91,0.45)); }
+}
+.lantern-glow { animation: lantern-glow 3s ease-in-out infinite; }
+
+@keyframes modal-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modal-content-in {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-backdrop-in { animation: modal-backdrop-in 0.3s ease-out forwards; }
+.modal-content-in { animation: modal-content-in 0.4s ease-out 0.1s forwards; opacity: 0; }
+
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.gentle-float { animation: gentle-float 4s ease-in-out infinite; }
+
+@keyframes quote-line-expand {
+  from { height: 0; }
+  to { height: 100%; }
+}
+.quote-line-expand { animation: quote-line-expand 1s ease-out 0.5s forwards; height: 0; }
+
+@keyframes heart-beat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.15); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.08); }
+  56% { transform: scale(1); }
+}
+.heart-beat { animation: heart-beat 2s ease-in-out infinite; }

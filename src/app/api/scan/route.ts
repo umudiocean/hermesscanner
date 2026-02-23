@@ -31,7 +31,7 @@ export const maxDuration = 300
 interface ScanContext {
   symbols: string[]
   segment: Segment
-  quotes: Map<string, { price: number; change: number; changePercent: number; volume: number; marketCap: number }>
+  quotes: Map<string, { price: number; change: number; changePercent: number; volume: number; marketCap: number; yearHigh?: number; yearLow?: number }>
   profileMap: Map<string, { sector: string; industry: string; companyName: string }>
 }
 
@@ -102,7 +102,7 @@ async function processSymbol(
       touches: hermes.touches,
     }
 
-    // Compute target/floor price using bands + signal
+    // Compute target/floor price using bands + signal + fmpData (yearHigh/yearLow from batch-quote)
     const priceTarget = computeNasdaqTargetFloor({
       price: hermes.price,
       signalType: hermes.signalType,
@@ -113,6 +113,9 @@ async function processSymbol(
         mfi: hermes.indicators.mfi,
         atr: hermes.indicators.atr,
       },
+      fmpData: quote && (quote.yearHigh != null || quote.yearLow != null)
+        ? { yearHigh: quote.yearHigh ?? 0, yearLow: quote.yearLow ?? 0 }
+        : undefined,
     }) as PriceTargetData | null
 
     return {

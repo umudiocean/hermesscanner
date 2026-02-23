@@ -170,6 +170,8 @@ export async function getBatchQuotes(
   dayHigh: number
   dayLow: number
   open: number
+  yearHigh: number
+  yearLow: number
 }>> {
   const results = new Map<string, {
     price: number
@@ -180,6 +182,8 @@ export async function getBatchQuotes(
     dayHigh: number
     dayLow: number
     open: number
+    yearHigh: number
+    yearLow: number
   }>()
 
   // 100'luk gruplar halinde batch request
@@ -221,6 +225,8 @@ export async function getBatchQuotes(
             dayHigh: (quote.dayHigh as number) ?? 0,
             dayLow: (quote.dayLow as number) ?? 0,
             open: (quote.open as number) ?? 0,
+            yearHigh: (quote.yearHigh as number) ?? 0,
+            yearLow: (quote.yearLow as number) ?? 0,
           })
         }
       }

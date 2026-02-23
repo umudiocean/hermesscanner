@@ -112,6 +112,8 @@ export interface PriceTargetData {
   zone: PriceZone
   confidence: number
   method: string
+  /** RULE-P4: floorPrice > targetPrice = nonsensical support/resistance */
+  floorAboveTarget?: boolean
 }
 
 export interface ScanResult {

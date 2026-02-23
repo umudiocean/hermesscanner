@@ -728,6 +728,21 @@ export function computeFMPScore(
     redFlags.push({ severity: 'warning', category: 'valuation', message: 'P/E negatif — sirket zarar ediyor', value: metrics.pe })
   }
 
+  // RULE-Z1/Z2: Altman Z < 1.8 gate — cap total score to 50 (Finance/REIT use sector-specific thresholds)
+  const isAltmanDistress = metrics.altmanZ > 0 && metrics.altmanZ < 1.8 &&
+    !FINANCE_SECTORS.some(s => metrics.sector.includes(s)) &&
+    !REIT_SECTORS.some(s => metrics.sector.includes(s))
+  if (isAltmanDistress) {
+    total = Math.min(total, 50)
+  }
+
+  // RULE-R1/R2: Red flag count cap — multiple red flags must reduce composite score
+  if (redFlags.length >= 5) {
+    total = Math.min(total, 50)
+  } else if (redFlags.length >= 3) {
+    total = Math.min(total, 65)
+  }
+
   // 3D Confidence
   const allCats = [
     { dp: val.dataPoints, mp: val.maxPoints, score: val.score },
@@ -805,7 +820,7 @@ export function computeFMPScore(
     categories,
     redFlags,
     confidence,
-    gated: false,
+    gated: isAltmanDistress,
     degraded: isDegraded,
     missingInputs,
     badges,

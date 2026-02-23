@@ -15,6 +15,10 @@ export interface CryptoPriceTarget {
   zone: CryptoZone
   confidence: number      // 0-100
   method: string
+  /** RULE-P4: floorPrice > targetPrice = nonsensical */
+  floorAboveTarget?: boolean
+  /** RULE-CR7: fdv < marketCap is mathematically impossible — corrupt API data */
+  fdvBelowMcap?: boolean
 }
 
 export type CryptoZone = 'BUY_ZONE' | 'ACCUMULATE' | 'NEUTRAL' | 'DISTRIBUTE' | 'SELL_ZONE'
@@ -184,9 +188,10 @@ function computeCryptoFloor(input: CryptoTargetInput): number {
   momFloor = Math.max(momFloor, price * 0.50)
   momFloor = Math.min(momFloor, price * 0.98)
 
-  // 4. FDV/MCap pressure floor (20%)
+  // 4. FDV/MCap pressure floor (20%) — RULE-CR7: fdv must be >= marketCap (skip if corrupt)
   let fdvFloor = price * 0.88
-  if (fdv && fdv > 0 && marketCap > 0) {
+  const fdvInvalid = fdv && fdv > 0 && marketCap > 0 && fdv < marketCap
+  if (fdv && fdv > 0 && marketCap > 0 && !fdvInvalid) {
     const fdvRatio = fdv / marketCap
     if (fdvRatio > 5) fdvFloor = price * 0.70
     else if (fdvRatio > 3) fdvFloor = price * 0.78
@@ -196,7 +201,7 @@ function computeCryptoFloor(input: CryptoTargetInput): number {
 
   // Weighted blend
   const w = { fib: 0.30, fair: 0.25, mom: 0.25, fdv: 0.20 }
-  if (!fdv || fdv <= 0) {
+  if (!fdv || fdv <= 0 || fdvInvalid) {
     w.fib = 0.35; w.fair = 0.30; w.mom = 0.35; w.fdv = 0
   }
 
@@ -271,6 +276,8 @@ export function computeCryptoTargetFloor(input: CryptoTargetInput): CryptoPriceT
 
   const targetPrice = computeCryptoTarget(input)
   const floorPrice = computeCryptoFloor(input)
+  const floorAboveTarget = floorPrice > targetPrice
+  const fdvBelowMcap = !!(input.fdv && input.fdv > 0 && input.marketCap > 0 && input.fdv < input.marketCap)
 
   const targetPct = ((targetPrice - input.price) / input.price) * 100
   const floorPct = ((input.price - floorPrice) / input.price) * 100
@@ -289,6 +296,8 @@ export function computeCryptoTargetFloor(input: CryptoTargetInput): CryptoPriceT
   return {
     targetPrice,
     floorPrice,
+    floorAboveTarget,
+    fdvBelowMcap: fdvBelowMcap || undefined,
     targetPct: Math.round(targetPct * 100) / 100,
     floorPct: Math.round(floorPct * 100) / 100,
     riskReward,

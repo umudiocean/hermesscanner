@@ -730,7 +730,10 @@ export async function GET(request: NextRequest) {
         const kmResult = keyMetricsTTMMap.get(sym)
         const fmpScore = allScores.get(sym)
         const inputForRisk = allInputs.get(sym)
-        const risk = inputForRisk ? computeRiskScore(inputForRisk) : { total: 50, level: 'MODERATE' as const }
+        const rawRisk = inputForRisk ? computeRiskScore(inputForRisk) : { total: 50, level: 'MODERATE' as const }
+        const risk = rawRisk.level === 'LOW' && (fmpScore?.redFlags?.length ?? 0) >= 5
+          ? { ...rawRisk, level: 'MODERATE' as const }
+          : rawRisk
 
         const pe = met?.pe || safeNum(quote.pe)
         const dcfVal = dcf?.dcf || 0
