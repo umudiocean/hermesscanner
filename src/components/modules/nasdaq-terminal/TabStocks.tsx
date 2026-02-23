@@ -234,7 +234,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
               onClick={() => { setSegmentFilter(seg.key); setWatchlistOnly(false); setPage(0) }}
               title={`${seg.label} - ${seg.desc}`}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all duration-200
-                ${isActive ? seg.color + ' ring-1 ring-white/10 shadow-lg' : 'text-white/30 bg-white/[0.02] border-white/[0.05] hover:border-white/10 hover:text-white/50'}`}>
+                ${isActive ? seg.color + ' ring-1 ring-white/10 shadow-lg' : 'text-white/40 bg-white/[0.02] border-white/[0.05] hover:border-white/10 hover:text-white/60'}`}>
               {seg.icon}
               <span>{seg.label}</span>
               <span className={`text-[10px] tabular-nums ${isActive ? 'opacity-80' : 'opacity-40'}`}>{count}</span>
@@ -270,27 +270,27 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
         {/* GUVEN filtre */}
         <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5">
-          <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold block mb-1.5">Guven Filtresi</span>
+          <span className="text-[9px] text-white/40 uppercase tracking-wider font-semibold block mb-1.5">Guven Filtresi</span>
           <div className="flex gap-1 flex-wrap">
             {[
-              { key: 'all' as const, label: 'Tumu', color: 'text-white/50 bg-white/[0.04] border-white/[0.08]' },
+              { key: 'all' as const, label: 'Tumu', color: 'text-white/60 bg-white/[0.04] border-white/[0.08]' },
               { key: 'high' as const, label: '%70+', color: 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' },
               { key: 'medium' as const, label: '%50-69', color: 'text-amber-400 bg-amber-500/10 border-amber-500/25' },
               { key: 'low' as const, label: '<%50', color: 'text-red-400 bg-red-500/10 border-red-500/25' },
             ].map(f => (
               <button key={f.key} onClick={() => { setConfidenceFilter(f.key); setPage(0) }}
                 className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all ${
-                  confidenceFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/25 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
+                  confidenceFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/35 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
                 }`}>{f.label}</button>
             ))}
           </div>
         </div>
         {/* FIYATLANMA filtre */}
         <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5">
-          <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold block mb-1.5">Fiyatlanma Filtresi</span>
+          <span className="text-[9px] text-white/40 uppercase tracking-wider font-semibold block mb-1.5">Fiyatlanma Filtresi</span>
           <div className="flex gap-1 flex-wrap">
             {[
-              { key: 'all', label: 'Tumu', color: 'text-white/50 bg-white/[0.04] border-white/[0.08]' },
+              { key: 'all', label: 'Tumu', color: 'text-white/60 bg-white/[0.04] border-white/[0.08]' },
               { key: 'COK UCUZ', label: 'Cok Ucuz', color: 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' },
               { key: 'UCUZ', label: 'Ucuz', color: 'text-hermes-green/80 bg-hermes-green/8 border-hermes-green/20' },
               { key: 'NORMAL', label: 'Normal', color: 'text-slate-300 bg-white/[0.04] border-white/10' },
@@ -299,17 +299,17 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
             ].map(f => (
               <button key={f.key} onClick={() => { setValuationFilter(f.key); setPage(0) }}
                 className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all ${
-                  valuationFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/25 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
+                  valuationFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/35 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
                 }`}>{f.label}</button>
             ))}
           </div>
         </div>
         {/* SINYAL filtre */}
         <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5">
-          <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold block mb-1.5">Sinyal Filtresi</span>
+          <span className="text-[9px] text-white/40 uppercase tracking-wider font-semibold block mb-1.5">Sinyal Filtresi</span>
           <div className="flex gap-1 flex-wrap">
             {[
-              { key: 'all', label: 'Tumu', color: 'text-white/50 bg-white/[0.04] border-white/[0.08]' },
+              { key: 'all', label: 'Tumu', color: 'text-white/60 bg-white/[0.04] border-white/[0.08]' },
               { key: 'STRONG', label: 'Guclu', color: 'text-amber-400 bg-amber-500/10 border-amber-500/25' },
               { key: 'GOOD', label: 'Iyi', color: 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' },
               { key: 'NEUTRAL', label: 'Notr', color: 'text-slate-300 bg-white/[0.04] border-white/10' },
@@ -318,7 +318,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
             ].map(f => (
               <button key={f.key} onClick={() => { setSignalFilter(f.key); setPage(0) }}
                 className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all ${
-                  signalFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/25 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
+                  signalFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/35 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
                 }`}>{f.label}</button>
             ))}
           </div>
@@ -329,7 +329,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
       <div className="flex flex-col md:flex-row items-start md:items-center gap-2 sm:gap-2.5 justify-between">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative group">
-            <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/25 group-focus-within:text-violet-400 transition-colors" />
+            <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/35 group-focus-within:text-violet-400 transition-colors" />
             <input type="text" value={search}
               onChange={e => { setSearch(e.target.value.toUpperCase()); setPage(0) }}
               placeholder="Hisse ara..."
@@ -338,7 +338,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
             />
           </div>
           <div className="relative">
-            <Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/25" />
+            <Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/35" />
             <select value={sectorFilter}
               onChange={e => { setSectorFilter(e.target.value); setPage(0) }}
               className="pl-7 pr-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white
@@ -368,7 +368,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
             <option value="volume" className="bg-[#151520]">Hacim</option>
           </select>
         </div>
-        <div className="flex items-center gap-4 text-xs text-white/35">
+        <div className="flex items-center gap-4 text-xs text-white/45">
           <span>Toplam: <b className="text-white/80">{stocks.length}</b></span>
           <span>Gosterilen: <b className="text-white/80">{filteredStocks.length}</b></span>
         </div>
@@ -452,7 +452,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                           className={`shrink-0 p-0.5 rounded transition-all duration-200 ${
                             watchlist.includes(s.symbol)
                               ? 'text-amber-400 hover:text-amber-300'
-                              : 'text-white/15 hover:text-amber-400/60'
+                              : 'text-white/35 hover:text-amber-400/60'
                           }`}
                           title={watchlist.includes(s.symbol) ? 'Watchlist\'ten cikar' : 'Watchlist\'e ekle'}
                         >
@@ -464,16 +464,16 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                           <span key={idx} className={`text-[8px] font-bold px-1 py-0 rounded ${
                             idx === 'SP500' ? 'text-violet-300/70 bg-violet-500/10' :
                             idx === 'NDX100' ? 'text-blue-300/70 bg-blue-500/10' :
-                            idx === 'DJIA' ? 'text-amber-300/70 bg-amber-500/10' : 'text-white/30 bg-white/[0.04]'
+                            idx === 'DJIA' ? 'text-amber-300/70 bg-amber-500/10' : 'text-white/40 bg-white/[0.04]'
                           }`}>{idx}</span>
                         ))}
                       </div>
                     </td>
                     <td className="px-1 py-2">
-                      <span className="text-[13px] text-white/50 truncate block max-w-[130px]" title={s.companyName}>{s.companyName}</span>
+                      <span className="text-[13px] text-white/60 truncate block max-w-[130px]" title={s.companyName}>{s.companyName}</span>
                     </td>
                     <td className="px-1 py-2">
-                      <span className="text-xs text-white/35 truncate block max-w-[80px]" title={s.sector}>
+                      <span className="text-xs text-white/45 truncate block max-w-[80px]" title={s.sector}>
                         {s.sector === 'Unknown' ? '\u2014' : shortSector(s.sector)}
                       </span>
                     </td>
@@ -488,7 +488,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                         <ScoreMiniBar value={s.signalScore} maxWidth={40} />
                         {/* Score Breakdown Popup */}
                         <div className="hidden group-hover/score:block absolute z-50 bottom-full right-0 mb-2 w-52 bg-[#141420] border border-white/10 rounded-xl shadow-2xl p-3">
-                          <div className="text-[10px] text-white/40 font-semibold mb-2 tracking-wider">HERMES AI SKOR</div>
+                          <div className="text-[10px] text-white/50 font-semibold mb-2 tracking-wider">HERMES AI SKOR</div>
                           {[
                             { label: 'Degerleme', val: s.categories?.valuation || 0, w: 22 },
                             { label: 'Saglik', val: s.categories?.health || 0, w: 20 },
@@ -500,15 +500,15 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                             { label: 'Smart Money', val: s.categories?.smartMoney || 0, w: 5 },
                           ].sort((a, b) => b.val - a.val).map(c => (
                             <div key={c.label} className="flex items-center gap-1.5 mb-1">
-                              <span className="text-[10px] text-white/40 w-16 truncate">{c.label}</span>
+                              <span className="text-[10px] text-white/50 w-16 truncate">{c.label}</span>
                               <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all" style={{
                                   width: `${c.val}%`,
                                   backgroundColor: c.val >= 70 ? '#62cbc1' : c.val >= 40 ? '#fbbf24' : '#f87171'
                                 }} />
                               </div>
-                              <span className="text-[10px] tabular-nums text-white/50 w-6 text-right">{c.val}</span>
-                              <span className="text-[8px] text-white/20 w-5 text-right">{c.w}%</span>
+                              <span className="text-[10px] tabular-nums text-white/60 w-6 text-right">{c.val}</span>
+                              <span className="text-[8px] text-white/40 w-5 text-right">{c.w}%</span>
                             </div>
                           ))}
                           {s.gated && (
@@ -521,7 +521,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-medium ${
-                        (s.confidence || 0) >= 70 ? 'text-hermes-green/60' : (s.confidence || 0) >= 50 ? 'text-amber-400/60' : 'text-white/25'
+                        (s.confidence || 0) >= 70 ? 'text-hermes-green/60' : (s.confidence || 0) >= 50 ? 'text-amber-400/60' : 'text-white/35'
                       }`}>{s.confidence || 30}%</span>
                     </td>
                     <td className="px-1 py-2 text-right">
@@ -534,28 +534,28 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                       </span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className="text-[13px] text-white/50 tabular-nums">{fmtCap(s.marketCap)}</span>
+                      <span className="text-[13px] text-white/60 tabular-nums">{fmtCap(s.marketCap)}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className="text-[13px] text-white/50 tabular-nums">{fmtR(s.pe)}</span>
+                      <span className="text-[13px] text-white/60 tabular-nums">{fmtR(s.pe)}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-medium ${
-                        (s.altmanZ || 0) >= 3 ? 'text-hermes-green/70' : (s.altmanZ || 0) >= 1.8 ? 'text-amber-400/70' : (s.altmanZ || 0) > 0 ? 'text-red-400/70' : 'text-white/20'
+                        (s.altmanZ || 0) >= 3 ? 'text-hermes-green/70' : (s.altmanZ || 0) >= 1.8 ? 'text-amber-400/70' : (s.altmanZ || 0) > 0 ? 'text-red-400/70' : 'text-white/40'
                       }`}>{s.altmanZ > 0 ? s.altmanZ.toFixed(1) : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-bold ${
-                        (s.piotroski || 0) >= 7 ? 'text-hermes-green' : (s.piotroski || 0) >= 5 ? 'text-amber-400/70' : (s.piotroski || 0) > 0 ? 'text-orange-400/70' : 'text-white/20'
+                        (s.piotroski || 0) >= 7 ? 'text-hermes-green' : (s.piotroski || 0) >= 5 ? 'text-amber-400/70' : (s.piotroski || 0) > 0 ? 'text-orange-400/70' : 'text-white/40'
                       }`}>{s.piotroski > 0 ? s.piotroski : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-medium ${
-                        (s.dcfUpside || 0) > 20 ? 'text-hermes-green' : (s.dcfUpside || 0) > 0 ? 'text-hermes-green/60' : (s.dcfUpside || 0) < -20 ? 'text-red-400' : (s.dcfUpside || 0) < 0 ? 'text-red-400/60' : 'text-white/20'
+                        (s.dcfUpside || 0) > 20 ? 'text-hermes-green' : (s.dcfUpside || 0) > 0 ? 'text-hermes-green/60' : (s.dcfUpside || 0) < -20 ? 'text-red-400' : (s.dcfUpside || 0) < 0 ? 'text-red-400/60' : 'text-white/40'
                       }`}>{s.dcfUpside ? `${s.dcfUpside > 0 ? '+' : ''}${s.dcfUpside.toFixed(0)}%` : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className={`text-[13px] tabular-nums ${s.roe > 0 ? 'text-hermes-green/70' : s.roe < 0 ? 'text-red-400/70' : 'text-white/25'}`}>
+                      <span className={`text-[13px] tabular-nums ${s.roe > 0 ? 'text-hermes-green/70' : s.roe < 0 ? 'text-red-400/70' : 'text-white/35'}`}>
                         {fmtPct(s.roe)}
                       </span>
                     </td>
@@ -577,7 +577,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                         s.valuationLabel === 'NORMAL' ? 'text-slate-300 bg-white/[0.04]' :
                         s.valuationLabel === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
                         s.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
-                        'text-white/25 bg-white/[0.03]'
+                        'text-white/35 bg-white/[0.03]'
                       }`}>{s.valuationLabel || 'N/A'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
@@ -586,9 +586,9 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                           s.overvalLevel === 'EXTREME' ? 'text-fuchsia-300 bg-fuchsia-500/20' :
                           s.overvalLevel === 'HIGH' ? 'text-red-400 bg-red-500/15' :
                           s.overvalLevel === 'MEDIUM' ? 'text-orange-400 bg-orange-500/10' :
-                          'text-white/30 bg-white/[0.03]'
+                          'text-white/40 bg-white/[0.03]'
                         }`}>{s.overvalScore}</span>
-                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                      ) : <span className="text-white/35">{'\u2014'}</span>}
                       {(s.badges?.length || 0) > 0 && (
                         <div className="flex flex-wrap gap-0.5 mt-0.5 justify-end">
                           {s.badges.slice(0, 2).map((b, bi) => (
@@ -607,20 +607,20 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                       {s.priceTarget > 0 ? (
                         <div className="flex flex-col items-end">
                           <span className={`font-mono text-[11px] font-semibold ${
-                            s.priceTarget > s.price ? 'text-hermes-green' : s.priceTarget < s.price ? 'text-red-400' : 'text-white/50'
+                            s.priceTarget > s.price ? 'text-hermes-green' : s.priceTarget < s.price ? 'text-red-400' : 'text-white/60'
                           }`}>${s.priceTarget.toFixed(2)}</span>
-                          <span className="text-[9px] text-white/25">{s.price > 0 ? `${((s.priceTarget - s.price) / s.price * 100) >= 0 ? '+' : ''}${((s.priceTarget - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
+                          <span className="text-[9px] text-white/35">{s.price > 0 ? `${((s.priceTarget - s.price) / s.price * 100) >= 0 ? '+' : ''}${((s.priceTarget - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
                         </div>
-                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                      ) : <span className="text-white/35">{'\u2014'}</span>}
                     </td>
                     {/* DIP (52W Low) */}
                     <td className="px-1 py-2 text-right">
                       {s.yearLow > 0 ? (
                         <div className="flex flex-col items-end">
                           <span className="font-mono text-[11px] text-red-400/70">${s.yearLow.toFixed(2)}</span>
-                          <span className="text-[9px] text-white/25">{s.price > 0 ? `${((s.yearLow - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
+                          <span className="text-[9px] text-white/35">{s.price > 0 ? `${((s.yearLow - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
                         </div>
-                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                      ) : <span className="text-white/35">{'\u2014'}</span>}
                     </td>
                     {/* R:R */}
                     <td className="px-1 py-2 text-right">
@@ -628,7 +628,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                         const upside = s.priceTarget > 0 && s.price > 0 ? s.priceTarget - s.price : 0
                         const downside = s.yearLow > 0 && s.price > 0 ? s.price - s.yearLow : 0
                         const rr = downside > 0 ? upside / downside : 0
-                        if (rr <= 0) return <span className="text-white/15">{'\u2014'}</span>
+                        if (rr <= 0) return <span className="text-white/35">{'\u2014'}</span>
                         return (
                           <span className={`font-mono text-[11px] font-bold ${
                             rr >= 2 ? 'text-hermes-green' : rr >= 1 ? 'text-gold-300' : 'text-red-400'
@@ -640,11 +640,11 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                       <span className={`text-[11px] tabular-nums ${
                         (s.shortFloat || 0) >= 90 ? 'text-hermes-green/70' :
                         (s.shortFloat || 0) >= 50 ? 'text-white/45' :
-                        (s.shortFloat || 0) > 0 ? 'text-orange-400/70' : 'text-white/15'
+                        (s.shortFloat || 0) > 0 ? 'text-orange-400/70' : 'text-white/35'
                       }`}>{s.shortFloat > 0 ? `${s.shortFloat.toFixed(0)}%` : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className="text-[13px] text-white/35 tabular-nums">{fmtVol(s.volume)}</span>
+                      <span className="text-[13px] text-white/45 tabular-nums">{fmtVol(s.volume)}</span>
                     </td>
                   </tr>
                 )
@@ -656,7 +656,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
 
       {/* Total count */}
       <div className="flex items-center justify-center py-1.5">
-        <span className="text-xs text-white/25">Toplam <b className="text-white/50">{filteredStocks.length}</b> hisse listeleniyor</span>
+        <span className="text-xs text-white/35">Toplam <b className="text-white/60">{filteredStocks.length}</b> hisse listeleniyor</span>
       </div>
     </div>
   )
@@ -674,13 +674,13 @@ function ThC({ field, label, sort, dir, onSort, w = '', align = 'left', tip, onT
       onMouseEnter={() => tip && onTip?.(tip)}
       onMouseLeave={() => onTip?.(null)}
       title={tip || ''}
-      className={`px-1 py-2.5 text-xs text-white/40 tracking-wider font-semibold cursor-pointer
+      className={`px-1 py-2.5 text-xs text-white/50 tracking-wider font-semibold cursor-pointer
                   hover:text-white/70 transition-all duration-200 select-none whitespace-nowrap ${w}
                   ${align === 'right' ? 'text-right' : 'text-left'}`}>
       {label}
       {sort === field
         ? <span className="text-violet-400 ml-0.5 text-[10px]">{'\u25B2'}{dir === 'asc' ? '' : '\u25BC'}</span>
-        : <span className="text-white/15 ml-0.5 text-[10px]">{'\u25BC'}</span>}
+        : <span className="text-white/35 ml-0.5 text-[10px]">{'\u25BC'}</span>}
     </th>
   )
 }
@@ -764,7 +764,7 @@ function TableSkeleton() {
         {/* Title */}
         <div className="text-center">
           <h3 className="text-base font-bold text-white/90 tracking-wide">HERMES AI <span className="gradient-text">Terminal</span></h3>
-          <p className="text-[11px] text-white/30 mt-1 tracking-wider">Veriler analiz ediliyor...</p>
+          <p className="text-[11px] text-white/40 mt-1 tracking-wider">Veriler analiz ediliyor...</p>
         </div>
 
         {/* Progress bar */}
@@ -781,7 +781,7 @@ function TableSkeleton() {
               style={{ animation: `card-reveal 0.4s ease-out ${0.3 + i * 0.35}s forwards` }}>
               <span className="text-gold-400/60 text-[10px] font-mono">{step.icon}</span>
               <div className="flex-1 relative overflow-hidden">
-                <span className="text-[11px] text-white/40 font-medium">{step.label}</span>
+                <span className="text-[11px] text-white/50 font-medium">{step.label}</span>
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="h-full w-1/3 terminal-scan-line" style={{
                     background: 'linear-gradient(90deg, transparent, rgba(179,148,91,0.15), transparent)',
@@ -805,7 +805,7 @@ function TableSkeleton() {
               style={{ animation: `card-reveal 0.5s ease-out ${card.delay} forwards` }}>
               <div className="h-1 w-8 skeleton-shimmer rounded-full mb-2" />
               <div className="h-5 skeleton-shimmer rounded-md mb-1.5" />
-              <div className="text-[9px] text-white/20 font-medium tracking-wider">{card.label}</div>
+              <div className="text-[9px] text-white/40 font-medium tracking-wider">{card.label}</div>
             </div>
           ))}
         </div>
@@ -821,14 +821,14 @@ function TableSkeleton() {
               points="0,35 30,32 60,28 90,30 120,25 150,27 180,22 210,24 240,20 270,22 300,18"
               style={{ strokeDasharray: '500', strokeDashoffset: '500', animation: 'ring-pulse 2s ease-in-out 2.1s forwards' }} />
           </svg>
-          <div className="absolute bottom-1 right-2 text-[8px] text-white/15 font-mono">CHART PREVIEW</div>
+          <div className="absolute bottom-1 right-2 text-[8px] text-white/35 font-mono">CHART PREVIEW</div>
         </div>
 
         {/* Ticker tape */}
         <div className="w-full max-w-xs overflow-hidden rounded-lg opacity-0" style={{ animation: 'card-reveal 0.4s ease-out 2s forwards' }}>
           <div className="flex ticker-scroll whitespace-nowrap">
             {[...TICKERS, ...TICKERS].map((t, i) => (
-              <span key={i} className="inline-flex items-center gap-1 px-2 text-[9px] font-mono text-white/15">
+              <span key={i} className="inline-flex items-center gap-1 px-2 text-[9px] font-mono text-white/35">
                 {t}
                 <span className={i % 3 === 0 ? 'text-hermes-green/20' : i % 3 === 1 ? 'text-red-400/20' : 'text-white/10'}>
                   {i % 3 === 0 ? '▲' : i % 3 === 1 ? '▼' : '—'}

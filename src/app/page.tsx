@@ -49,7 +49,7 @@ function ModuleSkeleton() {
     <div className="flex items-center justify-center min-h-[50vh]">
       <div className="flex flex-col items-center gap-3">
         <div className="w-10 h-10 border-2 border-gold-400/30 border-t-gold-400 rounded-full animate-spin" />
-        <span className="text-sm text-white/30">Loading module...</span>
+        <span className="text-sm text-white/40">Loading module...</span>
       </div>
     </div>
   )
@@ -71,7 +71,7 @@ function MarketNavBar({ activeMarket, onSelectMarket, onBack }: { activeMarket: 
           {/* Back */}
           <button
             onClick={onBack}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-all text-xs font-medium shrink-0 mr-1"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-white/40 hover:text-white/60 hover:bg-white/[0.04] transition-all text-xs font-medium shrink-0 mr-1"
             title="Ana sayfaya don"
           >
             <span className="text-sm">←</span>
@@ -101,8 +101,8 @@ function MarketNavBar({ activeMarket, onSelectMarket, onBack }: { activeMarket: 
                     ${isActive
                       ? 'text-white shadow-lg'
                       : isLive
-                        ? 'text-white/35 hover:text-white/60 hover:bg-white/[0.04]'
-                        : 'text-white/20 hover:text-white/35 hover:bg-white/[0.02]'
+                        ? 'text-white/45 hover:text-white/60 hover:bg-white/[0.04]'
+                        : 'text-white/40 hover:text-white/45 hover:bg-white/[0.02]'
                     }`}
                   style={isActive ? {
                     background: `linear-gradient(135deg, ${m.accentColor}15, ${m.accentColor}08)`,
@@ -121,7 +121,7 @@ function MarketNavBar({ activeMarket, onSelectMarket, onBack }: { activeMarket: 
                       <span className="relative w-1.5 h-1.5 rounded-full" style={{ backgroundColor: isActive ? m.accentColor : 'rgb(16,185,129)' }} />
                     </span>
                   ) : (
-                    <span className="text-[8px] font-bold tracking-wider text-white/15 bg-white/[0.03] px-1.5 py-px rounded ml-0.5">
+                    <span className="text-[8px] font-bold tracking-wider text-white/35 bg-white/[0.03] px-1.5 py-px rounded ml-0.5">
                       YAKINDA
                     </span>
                   )}
@@ -289,18 +289,18 @@ function ComingSoonMarket({ marketId, onBack }: { marketId: MarketId; onBack: ()
         </div>
         <h1 className="text-3xl font-black text-white/80 mb-2">{info.label}</h1>
         <div className="flex items-center justify-center gap-2 mb-4">
-          <span className="px-3 py-1 rounded-full text-xs font-bold tracking-widest border border-white/10 bg-white/[0.03] text-white/25">
+          <span className="px-3 py-1 rounded-full text-xs font-bold tracking-widest border border-white/10 bg-white/[0.03] text-white/35">
             YAKINDA
           </span>
         </div>
-        <p className="text-white/20 text-sm max-w-md mx-auto mb-8">
+        <p className="text-white/40 text-sm max-w-md mx-auto mb-8">
           HERMES AI Neural Core altyapisi ile {info.label} modulu uzerinde calisiliyor.
           Kurumsal duzeyde analiz ve sinyal sistemi yakin zamanda aktif olacak.
         </p>
         <div className="flex items-center justify-center gap-3">
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
             <div className="w-2 h-2 rounded-full bg-amber-400/50 animate-pulse" />
-            <span className="text-xs text-white/30 font-medium">Gelistirme asamasinda</span>
+            <span className="text-xs text-white/40 font-medium">Gelistirme asamasinda</span>
           </div>
         </div>
       </div>

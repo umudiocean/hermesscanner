@@ -138,19 +138,20 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
             </svg>
           </div>
           <h1 className="text-xl lg:text-2xl font-black tracking-tight text-white leading-none">
-            HERMES <span className="text-white/40">AI</span>
+            HERMES <span className="text-white/50">AI</span>
           </h1>
         </div>
 
         {/* Hero Statement */}
         <div className={`text-center mb-5 lg:mb-7 max-w-4xl transition-all duration-800 ${p(2) ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}`}>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white leading-tight tracking-tight">
-            {'Bu Platform Satılık Değil.'}
-            <br />
-            <span className="text-white/60">{'Ücretli Değil.'}</span>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-white leading-tight tracking-tight uppercase">
+            {'Türk kullanıcılar için tasarlanan bu platform tamamen '}
+            <span className="text-red-400">{'ücretsizdir.'}</span>
           </h2>
-          <p className="mt-2 text-sm sm:text-base lg:text-lg text-white/50 font-medium tracking-wide">
-            {'Tamamen Ücretsiz ve Merkeziyetsiz Bir Vizyonun Parçası.'}
+          <p className="mt-2 text-sm sm:text-base lg:text-lg text-white/70 font-medium tracking-wide uppercase">
+            {'ChatGPT, Claude, Kimi ve Gemini gücüyle, '}
+            <span className="text-red-400">{'%100 yapay zeka'}</span>
+            {' desteklidir.'}
           </p>
         </div>
 
@@ -169,18 +170,18 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
           {/* Left Column */}
           <div className="flex flex-col gap-2 lg:gap-3">
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
-              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/30 mb-2">Vizyon</p>
+              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/40 mb-2">Vizyon</p>
               <p className="text-xs lg:text-sm text-white/70 leading-relaxed">
                 {'Seeking Alpha, TipRanks ve benzeri global platformlardan daha fazlasını '}
                 <span className="text-white font-semibold">{'Hermes AI tamamen ücretsiz ve Türkçe'}</span>{' olarak sunuyor.'}
               </p>
-              <p className="mt-2 text-xs text-white/50 leading-relaxed">
+              <p className="mt-2 text-xs text-white/60 leading-relaxed">
                 {'Bu yazılımı 7 yıllık bir emekle inşa ettim. Bilgiye erişimi herkese ücretsiz açmayı seçtim.'}
               </p>
             </div>
 
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
-              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/30 mb-2">{'Amaç'}</p>
+              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/40 mb-2">{'Amaç'}</p>
               <div className="space-y-1.5">
                 {[
                   'Türk gençlerinin yanlış yatırım kararlarını doğru kararlarla değiştirmesine yardımcı olmak',
@@ -221,27 +222,27 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
           {/* Right Column */}
           <div className="flex flex-col gap-2 lg:gap-3">
             <div className={`rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(4) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`}>
-              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/30 mb-2">{'Neden Ücretsiz?'}</p>
+              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/40 mb-2">{'Neden Ücretsiz?'}</p>
               <p className="text-xs text-white/60 leading-relaxed">
                 {'Çünkü Hermes AI yalnızca ticari bir yazılım değil. '}
                 <span className="text-white/90 font-medium">{'Finansal özgürlüğün herkes için mümkün olduğuna inanan bir vizyondur.'}</span>
               </p>
-              <p className="mt-2 text-[11px] text-white/40 leading-relaxed">
+              <p className="mt-2 text-[11px] text-white/50 leading-relaxed">
                 {'Kurucusu olarak zaten kazanıyorum. Platformu ücretli bir modele taşımak yerine, bilgiyi paylaşmayı seçtim.'}
               </p>
             </div>
 
             <div className={`rounded-xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(5) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`} style={d(200)}>
-              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/30 mb-1.5">Ekosistem Notu</p>
-              <p className="text-[11px] text-white/55 leading-relaxed">
+              <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-white/40 mb-1.5">Ekosistem Notu</p>
+              <p className="text-[11px] text-white/65 leading-relaxed">
                 {'Hermes AI ekosisteminin parçası olan '}
                 <span className="text-white/80 font-medium">Hermes Coin</span>
                 {' (BSC Smart Contract) ileride platform içi bazı premium avantajlara erişim sağlayabilir.'}
               </p>
-              <code className="block mt-1.5 text-[8px] text-white/30 font-mono bg-white/[0.04] px-2 py-1 rounded select-all break-all">
+              <code className="block mt-1.5 text-[8px] text-white/40 font-mono bg-white/[0.04] px-2 py-1 rounded select-all break-all">
                 0x9495ab3549338bf14ad2f86cbcf79c7b574bba37
               </code>
-              <p className="mt-1.5 text-[10px] text-white/30 italic">
+              <p className="mt-1.5 text-[10px] text-white/40 italic">
                 {'Detaylar ilerleyen süreçte resmi olarak duyurulacaktır.'}
               </p>
             </div>
@@ -261,7 +262,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
         </div>
 
         <div className={`mt-4 lg:mt-6 text-center transition-all duration-700 ${p(5) ? 'opacity-100' : 'opacity-0'}`} style={d(600)}>
-          <button onClick={handleClose} className="text-xs text-white/40 hover:text-white/70 transition-colors duration-300 tracking-widest uppercase px-4 py-2 rounded-lg border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.04]">
+          <button onClick={handleClose} className="text-xs text-white/50 hover:text-white/70 transition-colors duration-300 tracking-widest uppercase px-4 py-2 rounded-lg border border-white/[0.08] hover:border-white/20 hover:bg-white/[0.04]">
             Kapat &times;
           </button>
         </div>

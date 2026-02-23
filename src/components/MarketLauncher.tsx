@@ -166,7 +166,7 @@ export default function MarketLauncher({ onSelectMarket }: MarketLauncherProps) 
             />
           </div>
 
-          <p className={`text-lg md:text-xl text-white/20 font-light tracking-[0.25em] uppercase transition-all duration-1000 ${showSubtitle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <p className={`text-lg md:text-xl text-white/40 font-light tracking-[0.25em] uppercase transition-all duration-1000 ${showSubtitle ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             Institutional Multi-Market Scanner
           </p>
           <p className={`mt-3 text-sm text-white/10 font-light tracking-wider transition-all duration-1000 delay-100 ${showSubtitle ? 'opacity-100' : 'opacity-0'}`}>
@@ -184,9 +184,9 @@ export default function MarketLauncher({ onSelectMarket }: MarketLauncherProps) 
                     paraya hukmeder.
                   </span>
                 </p>
-                <p className="mt-1.5 text-sm sm:text-base text-white/30 font-light tracking-wide">
+                <p className="mt-1.5 text-sm sm:text-base text-white/40 font-light tracking-wide">
                   Hermes AI ile guc artik{' '}
-                  <span className="text-white/50 font-medium">herkesin.</span>
+                  <span className="text-white/60 font-medium">herkesin.</span>
                 </p>
               </div>
             </div>
@@ -317,7 +317,7 @@ function MarketCard({
           )}
           {market.status === 'coming_soon' && (
             <div className="absolute top-4 right-4">
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold tracking-[0.15em] bg-white/[0.03] text-white/15 border border-white/[0.05]">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold tracking-[0.15em] bg-white/[0.03] text-white/35 border border-white/[0.05]">
                 SOON
               </span>
             </div>

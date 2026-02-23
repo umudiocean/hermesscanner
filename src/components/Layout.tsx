@@ -37,6 +37,9 @@ export interface FmpLookupItem {
   signal?: string
   /** Risk score 0-100 (for AI Signal confluence logic) */
   riskScore?: number
+  priceTarget?: number
+  yearHigh?: number
+  yearLow?: number
 }
 
 interface ScanContextType {
@@ -183,6 +186,9 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
             valuationLabel: s.valuationLabel || '',
             signal: s.signal || 'NEUTRAL',
             riskScore: s.riskScore ?? 50,
+            priceTarget: s.priceTarget || 0,
+            yearHigh: s.yearHigh || 0,
+            yearLow: s.yearLow || 0,
           })
         }
         if (!cancelled) setFmpStocksMap(map)
@@ -646,7 +652,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                 {onBack && (
                   <button
                     onClick={onBack}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-midnight-50/50 border border-gold-400/10 flex items-center justify-center text-white/40 hover:text-gold-300 hover:border-gold-400/30 transition-all duration-200 shrink-0"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-midnight-50/50 border border-gold-400/10 flex items-center justify-center text-white/50 hover:text-gold-300 hover:border-gold-400/30 transition-all duration-200 shrink-0"
                     title="Back to Markets"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -696,7 +702,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                     <span className="sm:hidden">{marketOpen ? 'OPEN' : 'CLOSED'}</span>
                   </span>
                   {marketNextEvent && (
-                    <span className="text-[10px] text-white/30 hidden lg:inline">{marketNextEvent}</span>
+                    <span className="text-[10px] text-white/40 hidden lg:inline">{marketNextEvent}</span>
                   )}
                 </div>
 
@@ -721,7 +727,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                   className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all duration-200 border ${
                     autoRefreshEnabled 
                       ? 'bg-hermes-green/10 text-hermes-green border-hermes-green/20' 
-                      : 'bg-midnight-50/50 text-white/40 border-gold-400/8'
+                      : 'bg-midnight-50/50 text-white/50 border-gold-400/8'
                   }`}
                   title={autoRefreshEnabled ? 'Auto-refresh active (30min)' : 'Auto-refresh paused'}
                 >
@@ -739,7 +745,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                         <span className="absolute inline-flex h-full w-full rounded-full bg-hermes-green opacity-40 live-dot" />
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-hermes-green" />
                       </span>
-                      <span className="text-[10px] text-white/35 font-mono">
+                      <span className="text-[10px] text-white/45 font-mono">
                         {lastRefresh?.toLocaleTimeString('en-US', { hour12: false })}
                       </span>
                     </div>
@@ -748,21 +754,11 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                     <span className="text-[10px] text-gold-300 animate-pulse">Refreshing...</span>
                   )}
                   {!isAutoRefreshing && marketOpen && autoRefreshEnabled && nextRefreshCountdown && (
-                    <span className="text-[10px] text-white/25">Next: {nextRefreshCountdown}</span>
+                    <span className="text-[10px] text-white/35">Next: {nextRefreshCountdown}</span>
                   )}
                 </div>
                 
-                <button
-                  onClick={handleScan}
-                  disabled={isAnyLoading}
-                  className={`px-3 sm:px-5 py-1.5 rounded-lg text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 ${
-                    isAnyLoading
-                      ? 'bg-midnight-50 text-white/40 cursor-wait border border-gold-400/10'
-                      : 'bg-gradient-to-r from-gold-500 to-gold-400 hover:from-gold-400 hover:to-gold-300 text-[#0d0d0d] shadow-lg shadow-gold-400/20 hover:shadow-gold-400/35'
-                  }`}
-                >
-                  {isAnyLoading ? (currentProgress || 'Scan...') : 'Scan'}
-                </button>
+                {/* Scan butonu kaldirildi — otomatik scan calisiyor, admin panel'den tetiklenebilir */}
               </div>
             </div>
 
@@ -776,8 +772,8 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                     activeModule === mod.id
                       ? 'text-gold-300'
                       : mod.ready
-                        ? 'text-white/35 hover:text-white/60'
-                        : 'text-white/20 hover:text-white/35'
+                        ? 'text-white/45 hover:text-white/60'
+                        : 'text-white/40 hover:text-white/45'
                   }`}
                 >
                   <span className="text-xs sm:text-sm">{mod.icon}</span>
@@ -813,10 +809,10 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
         <footer className="border-t border-gold-400/8 bg-[#111111]/80 py-2.5 sm:py-3 mt-8 safe-bottom">
           <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 flex flex-col gap-1">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-[11px] text-white/25 font-medium tracking-wide truncate">HERMES AI • NASDAQ/NYSE Scanner</span>
-              <span className="hidden md:inline text-[11px] text-white/20 shrink-0">Neural Core • Real-Time Analysis</span>
+              <span className="text-[10px] sm:text-[11px] text-white/35 font-medium tracking-wide truncate">HERMES AI • NASDAQ/NYSE Scanner</span>
+              <span className="hidden md:inline text-[11px] text-white/40 shrink-0">Neural Core • Real-Time Analysis</span>
             </div>
-            <p className="text-[9px] text-white/15 leading-tight">
+            <p className="text-[9px] text-white/35 leading-tight">
               Not financial advice. Signals are algorithmic, based on historical patterns; past performance does not guarantee future results. Always do your own research (DYOR). Use at your own risk.
             </p>
           </div>

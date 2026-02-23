@@ -46,7 +46,7 @@ export default function DNABarcode({ categories, compact = false }: DNABarcodePr
         return (
           <div key={key} className="flex items-center gap-2">
             {/* Label */}
-            <div className={`${compact ? 'w-16 text-[9px]' : 'w-24 text-[10px]'} text-white/40 truncate`}>
+            <div className={`${compact ? 'w-16 text-[9px]' : 'w-24 text-[10px]'} text-white/50 truncate`}>
               {CATEGORY_LABELS[key]}
             </div>
 
@@ -65,7 +65,7 @@ export default function DNABarcode({ categories, compact = false }: DNABarcodePr
 
             {/* Weight */}
             {!compact && (
-              <div className="w-8 text-[8px] text-white/20 text-right">
+              <div className="w-8 text-[8px] text-white/40 text-right">
                 {Math.round(weight * 100)}%
               </div>
             )}

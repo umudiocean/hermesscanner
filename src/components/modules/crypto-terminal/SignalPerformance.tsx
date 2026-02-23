@@ -78,8 +78,8 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
       case 'ACTIVE': return 'text-blue-400'
       case 'TP_HIT': return 'text-emerald-400'
       case 'SL_HIT': return 'text-red-400'
-      case 'EXPIRED': return 'text-white/40'
-      default: return 'text-white/50'
+      case 'EXPIRED': return 'text-white/50'
+      default: return 'text-white/60'
     }
   }
 
@@ -112,13 +112,13 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
             <span className="text-white font-semibold text-sm">SINYAL PERFORMANS TAKIBI</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={refresh} className="p-1.5 rounded-xl hover:bg-white/10 text-white/50 hover:text-white hover:shadow-sm hover:shadow-white/5 transition-all duration-200">
+            <button onClick={refresh} className="p-1.5 rounded-xl hover:bg-white/10 text-white/60 hover:text-white hover:shadow-sm hover:shadow-white/5 transition-all duration-200">
               <RefreshCw size={14} />
             </button>
-            <button onClick={handleClear} className="p-1.5 rounded-xl hover:bg-red-500/20 text-white/50 hover:text-red-400 hover:shadow-sm hover:shadow-red-500/10 transition-all duration-200">
+            <button onClick={handleClear} className="p-1.5 rounded-xl hover:bg-red-500/20 text-white/60 hover:text-red-400 hover:shadow-sm hover:shadow-red-500/10 transition-all duration-200">
               <Trash2 size={14} />
             </button>
-            <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-white/10 text-white/50 hover:text-white hover:shadow-sm hover:shadow-white/5 transition-all duration-200">
+            <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-white/10 text-white/60 hover:text-white hover:shadow-sm hover:shadow-white/5 transition-all duration-200">
               <X size={14} />
             </button>
           </div>
@@ -128,23 +128,23 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
         {stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-4 border-b border-white/5">
             <div className="bg-white/[0.03] rounded-xl p-3 text-center">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider mb-1">Toplam</div>
+              <div className="text-[10px] text-white/50 uppercase tracking-wider mb-1">Toplam</div>
               <div className="text-lg font-bold text-white">{stats.total}</div>
             </div>
             <div className="bg-white/[0.03] rounded-xl p-3 text-center">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider mb-1">Win Rate</div>
+              <div className="text-[10px] text-white/50 uppercase tracking-wider mb-1">Win Rate</div>
               <div className={`text-lg font-bold ${stats.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {stats.winRate.toFixed(1)}%
               </div>
             </div>
             <div className="bg-white/[0.03] rounded-xl p-3 text-center">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider mb-1">Ort PnL</div>
+              <div className="text-[10px] text-white/50 uppercase tracking-wider mb-1">Ort PnL</div>
               <div className={`text-lg font-bold ${stats.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {stats.avgPnl >= 0 ? '+' : ''}{stats.avgPnl.toFixed(2)}%
               </div>
             </div>
             <div className="bg-white/[0.03] rounded-xl p-3 text-center">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider mb-1">Aktif</div>
+              <div className="text-[10px] text-white/50 uppercase tracking-wider mb-1">Aktif</div>
               <div className="text-lg font-bold text-blue-400">{stats.active}</div>
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
               <span className="text-emerald-400">TP {stats.tpHit}</span>
               <span className="text-blue-400">Aktif {stats.active}</span>
               <span className="text-red-400">SL {stats.slHit}</span>
-              <span className="text-white/30">Expired {stats.expired}</span>
+              <span className="text-white/40">Expired {stats.expired}</span>
             </div>
           </div>
         )}
@@ -185,7 +185,7 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
               className={`px-3 py-1 text-[10px] rounded-lg transition-colors ${
                 filter === f
                   ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                  : 'bg-white/[0.04] text-white/40 border border-white/5 hover:text-white/70'
+                  : 'bg-white/[0.04] text-white/50 border border-white/5 hover:text-white/70'
               }`}
             >
               {f === 'ALL' ? 'TUMU' : statusLabel(f)}
@@ -196,7 +196,7 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
         {/* Signal List */}
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 text-white/30 text-sm">
+            <div className="flex flex-col items-center justify-center h-40 text-white/40 text-sm">
               <Activity size={24} className="mb-2 opacity-50" />
               <p>Henuz takip edilen sinyal yok</p>
               <p className="text-[10px] mt-1">Trade AI veya AI Signals modulunde sinyal takip edebilirsiniz</p>
@@ -223,7 +223,7 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
                         {s.signal}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] text-white/30 mt-0.5">
+                    <div className="flex items-center gap-2 text-[10px] text-white/40 mt-0.5">
                       <Clock size={9} />
                       <span>{timeAgo(s.timestamp)}</span>
                       <span>Giris: ${s.entryPrice.toLocaleString(undefined, { maximumFractionDigits: 6 })}</span>
@@ -261,7 +261,7 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
 
         {/* Best/Worst Signal */}
         {stats && stats.bestSignal !== '-' && (
-          <div className="flex items-center justify-between px-4 py-2 border-t border-white/5 text-[10px] text-white/30">
+          <div className="flex items-center justify-between px-4 py-2 border-t border-white/5 text-[10px] text-white/40">
             <span>En Iyi Sinyal: <span className="text-emerald-400">{stats.bestSignal}</span></span>
             <span>En Kotu Sinyal: <span className="text-red-400">{stats.worstSignal}</span></span>
           </div>

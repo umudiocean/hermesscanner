@@ -66,7 +66,7 @@ function matchAISignal(tradeSignalType: string, terminalLevel: string, riskScore
 function getScoreColor(score: number): string {
   if (score <= 20) return 'text-gold-300'
   if (score <= 30) return 'text-hermes-green'
-  if (score < 70) return 'text-white/50'
+  if (score < 70) return 'text-white/60'
   if (score < 90) return 'text-orange-400'
   return 'text-red-400'
 }
@@ -212,7 +212,7 @@ export default function ModuleNasdaqWatchlist() {
       <th
         onClick={() => handleSort(field)}
         className={`px-2 py-3 text-[10px] font-bold uppercase tracking-wider cursor-pointer select-none transition-colors
-          ${active ? 'text-gold-300' : 'text-white/30 hover:text-white/50'}`}
+          ${active ? 'text-gold-300' : 'text-white/40 hover:text-white/60'}`}
       >
         <span className="inline-flex items-center gap-0.5">
           {children}
@@ -231,7 +231,7 @@ export default function ModuleNasdaqWatchlist() {
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white">NASDAQ <span className="bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">WATCHLIST</span></h2>
-            <p className="text-[10px] text-white/30">{watchlistResults.length} hisse — ortak bilgi ve sinyal hazinesi</p>
+            <p className="text-[10px] text-white/40">{watchlistResults.length} hisse — ortak bilgi ve sinyal hazinesi</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -246,20 +246,20 @@ export default function ModuleNasdaqWatchlist() {
               <div className="absolute right-0 top-full mt-1 w-64 bg-[#151520] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
                 <div className="p-2 border-b border-white/[0.06]">
                   <div className="flex items-center gap-2 bg-white/[0.04] rounded-lg px-2.5 py-1.5">
-                    <Search size={13} className="text-white/30 flex-shrink-0" />
+                    <Search size={13} className="text-white/40 flex-shrink-0" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Sembol ara (AAPL, MSFT...)"
-                      className="w-full bg-transparent text-xs text-white outline-none placeholder:text-white/20"
+                      className="w-full bg-transparent text-xs text-white outline-none placeholder:text-white/40"
                       autoFocus
                     />
                   </div>
                 </div>
                 <div className="max-h-56 overflow-y-auto">
                   {searchQuery.length >= 1 && searchResults.length === 0 && (
-                    <div className="p-3 text-center text-[10px] text-white/20">Sonuc bulunamadi</div>
+                    <div className="p-3 text-center text-[10px] text-white/40">Sonuc bulunamadi</div>
                   )}
                   {searchResults.map(sym => {
                     const added = watchlist.includes(sym)
@@ -273,7 +273,7 @@ export default function ModuleNasdaqWatchlist() {
                         }`}
                       >
                         <span className="font-mono font-bold text-white">{sym}</span>
-                        {added ? <Star size={11} className="text-amber-400" fill="#f59e0b" /> : <Plus size={11} className="text-white/20" />}
+                        {added ? <Star size={11} className="text-amber-400" fill="#f59e0b" /> : <Plus size={11} className="text-white/40" />}
                       </button>
                     )
                   })}
@@ -282,7 +282,7 @@ export default function ModuleNasdaqWatchlist() {
             )}
           </div>
           {watchlistResults.length > 0 && canCSV && (
-            <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/40 border border-white/8 hover:bg-white/[0.08] hover:text-white/60 transition-all">
+            <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/50 border border-white/8 hover:bg-white/[0.08] hover:text-white/60 transition-all">
               <Download size={12} className="inline mr-1" />CSV
             </button>
           )}
@@ -293,7 +293,7 @@ export default function ModuleNasdaqWatchlist() {
         <div className="flex flex-col items-center justify-center py-12 sm:py-20 text-center">
           <Star size={40} className="text-white/10 mb-4" />
           <h3 className="text-base sm:text-lg font-semibold text-white/60 mb-2">Izleme Listesi Bos</h3>
-          <p className="text-sm text-white/25 max-w-md">
+          <p className="text-sm text-white/35 max-w-md">
             Hisse eklemek icin TRADE AI modulunde yildiza tiklayin veya ustteki "Hisse Ekle" butonuyla arama yapin.
           </p>
         </div>
@@ -320,9 +320,9 @@ export default function ModuleNasdaqWatchlist() {
                 <WTH field="point52w">52W</WTH>
                 <WTH field="zscore">Z</WTH>
                 <WTH field="quality">Kalite</WTH>
-                <th className="py-2 px-2 text-right text-[9px] text-white/30 uppercase tracking-wider hidden xl:table-cell" title="Hedef Fiyat">Hedef</th>
-                <th className="py-2 px-2 text-right text-[9px] text-white/30 uppercase tracking-wider hidden xl:table-cell" title="Dip Fiyat">Dip</th>
-                <th className="py-2 px-2 text-center text-[9px] text-white/30 uppercase tracking-wider hidden xl:table-cell" title="Risk/Odul">R:R</th>
+                <th className="py-2 px-2 text-right text-[9px] text-white/40 uppercase tracking-wider hidden xl:table-cell" title="Hedef Fiyat">Hedef</th>
+                <th className="py-2 px-2 text-right text-[9px] text-white/40 uppercase tracking-wider hidden xl:table-cell" title="Dip Fiyat">Dip</th>
+                <th className="py-2 px-2 text-center text-[9px] text-white/40 uppercase tracking-wider hidden xl:table-cell" title="Risk/Odul">R:R</th>
               </tr>
             </thead>
             <tbody>
@@ -336,7 +336,7 @@ export default function ModuleNasdaqWatchlist() {
                 return (
                   <tr key={result.symbol} className="border-b border-white/[0.03] hover:bg-amber-500/[0.03] transition-colors group">
                     <td className="px-2 py-2.5">
-                      <button onClick={() => toggleWatchlistItem(result.symbol)} className="text-white/15 hover:text-red-400 p-0.5 transition-colors" title="Listeden cikar">
+                      <button onClick={() => toggleWatchlistItem(result.symbol)} className="text-white/35 hover:text-red-400 p-0.5 transition-colors" title="Listeden cikar">
                         <Trash2 size={12} />
                       </button>
                     </td>
@@ -358,7 +358,7 @@ export default function ModuleNasdaqWatchlist() {
                         terminalSignal === 'GOOD' ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' :
                         terminalSignal === 'WEAK' ? 'text-orange-400 bg-orange-500/10 border-orange-500/25' :
                         terminalSignal === 'BAD' ? 'text-red-400 bg-red-500/10 border-red-500/25' :
-                        'text-white/35 bg-white/[0.03] border-white/[0.06]'
+                        'text-white/45 bg-white/[0.03] border-white/[0.06]'
                       }`}>{terminalSignal}</span>
                     </td>
                     <td className="px-2 py-2.5 text-center">
@@ -367,7 +367,7 @@ export default function ModuleNasdaqWatchlist() {
                         tradeSignal === 'LONG' ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/20' :
                         tradeSignal === 'SHORT' ? 'text-red-400 bg-red-500/10 border-red-500/20' :
                         tradeSignal === 'STRONG SHORT' ? 'text-red-300 bg-red-500/15 border-red-500/30' :
-                        'text-white/35 bg-white/[0.03] border-white/[0.06]'
+                        'text-white/45 bg-white/[0.03] border-white/[0.06]'
                       }`}>{tradeSignal}</span>
                     </td>
                     <td className="px-2 py-2.5 text-center">
@@ -378,7 +378,7 @@ export default function ModuleNasdaqWatchlist() {
                         aiSignal === 'HERMES SHORT' ? 'text-red-400 bg-red-500/10 border-red-500/25' :
                         aiSignal === 'ALPHA SHORT' ? 'text-red-500 bg-red-600/15 border-red-600/30' :
                         aiSignal === 'CONFLUENCE SELL' ? 'text-fuchsia-400 bg-fuchsia-600/15 border-fuchsia-600/30' :
-                        'text-white/20 bg-transparent border-transparent'
+                        'text-white/40 bg-transparent border-transparent'
                       }`}>{aiSignal}</span>
                     </td>
                     <td className="px-2 py-2.5">
@@ -388,7 +388,7 @@ export default function ModuleNasdaqWatchlist() {
                       </div>
                     </td>
                     <td className="px-2 py-2.5 text-center">
-                      <span className={`text-[10px] font-semibold tabular-nums ${(fmp?.confidence || 0) >= 70 ? 'text-amber-400' : (fmp?.confidence || 0) >= 50 ? 'text-white/60' : 'text-white/25'}`}>
+                      <span className={`text-[10px] font-semibold tabular-nums ${(fmp?.confidence || 0) >= 70 ? 'text-amber-400' : (fmp?.confidence || 0) >= 50 ? 'text-white/60' : 'text-white/35'}`}>
                         {fmp?.confidence ? `%${Math.round(fmp.confidence)}` : '—'}
                       </span>
                     </td>
@@ -398,49 +398,61 @@ export default function ModuleNasdaqWatchlist() {
                         fmp?.valuationLabel === 'UCUZ' ? 'text-hermes-green bg-hermes-green/10' :
                         fmp?.valuationLabel === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
                         fmp?.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
-                        'text-white/40 bg-white/[0.04]'
+                        'text-white/50 bg-white/[0.04]'
                       }`}>{fmp?.valuationLabel || '—'}</span>
                     </td>
                     <td className="px-2 py-2.5 text-right">
-                      <span className={`text-[11px] font-mono ${result.hermes.indicators.rsi >= 70 ? 'text-red-400' : result.hermes.indicators.rsi <= 30 ? 'text-hermes-green' : 'text-white/50'}`}>
+                      <span className={`text-[11px] font-mono ${result.hermes.indicators.rsi >= 70 ? 'text-red-400' : result.hermes.indicators.rsi <= 30 ? 'text-hermes-green' : 'text-white/60'}`}>
                         {Math.round(result.hermes.indicators.rsi)}
                       </span>
                     </td>
                     <td className="px-2 py-2.5 text-right">
-                      <span className={`text-[11px] font-mono ${result.hermes.indicators.mfi >= 80 ? 'text-red-400' : result.hermes.indicators.mfi <= 20 ? 'text-hermes-green' : 'text-white/50'}`}>
+                      <span className={`text-[11px] font-mono ${result.hermes.indicators.mfi >= 80 ? 'text-red-400' : result.hermes.indicators.mfi <= 20 ? 'text-hermes-green' : 'text-white/60'}`}>
                         {Math.round(result.hermes.indicators.mfi)}
                       </span>
                     </td>
-                    <td className="px-2 py-2.5 text-right text-[11px] text-white/50 tabular-nums">{formatMarketCap(result.quote?.marketCap || 0)}</td>
+                    <td className="px-2 py-2.5 text-right text-[11px] text-white/60 tabular-nums">{formatMarketCap(result.quote?.marketCap || 0)}</td>
                     <td className="px-2 py-2.5 text-right">
                       <span className={`text-[11px] font-mono ${getScoreColor(result.hermes.components.point52w)}`}>{Math.round(result.hermes.components.point52w)}</span>
                     </td>
-                    <td className="px-2 py-2.5 text-right text-[11px] font-mono text-white/50">{result.hermes.zscores.zscore52w.toFixed(2)}</td>
+                    <td className="px-2 py-2.5 text-right text-[11px] font-mono text-white/60">{result.hermes.zscores.zscore52w.toFixed(2)}</td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[10px] ${result.hermes.multipliers.quality > 0.9 ? 'text-hermes-green' : result.hermes.multipliers.quality < 0.7 ? 'text-red-400' : 'text-gold-300'}`}>
                         {result.hermes.multipliers.quality.toFixed(2)}
                       </span>
                     </td>
-                    <td className="px-2 py-2.5 text-right hidden xl:table-cell">
-                      {result.priceTarget ? (
-                        <span className={`text-[11px] font-mono font-semibold ${result.priceTarget.targetPct >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
-                          ${result.priceTarget.targetPrice.toFixed(2)}
-                        </span>
-                      ) : <span className="text-white/20 text-[10px]">—</span>}
-                    </td>
-                    <td className="px-2 py-2.5 text-right hidden xl:table-cell">
-                      {result.priceTarget ? (
-                        <span className="text-[11px] font-mono text-red-400/80">${result.priceTarget.floorPrice.toFixed(2)}</span>
-                      ) : <span className="text-white/20 text-[10px]">—</span>}
-                    </td>
-                    <td className="px-2 py-2.5 text-center hidden xl:table-cell">
-                      {result.priceTarget ? (
-                        <span className={`text-[11px] font-mono font-bold ${
-                          result.priceTarget.riskReward >= 2 ? 'text-hermes-green' :
-                          result.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
-                        }`}>{result.priceTarget.riskReward.toFixed(1)}</span>
-                      ) : <span className="text-white/20 text-[10px]">—</span>}
-                    </td>
+                    {(() => {
+                      const pt = result.priceTarget
+                      const p = result.quote?.price || result.hermes.price
+                      const tgt = pt?.targetPrice || fmp?.priceTarget || 0
+                      const flr = pt?.floorPrice || fmp?.yearLow || 0
+                      const tgtPct = tgt > 0 && p > 0 ? ((tgt - p) / p) * 100 : 0
+                      const flrPct = flr > 0 && p > 0 ? ((p - flr) / p) * 100 : 0
+                      const rr = flrPct > 0.01 ? Math.abs(tgtPct) / flrPct : 0
+                      return (
+                        <>
+                          <td className="px-2 py-2.5 text-right hidden xl:table-cell">
+                            {tgt > 0 ? (
+                              <span className={`text-[11px] font-mono font-semibold ${tgtPct >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                                ${tgt.toFixed(2)}
+                              </span>
+                            ) : <span className="text-white/40 text-[10px]">{'\u2014'}</span>}
+                          </td>
+                          <td className="px-2 py-2.5 text-right hidden xl:table-cell">
+                            {flr > 0 ? (
+                              <span className="text-[11px] font-mono text-red-400/80">${flr.toFixed(2)}</span>
+                            ) : <span className="text-white/40 text-[10px]">{'\u2014'}</span>}
+                          </td>
+                          <td className="px-2 py-2.5 text-center hidden xl:table-cell">
+                            {rr > 0 ? (
+                              <span className={`text-[11px] font-mono font-bold ${rr >= 2 ? 'text-hermes-green' : rr >= 1 ? 'text-gold-300' : 'text-red-400'}`}>
+                                {rr.toFixed(1)}
+                              </span>
+                            ) : <span className="text-white/40 text-[10px]">{'\u2014'}</span>}
+                          </td>
+                        </>
+                      )
+                    })()}
                   </tr>
                 )
               })}

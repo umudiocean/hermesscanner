@@ -79,7 +79,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[30vh] text-center">
       <p className="text-sm text-red-400 mb-2">{error}</p>
-      <button onClick={() => setNetwork(network)} className="px-4 py-2 rounded-xl bg-white/[0.04] text-white/50 text-xs hover:bg-white/[0.08] transition-all">Tekrar Dene</button>
+      <button onClick={() => setNetwork(network)} className="px-4 py-2 rounded-xl bg-white/[0.04] text-white/60 text-xs hover:bg-white/[0.08] transition-all">Tekrar Dene</button>
     </div>
   )
 
@@ -92,7 +92,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
             key={n.id}
             onClick={() => setNetwork(n.id)}
             className={`group px-3 py-1.5 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all duration-300 border ${
-              network === n.id ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-white/40 hover:text-amber-200/80 border-white/[0.04] hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
+              network === n.id ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-white/50 hover:text-amber-200/80 border-white/[0.04] hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
             }`}
           >{n.label}</button>
         ))}
@@ -109,15 +109,15 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
             {trendingPools.data.slice(0, 20).map((pool, i) => (
               <div key={pool.id || i} className="flex items-center justify-between p-2 rounded-lg hover:bg-white/[0.04] transition-colors">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-white/20 w-5">{i + 1}</span>
+                  <span className="text-[10px] text-white/40 w-5">{i + 1}</span>
                   <div>
                     <span className="text-xs font-bold text-white">{pool.attributes?.name || 'Pool'}</span>
-                    <span className="text-[10px] text-white/20 ml-1">${parseFloat(pool.attributes?.base_token_price_usd || '0').toFixed(4)}</span>
+                    <span className="text-[10px] text-white/40 ml-1">${parseFloat(pool.attributes?.base_token_price_usd || '0').toFixed(4)}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-[10px]">
-                  <span className="text-white/30">TVL: ${(parseFloat(pool.attributes?.reserve_in_usd || '0') / 1e6).toFixed(1)}M</span>
-                  <span className="text-white/30">24s: ${(parseFloat(pool.attributes?.volume_usd?.h24 || '0') / 1e6).toFixed(1)}M</span>
+                  <span className="text-white/40">TVL: ${(parseFloat(pool.attributes?.reserve_in_usd || '0') / 1e6).toFixed(1)}M</span>
+                  <span className="text-white/40">24s: ${(parseFloat(pool.attributes?.volume_usd?.h24 || '0') / 1e6).toFixed(1)}M</span>
                   <span className={`font-medium ${parseFloat(pool.attributes?.price_change_percentage?.h24 || '0') >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {parseFloat(pool.attributes?.price_change_percentage?.h24 || '0').toFixed(1)}%
                   </span>
@@ -126,7 +126,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-white/20">Trend havuz verisi bekleniyor...</p>
+          <p className="text-xs text-white/40">Trend havuz verisi bekleniyor...</p>
         )}
       </div>
 
@@ -145,7 +145,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
                 className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.04] hover:border-violet-500/20 hover:shadow-sm hover:shadow-violet-500/5 hover:scale-[1.02] transition-all duration-300 text-left"
               >
                 <div className="text-xs font-bold text-white">{coin.symbol?.toUpperCase()}</div>
-                <div className="text-[10px] text-white/30 truncate">{coin.name}</div>
+                <div className="text-[10px] text-white/40 truncate">{coin.name}</div>
                 {coin.activated_at && (
                   <div className="text-[9px] text-violet-400/60 mt-0.5">
                     {new Date(coin.activated_at * 1000).toLocaleDateString('tr-TR')}

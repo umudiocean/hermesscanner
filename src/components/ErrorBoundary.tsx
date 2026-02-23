@@ -52,7 +52,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <h3 className="text-lg font-semibold text-white mb-1">
               {this.props.fallbackTitle || 'Modul Hatasi'}
             </h3>
-            <p className="text-sm text-white/40 max-w-md">
+            <p className="text-sm text-white/50 max-w-md">
               Bu modulde beklenmeyen bir hata olustu. Sayfayi yenileyebilir veya asagidaki butona tiklayabilirsiniz.
             </p>
             {this.state.error && (

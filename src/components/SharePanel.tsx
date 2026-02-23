@@ -167,7 +167,7 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
               </div>
               <div>
                 <p className="text-xs font-bold text-white/80">Sosyal Medyada Paylas</p>
-                <p className="text-[9px] text-white/25 mt-0.5">{title}</p>
+                <p className="text-[9px] text-white/35 mt-0.5">{title}</p>
               </div>
             </div>
 
@@ -182,7 +182,7 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
                   <div className="transition-transform duration-200 group-hover/btn:scale-110" style={{ color: platform.color === '#000000' ? 'rgba(255,255,255,0.7)' : platform.color }}>
                     {platform.icon}
                   </div>
-                  <span className="text-[9px] font-medium text-white/40 group-hover/btn:text-white/70 transition-colors">{platform.label}</span>
+                  <span className="text-[9px] font-medium text-white/50 group-hover/btn:text-white/70 transition-colors">{platform.label}</span>
                 </button>
               ))}
             </div>
@@ -211,7 +211,7 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
 
             {/* Slogan */}
             <div className="mt-2.5 pt-2 border-t border-white/[0.04] text-center">
-              <p className="text-[8px] text-white/15 italic tracking-wide leading-relaxed">
+              <p className="text-[8px] text-white/35 italic tracking-wide leading-relaxed">
                 Veriye hukmeden, paraya hukmeder.
               </p>
             </div>

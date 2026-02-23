@@ -81,11 +81,45 @@ function computeWallStreetSentiment(gainers: MarketGainerLoser[], losers: Market
   return { sentiment, label, icon, activeUp, activeDown, gainerCount, loserCount }
 }
 
+interface IndexScoreData {
+  name: string
+  symbol: string
+  memberCount: number
+  avgScore: number
+  strongCount: number
+  goodCount: number
+  neutralCount: number
+  weakCount: number
+  badCount: number
+  avgValuation: number
+  avgHealth: number
+  avgGrowth: number
+  topStocks: { symbol: string; score: number; signal: string }[]
+  bottomStocks: { symbol: string; score: number; signal: string }[]
+  signalLabel: string
+  signalColor: string
+  trendLabel: string
+}
+
+const INDEX_META: Record<string, { icon: string; desc: string; tier: 'official' | 'cap' | 'sector' }> = {
+  '^GSPC': { icon: '🏛️', desc: 'ABD en buyuk 500 sirket', tier: 'official' },
+  '^IXIC': { icon: '💻', desc: 'Teknoloji agirlikli 100', tier: 'official' },
+  '^DJI': { icon: '🏦', desc: 'ABD 30 dev sirketi', tier: 'official' },
+  'MEGA': { icon: '👑', desc: '>$200B market cap', tier: 'cap' },
+  'LARGE': { icon: '🔵', desc: '$10B-$200B', tier: 'cap' },
+  'MID': { icon: '🟢', desc: '$2B-$10B', tier: 'cap' },
+  'SMALL': { icon: '🟡', desc: '$300M-$2B', tier: 'cap' },
+  'TECH': { icon: '⚡', desc: 'En buyuk 100 teknoloji', tier: 'sector' },
+  'HEALTH': { icon: '🏥', desc: 'En buyuk 50 saglik', tier: 'sector' },
+  'FIN': { icon: '💰', desc: 'En buyuk 50 finans', tier: 'sector' },
+}
+
 export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
   const [data, setData] = useState<MarketDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [fredData, setFredData] = useState<(FredDashboardData & { fearGreedV2: FearGreedComponents }) | null>(null)
+  const [indexScores, setIndexScores] = useState<IndexScoreData[]>([])
 
   useEffect(() => {
     async function load() {
@@ -107,6 +141,121 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       } finally { setLoading(false) }
     }
     load()
+  }, [])
+
+  // Fetch index member scores — 3 resmi + 7 sentetik endeks
+  useEffect(() => {
+    async function loadIndexScores() {
+      try {
+        const [stocksRes, macroRes] = await Promise.all([
+          fetch('/api/fmp-terminal/stocks'),
+          fetch('/api/fmp-terminal/macro'),
+        ])
+        if (!stocksRes.ok) return
+        const stocksData = await stocksRes.json()
+        const macroData = macroRes.ok ? await macroRes.json() : {}
+        type StockItem = { symbol: string; signalScore: number; signal: string; sector?: string; marketCap?: number; categories?: { valuation?: number; health?: number; growth?: number } }
+        const allStocks: StockItem[] = stocksData.stocks || []
+        const stockMap = new Map(allStocks.map(s => [s.symbol, s]))
+
+        // 1) Resmi endeksler — macro indexMembership'ten
+        const membership: Record<string, string[]> = macroData.indexMembership || {}
+        const sp500Members: string[] = []
+        const ndx100Members: string[] = []
+        const djiaMembers: string[] = []
+        for (const [sym, idxList] of Object.entries(membership)) {
+          if ((idxList as string[]).includes('SP500')) sp500Members.push(sym)
+          if ((idxList as string[]).includes('NDX100')) ndx100Members.push(sym)
+          if ((idxList as string[]).includes('DJIA')) djiaMembers.push(sym)
+        }
+
+        // 2) Sentetik endeksler — marketCap ve sektor bazli
+        const withMcap = allStocks.filter(s => s.marketCap && s.marketCap > 0 && s.signalScore > 0)
+        const sortedByMcap = [...withMcap].sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0))
+
+        const megaMembers = sortedByMcap.filter(s => (s.marketCap || 0) >= 200e9).map(s => s.symbol)
+        const largeMembers = sortedByMcap.filter(s => (s.marketCap || 0) >= 10e9 && (s.marketCap || 0) < 200e9).map(s => s.symbol)
+        const midMembers = sortedByMcap.filter(s => (s.marketCap || 0) >= 2e9 && (s.marketCap || 0) < 10e9).map(s => s.symbol)
+        const smallMembers = sortedByMcap.filter(s => (s.marketCap || 0) >= 300e6 && (s.marketCap || 0) < 2e9).map(s => s.symbol)
+
+        const techAll = sortedByMcap.filter(s => s.sector === 'Technology')
+        const tech100 = techAll.slice(0, 100).map(s => s.symbol)
+        const healthAll = sortedByMcap.filter(s => s.sector === 'Healthcare')
+        const health50 = healthAll.slice(0, 50).map(s => s.symbol)
+        const finAll = sortedByMcap.filter(s => s.sector === 'Financial Services')
+        const finance50 = finAll.slice(0, 50).map(s => s.symbol)
+
+        // Build all indexes
+        const indexes: { name: string; symbol: string; icon: string; desc: string; tier: 'official' | 'cap' | 'sector'; members: string[] }[] = [
+          // Resmi
+          { name: 'S&P 500', symbol: '^GSPC', icon: '🏛️', desc: 'ABD en buyuk 500 sirket', tier: 'official', members: sp500Members },
+          { name: 'NASDAQ-100', symbol: '^IXIC', icon: '💻', desc: 'Teknoloji agirlikli 100', tier: 'official', members: ndx100Members },
+          { name: 'Dow Jones 30', symbol: '^DJI', icon: '🏦', desc: 'ABD 30 dev sirketi', tier: 'official', members: djiaMembers },
+          // Market Cap
+          { name: 'MEGA CAP', symbol: 'MEGA', icon: '👑', desc: `>$200B (${megaMembers.length} sirket)`, tier: 'cap', members: megaMembers },
+          { name: 'LARGE CAP', symbol: 'LARGE', icon: '🔵', desc: `$10B-$200B (${largeMembers.length} sirket)`, tier: 'cap', members: largeMembers },
+          { name: 'MID CAP', symbol: 'MID', icon: '🟢', desc: `$2B-$10B (${midMembers.length} sirket)`, tier: 'cap', members: midMembers },
+          { name: 'SMALL CAP', symbol: 'SMALL', icon: '🟡', desc: `$300M-$2B (${smallMembers.length} sirket)`, tier: 'cap', members: smallMembers },
+          // Sektor
+          { name: 'TECH 100', symbol: 'TECH', icon: '⚡', desc: `En buyuk 100 teknoloji`, tier: 'sector', members: tech100 },
+          { name: 'HEALTH 50', symbol: 'HEALTH', icon: '🏥', desc: `En buyuk 50 saglik`, tier: 'sector', members: health50 },
+          { name: 'FINANCE 50', symbol: 'FIN', icon: '💰', desc: `En buyuk 50 finans`, tier: 'sector', members: finance50 },
+        ]
+
+        function buildIndexScore(idx: typeof indexes[0]): IndexScoreData {
+          const scored = idx.members
+            .map(sym => stockMap.get(sym))
+            .filter((s): s is StockItem => !!s && s.signalScore > 0)
+
+          const scores = scored.map(s => s.signalScore)
+          const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
+
+          const signalCounts = { strong: 0, good: 0, neutral: 0, weak: 0, bad: 0 }
+          for (const s of scored) {
+            const sig = s.signal?.toUpperCase() || 'NEUTRAL'
+            if (sig === 'STRONG') signalCounts.strong++
+            else if (sig === 'GOOD') signalCounts.good++
+            else if (sig === 'WEAK') signalCounts.weak++
+            else if (sig === 'BAD') signalCounts.bad++
+            else signalCounts.neutral++
+          }
+
+          const valScores = scored.filter(s => s.categories?.valuation).map(s => s.categories!.valuation!)
+          const hltScores = scored.filter(s => s.categories?.health).map(s => s.categories!.health!)
+          const grwScores = scored.filter(s => s.categories?.growth).map(s => s.categories!.growth!)
+
+          const sorted = [...scored].sort((a, b) => b.signalScore - a.signalScore)
+          const top5 = sorted.slice(0, 5).map(s => ({ symbol: s.symbol, score: s.signalScore, signal: s.signal }))
+          const bottom5 = sorted.slice(-5).reverse().map(s => ({ symbol: s.symbol, score: s.signalScore, signal: s.signal }))
+
+          let signalLabel: string, signalColor: string
+          if (avg >= 70) { signalLabel = 'GUCLU'; signalColor = '#62cbc1' }
+          else if (avg >= 55) { signalLabel = 'IYI'; signalColor = '#62cbc1' }
+          else if (avg >= 45) { signalLabel = 'NOTR'; signalColor = '#94a3b8' }
+          else if (avg >= 30) { signalLabel = 'ZAYIF'; signalColor = '#fb923c' }
+          else { signalLabel = 'KOTU'; signalColor = '#f87171' }
+
+          const positiveRatio = scored.length > 0 ? (signalCounts.strong + signalCounts.good) / scored.length : 0
+          let trendLabel: string
+          if (positiveRatio >= 0.6) trendLabel = 'Yukselis Egilimi'
+          else if (positiveRatio >= 0.4) trendLabel = 'Dengeli'
+          else trendLabel = 'Dusus Egilimi'
+
+          return {
+            name: idx.name, symbol: idx.symbol, memberCount: scored.length, avgScore: avg,
+            strongCount: signalCounts.strong, goodCount: signalCounts.good, neutralCount: signalCounts.neutral,
+            weakCount: signalCounts.weak, badCount: signalCounts.bad,
+            avgValuation: valScores.length > 0 ? Math.round(valScores.reduce((a, b) => a + b, 0) / valScores.length) : 0,
+            avgHealth: hltScores.length > 0 ? Math.round(hltScores.reduce((a, b) => a + b, 0) / hltScores.length) : 0,
+            avgGrowth: grwScores.length > 0 ? Math.round(grwScores.reduce((a, b) => a + b, 0) / grwScores.length) : 0,
+            topStocks: top5, bottomStocks: bottom5, signalLabel, signalColor, trendLabel,
+          }
+        }
+
+        setIndexScores(indexes.filter(i => i.members.length > 0).map(buildIndexScore))
+      } catch { /* silent — index scores are enhancement */ }
+    }
+    loadIndexScores()
   }, [])
 
   // Computed trends
@@ -152,12 +301,15 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       {/* ═══ HERMES AI PULSE — Tum Sistem Nabzi ═══ */}
       {hermesPulse && <HermesPulseGauge pulse={hermesPulse} />}
 
+      {/* ═══ WALL STREET PULSE MINI — Piyasa Acilis Ongoru ═══ */}
+      <WallStreetPulseMini />
+
       {/* ═══ FEAR & GREED INDEX BAR ═══ */}
       <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20 glass-card">
         <div className="flex items-center gap-2 mb-3">
           <Activity size={16} className="text-violet-400" />
           <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Korku & Acgozluluk Endeksi</h3>
-          <span className="text-[10px] text-white/25 ml-1">Piyasa duyarlilik olceri</span>
+          <span className="text-[10px] text-white/35 ml-1">Piyasa duyarlilik olceri</span>
         </div>
         <FearGreedBar value={data.fearGreedIndex ?? 50} label={data.fearGreedLabel ?? 'NEUTRAL'} />
       </div>
@@ -178,7 +330,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
               <Gauge size={18} className="text-violet-400" />
               <div>
                 <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Piyasa Trend Gucu</h3>
-                <p className="text-[11px] text-white/30">Canli endeks, sektor ve hacim analizi</p>
+                <p className="text-[11px] text-white/40">Canli endeks, sektor ve hacim analizi</p>
               </div>
             </div>
 
@@ -197,7 +349,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
                   <span className={`text-3xl font-black tabular-nums ${trend.trendColor === 'emerald' ? 'text-hermes-green' : trend.trendColor === 'red' ? 'text-red-400' : 'text-slate-300'}`}>
                     {trend.trendScore}
                   </span>
-                  <span className="text-[10px] text-white/40">/100</span>
+                  <span className="text-[10px] text-white/50">/100</span>
                 </div>
               </div>
               <span className={`mt-2 text-sm font-bold tracking-wide ${trend.trendColor === 'emerald' ? 'text-hermes-green' : trend.trendColor === 'red' ? 'text-red-400' : 'text-slate-400'}`}>
@@ -221,7 +373,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
               <Shield size={18} className="text-amber-400" />
               <div>
                 <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Wall Street Nabzi</h3>
-                <p className="text-[11px] text-white/30">Kurumsal alis-satis duyarliligi</p>
+                <p className="text-[11px] text-white/40">Kurumsal alis-satis duyarliligi</p>
               </div>
             </div>
 
@@ -259,9 +411,9 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
                   <Activity size={14} className="text-violet-400" />
                   <span className="text-xs text-white/60">Aktif Hacim</span>
                 </div>
-                <span className="text-xs text-white/50">
+                <span className="text-xs text-white/60">
                   <span className="text-hermes-green font-bold">{wallStreet.activeUp}</span>
-                  <span className="text-white/30 mx-1">/</span>
+                  <span className="text-white/40 mx-1">/</span>
                   <span className="text-red-400 font-bold">{wallStreet.activeDown}</span>
                 </span>
               </div>
@@ -273,8 +425,8 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
         <div className="lg:col-span-6">
           <div className="flex items-center gap-2 mb-2">
             <Globe size={16} className="text-violet-400/60" />
-            <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">Ana Endeksler</h3>
-            <p className="text-[11px] text-white/25 ml-1">ABD borsalarinin anlik durumu</p>
+            <h3 className="text-sm font-bold text-white/65 uppercase tracking-wider">Ana Endeksler</h3>
+            <p className="text-[11px] text-white/35 ml-1">ABD borsalarinin anlik durumu</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
             {data.indexes.length > 0 ? (
@@ -282,7 +434,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
             ) : (
               ['S&P 500', 'NASDAQ', 'Dow Jones'].map(n => (
                 <div key={n} className="bg-[#151520] rounded-2xl border border-white/[0.06] p-4 animate-pulse">
-                  <span className="text-xs text-white/25">{n}</span>
+                  <span className="text-xs text-white/35">{n}</span>
                   <div className="mt-2 h-6 w-24 bg-white/[0.04] rounded-lg" />
                 </div>
               ))
@@ -293,23 +445,93 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
           <div className="mt-2 sm:mt-3 bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
             <div className="flex items-center gap-2 mb-2">
               <DollarSign size={16} className="text-violet-400/60" />
-              <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">ABD Tahvil Faizleri</h3>
-              <p className="text-[11px] text-white/25 ml-1">Kisa ve uzun vadeli oranlar</p>
+              <h3 className="text-sm font-bold text-white/65 uppercase tracking-wider">ABD Tahvil Faizleri</h3>
+              <p className="text-[11px] text-white/35 ml-1">Kisa ve uzun vadeli oranlar</p>
             </div>
             {data.treasury ? <TreasuryDisplay treasury={data.treasury} /> : (
-              <p className="text-white/25 text-xs mt-3">Faiz verisi bekleniyor...</p>
+              <p className="text-white/35 text-xs mt-3">Faiz verisi bekleniyor...</p>
             )}
           </div>
         </div>
       </div>
+
+      {/* ═══ HERMES AI ENDEKS PANELI — 10 ENDEKS ═══ */}
+      {indexScores.length > 0 && (() => {
+        const official = indexScores.filter(i => INDEX_META[i.symbol]?.tier === 'official')
+        const cap = indexScores.filter(i => INDEX_META[i.symbol]?.tier === 'cap')
+        const sector = indexScores.filter(i => INDEX_META[i.symbol]?.tier === 'sector')
+        const allAvg = indexScores.length > 0 ? Math.round(indexScores.reduce((s, i) => s + i.avgScore, 0) / indexScores.length) : 0
+        const allColor = allAvg >= 55 ? '#62cbc1' : allAvg >= 45 ? '#94a3b8' : '#f87171'
+
+        return (
+          <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Zap size={18} className="text-amber-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-white/80 uppercase tracking-wider">HERMES AI Endeks Paneli</h3>
+                  <p className="text-[10px] text-white/35">10 endeks, 2064 hissenin HERMES AI puanlamasi</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-white/40">Genel Ort:</span>
+                <span className="text-xl font-black tabular-nums" style={{ color: allColor }}>{allAvg}</span>
+              </div>
+            </div>
+
+            {/* RESMI ENDEKSLER */}
+            {official.length > 0 && (
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-violet-500/30 to-transparent" />
+                  <span className="text-[10px] text-violet-400 font-bold uppercase tracking-wider">Resmi Endeksler</span>
+                  <div className="h-px flex-1 bg-gradient-to-l from-violet-500/30 to-transparent" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
+                  {official.map(idx => <IndexScoreCard key={idx.symbol} idx={idx} onSelectSymbol={onSelectSymbol} expanded />)}
+                </div>
+              </div>
+            )}
+
+            {/* MARKET CAP */}
+            {cap.length > 0 && (
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-blue-500/30 to-transparent" />
+                  <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Market Cap Segmentleri</span>
+                  <div className="h-px flex-1 bg-gradient-to-l from-blue-500/30 to-transparent" />
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+                  {cap.map(idx => <IndexScoreCard key={idx.symbol} idx={idx} onSelectSymbol={onSelectSymbol} />)}
+                </div>
+              </div>
+            )}
+
+            {/* SEKTOR */}
+            {sector.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-amber-500/30 to-transparent" />
+                  <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Sektor Endeksleri</span>
+                  <div className="h-px flex-1 bg-gradient-to-l from-amber-500/30 to-transparent" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
+                  {sector.map(idx => <IndexScoreCard key={idx.symbol} idx={idx} onSelectSymbol={onSelectSymbol} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* ═══ ROW 2: SEKTOR ROTASYON & PERFORMANS ═══ */}
       <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
         <div className="flex items-center justify-between mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
             <BarChart3 size={16} className="text-violet-400/60" />
-            <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">Sektor Rotasyon & Performans</h3>
-            <p className="text-[11px] text-white/25 ml-1">Her sektorun gunluk degisimi ve para akisi</p>
+            <h3 className="text-sm font-bold text-white/65 uppercase tracking-wider">Sektor Rotasyon & Performans</h3>
+            <p className="text-[11px] text-white/35 ml-1">Her sektorun gunluk degisimi ve para akisi</p>
           </div>
           {/* Makro Rejim Badge */}
           {(() => {
@@ -337,7 +559,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
                   const barWidth = Math.min(100, Math.abs(pct) * 15)
                   return (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="text-[11px] text-white/50 w-24 truncate">{sp.sector}</span>
+                      <span className="text-[11px] text-white/60 w-24 truncate">{sp.sector}</span>
                       <div className="flex-1 h-4 relative bg-white/[0.03] rounded-md overflow-hidden">
                         <div className={`absolute top-0 h-full rounded-md transition-all duration-500 ${isPos ? 'left-1/2 bg-hermes-green/30' : 'right-1/2 bg-red-500/30'}`}
                           style={{ width: `${barWidth / 2}%` }} />
@@ -361,7 +583,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
             </div>
           </>
         ) : (
-          <p className="text-white/25 text-xs">Sektor verisi bekleniyor...</p>
+          <p className="text-white/35 text-xs">Sektor verisi bekleniyor...</p>
         )}
       </div>
 
@@ -379,33 +601,33 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
         <div className="flex items-center gap-2 mb-3">
           <DollarSign size={16} className="text-hermes-green/60" />
-          <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">Buyuk Para Akisi</h3>
-          <p className="text-[11px] text-white/25 ml-1">Kurumsal yatirimci yonu</p>
+          <h3 className="text-sm font-bold text-white/65 uppercase tracking-wider">Buyuk Para Akisi</h3>
+          <p className="text-[11px] text-white/35 ml-1">Kurumsal yatirimci yonu</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/30 mb-1">Yukselenler Gucu</div>
+            <div className="text-[11px] text-white/40 mb-1">Yukselenler Gucu</div>
             <div className="text-base font-bold text-hermes-green tabular-nums">
               {data.topGainers.slice(0, 5).reduce((s, g) => s + Math.abs(g.changesPercentage || 0), 0).toFixed(1)}%
             </div>
-            <div className="text-[10px] text-white/20">Top 5 ort. yukselis</div>
+            <div className="text-[10px] text-white/40">Top 5 ort. yukselis</div>
           </div>
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/30 mb-1">Dusenler Gucu</div>
+            <div className="text-[11px] text-white/40 mb-1">Dusenler Gucu</div>
             <div className="text-base font-bold text-red-400 tabular-nums">
               {data.topLosers.slice(0, 5).reduce((s, l) => s + Math.abs(l.changesPercentage || 0), 0).toFixed(1)}%
             </div>
-            <div className="text-[10px] text-white/20">Top 5 ort. dusus</div>
+            <div className="text-[10px] text-white/40">Top 5 ort. dusus</div>
           </div>
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/30 mb-1">Aktif Hacim</div>
+            <div className="text-[11px] text-white/40 mb-1">Aktif Hacim</div>
             <div className="text-base font-bold text-violet-400 tabular-nums">
               {data.mostActive.length}
             </div>
-            <div className="text-[10px] text-white/20">Yuksek hacim hisse</div>
+            <div className="text-[10px] text-white/40">Yuksek hacim hisse</div>
           </div>
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/30 mb-1">Net Yon</div>
+            <div className="text-[11px] text-white/40 mb-1">Net Yon</div>
             {(() => {
               const upCount = data.mostActive.filter(a => (a.changesPercentage ?? 0) > 0).length
               const total = data.mostActive.length || 1
@@ -415,7 +637,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
                   <div className={`text-base font-bold tabular-nums ${ratio > 0.5 ? 'text-hermes-green' : 'text-red-400'}`}>
                     {ratio > 0.6 ? 'ALICI' : ratio < 0.4 ? 'SATICI' : 'DENGELI'}
                   </div>
-                  <div className="text-[10px] text-white/20">{(ratio * 100).toFixed(0)}% pozitif</div>
+                  <div className="text-[10px] text-white/40">{(ratio * 100).toFixed(0)}% pozitif</div>
                 </>
               )
             })()}
@@ -428,8 +650,8 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
         <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
           <div className="flex items-center gap-2 mb-3">
             <Calendar size={16} className="text-violet-400/60" />
-            <h3 className="text-sm font-bold text-white/55 uppercase tracking-wider">Ekonomik Takvim</h3>
-            <p className="text-[11px] text-white/25 ml-1">Piyasayi etkileyebilecek yaklasan olaylar</p>
+            <h3 className="text-sm font-bold text-white/65 uppercase tracking-wider">Ekonomik Takvim</h3>
+            <p className="text-[11px] text-white/35 ml-1">Piyasayi etkileyebilecek yaklasan olaylar</p>
           </div>
           <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
             {data.economicCalendar.slice(0, 15).map((event, i) => <EventRow key={i} event={event} />)}
@@ -448,12 +670,113 @@ function TrendBar({ label, value, desc }: { label: string; value: number; desc: 
   return (
     <div>
       <div className="flex items-center justify-between mb-0.5">
-        <span className="text-[11px] text-white/50">{label}</span>
-        <span className="text-[11px] text-white/40">{desc}</span>
+        <span className="text-[11px] text-white/60">{label}</span>
+        <span className="text-[11px] text-white/50">{desc}</span>
       </div>
       <div className="w-full h-2 bg-white/[0.05] rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${clampedValue}%`, backgroundColor: color }} />
       </div>
+    </div>
+  )
+}
+
+// ─── Index Score Card — HERMES AI Endeks Skoru ────────────────────
+
+function IndexScoreCard({ idx, onSelectSymbol, expanded = false }: { idx: IndexScoreData; onSelectSymbol: (s: string) => void; expanded?: boolean }) {
+  const meta = INDEX_META[idx.symbol] || { icon: '📊', desc: '', tier: 'cap' as const }
+  const tierBorder = meta.tier === 'official' ? 'border-violet-500/15 hover:border-violet-500/30' :
+    meta.tier === 'cap' ? 'border-blue-500/10 hover:border-blue-500/25' :
+    'border-amber-500/10 hover:border-amber-500/25'
+
+  return (
+    <div className={`bg-[#0c0c14] rounded-xl border p-3 sm:p-4 transition-all duration-300 ${tierBorder} group`}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-base flex-shrink-0">{meta.icon}</span>
+          <div className="min-w-0">
+            <h4 className="text-xs font-bold text-white/90 truncate">{idx.name}</h4>
+            <span className="text-[9px] text-white/35">{idx.memberCount} hisse</span>
+          </div>
+        </div>
+        <div className="flex flex-col items-end flex-shrink-0">
+          <span className="text-xl font-black tabular-nums leading-none" style={{ color: idx.signalColor }}>
+            {idx.avgScore}
+          </span>
+          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full mt-0.5" style={{ color: idx.signalColor, backgroundColor: `${idx.signalColor}12`, border: `1px solid ${idx.signalColor}25` }}>
+            {idx.signalLabel}
+          </span>
+        </div>
+      </div>
+
+      {/* Score progress */}
+      <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden mb-2">
+        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${idx.avgScore}%`, background: `linear-gradient(90deg, ${idx.signalColor}50, ${idx.signalColor})` }} />
+      </div>
+
+      {/* Signal distribution */}
+      <div className="flex h-2 rounded-full overflow-hidden gap-px mb-1.5">
+        {idx.strongCount > 0 && <div className="bg-amber-400 rounded-sm" style={{ flex: idx.strongCount }} />}
+        {idx.goodCount > 0 && <div className="bg-emerald-400 rounded-sm" style={{ flex: idx.goodCount }} />}
+        {idx.neutralCount > 0 && <div className="bg-slate-500/80 rounded-sm" style={{ flex: idx.neutralCount }} />}
+        {idx.weakCount > 0 && <div className="bg-orange-400 rounded-sm" style={{ flex: idx.weakCount }} />}
+        {idx.badCount > 0 && <div className="bg-red-400 rounded-sm" style={{ flex: idx.badCount }} />}
+      </div>
+      <div className="flex flex-wrap gap-x-2 text-[8px] text-white/40 mb-2">
+        {idx.strongCount > 0 && <span className="text-amber-400">{idx.strongCount}</span>}
+        <span className="text-emerald-400">{idx.goodCount}</span>
+        <span className="text-slate-400">{idx.neutralCount}</span>
+        {idx.weakCount > 0 && <span className="text-orange-400">{idx.weakCount}</span>}
+        {idx.badCount > 0 && <span className="text-red-400">{idx.badCount}</span>}
+      </div>
+
+      {/* Category mini scores */}
+      {expanded && (
+        <div className="grid grid-cols-3 gap-1.5 mb-2">
+          {[
+            { label: 'Degerleme', val: idx.avgValuation },
+            { label: 'Saglik', val: idx.avgHealth },
+            { label: 'Buyume', val: idx.avgGrowth },
+          ].map(c => (
+            <div key={c.label} className="text-center p-1 rounded-lg bg-white/[0.03]">
+              <div className="text-[8px] text-white/35 uppercase">{c.label}</div>
+              <div className="text-xs font-bold text-white/70 tabular-nums">{c.val}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Trend */}
+      <div className="flex items-center justify-between text-[9px] px-0.5">
+        <span className="text-white/35">Trend</span>
+        <span className="font-bold" style={{ color: idx.signalColor }}>{idx.trendLabel}</span>
+      </div>
+
+      {/* Top / Bottom */}
+      {expanded && (
+        <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/[0.04]">
+          <div>
+            <div className="text-[8px] text-emerald-400/60 uppercase mb-0.5">En Iyi 5</div>
+            {idx.topStocks.map(s => (
+              <button key={s.symbol} onClick={() => onSelectSymbol(s.symbol)}
+                className="flex items-center justify-between w-full text-[9px] py-0.5 px-0.5 rounded hover:bg-white/[0.04] transition-colors">
+                <span className="text-white/60 font-medium">{s.symbol}</span>
+                <span className="text-emerald-400 font-bold tabular-nums">{s.score}</span>
+              </button>
+            ))}
+          </div>
+          <div>
+            <div className="text-[8px] text-red-400/60 uppercase mb-0.5">En Zayif 5</div>
+            {idx.bottomStocks.map(s => (
+              <button key={s.symbol} onClick={() => onSelectSymbol(s.symbol)}
+                className="flex items-center justify-between w-full text-[9px] py-0.5 px-0.5 rounded hover:bg-white/[0.04] transition-colors">
+                <span className="text-white/60 font-medium">{s.symbol}</span>
+                <span className="text-red-400 font-bold tabular-nums">{s.score}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -472,8 +795,8 @@ function IndexCard({ index }: { index: IndexQuote }) {
     <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 hover:border-white/[0.12] transition-all duration-300 shadow-xl shadow-black/20 group">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <span className="text-xs text-white/35 font-medium">{name}</span>
-          {desc && <p className="text-[10px] text-white/15">{desc}</p>}
+          <span className="text-xs text-white/45 font-medium">{name}</span>
+          {desc && <p className="text-[10px] text-white/35">{desc}</p>}
         </div>
         <span className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${isUp ? 'bg-hermes-green/12 text-hermes-green' : 'bg-red-500/12 text-red-400'}`}>
           {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -491,12 +814,12 @@ function IndexCard({ index }: { index: IndexQuote }) {
       {/* Day range */}
       {index.dayLow > 0 && index.dayHigh > 0 && (
         <div className="mt-2 flex items-center gap-1">
-          <span className="text-[10px] text-white/25 tabular-nums">{index.dayLow.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+          <span className="text-[10px] text-white/35 tabular-nums">{index.dayLow.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
           <div className="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden relative">
             <div className="absolute h-full bg-gradient-to-r from-red-400/40 via-violet-400/60 to-hermes-green/40 rounded-full"
               style={{ width: `${Math.min(100, ((price - index.dayLow) / (index.dayHigh - index.dayLow)) * 100)}%` }} />
           </div>
-          <span className="text-[10px] text-white/25 tabular-nums">{index.dayHigh.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+          <span className="text-[10px] text-white/35 tabular-nums">{index.dayHigh.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
       )}
     </div>
@@ -517,7 +840,7 @@ function SectorTile({ sector }: { sector: SectorPerformance }) {
           ? `rgba(98,203,193,${0.04 + intensity * 0.12})`
           : `rgba(248,113,113,${0.04 + intensity * 0.12})`,
       }}>
-      <div className="text-[11px] text-white/50 truncate mb-1 font-medium">{sector.sector || 'Unknown'}</div>
+      <div className="text-[11px] text-white/60 truncate mb-1 font-medium">{sector.sector || 'Unknown'}</div>
       <div className={`flex items-center gap-0.5 text-base font-bold tabular-nums ${isUp ? 'text-hermes-green' : 'text-red-400'}`}>
         {isUp ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
         {isUp ? '+' : ''}{pct.toFixed(2)}%
@@ -546,7 +869,7 @@ function TreasuryDisplay({ treasury }: { treasury: TreasuryRate }) {
       <div className="flex-1 grid grid-cols-4 sm:grid-cols-7 gap-1.5">
         {rates.map(r => (
           <div key={r.label} className="text-center">
-            <span className="block text-[10px] text-white/35 mb-1">{r.label}</span>
+            <span className="block text-[10px] text-white/45 mb-1">{r.label}</span>
             <div className="h-10 relative flex items-end justify-center">
               <div className="w-full bg-gradient-to-t from-violet-500/40 to-blue-500/20 rounded-t"
                 style={{ height: `${Math.min(100, (r.value / 6) * 100)}%` }} />
@@ -558,7 +881,7 @@ function TreasuryDisplay({ treasury }: { treasury: TreasuryRate }) {
       <div className={`shrink-0 px-2 sm:px-3 py-2 rounded-xl border text-center min-w-0 sm:min-w-[100px] ${inverted ? 'bg-red-500/8 border-red-500/15' : 'bg-hermes-green/8 border-hermes-green/15'}`}>
         <div className="flex items-center gap-1 justify-center mb-1">
           <Info size={11} className={inverted ? 'text-red-400/60' : 'text-hermes-green/60'} />
-          <span className="text-[10px] text-white/40">2Y-10Y</span>
+          <span className="text-[10px] text-white/50">2Y-10Y</span>
         </div>
         <span className={`text-base font-bold tabular-nums ${inverted ? 'text-red-400' : 'text-hermes-green'}`}>
           {spread >= 0 ? '+' : ''}{spread.toFixed(2)}%
@@ -581,12 +904,12 @@ function MoversCard({ title, desc, items, type, icon, onSelect }: {
         {icon}
         <div>
           <h3 className="text-xs font-semibold text-white/45 uppercase tracking-wider">{title}</h3>
-          <p className="text-[10px] text-white/20">{desc}</p>
+          <p className="text-[10px] text-white/40">{desc}</p>
         </div>
       </div>
       <div className="space-y-0.5">
         {items.length === 0 ? (
-          <p className="text-white/20 text-xs py-3 text-center">Veri bekleniyor...</p>
+          <p className="text-white/40 text-xs py-3 text-center">Veri bekleniyor...</p>
         ) : items.slice(0, 7).map((item, i) => {
           const price = item.price ?? 0
           const pct = item.changesPercentage ?? 0
@@ -595,14 +918,14 @@ function MoversCard({ title, desc, items, type, icon, onSelect }: {
             <button key={i} onClick={() => onSelect(item.symbol)}
               className="w-full flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-white/[0.04] transition-all duration-150 text-left group">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-white/15 w-3 tabular-nums">{i + 1}</span>
+                <span className="text-[10px] text-white/35 w-3 tabular-nums">{i + 1}</span>
                 <div>
                   <span className="text-xs font-semibold text-white/70 group-hover:text-violet-300 transition-colors">{item.symbol}</span>
-                  <span className="text-[10px] text-white/15 ml-1.5 hidden lg:inline">{(item.name || '').slice(0, 14)}</span>
+                  <span className="text-[10px] text-white/35 ml-1.5 hidden lg:inline">{(item.name || '').slice(0, 14)}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-white/40 tabular-nums">${price.toFixed(2)}</span>
+                <span className="text-xs text-white/50 tabular-nums">${price.toFixed(2)}</span>
                 <span className={`flex items-center gap-0.5 text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded-full ${isUp ? 'bg-hermes-green/10 text-hermes-green' : 'bg-red-500/10 text-red-400'}`}>
                   {isUp ? '+' : ''}{pct.toFixed(2)}%
                 </span>
@@ -620,14 +943,14 @@ function MoversCard({ title, desc, items, type, icon, onSelect }: {
 function EventRow({ event }: { event: EconomicEvent }) {
   return (
     <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.02] transition-all duration-150">
-      <span className="text-[11px] text-white/25 w-16 shrink-0 tabular-nums">
+      <span className="text-[11px] text-white/35 w-16 shrink-0 tabular-nums">
         {new Date(event.date).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' })}
       </span>
-      <span className="text-xs text-white/50 flex-1 truncate">{event.event}</span>
+      <span className="text-xs text-white/60 flex-1 truncate">{event.event}</span>
       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
         event.impact === 'High' ? 'bg-red-500/12 text-red-400 border border-red-500/20' :
         event.impact === 'Medium' ? 'bg-orange-500/12 text-orange-400 border border-orange-500/20' :
-        'bg-white/[0.04] text-white/25 border border-white/[0.06]'
+        'bg-white/[0.04] text-white/35 border border-white/[0.06]'
       }`}>
         {event.impact === 'High' ? 'Yuksek' : event.impact === 'Medium' ? 'Orta' : 'Dusuk'}
       </span>
@@ -662,7 +985,7 @@ function FearGreedV2({ fg }: { fg: FearGreedComponents }) {
         <div className="flex items-center gap-2">
           <Zap size={16} className="text-cyan-400" />
           <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Makro Korku & Acgozluluk v2</h3>
-          <span className="text-[10px] text-white/25 ml-1">FRED ekonomik veriler bazli</span>
+          <span className="text-[10px] text-white/35 ml-1">FRED ekonomik veriler bazli</span>
         </div>
         <div className="flex items-center gap-2">
           <span className={`text-xl sm:text-2xl font-black tabular-nums ${barColor}`}>{fg.composite}</span>
@@ -682,7 +1005,7 @@ function FearGreedV2({ fg }: { fg: FearGreedComponents }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
         {components.map(c => (
           <div key={c.name} className="text-center">
-            <div className="text-[10px] text-white/35 mb-1 truncate">{c.name}</div>
+            <div className="text-[10px] text-white/45 mb-1 truncate">{c.name}</div>
             <div className={`text-sm font-bold tabular-nums ${
               c.score >= 60 ? 'text-hermes-green' : c.score >= 40 ? 'text-slate-300' : 'text-red-400'
             }`}>{c.score}</div>
@@ -693,7 +1016,7 @@ function FearGreedV2({ fg }: { fg: FearGreedComponents }) {
                   backgroundColor: c.score >= 60 ? '#62cbc1' : c.score >= 40 ? '#94a3b8' : '#f87171'
                 }} />
             </div>
-            <div className="text-[9px] text-white/20 mt-0.5">{c.weight}</div>
+            <div className="text-[9px] text-white/40 mt-0.5">{c.weight}</div>
           </div>
         ))}
       </div>
@@ -738,7 +1061,7 @@ function MacroRadarCards({ fred }: { fred: FredDashboardData & { fearGreedV2: Fe
         <div className="flex items-center gap-2">
           <Radio size={16} className="text-cyan-400" />
           <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Makro Radar</h3>
-          <span className="text-[10px] text-white/25 ml-1">FRED verileri — ekonomi nabzi</span>
+          <span className="text-[10px] text-white/35 ml-1">FRED verileri — ekonomi nabzi</span>
         </div>
         <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border ${regimeColor[fred.macroRegime] || regimeColor.UNKNOWN}`}>
           {regimeEmoji[fred.macroRegime] || '?'} {fred.macroRegime}
@@ -748,48 +1071,48 @@ function MacroRadarCards({ fred }: { fred: FredDashboardData & { fearGreedV2: Fe
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {/* Yield Curve */}
         <div className={`rounded-xl p-3 border ${ycColor}`}>
-          <div className="text-[11px] text-white/40 mb-1">Verim Egrisi (10Y-2Y)</div>
+          <div className="text-[11px] text-white/50 mb-1">Verim Egrisi (10Y-2Y)</div>
           <div className="text-xl font-black tabular-nums">
             {yc.spread >= 0 ? '+' : ''}{yc.spread.toFixed(2)}%
           </div>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-[10px] text-white/30">10Y: {yc.dgs10.toFixed(2)}%</span>
-            <span className="text-[10px] text-white/30">2Y: {yc.dgs2.toFixed(2)}%</span>
+            <span className="text-[10px] text-white/40">10Y: {yc.dgs10.toFixed(2)}%</span>
+            <span className="text-[10px] text-white/40">2Y: {yc.dgs2.toFixed(2)}%</span>
           </div>
           <div className="text-[10px] font-bold mt-1">{yc.status}</div>
         </div>
 
         {/* Fed Policy */}
         <div className="rounded-xl p-3 border border-blue-500/20 bg-blue-500/8 text-blue-300">
-          <div className="text-[11px] text-white/40 mb-1">Fed Faiz Orani</div>
+          <div className="text-[11px] text-white/50 mb-1">Fed Faiz Orani</div>
           <div className="text-xl font-black tabular-nums">
             {fred.fedPolicy.fedFundsRate.toFixed(2)}%
           </div>
-          <div className="text-[10px] text-white/30 mt-1">Bank Prime: {fred.fedPolicy.bankPrime.toFixed(2)}%</div>
-          <div className="text-[10px] text-white/20 mt-0.5">{fred.fedPolicy.fedFundsDate}</div>
+          <div className="text-[10px] text-white/40 mt-1">Bank Prime: {fred.fedPolicy.bankPrime.toFixed(2)}%</div>
+          <div className="text-[10px] text-white/40 mt-0.5">{fred.fedPolicy.fedFundsDate}</div>
         </div>
 
         {/* Credit Stress */}
         <div className="rounded-xl p-3 border border-white/[0.06] bg-white/[0.03]">
-          <div className="text-[11px] text-white/40 mb-1">Kredi Stresi (HY Spread)</div>
+          <div className="text-[11px] text-white/50 mb-1">Kredi Stresi (HY Spread)</div>
           <div className={`text-xl font-black tabular-nums ${csColor}`}>
             {fred.creditStress.highYieldSpread.toFixed(2)}%
           </div>
-          <div className="text-[10px] text-white/30 mt-1">Durum: <span className={`font-bold ${csColor}`}>{fred.creditStress.status}</span></div>
-          <div className="text-[10px] text-white/20 mt-0.5">{fred.creditStress.highYieldDate}</div>
+          <div className="text-[10px] text-white/40 mt-1">Durum: <span className={`font-bold ${csColor}`}>{fred.creditStress.status}</span></div>
+          <div className="text-[10px] text-white/40 mt-0.5">{fred.creditStress.highYieldDate}</div>
         </div>
 
         {/* Employment */}
         <div className="rounded-xl p-3 border border-white/[0.06] bg-white/[0.03]">
-          <div className="text-[11px] text-white/40 mb-1">Istihdam Nabzi</div>
+          <div className="text-[11px] text-white/50 mb-1">Istihdam Nabzi</div>
           <div className="text-xl font-black tabular-nums text-white/80">
             %{fred.employment.unemploymentRate.toFixed(1)}
           </div>
-          <div className="text-[10px] text-white/30 mt-1">
+          <div className="text-[10px] text-white/40 mt-1">
             Haftalik Basvuru: {(fred.employment.joblessClaims / 1000).toFixed(0)}K
           </div>
           <div className="flex items-center gap-1 mt-1">
-            <span className="text-[10px] text-white/40">VIX:</span>
+            <span className="text-[10px] text-white/50">VIX:</span>
             <span className={`text-[10px] font-bold ${vColor}`}>{fred.volatility.vix.toFixed(1)} ({fred.volatility.status})</span>
           </div>
         </div>
@@ -821,7 +1144,7 @@ function MarketSkeleton() {
             style={{ animation: `card-reveal 0.5s ease-out ${0.1 + i * 0.15}s forwards` }}>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 rounded-full bg-gold-400/30" style={{ animation: 'heartbeat 2s ease-in-out infinite' }} />
-              <span className="text-[10px] text-white/25 font-medium tracking-wider uppercase">{p.label}</span>
+              <span className="text-[10px] text-white/35 font-medium tracking-wider uppercase">{p.label}</span>
             </div>
             <div className="space-y-2">
               {Array.from({ length: 5 }).map((_, j) => (
@@ -841,7 +1164,7 @@ function MarketSkeleton() {
             style={{ animation: `card-reveal 0.5s ease-out ${0.6 + i * 0.15}s forwards` }}>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-gold-400/40 text-xs">{c.icon}</span>
-              <span className="text-[10px] text-white/20 font-medium tracking-wider uppercase">{c.label}</span>
+              <span className="text-[10px] text-white/40 font-medium tracking-wider uppercase">{c.label}</span>
             </div>
             <div className="space-y-2.5">
               {Array.from({ length: 4 }).map((_, j) => (
@@ -861,7 +1184,7 @@ function MarketSkeleton() {
           <div className="w-24 h-0.5 bg-white/[0.04] rounded-full overflow-hidden">
             <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
           </div>
-          <span className="text-[9px] text-white/15 font-mono">Piyasa verisi yukleniyor</span>
+          <span className="text-[9px] text-white/35 font-mono">Piyasa verisi yukleniyor</span>
         </div>
       </div>
     </div>
@@ -983,7 +1306,7 @@ function HermesPulseGauge({ pulse }: {
 
             {/* Center content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-[10px] text-white/25 uppercase tracking-widest mb-1">HERMES AI</span>
+              <span className="text-[10px] text-white/35 uppercase tracking-widest mb-1">HERMES AI</span>
               <span className="text-2xl sm:text-4xl font-black tabular-nums" style={{ color: pulse.color, textShadow: `0 0 20px ${pulse.color}40` }}>
                 {animatedScore}
               </span>
@@ -999,7 +1322,7 @@ function HermesPulseGauge({ pulse }: {
             <div className="flex items-center gap-2 mb-4">
               <Radio size={16} style={{ color: pulse.color }} className="animate-pulse" />
               <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Sistem Nabzi</h3>
-              <span className="text-[10px] text-white/25">Tum modullerin bilesik skoru</span>
+              <span className="text-[10px] text-white/35">Tum modullerin bilesik skoru</span>
             </div>
 
             <div className="space-y-2.5">
@@ -1008,7 +1331,7 @@ function HermesPulseGauge({ pulse }: {
                 return (
                   <div key={i} className="flex items-center gap-3 group">
                     <span className="text-[10px] w-3 text-center" style={{ color: `${barColor}80` }}>{comp.icon}</span>
-                    <span className="text-[11px] text-white/40 w-32 truncate">{comp.label}</span>
+                    <span className="text-[11px] text-white/50 w-32 truncate">{comp.label}</span>
                     <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-1000 ease-out"
                         style={{
@@ -1044,11 +1367,113 @@ function HermesPulseGauge({ pulse }: {
   )
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// WALL STREET PULSE MINI — Piyasa Acilis Ongoru Karti
+// Pulse tab'indan veri cekerek piyasa & trend'e mini ozet gosterir
+// ═══════════════════════════════════════════════════════════════════
+
+function WallStreetPulseMini() {
+  const [pulse, setPulse] = useState<{ composite: number; level: string; levelLabel: string; breadth: { advancing: number; declining: number; newHighs: number; newLows: number; total: number }; earnings: { beatRate: number }; shortSqueeze: { symbol: string; squeezeScore: number }[]; components: { id: string; name: string; value: number; available: boolean }[]; marketOpen: boolean } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/wall-street-pulse')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setPulse(d) })
+      .catch(() => {})
+  }, [])
+
+  if (!pulse) return null
+
+  const levelColors: Record<string, string> = {
+    EXTREME_FEAR: 'text-red-400 border-red-500/20 bg-red-500/5',
+    FEAR: 'text-red-300 border-red-500/15 bg-red-500/5',
+    NEUTRAL: 'text-slate-300 border-white/10 bg-white/[0.02]',
+    GREED: 'text-emerald-400 border-emerald-500/15 bg-emerald-500/5',
+    EXTREME_GREED: 'text-gold-300 border-gold-400/20 bg-gold-400/5',
+  }
+
+  const cls = levelColors[pulse.level] || levelColors.NEUTRAL
+  const topBullish = pulse.components.filter(c => c.available && c.value >= 60).sort((a, b) => b.value - a.value).slice(0, 3)
+  const topBearish = pulse.components.filter(c => c.available && c.value < 40).sort((a, b) => a.value - b.value).slice(0, 3)
+
+  // Market acilis ongoru: basit bir sentiment ozeti
+  const openingBias = pulse.composite >= 60 ? 'Pozitif Acilis Beklentisi' : pulse.composite <= 40 ? 'Negatif Acilis Beklentisi' : 'Notr Acilis Beklentisi'
+  const biasIcon = pulse.composite >= 60 ? '▲' : pulse.composite <= 40 ? '▼' : '─'
+  const biasColor = pulse.composite >= 60 ? 'text-emerald-400' : pulse.composite <= 40 ? 'text-red-400' : 'text-white/50'
+
+  return (
+    <div className={`rounded-2xl border p-3 sm:p-4 shadow-xl shadow-black/20 ${cls}`}>
+      <div className="flex items-center gap-2 mb-3">
+        <Activity size={16} className="text-gold-300" />
+        <span className="text-xs font-bold uppercase tracking-wider text-gold-300">Wall Street Nabzi</span>
+        <span className="text-[10px] text-white/30 ml-auto">{pulse.marketOpen ? 'CANLI' : 'SON KAPNIS'}</span>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        {/* Score */}
+        <div className="flex items-center gap-3">
+          <div className="text-4xl font-black tabular-nums" style={{ color: pulse.level === 'EXTREME_FEAR' ? '#ef4444' : pulse.level === 'FEAR' ? '#f87171' : pulse.level === 'GREED' ? '#62cbc1' : pulse.level === 'EXTREME_GREED' ? '#B3945B' : '#94a3b8' }}>
+            {pulse.composite}
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-white/70">{pulse.levelLabel}</div>
+            <div className={`text-xs font-medium ${biasColor}`}>{biasIcon} {openingBias}</div>
+          </div>
+        </div>
+
+        {/* Key metrics */}
+        <div className="flex gap-4 text-[11px]">
+          <div>
+            <span className="text-white/30">A/D</span>
+            <div className="flex gap-1.5">
+              <span className="text-emerald-400 font-mono">{pulse.breadth.advancing}</span>
+              <span className="text-white/20">/</span>
+              <span className="text-red-400 font-mono">{pulse.breadth.declining}</span>
+            </div>
+          </div>
+          <div>
+            <span className="text-white/30">52H H/L</span>
+            <div className="flex gap-1.5">
+              <span className="text-emerald-400 font-mono">{pulse.breadth.newHighs}</span>
+              <span className="text-white/20">/</span>
+              <span className="text-red-400 font-mono">{pulse.breadth.newLows}</span>
+            </div>
+          </div>
+          <div>
+            <span className="text-white/30">Beat %</span>
+            <div className="text-white/70 font-mono">{pulse.earnings.beatRate.toFixed(0)}%</div>
+          </div>
+          <div>
+            <span className="text-white/30">Squeeze</span>
+            <div className="text-orange-400 font-mono">{pulse.shortSqueeze.length}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Drivers */}
+      {(topBullish.length > 0 || topBearish.length > 0) && (
+        <div className="flex flex-wrap gap-2 mt-3 pt-2 border-t border-white/[0.06]">
+          {topBullish.map(c => (
+            <span key={c.id} className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              ▲ {c.name} {c.value.toFixed(0)}
+            </span>
+          ))}
+          {topBearish.map(c => (
+            <span key={c.id} className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
+              ▼ {c.name} {c.value.toFixed(0)}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ErrorState({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] animate-fade-in">
       <AlertTriangle size={36} className="text-red-400/40 mb-3" />
-      <p className="text-white/40 text-base">{message}</p>
+      <p className="text-white/50 text-base">{message}</p>
       <button onClick={() => window.location.reload()}
         className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-sm font-medium
                    hover:from-violet-500 hover:to-blue-500 shadow-lg shadow-violet-500/20 transition-all duration-200">

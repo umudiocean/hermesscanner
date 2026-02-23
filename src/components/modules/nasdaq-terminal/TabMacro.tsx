@@ -45,7 +45,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
           </div>
           <div className="text-center">
             <p className="text-xs font-semibold text-white/60">Makro ekonomi verileri</p>
-            <p className="text-[9px] text-white/20 mt-0.5">GDP, sentiment, ESG, endeksler</p>
+            <p className="text-[9px] text-white/40 mt-0.5">GDP, sentiment, ESG, endeksler</p>
           </div>
           <div className="w-32 h-0.5 bg-white/[0.04] rounded-full overflow-hidden">
             <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
@@ -54,7 +54,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             {['GDP', 'Sentiment', 'News', 'ESG'].map((t, i) => (
               <div key={i} className="px-2 py-1 rounded-md bg-white/[0.02] border border-white/[0.04] opacity-0"
                 style={{ animation: `card-reveal 0.3s ease-out ${0.4 + i * 0.15}s forwards` }}>
-                <span className="text-[8px] text-white/15 font-medium">{t}</span>
+                <span className="text-[8px] text-white/35 font-medium">{t}</span>
               </div>
             ))}
           </div>
@@ -64,7 +64,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
   }
 
   if (!data) {
-    return <div className="text-center py-12 text-white/25">Makro veri alinamadi</div>
+    return <div className="text-center py-12 text-white/35">Makro veri alinamadi</div>
   }
 
   const latestGdp = data.gdp?.[0]
@@ -89,14 +89,14 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
           </div>
           <div>
             <h3 className="text-base sm:text-lg font-bold text-white">MAKRO EKONOMI</h3>
-            <p className="text-xs text-white/30">ABD ekonomik gostergeleri, haberler ve ESG</p>
+            <p className="text-xs text-white/40">ABD ekonomik gostergeleri, haberler ve ESG</p>
           </div>
         </div>
 
         {/* Key Macro Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/30 font-medium mb-1">ABD GDP</div>
+            <div className="text-[11px] text-white/40 font-medium mb-1">ABD GDP</div>
             <div className="text-base sm:text-lg font-bold text-white">{latestGdp ? fmtBig(latestGdp.value * 1e9) : '--'}</div>
             {gdpGrowth && (
               <span className={`text-xs ${Number(gdpGrowth) >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
@@ -105,7 +105,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             )}
           </div>
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/30 font-medium mb-1">TUKETICI GUVENI</div>
+            <div className="text-[11px] text-white/40 font-medium mb-1">TUKETICI GUVENI</div>
             <div className="text-base sm:text-lg font-bold text-white">{latestSentiment ? latestSentiment.value.toFixed(1) : '--'}</div>
             {sentimentChange && (
               <span className={`text-xs ${Number(sentimentChange) >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
@@ -114,7 +114,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             )}
           </div>
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/30 font-medium mb-1">ENDEKS UYELERI</div>
+            <div className="text-[11px] text-white/40 font-medium mb-1">ENDEKS UYELERI</div>
             <div className="text-sm font-bold text-white">
               <span className="text-violet-400">SP500</span> {data.indexConstituents.sp500} |
               <span className="text-blue-400 ml-1">NDX</span> {data.indexConstituents.nasdaq} |
@@ -122,9 +122,9 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             </div>
           </div>
           <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/30 font-medium mb-1">IZLENEN HISSE</div>
+            <div className="text-[11px] text-white/40 font-medium mb-1">IZLENEN HISSE</div>
             <div className="text-base sm:text-lg font-bold text-white">{Object.keys(data.indexMembership).length}</div>
-            <span className="text-[11px] text-white/25">Endekslerde yer alan</span>
+            <span className="text-[11px] text-white/35">Endekslerde yer alan</span>
           </div>
         </div>
       </div>
@@ -155,12 +155,12 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
                 })}
               </div>
               <div className="flex justify-between mt-1.5">
-                <span className="text-[10px] text-white/25">{data.gdp[Math.min(11, data.gdp.length - 1)]?.date}</span>
-                <span className="text-[10px] text-white/25">{data.gdp[0]?.date}</span>
+                <span className="text-[10px] text-white/35">{data.gdp[Math.min(11, data.gdp.length - 1)]?.date}</span>
+                <span className="text-[10px] text-white/35">{data.gdp[0]?.date}</span>
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center h-28 text-white/20 text-xs">Veri bekleniyor...</div>
+            <div className="flex items-center justify-center h-28 text-white/40 text-xs">Veri bekleniyor...</div>
           )}
         </div>
 
@@ -189,12 +189,12 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
                 })}
               </div>
               <div className="flex justify-between mt-1.5">
-                <span className="text-[10px] text-white/25">{data.consumerSentiment[Math.min(11, data.consumerSentiment.length - 1)]?.date}</span>
-                <span className="text-[10px] text-white/25">{data.consumerSentiment[0]?.date}</span>
+                <span className="text-[10px] text-white/35">{data.consumerSentiment[Math.min(11, data.consumerSentiment.length - 1)]?.date}</span>
+                <span className="text-[10px] text-white/35">{data.consumerSentiment[0]?.date}</span>
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center h-28 text-white/20 text-xs">Veri bekleniyor...</div>
+            <div className="flex items-center justify-center h-28 text-white/40 text-xs">Veri bekleniyor...</div>
           )}
         </div>
       </div>
@@ -213,11 +213,11 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
                   <div className="flex-1">
                     <p className="text-sm text-white/70 group-hover:text-white transition-colors line-clamp-2">{n.title}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-white/20">{n.site}</span>
-                      <span className="text-[10px] text-white/15">{new Date(n.publishedDate).toLocaleDateString()}</span>
+                      <span className="text-[10px] text-white/40">{n.site}</span>
+                      <span className="text-[10px] text-white/35">{new Date(n.publishedDate).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <ExternalLink size={12} className="text-white/15 group-hover:text-violet-400 shrink-0 mt-1" />
+                  <ExternalLink size={12} className="text-white/35 group-hover:text-violet-400 shrink-0 mt-1" />
                 </div>
               </a>
             ))}
@@ -235,11 +235,11 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06]">
-                  <th className="text-left py-2 px-2 text-[11px] text-white/30 font-medium">SEKTOR</th>
-                  <th className="text-right py-2 px-2 text-[11px] text-white/30 font-medium">ESG</th>
-                  <th className="text-right py-2 px-2 text-[11px] text-white/30 font-medium">CEVRE</th>
-                  <th className="text-right py-2 px-2 text-[11px] text-white/30 font-medium">SOSYAL</th>
-                  <th className="text-right py-2 px-2 text-[11px] text-white/30 font-medium">YONETISIM</th>
+                  <th className="text-left py-2 px-2 text-[11px] text-white/40 font-medium">SEKTOR</th>
+                  <th className="text-right py-2 px-2 text-[11px] text-white/40 font-medium">ESG</th>
+                  <th className="text-right py-2 px-2 text-[11px] text-white/40 font-medium">CEVRE</th>
+                  <th className="text-right py-2 px-2 text-[11px] text-white/40 font-medium">SOSYAL</th>
+                  <th className="text-right py-2 px-2 text-[11px] text-white/40 font-medium">YONETISIM</th>
                 </tr>
               </thead>
               <tbody>
@@ -264,7 +264,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
 
       <div className="flex items-start gap-2 px-2 sm:px-4 py-3 bg-violet-500/[0.05] rounded-xl border border-violet-500/10">
         <Info size={14} className="text-violet-400/50 mt-0.5 shrink-0" />
-        <p className="text-[12px] text-white/30 leading-relaxed">
+        <p className="text-[12px] text-white/40 leading-relaxed">
           ABD GDP, tuketici guveni, piyasa haberleri, S&amp;P 500/NASDAQ 100/Dow Jones endeks uyelikleri
           ve sektor bazli ESG karsilastirmasi canli olarak cekilir.
         </p>

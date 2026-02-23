@@ -35,7 +35,7 @@ function Card({ title, icon: Icon, children }: { title: string; icon: React.Elem
     <div className="bg-[#151520] rounded-2xl border border-white/8 p-5 shadow-xl">
       <div className="flex items-center gap-2 mb-4">
         <Icon className="w-4 h-4 text-[#B3945B]" />
-        <h3 className="text-xs uppercase tracking-wider text-white/50 font-semibold">{title}</h3>
+        <h3 className="text-xs uppercase tracking-wider text-white/60 font-semibold">{title}</h3>
       </div>
       {children}
     </div>
@@ -46,8 +46,8 @@ function Stat({ label, value, sub }: { label: string; value: string | number; su
   return (
     <div>
       <div className="text-2xl font-bold text-white/90 tabular-nums">{value}</div>
-      <div className="text-[10px] uppercase tracking-wider text-white/40 mt-0.5">{label}</div>
-      {sub && <div className="text-[10px] text-white/25 mt-0.5">{sub}</div>}
+      <div className="text-[10px] uppercase tracking-wider text-white/50 mt-0.5">{label}</div>
+      {sub && <div className="text-[10px] text-white/35 mt-0.5">{sub}</div>}
     </div>
   )
 }
@@ -57,7 +57,7 @@ function MiniBar({ items, max }: { items: { label: string; value: number }[]; ma
     <div className="space-y-1.5">
       {items.slice(0, 8).map(item => (
         <div key={item.label} className="flex items-center gap-2">
-          <span className="text-[10px] text-white/40 w-24 truncate">{item.label}</span>
+          <span className="text-[10px] text-white/50 w-24 truncate">{item.label}</span>
           <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-[#B3945B] to-[#8B7340] rounded-full transition-all duration-500"
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
           </div>
           <div>
             <h1 className="text-lg font-bold text-white/90">HERMES AI Admin</h1>
-            <p className="text-[10px] text-white/30">
+            <p className="text-[10px] text-white/40">
               {data?.generatedAt ? new Date(data.generatedAt).toLocaleString('tr-TR') : '...'}
             </p>
           </div>
@@ -256,14 +256,14 @@ export default function AdminDashboard() {
             <div className="space-y-1">
               {a?.pageViews?.slice(0, 7).map(d => (
                 <div key={d.date} className="flex items-center gap-2">
-                  <span className="text-[9px] text-white/30 w-16">{d.date.slice(5)}</span>
+                  <span className="text-[9px] text-white/40 w-16">{d.date.slice(5)}</span>
                   <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[#B3945B]/60 rounded-full"
                       style={{ width: `${weekPV > 0 ? Math.max(2, (d.count / Math.max(...(a?.pageViews?.map(x => x.count) || [1]))) * 100) : 0}%` }}
                     />
                   </div>
-                  <span className="text-[9px] text-white/40 tabular-nums w-8 text-right">{d.count}</span>
+                  <span className="text-[9px] text-white/50 tabular-nums w-8 text-right">{d.count}</span>
                 </div>
               ))}
             </div>
@@ -277,7 +277,7 @@ export default function AdminDashboard() {
                 max={a!.topPages[0]?.count || 1}
               />
             ) : (
-              <p className="text-white/20 text-xs">Henuz veri yok</p>
+              <p className="text-white/40 text-xs">Henuz veri yok</p>
             )}
           </Card>
 
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
                 max={a!.referrers[0]?.count || 1}
               />
             ) : (
-              <p className="text-white/20 text-xs">Henuz veri yok</p>
+              <p className="text-white/40 text-xs">Henuz veri yok</p>
             )}
           </Card>
 
@@ -307,7 +307,7 @@ export default function AdminDashboard() {
                   <div key={d.type}>
                     <div className="flex justify-between mb-1">
                       <span className="text-xs text-white/60 capitalize">{d.type}</span>
-                      <span className="text-xs text-white/40">{pct}% ({d.count})</span>
+                      <span className="text-xs text-white/50">{pct}% ({d.count})</span>
                     </div>
                     <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                       <div
@@ -319,7 +319,7 @@ export default function AdminDashboard() {
                 )
               })}
               {(a?.devices?.length || 0) === 0 && (
-                <p className="text-white/20 text-xs">Henuz veri yok</p>
+                <p className="text-white/40 text-xs">Henuz veri yok</p>
               )}
             </div>
           </Card>
@@ -331,7 +331,7 @@ export default function AdminDashboard() {
               <div>
                 {(a?.externalApis || []).map(e => (
                   <div key={e.provider} className="flex justify-between">
-                    <span className="text-[10px] text-white/40 uppercase">{e.provider}</span>
+                    <span className="text-[10px] text-white/50 uppercase">{e.provider}</span>
                     <span className="text-[10px] text-white/60 tabular-nums">{e.count}</span>
                   </div>
                 ))}
@@ -343,7 +343,7 @@ export default function AdminDashboard() {
                 max={a!.apiCalls[0]?.count || 1}
               />
             ) : (
-              <p className="text-white/20 text-xs">Henuz veri yok</p>
+              <p className="text-white/40 text-xs">Henuz veri yok</p>
             )}
           </Card>
 
@@ -354,26 +354,26 @@ export default function AdminDashboard() {
                 <div className={`w-2 h-2 rounded-full ${c?.redis?.connected ? 'bg-emerald-400' : 'bg-red-400'}`} />
                 <span className="text-xs text-white/60">Redis: {c?.redis?.connected ? 'Bagli' : 'Bagli Degil'}</span>
                 {c?.redis?.keyCount !== undefined && (
-                  <span className="text-[10px] text-white/30 ml-auto">{c.redis.keyCount} key</span>
+                  <span className="text-[10px] text-white/40 ml-auto">{c.redis.keyCount} key</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Database className="w-3 h-3 text-white/30" />
+                <Database className="w-3 h-3 text-white/40" />
                 <span className="text-xs text-white/60">FMP Memory Cache</span>
-                <span className="text-[10px] text-white/30 ml-auto">{c?.fmpMemory?.memoryEntries || 0}/{c?.fmpMemory?.maxEntries || 500}</span>
+                <span className="text-[10px] text-white/40 ml-auto">{c?.fmpMemory?.memoryEntries || 0}/{c?.fmpMemory?.maxEntries || 500}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Database className="w-3 h-3 text-white/30" />
+                <Database className="w-3 h-3 text-white/40" />
                 <span className="text-xs text-white/60">Crypto Memory Cache</span>
-                <span className="text-[10px] text-white/30 ml-auto">{c?.cryptoMemory?.memoryEntries || 0}/{c?.cryptoMemory?.maxEntries || 1000}</span>
+                <span className="text-[10px] text-white/40 ml-auto">{c?.cryptoMemory?.memoryEntries || 0}/{c?.cryptoMemory?.maxEntries || 1000}</span>
               </div>
               {c?.redis?.prefixes && Object.keys(c.redis.prefixes).length > 0 && (
                 <div className="mt-2 pt-2 border-t border-white/5">
-                  <span className="text-[9px] text-white/25 uppercase">Redis Key Dagilimi</span>
+                  <span className="text-[9px] text-white/35 uppercase">Redis Key Dagilimi</span>
                   {Object.entries(c.redis.prefixes).map(([p, n]) => (
                     <div key={p} className="flex justify-between mt-1">
-                      <span className="text-[10px] text-white/30">{p}</span>
-                      <span className="text-[10px] text-white/40 tabular-nums">{n}</span>
+                      <span className="text-[10px] text-white/40">{p}</span>
+                      <span className="text-[10px] text-white/50 tabular-nums">{n}</span>
                     </div>
                   ))}
                 </div>
@@ -397,7 +397,7 @@ export default function AdminDashboard() {
                       {enabled ? (
                         <ToggleRight className="w-6 h-6 text-emerald-400" />
                       ) : (
-                        <ToggleLeft className="w-6 h-6 text-white/20" />
+                        <ToggleLeft className="w-6 h-6 text-white/40" />
                       )}
                     </button>
                   </div>
@@ -464,8 +464,8 @@ export default function AdminDashboard() {
               {bootstrap.total > 0 && (
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-[10px] text-white/40">Ilerleme</span>
-                    <span className="text-[10px] text-white/50 tabular-nums">
+                    <span className="text-[10px] text-white/50">Ilerleme</span>
+                    <span className="text-[10px] text-white/60 tabular-nums">
                       {bootstrap.completed} / {bootstrap.total} ({bootstrap.total > 0 ? Math.round((bootstrap.completed / bootstrap.total) * 100) : 0}%)
                     </span>
                   </div>
@@ -480,7 +480,7 @@ export default function AdminDashboard() {
                     />
                   </div>
                   {bootstrap.lastSymbol && (
-                    <p className="text-[9px] text-white/25 mt-1">Son: {bootstrap.lastSymbol}</p>
+                    <p className="text-[9px] text-white/35 mt-1">Son: {bootstrap.lastSymbol}</p>
                   )}
                 </div>
               )}
@@ -489,7 +489,7 @@ export default function AdminDashboard() {
                 <p className="text-[10px] text-red-400 bg-red-500/10 rounded-lg px-2 py-1">{bootstrap.error}</p>
               )}
 
-              <p className="text-[9px] text-white/20 leading-relaxed">
+              <p className="text-[9px] text-white/40 leading-relaxed">
                 %100 otomatik. Cron her 5 dakikada calisir: bootstrap tamamlanmamissa devam eder,
                 tamamlanmissa Redis&apos;ten skor hesaplar ve sonuclari kaydeder. Manuel adim yok.
               </p>
@@ -541,9 +541,9 @@ export default function AdminDashboard() {
                   </div>
                 </>
               ) : (
-                <p className="text-[10px] text-white/40">Tarama sonucu yok veya yukleniyor...</p>
+                <p className="text-[10px] text-white/50">Tarama sonucu yok veya yukleniyor...</p>
               )}
-              <p className="text-[9px] text-white/20 leading-relaxed">
+              <p className="text-[9px] text-white/40 leading-relaxed">
                 Trade-ready: Redis bar cache yeterli hisseler. Yetersiz: FMP 15dk verisi eksik.
                 Guncelleme: trade_ready.json indir → node scripts/sync-symbols-from-trade.js data/trade_ready.json
               </p>

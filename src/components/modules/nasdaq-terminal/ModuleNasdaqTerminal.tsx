@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useCallback, lazy, Suspense, useEffect, useRef } from 'react'
-import { Brain, Search, BarChart3, Globe, Eye, PieChart, Users, Target, GitCompare, Calendar, Globe2, Radio, X } from 'lucide-react'
+import { Brain, Search, BarChart3, Globe, Eye, PieChart, Users, Target, GitCompare, Calendar, Globe2, Radio, X, Activity } from 'lucide-react'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 interface SearchResultItem {
@@ -100,7 +100,7 @@ function NasdaqSymbolSearchInput({
 
   return (
     <div ref={containerRef} className="relative group">
-      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/25 group-focus-within:text-gold-400 transition-colors z-10" />
+      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/35 group-focus-within:text-gold-400 transition-colors z-10" />
       <input
         ref={inputRef}
         type="text"
@@ -118,7 +118,7 @@ function NasdaqSymbolSearchInput({
         <button
           type="button"
           onClick={() => { setSearchQuery(''); setAcOpen(false); setAcResults([]) }}
-          className="absolute right-8 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors z-10"
+          className="absolute right-8 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors z-10"
         >
           <X size={14} />
         </button>
@@ -129,13 +129,13 @@ function NasdaqSymbolSearchInput({
         </div>
       )}
       {!searchQuery && (
-        <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-white/15 bg-white/[0.05] px-1.5 py-0.5 rounded hidden md:inline-block z-10">
+        <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-white/35 bg-white/[0.05] px-1.5 py-0.5 rounded hidden md:inline-block z-10">
           Enter
         </kbd>
       )}
       {acOpen && acResults.length > 0 && (
         <div className="absolute top-full left-0 mt-1 w-full min-w-[220px] max-h-[280px] overflow-y-auto bg-[#151520] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50">
-          <div className="px-3 py-1.5 border-b border-white/[0.04] text-[10px] text-white/20">
+          <div className="px-3 py-1.5 border-b border-white/[0.04] text-[10px] text-white/40">
             Tikla veya Enter ile sec
           </div>
           {acResults.map((item, idx) => (
@@ -149,7 +149,7 @@ function NasdaqSymbolSearchInput({
                 ${idx < acResults.length - 1 ? 'border-b border-white/[0.02]' : ''}`}
             >
               <span className="font-mono font-semibold text-white shrink-0">{item.symbol}</span>
-              <span className="min-w-0 truncate text-[11px] text-white/50">
+              <span className="min-w-0 truncate text-[11px] text-white/60">
                 {item.companyName || item.sector || ''}
               </span>
             </button>
@@ -158,7 +158,7 @@ function NasdaqSymbolSearchInput({
       )}
       {acOpen && searchQuery.trim().length >= 1 && acResults.length === 0 && !acLoading && (
         <div className="absolute top-full left-0 mt-1 w-full min-w-[220px] bg-[#151520] border border-white/[0.08] rounded-xl shadow-2xl z-50 p-3 text-center">
-          <span className="text-[11px] text-white/25">Hisse bulunamadi</span>
+          <span className="text-[11px] text-white/35">Hisse bulunamadi</span>
         </div>
       )}
     </div>
@@ -176,6 +176,7 @@ const TabOwnership = lazy(() => import('./TabOwnership'))
 const TabAnalyst = lazy(() => import('./TabAnalyst'))
 const TabCompare = lazy(() => import('./TabCompare'))
 const TabFred = lazy(() => import('./TabFred'))
+const TabPulse = lazy(() => import('./TabPulse'))
 
 function TabSkeleton() {
   const MODULES = ['Veri', 'Analiz', 'Skor']
@@ -198,7 +199,7 @@ function TabSkeleton() {
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-white/70 tracking-wide">Modul yukleniyor</p>
-          <p className="text-[10px] text-white/25 mt-0.5">HERMES AI Terminal</p>
+          <p className="text-[10px] text-white/35 mt-0.5">HERMES AI Terminal</p>
         </div>
         {/* Progress */}
         <div className="w-40 h-0.5 bg-white/[0.04] rounded-full overflow-hidden">
@@ -209,7 +210,7 @@ function TabSkeleton() {
           {MODULES.map((m, i) => (
             <div key={i} className="px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.04] opacity-0"
               style={{ animation: `card-reveal 0.4s ease-out ${0.5 + i * 0.25}s forwards` }}>
-              <span className="text-[9px] text-white/20 font-medium tracking-wider">{m}</span>
+              <span className="text-[9px] text-white/40 font-medium tracking-wider">{m}</span>
             </div>
           ))}
         </div>
@@ -218,7 +219,7 @@ function TabSkeleton() {
   )
 }
 
-type HermesTab = 'stocks' | 'market' | 'stock' | 'calendar' | 'macro' | 'fred' | 'financials' | 'ownership' | 'analyst' | 'compare'
+type HermesTab = 'stocks' | 'market' | 'stock' | 'calendar' | 'macro' | 'fred' | 'pulse' | 'financials' | 'ownership' | 'analyst' | 'compare'
 
 interface TabConfig {
   id: HermesTab
@@ -228,7 +229,8 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { id: 'market', label: 'PIYASA & TREND', icon: <Globe size={16} />, desc: 'Piyasa trendi ve Wall Street nabzi' },
+  { id: 'pulse', label: 'WALL STREET NABZI', icon: <Activity size={16} />, desc: '12 bilesenli piyasa nabiz endeksi — breadth, smart money, earnings, korku/hirs' },
+  { id: 'market', label: 'PIYASA & TREND', icon: <Globe size={16} />, desc: 'Piyasa trendi, endeks skorlari, sektor rotasyonu' },
   { id: 'stocks', label: 'HISSELER', icon: <BarChart3 size={16} />, desc: 'Tum hisseler ve puanlama' },
   { id: 'stock', label: 'DETAY', icon: <Eye size={16} />, desc: 'Hisse detay analizi' },
   { id: 'financials', label: 'FINANSALLAR', icon: <PieChart size={16} />, desc: 'Gelir tablosu, bilanco' },
@@ -241,7 +243,7 @@ const TABS: TabConfig[] = [
 ]
 
 export default function ModuleNasdaqTerminal() {
-  const [activeTab, setActiveTab] = useState<HermesTab>('market')
+  const [activeTab, setActiveTab] = useState<HermesTab>('pulse')
   const [selectedSymbol, setSelectedSymbol] = useState<string>('')
   const [compareSymbols, setCompareSymbols] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -295,7 +297,7 @@ export default function ModuleNasdaqTerminal() {
               <span className="sm:hidden">NASDAQ <span className="gradient-text">AI</span></span>
               <span className="hidden sm:inline">NASDAQ TERMINAL <span className="gradient-text">AI</span></span>
             </h2>
-            <p className="text-[10px] sm:text-[11px] text-white/30 hidden sm:block">Temel analiz & puanlama platformu</p>
+            <p className="text-[10px] sm:text-[11px] text-white/40 hidden sm:block">Temel analiz & puanlama platformu</p>
           </div>
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold-400/8 border border-gold-400/15 ml-2 shrink-0">
             <div className="w-1.5 h-1.5 rounded-full bg-gold-300 animate-pulse" />
@@ -322,10 +324,10 @@ export default function ModuleNasdaqTerminal() {
                          whitespace-nowrap transition-all duration-200
               ${activeTab === tab.id
                 ? 'bg-gold-400/15 text-gold-300 border border-gold-400/25 shadow-sm shadow-gold-400/5'
-                : 'bg-transparent text-white/35 hover:bg-midnight-50/80 hover:text-white/60 border border-transparent hover:border-gold-400/8'
+                : 'bg-transparent text-white/45 hover:bg-midnight-50/80 hover:text-white/60 border border-transparent hover:border-gold-400/8'
               }`}
           >
-            <span className={`transition-colors ${activeTab === tab.id ? 'text-gold-300' : 'text-white/30 group-hover:text-white/50'}`}>
+            <span className={`transition-colors ${activeTab === tab.id ? 'text-gold-300' : 'text-white/40 group-hover:text-white/60'}`}>
               {tab.icon}
             </span>
             <span>{tab.label}</span>
@@ -354,10 +356,10 @@ export default function ModuleNasdaqTerminal() {
                            whitespace-nowrap transition-all duration-200 shrink-0
                 ${activeTab === tab.id
                   ? 'bg-gold-400/15 text-gold-300 border border-gold-400/25 shadow-sm shadow-gold-400/5'
-                  : 'text-white/35 hover:text-white/60 border border-transparent'
+                  : 'text-white/45 hover:text-white/60 border border-transparent'
                 }`}
             >
-              <span className={`transition-colors ${activeTab === tab.id ? 'text-gold-300' : 'text-white/30'}`}>
+              <span className={`transition-colors ${activeTab === tab.id ? 'text-gold-300' : 'text-white/40'}`}>
                 {tab.icon}
               </span>
               <span>{shortLabels[tab.id] || tab.label}</span>
@@ -375,6 +377,7 @@ export default function ModuleNasdaqTerminal() {
       <div className="min-h-[60vh] animate-fade-in" key={activeTab}>
         <ErrorBoundary fallbackTitle={`${activeTab.toUpperCase()} Tab Hatasi`}>
           <Suspense fallback={<TabSkeleton />}>
+            {activeTab === 'pulse' && <TabPulse onSelectSymbol={handleSelectSymbol} />}
             {activeTab === 'stocks' && <TabStocks onSelectSymbol={handleSelectSymbol} />}
             {activeTab === 'market' && <TabMarket onSelectSymbol={handleSelectSymbol} />}
             {activeTab === 'stock' && (

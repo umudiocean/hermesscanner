@@ -34,7 +34,7 @@ function safeNum(v: unknown): number {
 function DominanceBar({ label, value, color, maxWidth = 80 }: { label: string; value: number; color: string; maxWidth?: number }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-[11px] text-white/40 w-16 shrink-0">{label}</span>
+      <span className="text-[11px] text-white/50 w-16 shrink-0">{label}</span>
       <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all duration-700 ${color}`}
           style={{ width: `${Math.min(value, maxWidth)}%` }} />
@@ -48,7 +48,7 @@ function TrendIndicator({ label, value, change }: { label: string; value: string
   const isUp = (change ?? 0) >= 0
   return (
     <div className="flex items-center justify-between py-1.5 border-b border-white/[0.03] last:border-0">
-      <span className="text-[11px] text-white/40">{label}</span>
+      <span className="text-[11px] text-white/50">{label}</span>
       <div className="flex items-center gap-2">
         <span className="text-xs font-bold text-white tabular-nums">{value}</span>
         {change != null && (
@@ -89,8 +89,8 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
       ))}
     </div>
   )
-  if (error) return <div className="text-center py-20 text-white/40">{error}</div>
-  if (!data) return <div className="text-center py-20 text-white/30">Veri bulunamadi</div>
+  if (error) return <div className="text-center py-20 text-white/50">{error}</div>
+  if (!data) return <div className="text-center py-20 text-white/40">Veri bulunamadi</div>
 
   const fg = data.fearGreed
   const global = data.global
@@ -124,10 +124,10 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
             <Target size={20} className={trendColor} />
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-white/40 uppercase tracking-wider">Ana Trend</span>
+                <span className="text-xs text-white/50 uppercase tracking-wider">Ana Trend</span>
                 <span className={`text-sm font-black ${trendColor}`}>{mainTrend}</span>
               </div>
-              <p className="text-[10px] text-white/25 mt-0.5">
+              <p className="text-[10px] text-white/35 mt-0.5">
                 Toplam piyasa degeri 24s degisim: {mcapChange >= 0 ? '+' : ''}{mcapChange.toFixed(2)}%
               </p>
             </div>
@@ -186,13 +186,13 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
                 const v = safeNum(val)
                 return (
                   <div key={key} className="bg-white/[0.02] rounded-lg p-2">
-                    <div className="text-[9px] text-white/25 mb-1">{labels[key] || key}</div>
+                    <div className="text-[9px] text-white/35 mb-1">{labels[key] || key}</div>
                     <div className="flex items-center gap-1.5">
                       <div className="flex-1 h-1.5 bg-white/[0.04] rounded-full overflow-hidden">
                         <div className={`h-full rounded-full ${v >= 60 ? 'bg-emerald-500' : v >= 40 ? 'bg-slate-400' : 'bg-red-500'}`}
                           style={{ width: `${v}%` }} />
                       </div>
-                      <span className="text-[10px] text-white/50 tabular-nums w-6 text-right">{Math.round(v)}</span>
+                      <span className="text-[10px] text-white/60 tabular-nums w-6 text-right">{Math.round(v)}</span>
                     </div>
                   </div>
                 )
@@ -204,7 +204,7 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
           {data.alternativeFG && (
             <div className="mt-3 p-2.5 bg-white/[0.02] rounded-xl border border-white/[0.04]">
               <div className="flex items-center justify-between">
-                <span className="text-[9px] text-white/30 uppercase tracking-wider font-bold">Alternative.me F&G (Bagimsiz)</span>
+                <span className="text-[9px] text-white/40 uppercase tracking-wider font-bold">Alternative.me F&G (Bagimsiz)</span>
                 <div className="flex items-center gap-2">
                   <span className={`text-sm font-black tabular-nums ${
                     data.alternativeFG.current <= 25 ? 'text-red-500' :
@@ -213,26 +213,26 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
                     data.alternativeFG.current <= 75 ? 'text-emerald-400' :
                     'text-emerald-300'
                   }`}>{data.alternativeFG.current}</span>
-                  <span className="text-[10px] text-white/50">{data.alternativeFG.label}</span>
+                  <span className="text-[10px] text-white/60">{data.alternativeFG.label}</span>
                 </div>
               </div>
               <div className="flex gap-3 mt-1.5">
                 {data.alternativeFG.yesterday != null && (
                   <div className="text-[9px]">
-                    <span className="text-white/20">Dun: </span>
-                    <span className="text-white/50 tabular-nums">{data.alternativeFG.yesterday}</span>
+                    <span className="text-white/40">Dun: </span>
+                    <span className="text-white/60 tabular-nums">{data.alternativeFG.yesterday}</span>
                   </div>
                 )}
                 {data.alternativeFG.weekAgo != null && (
                   <div className="text-[9px]">
-                    <span className="text-white/20">1 Hafta: </span>
-                    <span className="text-white/50 tabular-nums">{data.alternativeFG.weekAgo}</span>
+                    <span className="text-white/40">1 Hafta: </span>
+                    <span className="text-white/60 tabular-nums">{data.alternativeFG.weekAgo}</span>
                   </div>
                 )}
                 {data.alternativeFG.monthAgo != null && (
                   <div className="text-[9px]">
-                    <span className="text-white/20">1 Ay: </span>
-                    <span className="text-white/50 tabular-nums">{data.alternativeFG.monthAgo}</span>
+                    <span className="text-white/40">1 Ay: </span>
+                    <span className="text-white/60 tabular-nums">{data.alternativeFG.monthAgo}</span>
                   </div>
                 )}
               </div>
@@ -303,9 +303,9 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1">
                     <span className="text-xs font-bold text-white truncate">{item.symbol}</span>
-                    <span className="text-[10px] text-white/20">#{item.market_cap_rank}</span>
+                    <span className="text-[10px] text-white/40">#{item.market_cap_rank}</span>
                   </div>
-                  <span className="text-[10px] text-white/30 truncate block">{item.name}</span>
+                  <span className="text-[10px] text-white/40 truncate block">{item.name}</span>
                 </div>
                 {item.data?.price_change_percentage_24h?.usd != null && (
                   <span className={`text-[11px] font-medium tabular-nums ${
@@ -335,7 +335,7 @@ function StatCard({ label, value, icon, change }: { label: string; value: string
     <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-3 hover:border-white/[0.12] hover:shadow-md hover:shadow-black/20 transition-all duration-300">
       <div className="flex items-center gap-1.5 mb-1">
         {icon}
-        <span className="text-[10px] text-white/30 uppercase tracking-wider">{label}</span>
+        <span className="text-[10px] text-white/40 uppercase tracking-wider">{label}</span>
       </div>
       <div className="flex items-center gap-2">
         <div className="text-base sm:text-lg font-bold text-white tabular-nums">{value}</div>
@@ -366,12 +366,12 @@ function MoverList({ title, icon, coins, onSelectCoin, isGainer }: {
             className="w-full flex items-center justify-between p-1.5 rounded-lg hover:bg-white/[0.04] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-white/20 w-4">{i + 1}</span>
+              <span className="text-[10px] text-white/40 w-4">{i + 1}</span>
               {coin.image && <img src={coin.image} alt={coin.symbol} className="w-4 h-4 rounded-full" loading="lazy" />}
               <span className="text-xs font-medium text-white">{coin.symbol?.toUpperCase()}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-white/40 tabular-nums">{formatPrice(coin.current_price)}</span>
+              <span className="text-xs text-white/50 tabular-nums">{formatPrice(coin.current_price)}</span>
               <span className={`text-xs font-medium tabular-nums ${isGainer ? 'text-emerald-400' : 'text-red-400'}`}>
                 {(coin.price_change_percentage_24h ?? 0) >= 0 ? '+' : ''}
                 {(coin.price_change_percentage_24h ?? 0).toFixed(2)}%
@@ -379,7 +379,7 @@ function MoverList({ title, icon, coins, onSelectCoin, isGainer }: {
             </div>
           </button>
         ))}
-        {coins.length === 0 && <span className="text-xs text-white/20">Veri bekleniyor...</span>}
+        {coins.length === 0 && <span className="text-xs text-white/40">Veri bekleniyor...</span>}
       </div>
     </div>
   )

@@ -241,6 +241,16 @@ export async function GET(
     scoreInput.marketCap = profile.mktCap ?? 0
     scoreInput.beta = profile.beta ?? 0
 
+    // 52W Range + P/S from profile.range and keyMetrics
+    if (profile.range) {
+      const parts = profile.range.split('-')
+      const lo = parseFloat(parts[0])
+      const hi = parseFloat(parts[1])
+      if (!isNaN(lo) && lo > 0) scoreInput.yearLow = lo
+      if (!isNaN(hi) && hi > 0) scoreInput.yearHigh = hi
+    }
+    scoreInput.priceToSales = keyMetrics?.priceToSalesRatioTTM ?? 0
+
     const fmpScore = computeFMPScore(scoreInput)
 
     const detail: StockDetailData = {

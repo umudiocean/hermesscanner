@@ -113,7 +113,7 @@ export function PremiumGauge({ value, size = 140, label, sublabel }: {
           {label || c.text}
         </span>
       </div>
-      {sublabel && <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold mt-1">{sublabel}</span>}
+      {sublabel && <span className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mt-1">{sublabel}</span>}
     </div>
   )
 }
@@ -146,7 +146,7 @@ export function FearGreedBar({ value, label }: { value: number; label?: string }
       </div>
       <div className="flex justify-between mt-1 px-0.5">
         {['Asiri Korku', 'Korku', 'Notr', 'Acgozluluk', 'Asiri Acgozluluk'].map((t, i) => (
-          <span key={i} className="text-[8px] text-white/25">{t}</span>
+          <span key={i} className="text-[8px] text-white/35">{t}</span>
         ))}
       </div>
     </div>
@@ -165,9 +165,9 @@ export function AILoading({ text = 'Neural Core analiz ediyor', subText }: { tex
         </div>
       </div>
       <div className="text-center">
-        <p className="text-sm text-white/50 font-medium gold-shimmer">{text}</p>
-        {subText && <p className="text-xs text-white/25 mt-1">{subText}</p>}
-        <p className="text-[10px] text-white/15 mt-2 tracking-widest">HERMES AI NEURAL CORE</p>
+        <p className="text-sm text-white/60 font-medium gold-shimmer">{text}</p>
+        {subText && <p className="text-xs text-white/35 mt-1">{subText}</p>}
+        <p className="text-[10px] text-white/35 mt-2 tracking-widest">HERMES AI NEURAL CORE</p>
       </div>
     </div>
   )
@@ -210,7 +210,7 @@ export function EmptyState({ icon = '💎', title, description, actionLabel, onA
         </div>
       </div>
       <h3 className="text-lg font-bold text-white/60 mb-1">{title}</h3>
-      {description && <p className="text-sm text-white/30 max-w-sm">{description}</p>}
+      {description && <p className="text-sm text-white/40 max-w-sm">{description}</p>}
       {actionLabel && onAction && (
         <button onClick={onAction}
           className="mt-5 px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold-600 to-gold-400 text-white font-medium text-sm
@@ -247,7 +247,7 @@ export const SignalBadge = memo(function SignalBadge({ type, label, compact = fa
 export const ScoreMiniBar = memo(function ScoreMiniBar({ value, maxWidth = 48 }: { value: number; maxWidth?: number }) {
   const clamped = Math.max(0, Math.min(100, value))
   const color = clamped >= 75 ? '#B3945B' : clamped >= 60 ? '#62cbc1' : clamped >= 40 ? '#94a3b8' : clamped >= 25 ? '#fb923c' : '#ef4444'
-  const textColor = clamped >= 75 ? 'text-amber-400' : clamped >= 60 ? 'text-hermes-green' : clamped >= 40 ? 'text-white/50' : clamped >= 25 ? 'text-orange-400' : 'text-red-400'
+  const textColor = clamped >= 75 ? 'text-amber-400' : clamped >= 60 ? 'text-hermes-green' : clamped >= 40 ? 'text-white/60' : clamped >= 25 ? 'text-orange-400' : 'text-red-400'
   return (
     <div className="flex items-center gap-1.5">
       <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden" style={{ width: maxWidth }}>
@@ -290,7 +290,7 @@ export function TimeAgo({ timestamp }: { timestamp: Date | number | string }) {
     const iv = setInterval(update, 10000)
     return () => clearInterval(iv)
   }, [timestamp])
-  return <span className="text-[10px] text-white/30 tabular-nums">{text}</span>
+  return <span className="text-[10px] text-white/40 tabular-nums">{text}</span>
 }
 
 // ─── TargetFloorBar — mini range bar for Target/Floor/R:R ────────

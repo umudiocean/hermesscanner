@@ -137,7 +137,7 @@ const MATURITY_COLOR: Record<MaturityLabel, string> = {
   'GELISEN': 'text-blue-400',
   'GENC': 'text-amber-400',
   'YENI': 'text-red-400',
-  '': 'text-white/20',
+  '': 'text-white/40',
 }
 
 function valuationRank(v: ValuationLabel): number {
@@ -157,7 +157,7 @@ const VALUATION_STYLE: Record<ValuationLabel, string> = {
   'NORMAL': 'text-slate-300 bg-white/[0.04]',
   'PAHALI': 'text-orange-400 bg-orange-500/10',
   'COK PAHALI': 'text-red-400 bg-red-500/10',
-  '': 'text-white/20',
+  '': 'text-white/40',
 }
 
 function CoinCategoryTags({ coin }: { coin: CryptoTerminalCoin }) {
@@ -195,10 +195,10 @@ function ScoreWithBreakdown({ coin, sigCfg }: { coin: CryptoTerminalCoin; sigCfg
 }
 
 function ChangeCell({ value }: { value: number }) {
-  if (value == null) return <span className="text-white/20">-</span>
+  if (value == null) return <span className="text-white/40">-</span>
   const isPos = value > 0
   return (
-    <span className={`text-xs tabular-nums font-medium ${isPos ? 'text-emerald-400' : value < 0 ? 'text-red-400' : 'text-white/30'}`}>
+    <span className={`text-xs tabular-nums font-medium ${isPos ? 'text-emerald-400' : value < 0 ? 'text-red-400' : 'text-white/40'}`}>
       {isPos ? '+' : ''}{value.toFixed(2)}%
     </span>
   )
@@ -402,13 +402,13 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[40vh]">
       <span className="text-2xl sm:text-3xl mb-2 sm:mb-3">&#9888;</span>
-      <p className="text-white/50 text-sm">{error}</p>
+      <p className="text-white/60 text-sm">{error}</p>
     </div>
   )
 
   const SortHeader = ({ field, children, className = '', align = 'left', tip }: { field: SortField; children: React.ReactNode; className?: string; align?: 'left' | 'right' | 'center'; tip?: string }) => (
     <th
-      className={`py-2.5 text-[10px] font-bold text-white/30 uppercase tracking-wider cursor-pointer hover:text-white/60 transition-colors whitespace-nowrap ${className}`}
+      className={`py-2.5 text-[10px] font-bold text-white/40 uppercase tracking-wider cursor-pointer hover:text-white/60 transition-colors whitespace-nowrap ${className}`}
       onClick={() => handleSort(field)}
       title={tip}
     >
@@ -518,11 +518,11 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
           )}
           <button
             onClick={() => { setSignalFilter(null); setQuickFilter(null) }}
-            className="text-[10px] text-white/20 hover:text-white/50 underline transition-colors"
+            className="text-[10px] text-white/40 hover:text-white/60 underline transition-colors"
           >
             Tum filtreleri kaldir
           </button>
-          <span className="text-[11px] text-white/30 ml-auto tabular-nums">{filtered.length} sonuc</span>
+          <span className="text-[11px] text-white/40 ml-auto tabular-nums">{filtered.length} sonuc</span>
         </div>
       )}
 
@@ -547,8 +547,8 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
               F&G: {fearGreed.index} — {fearGreed.label}
             </span>
           )}
-          <span className="text-[11px] text-white/25">{filtered.length.toLocaleString()} / {coins.length.toLocaleString()} coin</span>
-          <span className="text-[11px] text-white/15">Sayfa {serverPage} / {totalPages} ({totalEstimate.toLocaleString()} toplam)</span>
+          <span className="text-[11px] text-white/35">{filtered.length.toLocaleString()} / {coins.length.toLocaleString()} coin</span>
+          <span className="text-[11px] text-white/35">Sayfa {serverPage} / {totalPages} ({totalEstimate.toLocaleString()} toplam)</span>
         </div>
       </div>
 
@@ -570,12 +570,12 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <button onClick={(e) => handleToggleWatch(e, coin.id)} className="p-0.5">
-                    <Star size={14} className={isWatched ? 'text-amber-400 fill-amber-400' : 'text-white/15'} />
+                    <Star size={14} className={isWatched ? 'text-amber-400 fill-amber-400' : 'text-white/35'} />
                   </button>
                   <img src={coin.image} alt={coin.symbol} className="w-6 h-6 rounded-full" loading="lazy" />
                   <div>
                     <span className="text-sm font-bold text-white">{coin.symbol.toUpperCase()}</span>
-                    <span className="text-[10px] text-white/30 ml-1.5">#{coin.marketCapRank}</span>
+                    <span className="text-[10px] text-white/40 ml-1.5">#{coin.marketCapRank}</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -584,7 +584,7 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[10px] text-white/30">
+                <div className="flex items-center gap-2 text-[10px] text-white/40">
                   <span>MCap: {formatMcap(coin.marketCap)}</span>
                   <span>Vol: {formatMcap(coin.volume24h)}</span>
                 </div>
@@ -628,20 +628,20 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
           </colgroup>
           <thead className="sticky top-0 bg-[#0c0c14] z-10">
             <tr>
-              <th className="py-2.5 pl-2 pr-0 text-[10px] font-bold text-white/30" title="Izleme listesine ekle/cikar"></th>
+              <th className="py-2.5 pl-2 pr-0 text-[10px] font-bold text-white/40" title="Izleme listesine ekle/cikar"></th>
               <SortHeader field="marketCapRank" className="pl-1 pr-1" align="left" tip="Piyasa degeri sirasina gore rank">#</SortHeader>
-              <th className="py-2.5 px-2 text-[10px] font-bold text-white/30 uppercase tracking-wider" title="Coin adi, sembol ve kategori etiketleri">Coin</th>
+              <th className="py-2.5 px-2 text-[10px] font-bold text-white/40 uppercase tracking-wider" title="Coin adi, sembol ve kategori etiketleri">Coin</th>
               <SortHeader field="price" className="px-2" align="right" tip="Guncel USD fiyati">Fiyat</SortHeader>
               <SortHeader field="score" className="px-2" align="right" tip="HERMES AI skor bazli sinyal seviyesi (GUCLU/IYI/NOTR/ZAYIF/KOTU)">Sinyal</SortHeader>
               <SortHeader field="score" className="px-1" align="center" tip="HERMES AI toplam skor (0-100) — 8 kategorinin agirlikli ortalamasi">Skor</SortHeader>
               <SortHeader field="confidence" className="px-1" align="center" tip="Veri kalitesi guveni — kac kategoride gercek veri var (%30-95)">Guven</SortHeader>
               <SortHeader field="valuation" className="px-1" align="center" tip="ATH mesafesi + FDV/MCap orani + arz oranina gore fiyatlama etiketi">Fiyatlama</SortHeader>
               <SortHeader field="risk" className="px-1" align="center" tip="Likidite, FDV dilution, ATH mesafesi ve piyasa degerine gore risk skoru (0-100)">Risk</SortHeader>
-              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-center cursor-default" title="Asiri Deger Skoru — FDV/MCap, ATH yakinligi, balina yogunlugu, momentum yorgunlugu">Overval</th>
-              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-center cursor-default" title="Crypto Health Index — TVL trendi, holder buyumesi, borsa sagligi, likidite derinligi, gelistirici aktivitesi">CHI</th>
-              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-right cursor-default hidden xl:table-cell" title="Hedef Fiyat — Fibonacci + Fair Value + Momentum + TVL/MCap hibrit hesaplama">Hedef</th>
-              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-right cursor-default hidden xl:table-cell" title="Dip Fiyat — Fibonacci destek + FDV/MCap basinci + Saglik endeksi">Dip</th>
-              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-center cursor-default hidden xl:table-cell" title="Risk/Odul orani — yuksek = olumlu">R:R</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/40 uppercase tracking-wider text-center cursor-default" title="Asiri Deger Skoru — FDV/MCap, ATH yakinligi, balina yogunlugu, momentum yorgunlugu">Overval</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/40 uppercase tracking-wider text-center cursor-default" title="Crypto Health Index — TVL trendi, holder buyumesi, borsa sagligi, likidite derinligi, gelistirici aktivitesi">CHI</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/40 uppercase tracking-wider text-right cursor-default hidden xl:table-cell" title="Hedef Fiyat — Fibonacci + Fair Value + Momentum + TVL/MCap hibrit hesaplama">Hedef</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/40 uppercase tracking-wider text-right cursor-default hidden xl:table-cell" title="Dip Fiyat — Fibonacci destek + FDV/MCap basinci + Saglik endeksi">Dip</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/40 uppercase tracking-wider text-center cursor-default hidden xl:table-cell" title="Risk/Odul orani — yuksek = olumlu">R:R</th>
               <SortHeader field="change1h" className="px-1.5" align="right" tip="Son 1 saatteki fiyat degisimi (%)">1s</SortHeader>
               <SortHeader field="change24h" className="px-1.5" align="right" tip="Son 24 saatteki fiyat degisimi (%)">24s</SortHeader>
               <SortHeader field="change7d" className="px-1.5" align="right" tip="Son 7 gundeki fiyat degisimi (%)">7g</SortHeader>
@@ -652,7 +652,7 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
               <SortHeader field="supplyRatio" className="px-1" align="right" tip="Dolasimdaki arz / Toplam arz orani — yuksek = daha az dilution riski">Arz%</SortHeader>
               <SortHeader field="fdvMcap" className="px-1" align="right" tip="Fully Diluted Valuation / Market Cap — yuksek = gelecekte arz basinci riski">FDV/MC</SortHeader>
               <SortHeader field="volumeToMcap" className="px-1.5" align="right" tip="Hacim/Piyasa degeri orani — yuksek likidite ve ilgi gostergesi">V/MC</SortHeader>
-              <th className="py-2.5 px-1 text-[10px] font-bold text-white/30 uppercase tracking-wider text-center" title="Son 7 gunluk fiyat hareketi grafigi">7g</th>
+              <th className="py-2.5 px-1 text-[10px] font-bold text-white/40 uppercase tracking-wider text-center" title="Son 7 gunluk fiyat hareketi grafigi">7g</th>
             </tr>
           </thead>
           <tbody>
@@ -669,17 +669,17 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                 >
                   <td className="pl-2 pr-0 py-2">
                     <button onClick={(e) => handleToggleWatch(e, coin.id)} className="p-0.5 hover:scale-110 transition-transform">
-                      <Star size={13} className={isWatched ? 'text-amber-400 fill-amber-400' : 'text-white/10 hover:text-white/30'} />
+                      <Star size={13} className={isWatched ? 'text-amber-400 fill-amber-400' : 'text-white/10 hover:text-white/40'} />
                     </button>
                   </td>
-                  <td className="pl-1 pr-1 py-2 text-[11px] text-white/30 tabular-nums">{coin.marketCapRank}</td>
+                  <td className="pl-1 pr-1 py-2 text-[11px] text-white/40 tabular-nums">{coin.marketCapRank}</td>
                   <td className="px-2 py-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <img src={coin.image} alt={coin.symbol} className="w-5 h-5 rounded-full flex-shrink-0" loading="lazy" />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1">
                           <span className="text-[11px] font-bold text-white">{coin.symbol.toUpperCase()}</span>
-                          <span className="text-[10px] text-white/20 hidden xl:inline truncate">{coin.name}</span>
+                          <span className="text-[10px] text-white/40 hidden xl:inline truncate">{coin.name}</span>
                         </div>
                         <CoinCategoryTags coin={coin} />
                       </div>
@@ -692,29 +692,29 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                         {sigCfg.icon} {sigCfg.label}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-white/15">-</span>
+                      <span className="text-[10px] text-white/35">-</span>
                     )}
                   </td>
                   <td className="px-1 py-2 text-center">
                     {coin.score ? (
                       <ScoreWithBreakdown coin={coin} sigCfg={sigCfg} />
                     ) : (
-                      <span className="text-[10px] text-white/15">-</span>
+                      <span className="text-[10px] text-white/35">-</span>
                     )}
                   </td>
                   <td className="px-1 py-2 text-center">
                     {coin.score ? (
-                      <span className={`text-[10px] font-semibold tabular-nums ${coin.score.confidence >= 80 ? 'text-amber-400' : coin.score.confidence >= 50 ? 'text-white/60' : 'text-white/25'}`}>
+                      <span className={`text-[10px] font-semibold tabular-nums ${coin.score.confidence >= 80 ? 'text-amber-400' : coin.score.confidence >= 50 ? 'text-white/60' : 'text-white/35'}`}>
                         %{Math.round(coin.score.confidence)}
                       </span>
-                    ) : <span className="text-[10px] text-white/15">—</span>}
+                    ) : <span className="text-[10px] text-white/35">—</span>}
                   </td>
                   <td className="px-1 py-2 text-center">
                     {(() => {
                       const vl = computeValuation(coin)
                       return vl ? (
                         <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded ${VALUATION_STYLE[vl]}`}>{vl}</span>
-                      ) : <span className="text-[10px] text-white/15">—</span>
+                      ) : <span className="text-[10px] text-white/35">—</span>
                     })()}
                   </td>
                   <td className="px-1 py-2 text-center">
@@ -732,7 +732,7 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                       <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${
                         coin.overvaluation.level === 'EXTREME' ? 'text-red-400 bg-red-500/15' :
                         coin.overvaluation.level === 'HIGH' ? 'text-orange-400 bg-orange-500/10' :
-                        coin.overvaluation.level === 'MODERATE' ? 'text-white/50 bg-white/[0.04]' :
+                        coin.overvaluation.level === 'MODERATE' ? 'text-white/60 bg-white/[0.04]' :
                         coin.overvaluation.level === 'FAIR' ? 'text-emerald-400 bg-emerald-500/10' :
                         'text-emerald-300 bg-emerald-500/15'
                       }`}>
@@ -741,7 +741,7 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                          coin.overvaluation.level === 'MODERATE' ? 'ORTA' :
                          coin.overvaluation.level === 'FAIR' ? 'UYGUN' : 'UCUZ'}
                       </span>
-                    ) : <span className="text-[10px] text-white/15">—</span>}
+                    ) : <span className="text-[10px] text-white/35">—</span>}
                   </td>
                   <td className="px-1 py-2 text-center">
                     {coin.healthIndex ? (
@@ -755,21 +755,21 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                          coin.healthIndex.level === 'CAUTION' ? 'DIKKAT' :
                          coin.healthIndex.level === 'RISKY' ? 'RISKLI' : 'KRITIK'}
                       </span>
-                    ) : <span className="text-[10px] text-white/15">—</span>}
+                    ) : <span className="text-[10px] text-white/35">—</span>}
                   </td>
                   <td className="px-1 py-2 text-right hidden xl:table-cell">
                     {coin.priceTarget ? (
                       <span className={`text-[10px] font-mono font-semibold ${coin.priceTarget.targetPct >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
                         ${coin.priceTarget.targetPrice < 1 ? coin.priceTarget.targetPrice.toPrecision(4) : coin.priceTarget.targetPrice.toFixed(2)}
                       </span>
-                    ) : <span className="text-[10px] text-white/15">—</span>}
+                    ) : <span className="text-[10px] text-white/35">—</span>}
                   </td>
                   <td className="px-1 py-2 text-right hidden xl:table-cell">
                     {coin.priceTarget ? (
                       <span className="text-[10px] font-mono text-red-400/80">
                         ${coin.priceTarget.floorPrice < 1 ? coin.priceTarget.floorPrice.toPrecision(4) : coin.priceTarget.floorPrice.toFixed(2)}
                       </span>
-                    ) : <span className="text-[10px] text-white/15">—</span>}
+                    ) : <span className="text-[10px] text-white/35">—</span>}
                   </td>
                   <td className="px-1 py-2 text-center hidden xl:table-cell">
                     {coin.priceTarget ? (
@@ -777,14 +777,14 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                         coin.priceTarget.riskReward >= 2 ? 'text-hermes-green' :
                         coin.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
                       }`}>{coin.priceTarget.riskReward.toFixed(1)}</span>
-                    ) : <span className="text-[10px] text-white/15">—</span>}
+                    ) : <span className="text-[10px] text-white/35">—</span>}
                   </td>
                   <td className="px-1.5 py-2 text-right"><ChangeCell value={coin.change1h} /></td>
                   <td className="px-1.5 py-2 text-right"><ChangeCell value={coin.change24h} /></td>
                   <td className="px-1.5 py-2 text-right"><ChangeCell value={coin.change7d} /></td>
                   <td className="px-1.5 py-2 text-right"><ChangeCell value={coin.change30d} /></td>
-                  <td className="px-2 py-2 text-right text-[11px] text-white/50 tabular-nums whitespace-nowrap">{formatMcap(coin.marketCap)}</td>
-                  <td className="px-2 py-2 text-right text-[11px] text-white/40 tabular-nums whitespace-nowrap">{formatMcap(coin.volume24h)}</td>
+                  <td className="px-2 py-2 text-right text-[11px] text-white/60 tabular-nums whitespace-nowrap">{formatMcap(coin.marketCap)}</td>
+                  <td className="px-2 py-2 text-right text-[11px] text-white/50 tabular-nums whitespace-nowrap">{formatMcap(coin.volume24h)}</td>
                   <td className="px-1 py-2 text-right text-[10px] tabular-nums whitespace-nowrap">
                     {coin.tvl && coin.tvl > 0 ? (
                       <span className="text-purple-400/80">{formatMcap(coin.tvl)}</span>
@@ -794,10 +794,10 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                     {(() => {
                       const sr = computeSupplyRatio(coin)
                       return sr > 0 ? (
-                        <span className={`text-[10px] tabular-nums font-medium ${sr >= 80 ? 'text-emerald-400' : sr >= 50 ? 'text-white/50' : 'text-orange-400'}`}>
+                        <span className={`text-[10px] tabular-nums font-medium ${sr >= 80 ? 'text-emerald-400' : sr >= 50 ? 'text-white/60' : 'text-orange-400'}`}>
                           {sr.toFixed(0)}%
                         </span>
-                      ) : <span className="text-[10px] text-white/15">—</span>
+                      ) : <span className="text-[10px] text-white/35">—</span>
                     })()}
                   </td>
                   <td className="px-1 py-2 text-right">
@@ -807,11 +807,11 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                         <span className={`text-[10px] tabular-nums font-medium ${fdr > 3 ? 'text-red-400' : fdr > 1.5 ? 'text-orange-400' : 'text-emerald-400'}`}>
                           {fdr.toFixed(1)}x
                         </span>
-                      ) : <span className="text-[10px] text-white/15">—</span>
+                      ) : <span className="text-[10px] text-white/35">—</span>
                     })()}
                   </td>
                   <td className="px-1.5 py-2 text-right">
-                    <span className={`text-[10px] tabular-nums font-medium ${volMcRatio >= 0.15 ? 'text-amber-400' : volMcRatio >= 0.05 ? 'text-white/50' : 'text-white/20'}`}>
+                    <span className={`text-[10px] tabular-nums font-medium ${volMcRatio >= 0.15 ? 'text-amber-400' : volMcRatio >= 0.05 ? 'text-white/60' : 'text-white/40'}`}>
                       {(volMcRatio * 100).toFixed(1)}%
                     </span>
                   </td>
@@ -847,14 +847,14 @@ function PaginationControls({ serverPage, totalPages, totalEstimate, filteredCou
         <button
           onClick={() => onPageChange(1)}
           disabled={serverPage === 1}
-          className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/8 text-[10px] text-white/40 hover:text-white disabled:opacity-20 transition-colors"
+          className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/8 text-[10px] text-white/50 hover:text-white disabled:opacity-20 transition-colors"
         >
           Ilk
         </button>
         <button
           onClick={() => onPageChange(Math.max(1, serverPage - 1))}
           disabled={serverPage === 1}
-          className="p-1.5 rounded-lg bg-white/[0.04] border border-white/8 text-white/40 hover:text-white disabled:opacity-20 transition-colors"
+          className="p-1.5 rounded-lg bg-white/[0.04] border border-white/8 text-white/50 hover:text-white disabled:opacity-20 transition-colors"
         >
           <ChevronLeft size={16} />
         </button>
@@ -873,7 +873,7 @@ function PaginationControls({ serverPage, totalPages, totalEstimate, filteredCou
                 className={`w-8 h-8 rounded-lg text-xs font-bold tabular-nums transition-all
                   ${pageNum === serverPage
                     ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
-                    : 'bg-white/[0.03] border border-white/[0.04] text-white/30 hover:text-white/60 hover:bg-white/[0.06]'
+                    : 'bg-white/[0.03] border border-white/[0.04] text-white/40 hover:text-white/60 hover:bg-white/[0.06]'
                   }`}
               >
                 {pageNum}
@@ -884,19 +884,19 @@ function PaginationControls({ serverPage, totalPages, totalEstimate, filteredCou
         <button
           onClick={() => onPageChange(Math.min(totalPages, serverPage + 1))}
           disabled={serverPage >= totalPages}
-          className="p-1.5 rounded-lg bg-white/[0.04] border border-white/8 text-white/40 hover:text-white disabled:opacity-20 transition-colors"
+          className="p-1.5 rounded-lg bg-white/[0.04] border border-white/8 text-white/50 hover:text-white disabled:opacity-20 transition-colors"
         >
           <ChevronRight size={16} />
         </button>
         <button
           onClick={() => onPageChange(totalPages)}
           disabled={serverPage >= totalPages}
-          className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/8 text-[10px] text-white/40 hover:text-white disabled:opacity-20 transition-colors"
+          className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/8 text-[10px] text-white/50 hover:text-white disabled:opacity-20 transition-colors"
         >
           Son
         </button>
       </div>
-      <div className="flex items-center justify-center gap-3 text-[10px] text-white/20">
+      <div className="flex items-center justify-center gap-3 text-[10px] text-white/40">
         <span>Sayfa {serverPage} / {totalPages}</span>
         <span>|</span>
         <span>#{(serverPage - 1) * 1000 + 1} - #{Math.min(serverPage * 1000, totalEstimate)}</span>
@@ -1016,7 +1016,7 @@ function CoinSearchInput({
 
   return (
     <div ref={containerRef} className="relative w-full sm:w-auto">
-      <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/25 z-10" />
+      <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/35 z-10" />
       <input
         ref={inputRef}
         type="text"
@@ -1030,7 +1030,7 @@ function CoinSearchInput({
       {search && (
         <button
           onClick={() => { setSearch(''); setAcOpen(false); setAcResults([]) }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors z-10"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors z-10"
         >
           <X size={13} />
         </button>
@@ -1045,7 +1045,7 @@ function CoinSearchInput({
       {acOpen && acResults.length > 0 && (
         <div className="absolute top-full left-0 mt-1 w-full sm:w-80 max-h-[320px] overflow-y-auto bg-[#151520] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50">
           <div className="px-3 py-1 border-b border-white/[0.04] flex items-center justify-between">
-            <span className="text-[10px] text-white/20">{acResults.length} sonuc (18,000+ coin)</span>
+            <span className="text-[10px] text-white/40">{acResults.length} sonuc (18,000+ coin)</span>
             {localCount === 0 && <span className="text-[9px] text-amber-400/40">Listede yok — tikla detay gor</span>}
           </div>
           {acResults.map((coin, idx) => (
@@ -1060,15 +1060,15 @@ function CoinSearchInput({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-white uppercase">{coin.symbol}</span>
-                  <span className="text-[10px] text-white/30 truncate">{coin.name}</span>
+                  <span className="text-[10px] text-white/40 truncate">{coin.name}</span>
                 </div>
                 {coin.matchedContract ? (
                   <div className="flex items-center gap-1 mt-0.5">
                     <span className="text-[8px] px-1 py-px rounded bg-violet-500/20 text-violet-300 border border-violet-500/20 font-medium uppercase">{coin.matchedContract.chain}</span>
-                    <span className="text-[9px] text-white/20 truncate font-mono">{coin.matchedContract.address.slice(0, 8)}...{coin.matchedContract.address.slice(-6)}</span>
+                    <span className="text-[9px] text-white/40 truncate font-mono">{coin.matchedContract.address.slice(0, 8)}...{coin.matchedContract.address.slice(-6)}</span>
                   </div>
                 ) : (
-                  <span className="text-[9px] text-white/15 truncate block">{coin.id}</span>
+                  <span className="text-[9px] text-white/35 truncate block">{coin.id}</span>
                 )}
               </div>
               <span className="text-[10px] text-amber-400/40 shrink-0">Detay →</span>
@@ -1080,7 +1080,7 @@ function CoinSearchInput({
       {/* No results message */}
       {acOpen && search.trim().length >= 2 && acResults.length === 0 && !acLoading && (
         <div className="absolute top-full left-0 mt-1 w-full sm:w-80 bg-[#151520] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 p-3 text-center">
-          <span className="text-[11px] text-white/25">Sonuc bulunamadi</span>
+          <span className="text-[11px] text-white/35">Sonuc bulunamadi</span>
         </div>
       )}
     </div>

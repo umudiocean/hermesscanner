@@ -59,7 +59,7 @@ export default function TabExchanges() {
     <div className="flex flex-col items-center justify-center min-h-[30vh] text-center">
       <AlertTriangle size={32} className="text-red-400/50 mb-3" />
       <p className="text-sm text-red-400">{error}</p>
-      <button onClick={() => window.location.reload()} className="mt-3 px-4 py-2 rounded-xl bg-white/[0.04] text-white/50 text-xs hover:bg-white/[0.08] transition-all">Yenile</button>
+      <button onClick={() => window.location.reload()} className="mt-3 px-4 py-2 rounded-xl bg-white/[0.04] text-white/60 text-xs hover:bg-white/[0.08] transition-all">Yenile</button>
     </div>
   )
 
@@ -69,10 +69,10 @@ export default function TabExchanges() {
         <div className="flex items-center gap-2">
           <Wallet size={16} className="text-amber-400" />
           <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Kripto Borsalari</h3>
-          <span className="text-[10px] text-white/20">{filtered.length}</span>
+          <span className="text-[10px] text-white/40">{filtered.length}</span>
         </div>
         <div className="relative w-full sm:w-auto">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/25" />
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/35" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Borsa ara..."
             className="w-full sm:w-48 pl-8 pr-3 py-1.5 text-xs bg-white/[0.04] border border-white/8 rounded-xl text-white placeholder-white/25 focus:outline-none focus:border-amber-500/30 focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300" />
         </div>
@@ -87,12 +87,12 @@ export default function TabExchanges() {
                 {ex.image && <img src={ex.image} alt={ex.name} className="w-6 h-6 rounded-full" loading="lazy" />}
                 <div>
                   <span className="text-sm font-bold text-white">{ex.name}</span>
-                  <span className="text-[10px] text-white/20 ml-1">#{ex.trust_score_rank}</span>
+                  <span className="text-[10px] text-white/40 ml-1">#{ex.trust_score_rank}</span>
                 </div>
               </div>
               <TrustBadge score={ex.trust_score} />
             </div>
-            <div className="flex items-center gap-3 mt-2 text-[10px] text-white/30">
+            <div className="flex items-center gap-3 mt-2 text-[10px] text-white/40">
               <span>Hacim: {(ex.trade_volume_24h_btc ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} BTC</span>
               {ex.country && <span>{ex.country}</span>}
             </div>
@@ -104,7 +104,7 @@ export default function TabExchanges() {
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-left">
           <thead className="sticky top-0 bg-[#0c0c14]">
-            <tr className="text-[10px] text-white/30 uppercase tracking-wider">
+            <tr className="text-[10px] text-white/40 uppercase tracking-wider">
               <th className="px-2 py-2">#</th>
               <th className="px-2 py-2">Borsa</th>
               <th className="px-2 py-2 text-center">Guven</th>
@@ -117,7 +117,7 @@ export default function TabExchanges() {
           <tbody>
             {filtered.slice(0, 50).map(ex => (
               <tr key={ex.id} className="border-b border-white/[0.03] hover:bg-amber-500/[0.03] transition-colors">
-                <td className="px-2 py-2 text-xs text-white/30">{ex.trust_score_rank}</td>
+                <td className="px-2 py-2 text-xs text-white/40">{ex.trust_score_rank}</td>
                 <td className="px-2 py-2">
                   <div className="flex items-center gap-2">
                     {ex.image && <img src={ex.image} alt={ex.name} className="w-5 h-5 rounded-full" loading="lazy" />}
@@ -125,10 +125,10 @@ export default function TabExchanges() {
                   </div>
                 </td>
                 <td className="px-2 py-2 text-center"><TrustBadge score={ex.trust_score} /></td>
-                <td className="px-2 py-2 text-right text-xs text-white/50 tabular-nums">{(ex.trade_volume_24h_btc ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                <td className="px-2 py-2 text-right text-xs text-white/40 tabular-nums">{(ex.trade_volume_24h_btc_normalized ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                <td className="px-2 py-2 text-xs text-white/30 hidden lg:table-cell">{ex.country || '-'}</td>
-                <td className="px-2 py-2 text-xs text-white/30 text-right hidden lg:table-cell">{ex.year_established || '-'}</td>
+                <td className="px-2 py-2 text-right text-xs text-white/60 tabular-nums">{(ex.trade_volume_24h_btc ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                <td className="px-2 py-2 text-right text-xs text-white/50 tabular-nums">{(ex.trade_volume_24h_btc_normalized ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                <td className="px-2 py-2 text-xs text-white/40 hidden lg:table-cell">{ex.country || '-'}</td>
+                <td className="px-2 py-2 text-xs text-white/40 text-right hidden lg:table-cell">{ex.year_established || '-'}</td>
               </tr>
             ))}
           </tbody>

@@ -1,6 +1,6 @@
 // ==================================================================
 // HERMES Scanner - Hisse Evreni
-// Kaynak: data/symbols.json (2054 trade-ready hisse — FMP 15dk verisi yeterli olanlar)
+// Kaynak: data/symbols.json (2064 trade-ready hisse — FMP 15dk verisi yeterli olanlar)
 // NASDAQ Terminal AI, Trade AI, AI Signals, Watchlist - bu liste
 // ==================================================================
 

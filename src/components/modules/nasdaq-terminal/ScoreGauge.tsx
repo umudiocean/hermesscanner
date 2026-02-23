@@ -134,7 +134,7 @@ export default function ScoreGauge({ score, size = 'lg', showLabel = true, anima
 
       {/* Confidence */}
       {score && score.confidence < 80 && (
-        <span className="text-[9px] text-white/30">
+        <span className="text-[9px] text-white/40">
           Veri: %{score.confidence}
         </span>
       )}

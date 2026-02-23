@@ -114,7 +114,7 @@ function PulseGauge({ score, label, size = 160 }: { score: number; label: string
           <span className="text-[9px] font-bold tracking-wider mt-0.5" style={{ color: t.color }}>{label || t.text}</span>
         </div>
       </div>
-      <span className="text-[10px] text-white/30 uppercase tracking-widest font-semibold mt-2">Piyasa Nabzi</span>
+      <span className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mt-2">Piyasa Nabzi</span>
     </div>
   )
 }
@@ -149,10 +149,10 @@ function StatCard({ title, value, sub, icon, color = 'text-gold-300', className 
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-1.5">
           <span className="text-base group-hover:scale-110 transition-transform duration-300">{icon}</span>
-          <span className="text-[10px] text-white/35 uppercase tracking-wider font-semibold">{title}</span>
+          <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">{title}</span>
         </div>
         <div className={`text-xl font-black tabular-nums ${color}`}>{typeof value === 'number' ? <AnimatedNumber value={value} /> : value}</div>
-        {sub && <div className="text-[10px] text-white/25 mt-0.5">{sub}</div>}
+        {sub && <div className="text-[10px] text-white/35 mt-0.5">{sub}</div>}
       </div>
     </div>
   )
@@ -167,7 +167,7 @@ function GaugeBar({ value, label, color, subLabel }: {
   return (
     <div className="group">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] text-white/35 uppercase tracking-wider font-semibold">{label}</span>
+        <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">{label}</span>
         <span className={`text-sm font-bold tabular-nums ${color}`}><AnimatedNumber value={value} /></span>
       </div>
       <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden relative">
@@ -175,7 +175,7 @@ function GaugeBar({ value, label, color, subLabel }: {
           <div className="absolute inset-0 rounded-full opacity-50" style={{ background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)`, backgroundSize: '200% 100%', animation: 'bar-sweep 2s linear infinite' }} />
         </div>
       </div>
-      {subLabel && <span className="text-[9px] text-white/20 mt-0.5 block">{subLabel}</span>}
+      {subLabel && <span className="text-[9px] text-white/40 mt-0.5 block">{subLabel}</span>}
     </div>
   )
 }
@@ -213,7 +213,7 @@ function SignalDistBar({ counts, total }: { counts: Record<string, number>; tota
               {isHov && (
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1a1a1a] border border-white/10 px-2.5 py-1 rounded-lg shadow-xl z-20 whitespace-nowrap animate-scale-pop">
                   <span className="text-[10px] font-bold" style={{ color: s.color }}>{s.label}: {count}</span>
-                  <span className="text-[10px] text-white/40 ml-1.5">({pct.toFixed(1)}%)</span>
+                  <span className="text-[10px] text-white/50 ml-1.5">({pct.toFixed(1)}%)</span>
                 </div>
               )}
             </div>
@@ -224,8 +224,8 @@ function SignalDistBar({ counts, total }: { counts: Record<string, number>; tota
         {segments.map(s => (
           <div key={s.key} className="flex items-center gap-1 group cursor-default" onMouseEnter={() => setHovered(s.key)} onMouseLeave={() => setHovered(null)}>
             <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${hovered === s.key ? 'scale-125' : ''}`} style={{ backgroundColor: s.color }} />
-            <span className={`text-[9px] transition-colors ${hovered === s.key ? 'text-white/70' : 'text-white/25'}`}>{s.label}</span>
-            <span className={`text-[10px] font-bold tabular-nums transition-colors ${hovered === s.key ? 'text-white/90' : 'text-white/40'}`}>{counts[s.key] || 0}</span>
+            <span className={`text-[9px] transition-colors ${hovered === s.key ? 'text-white/70' : 'text-white/35'}`}>{s.label}</span>
+            <span className={`text-[10px] font-bold tabular-nums transition-colors ${hovered === s.key ? 'text-white/90' : 'text-white/50'}`}>{counts[s.key] || 0}</span>
           </div>
         ))}
       </div>
@@ -234,6 +234,55 @@ function SignalDistBar({ counts, total }: { counts: Record<string, number>; tota
 }
 
 // ─── Sector Heatmap — glassmorphism cards + scan line ───
+function HermesIndexCard({ idx, compact = false }: { idx: { name: string; icon: string; tier: string; count: number; avg: number; strong: number; good: number; neutral: number; weak: number; bad: number; label: string; color: string }; compact?: boolean }) {
+  const tierBorder = idx.tier === 'official' ? 'border-violet-500/10 hover:border-violet-500/30' :
+    idx.tier === 'cap' ? 'border-blue-500/8 hover:border-blue-500/25' :
+    'border-amber-500/8 hover:border-amber-500/25'
+  return (
+    <div className={`group bg-[#0e0e0e] rounded-xl border ${tierBorder} ${compact ? 'p-2.5' : 'p-3 sm:p-4'} transition-all duration-500 overflow-hidden relative`}>
+      <div className="absolute inset-0 bg-gradient-to-br from-gold-400/[0.015] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className={compact ? 'text-sm' : 'text-base'}>{idx.icon}</span>
+            <div className="min-w-0">
+              <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-bold text-white/80 truncate block`}>{idx.name}</span>
+              <span className="text-[8px] text-white/30">{idx.count} hisse</span>
+            </div>
+          </div>
+          <div className="flex flex-col items-end flex-shrink-0">
+            <span className={`${compact ? 'text-lg' : 'text-2xl'} font-black tabular-nums leading-none`} style={{ color: idx.color }}>
+              <AnimatedNumber value={idx.avg} decimals={0} />
+            </span>
+            <span className="text-[8px] font-bold px-1 py-0.5 rounded-full mt-0.5" style={{ color: idx.color, backgroundColor: `${idx.color}12`, border: `1px solid ${idx.color}25` }}>
+              {idx.label}
+            </span>
+          </div>
+        </div>
+        <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden mb-1.5">
+          <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${idx.avg}%`, background: `linear-gradient(90deg, ${idx.color}50, ${idx.color})` }} />
+        </div>
+        <div className="flex h-2 rounded-full overflow-hidden gap-px mb-1">
+          {idx.strong > 0 && <div className="bg-amber-400 rounded-sm" style={{ flex: idx.strong }} />}
+          {idx.good > 0 && <div className="bg-emerald-400 rounded-sm" style={{ flex: idx.good }} />}
+          {idx.neutral > 0 && <div className="bg-slate-500/80 rounded-sm" style={{ flex: idx.neutral }} />}
+          {idx.weak > 0 && <div className="bg-orange-400 rounded-sm" style={{ flex: idx.weak }} />}
+          {idx.bad > 0 && <div className="bg-red-400 rounded-sm" style={{ flex: idx.bad }} />}
+        </div>
+        {!compact && (
+          <div className="flex flex-wrap justify-between text-[7px] text-white/35">
+            <span className="text-amber-400">{idx.strong}</span>
+            <span className="text-emerald-400">{idx.good}</span>
+            <span className="text-slate-400">{idx.neutral}</span>
+            <span className="text-orange-400">{idx.weak}</span>
+            <span className="text-red-400">{idx.bad}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; avgScore: number; avgChange: number; count: number; avgAiScore: number }> }) {
   if (sectorStats.length === 0) {
     return (
@@ -241,7 +290,7 @@ function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; a
         <div className="w-14 h-14 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center animate-empty-float mb-4">
           <span className="text-2xl">🗺️</span>
         </div>
-        <p className="text-sm text-white/30">Sektor verisi bekleniyor...</p>
+        <p className="text-sm text-white/40">Sektor verisi bekleniyor...</p>
       </div>
     )
   }
@@ -256,7 +305,7 @@ function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; a
           s.avgScore < 90 ? 'border-orange-500/15' : 'border-red-500/15'
         const textColor = s.avgScore <= 20 ? 'text-gold-300' :
           s.avgScore <= 30 ? 'text-hermes-green' :
-          s.avgScore < 70 ? 'text-white/50' :
+          s.avgScore < 70 ? 'text-white/60' :
           s.avgScore < 90 ? 'text-orange-400' : 'text-red-400'
         return (
           <div key={s.sector} className={`group relative rounded-xl border p-3 ${borderClass} bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] cursor-default overflow-hidden`}
@@ -268,7 +317,7 @@ function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; a
             <div className="relative z-10">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-semibold truncate text-white/60 max-w-[80%]">{shortSector(s.sector)}</span>
-                <span className="text-[9px] text-white/20 tabular-nums">{s.count}</span>
+                <span className="text-[9px] text-white/40 tabular-nums">{s.count}</span>
               </div>
               <div className="flex items-end justify-between mt-2">
                 <span className={`text-lg font-black tabular-nums ${textColor}`}>{s.avgScore.toFixed(0)}</span>
@@ -312,24 +361,24 @@ function TopMovers({ title, items, color, icon }: {
     <div>
       <div className="flex items-center gap-2 mb-2.5">
         <span className="text-sm">{icon}</span>
-        <span className="text-[10px] text-white/35 uppercase tracking-wider font-semibold">{title}</span>
+        <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">{title}</span>
       </div>
       <div className="space-y-1">
         {items.slice(0, 5).map((item, i) => (
           <div key={item.symbol} className="group flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-200 hover:translate-x-1 cursor-default" style={{ animationDelay: `${i * 60}ms` }}>
             <div className="flex items-center gap-2.5">
-              <span className="text-[10px] text-white/20 w-3 font-mono">{i + 1}</span>
+              <span className="text-[10px] text-white/40 w-3 font-mono">{i + 1}</span>
               <span className="text-xs font-bold text-white/80 group-hover:text-white transition-colors">{item.symbol}</span>
               <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold border ${
                 item.signalType === 'strong_long' ? 'bg-gold-400/10 text-gold-300 border-gold-400/20' :
                 item.signalType === 'long' ? 'bg-hermes-green/10 text-hermes-green border-hermes-green/20' :
                 item.signalType === 'short' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
                 item.signalType === 'strong_short' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                'bg-white/[0.04] text-white/30 border-white/[0.06]'
+                'bg-white/[0.04] text-white/40 border-white/[0.06]'
               }`}>{getSignalLabel(item.signalType)}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-[10px] text-white/30 tabular-nums font-mono">${item.price.toFixed(2)}</span>
+              <span className="text-[10px] text-white/40 tabular-nums font-mono">${item.price.toFixed(2)}</span>
               <span className={`text-xs font-bold tabular-nums ${color} group-hover:scale-110 transition-transform origin-right`}>
                 {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
               </span>
@@ -360,7 +409,7 @@ function TickerTape({ items }: { items: Array<{ symbol: string; price: number; c
         {doubled.map((item, i) => (
           <span key={`${item.symbol}-${i}`} className="flex items-center gap-1.5 text-[10px]">
             <span className="font-bold text-white/60">{item.symbol}</span>
-            <span className="text-white/35 tabular-nums font-mono">${item.price.toFixed(2)}</span>
+            <span className="text-white/45 tabular-nums font-mono">${item.price.toFixed(2)}</span>
             <span className={`font-semibold tabular-nums ${item.change >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
               {item.change >= 0 ? '▲' : '▼'}{Math.abs(item.change).toFixed(2)}%
             </span>
@@ -382,6 +431,7 @@ export default function ModuleHermesIndex() {
   const [marketData, setMarketData] = useState<MarketData>({})
   const [loadingFmp, setLoadingFmp] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [indexMembership, setIndexMembership] = useState<Record<string, string[]>>({})
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -390,13 +440,15 @@ export default function ModuleHermesIndex() {
     async function fetchData() {
       try {
         setLoadingFmp(true)
-        const [stocksRes, marketRes] = await Promise.all([
+        const [stocksRes, marketRes, macroRes] = await Promise.all([
           fetch('/api/fmp-terminal/stocks'),
           fetch('/api/fmp-terminal/market'),
+          fetch('/api/fmp-terminal/macro').catch(() => null),
         ])
         if (!cancelled) {
           if (stocksRes.ok) { const d = await stocksRes.json(); setFmpStocks(d.stocks || []) }
           if (marketRes.ok) { const d = await marketRes.json(); setMarketData(d) }
+          if (macroRes?.ok) { const d = await macroRes.json(); setIndexMembership(d.indexMembership || {}) }
         }
       } catch { /* silent */ } finally { if (!cancelled) setLoadingFmp(false) }
     }
@@ -427,7 +479,7 @@ export default function ModuleHermesIndex() {
     const longPct = (longs / n) * 100
     const shortPct = (shorts / n) * 100
     const direction = longPct > 60 ? 'STRONG LONG' : longPct > 45 ? 'LONG' : shortPct > 60 ? 'STRONG SHORT' : shortPct > 45 ? 'SHORT' : 'NOTR'
-    const dirColor = direction.includes('LONG') ? 'text-hermes-green' : direction.includes('SHORT') ? 'text-red-400' : 'text-white/50'
+    const dirColor = direction.includes('LONG') ? 'text-hermes-green' : direction.includes('SHORT') ? 'text-red-400' : 'text-white/60'
 
     const sectorMap = new Map<string, { scores: number[]; changes: number[]; aiScores: number[] }>()
     const fmpMap = new Map<string, FmpStock>()
@@ -474,6 +526,66 @@ export default function ModuleHermesIndex() {
     return { n, avgScore, avgRsi, avgMfi, avgChange, totalMcap, signalCounts, longs, shorts, neutrals, longPct, shortPct, direction, dirColor, sectorStats, avgAiScore, avgRisk, aiStrongCount, aiBadCount, topGainers, topLosers, topStrongLongs, topStrongShorts, marketPulse, tickerItems }
   }, [results, fmpStocks])
 
+  // Endeks bazli HERMES AI skor kartlari — 3 resmi + 7 sentetik = 10 endeks
+  const indexScoreCards = useMemo(() => {
+    if (fmpStocks.length === 0) return []
+    const fmpMap = new Map(fmpStocks.map(s => [s.symbol, s]))
+
+    // Resmi endeksler
+    const sp500Syms: string[] = []
+    const ndx100Syms: string[] = []
+    const djiaSyms: string[] = []
+    for (const [sym, idxList] of Object.entries(indexMembership)) {
+      if (idxList.includes('SP500')) sp500Syms.push(sym)
+      if (idxList.includes('NDX100')) ndx100Syms.push(sym)
+      if (idxList.includes('DJIA')) djiaSyms.push(sym)
+    }
+
+    // Sentetik endeksler — marketCap ve sektor bazli
+    const withMcap = fmpStocks.filter(s => s.marketCap > 0 && s.signalScore > 0)
+    const sorted = [...withMcap].sort((a, b) => b.marketCap - a.marketCap)
+    const megaSyms = sorted.filter(s => s.marketCap >= 200e9).map(s => s.symbol)
+    const largeSyms = sorted.filter(s => s.marketCap >= 10e9 && s.marketCap < 200e9).map(s => s.symbol)
+    const midSyms = sorted.filter(s => s.marketCap >= 2e9 && s.marketCap < 10e9).map(s => s.symbol)
+    const smallSyms = sorted.filter(s => s.marketCap >= 300e6 && s.marketCap < 2e9).map(s => s.symbol)
+    const techSyms = sorted.filter(s => s.sector === 'Technology').slice(0, 100).map(s => s.symbol)
+    const healthSyms = sorted.filter(s => s.sector === 'Healthcare').slice(0, 50).map(s => s.symbol)
+    const finSyms = sorted.filter(s => s.sector === 'Financial Services').slice(0, 50).map(s => s.symbol)
+
+    type IdxDef = { name: string; icon: string; tier: 'official' | 'cap' | 'sector'; members: string[] }
+    function calcIndexStats(def: IdxDef) {
+      const scored = def.members.map(s => fmpMap.get(s)).filter((s): s is FmpStock => !!s && s.signalScore > 0)
+      const scores = scored.map(s => s.signalScore)
+      const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
+      const strong = scored.filter(s => s.signal === 'STRONG').length
+      const good = scored.filter(s => s.signal === 'GOOD').length
+      const neutral = scored.filter(s => s.signal === 'NEUTRAL').length
+      const weak = scored.filter(s => s.signal === 'WEAK').length
+      const bad = scored.filter(s => s.signal === 'BAD').length
+      let label: string, color: string
+      if (avg >= 70) { label = 'GUCLU'; color = '#62cbc1' }
+      else if (avg >= 55) { label = 'IYI'; color = '#62cbc1' }
+      else if (avg >= 45) { label = 'NOTR'; color = '#94a3b8' }
+      else if (avg >= 30) { label = 'ZAYIF'; color = '#fb923c' }
+      else { label = 'KOTU'; color = '#f87171' }
+      return { name: def.name, icon: def.icon, tier: def.tier, count: scored.length, avg, strong, good, neutral, weak, bad, label, color }
+    }
+
+    const defs: IdxDef[] = [
+      { name: 'S&P 500', icon: '🏛️', tier: 'official', members: sp500Syms },
+      { name: 'NASDAQ-100', icon: '💻', tier: 'official', members: ndx100Syms },
+      { name: 'Dow Jones 30', icon: '🏦', tier: 'official', members: djiaSyms },
+      { name: 'MEGA CAP', icon: '👑', tier: 'cap', members: megaSyms },
+      { name: 'LARGE CAP', icon: '🔵', tier: 'cap', members: largeSyms },
+      { name: 'MID CAP', icon: '🟢', tier: 'cap', members: midSyms },
+      { name: 'SMALL CAP', icon: '🟡', tier: 'cap', members: smallSyms },
+      { name: 'TECH 100', icon: '⚡', tier: 'sector', members: techSyms },
+      { name: 'HEALTH 50', icon: '🏥', tier: 'sector', members: healthSyms },
+      { name: 'FINANCE 50', icon: '💰', tier: 'sector', members: finSyms },
+    ]
+    return defs.filter(d => d.members.length > 0).map(calcIndexStats)
+  }, [fmpStocks, indexMembership])
+
   const isLoading = loading || loadingFmp
 
   if (isLoading && !indexStats) {
@@ -491,8 +603,8 @@ export default function ModuleHermesIndex() {
       <div className="max-w-[1920px] mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <div className="text-center py-24">
           <div className="text-7xl mb-5 animate-float">💎</div>
-          <h3 className="text-xl font-bold text-white/50 mb-2 gold-shimmer inline-block">HERMES AI INDEX</h3>
-          <p className="text-white/25 text-sm max-w-md mx-auto mt-2">
+          <h3 className="text-xl font-bold text-white/60 mb-2 gold-shimmer inline-block">HERMES AI INDEX</h3>
+          <p className="text-white/35 text-sm max-w-md mx-auto mt-2">
             Trade AI taramasi tamamlandiktan sonra aktif olur. Yukaridaki <span className="text-gold-300 font-semibold">Scan</span> butonuna basin.
           </p>
         </div>
@@ -505,17 +617,32 @@ export default function ModuleHermesIndex() {
   const breadthPct = indexStats.n > 0 ? (breadthUp / indexStats.n) * 100 : 50
 
   const aiConsensus = useMemo(() => {
-    if (!indexStats) return 0
-    let agree = 0
+    if (!indexStats || indexStats.n === 0) return 0
+    const fmpMap = new Map<string, FmpStock>()
+    for (const s of fmpStocks) fmpMap.set(s.symbol, s)
+
+    let matched = 0
+    let total = 0
     for (const r of results) {
+      const fmp = fmpMap.get(r.symbol)
+      if (!fmp) continue
+      total++
+
       const tekLong = r.hermes.signalType === 'strong_long' || r.hermes.signalType === 'long'
       const tekShort = r.hermes.signalType === 'strong_short' || r.hermes.signalType === 'short'
-      const fmp = fmpStocks.find(f => f.symbol === r.symbol)
-      const fmpGood = fmp?.signal === 'STRONG' || fmp?.signal === 'GOOD'
-      const fmpBad = fmp?.signal === 'BAD' || fmp?.signal === 'WEAK'
-      if ((tekLong && fmpGood) || (tekShort && fmpBad)) agree++
+      const tekNotr = !tekLong && !tekShort
+
+      const fmpGood = fmp.signal === 'STRONG' || fmp.signal === 'GOOD'
+      const fmpBad = fmp.signal === 'BAD' || fmp.signal === 'WEAK'
+      const fmpNotr = !fmpGood && !fmpBad
+
+      if ((tekLong && fmpGood) || (tekShort && fmpBad) || (tekNotr && fmpNotr)) {
+        matched++
+      } else if ((tekLong && fmpNotr) || (tekShort && fmpNotr) || (tekNotr && fmpGood) || (tekNotr && fmpBad)) {
+        matched += 0.3
+      }
     }
-    return indexStats.n > 0 ? (agree / indexStats.n) * 100 : 0
+    return total > 0 ? (matched / total) * 100 : 0
   }, [results, fmpStocks, indexStats])
 
   return (
@@ -540,7 +667,7 @@ export default function ModuleHermesIndex() {
                 <span className="text-white/90">HERMES</span>
                 <span className="gold-shimmer ml-1.5">AI INDEX</span>
               </h2>
-              <p className="text-[10px] text-white/20 mt-0.5">
+              <p className="text-[10px] text-white/40 mt-0.5">
                 Teknik + Temel analiz birlesimi — canli piyasa endeksi
               </p>
             </div>
@@ -576,9 +703,9 @@ export default function ModuleHermesIndex() {
         {/* Direction + Gauges */}
         <div className="stagger-3 bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 lg:p-5 flex flex-col justify-between hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
           <DirectionBadge direction={indexStats.direction} dirColor={indexStats.dirColor} />
-          <div className="text-[10px] text-white/25 text-center mt-2 mb-3">
+          <div className="text-[10px] text-white/35 text-center mt-2 mb-3">
             Long: <span className="text-hermes-green font-bold">{indexStats.longPct.toFixed(1)}%</span>
-            {' | '}Notr: <span className="text-white/40 font-bold">{((indexStats.neutrals / indexStats.n) * 100).toFixed(1)}%</span>
+            {' | '}Notr: <span className="text-white/50 font-bold">{((indexStats.neutrals / indexStats.n) * 100).toFixed(1)}%</span>
             {' | '}Short: <span className="text-red-400 font-bold">{indexStats.shortPct.toFixed(1)}%</span>
           </div>
           <div className="space-y-2.5">
@@ -601,11 +728,11 @@ export default function ModuleHermesIndex() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-sm">⚡</span>
-            <span className="text-[10px] text-white/35 uppercase tracking-wider font-semibold">Sinyal Dagilimi</span>
+            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Sinyal Dagilimi</span>
           </div>
           <div className="flex items-center gap-3 text-[10px]">
             <span className="text-hermes-green font-bold">{indexStats.longs} Long</span>
-            <span className="text-white/30">|</span>
+            <span className="text-white/40">|</span>
             <span className="text-red-400 font-bold">{indexStats.shorts} Short</span>
           </div>
         </div>
@@ -618,7 +745,7 @@ export default function ModuleHermesIndex() {
         <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm">📊</span>
-            <span className="text-[10px] text-white/35 uppercase tracking-wider font-semibold">Piyasa Genisligi</span>
+            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Piyasa Genisligi</span>
           </div>
           <div className="flex items-center justify-between mb-2">
             <div className="text-center">
@@ -641,7 +768,7 @@ export default function ModuleHermesIndex() {
               <span className="text-[9px] text-red-400/50">Dusen</span>
             </div>
           </div>
-          <div className="text-[9px] text-white/15 text-center">
+          <div className="text-[9px] text-white/35 text-center">
             {breadthPct >= 60 ? 'Genisleme bolgesi — cok hisse yukseliyor' : breadthPct <= 40 ? 'Daralma bolgesi — cok hisse dusuyor' : 'Dengeli piyasa'}
           </div>
         </div>
@@ -650,8 +777,8 @@ export default function ModuleHermesIndex() {
         <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm">🧠</span>
-            <span className="text-[10px] text-white/35 uppercase tracking-wider font-semibold">AI Konsensus</span>
-            <span className="text-[8px] text-white/15 ml-auto">Teknik + Temel uyum orani</span>
+            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">AI Konsensus</span>
+            <span className="text-[8px] text-white/35 ml-auto">Teknik + Temel uyum orani</span>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative w-20 h-20">
@@ -673,7 +800,7 @@ export default function ModuleHermesIndex() {
             <div className="flex-1 space-y-2">
               <GaugeBar value={indexStats.longPct} label="Teknik LONG" color="text-hermes-green" />
               <GaugeBar value={indexStats.aiStrongCount > 0 ? (indexStats.aiStrongCount / fmpStocks.length) * 100 : 0} label="AI STRONG" color="text-gold-300" />
-              <div className="text-[9px] text-white/15">
+              <div className="text-[9px] text-white/35">
                 {aiConsensus >= 50 ? 'Teknik ve temel analiz buyuk olcude uyumlu' : aiConsensus >= 30 ? 'Kismi uyum — karmasik piyasa' : 'Dusuk uyum — dikkatli olun'}
               </div>
             </div>
@@ -690,19 +817,77 @@ export default function ModuleHermesIndex() {
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-base">🎭</span>
-              <span className="text-[10px] text-white/35 uppercase tracking-wider font-semibold">Fear & Greed</span>
+              <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Fear & Greed</span>
             </div>
             <FearGreedBar value={marketData.fearGreedIndex ?? 50} label={marketData.fearGreedLabel || 'NEUTRAL'} />
           </div>
         </div>
       </div>
 
+      {/* ═══ ENDEKS SKOR KARTLARI — 10 ENDEKS ═══ */}
+      {indexScoreCards.length > 0 && (() => {
+        const official = indexScoreCards.filter(i => i.tier === 'official')
+        const cap = indexScoreCards.filter(i => i.tier === 'cap')
+        const sector = indexScoreCards.filter(i => i.tier === 'sector')
+        return (
+          <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 mb-2 sm:mb-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow stagger-7">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-sm">📊</span>
+              <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">HERMES AI Endeks Paneli</span>
+              <span className="text-[9px] text-white/30">10 endeks puanlamasi</span>
+            </div>
+
+            {/* Resmi Endeksler */}
+            {official.length > 0 && (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-violet-500/25 to-transparent" />
+                  <span className="text-[9px] text-violet-400 font-bold uppercase tracking-wider">Resmi Endeksler</span>
+                  <div className="h-px flex-1 bg-gradient-to-l from-violet-500/25 to-transparent" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+                  {official.map(idx => <HermesIndexCard key={idx.name} idx={idx} />)}
+                </div>
+              </>
+            )}
+
+            {/* Market Cap */}
+            {cap.length > 0 && (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-blue-500/25 to-transparent" />
+                  <span className="text-[9px] text-blue-400 font-bold uppercase tracking-wider">Market Cap Segmentleri</span>
+                  <div className="h-px flex-1 bg-gradient-to-l from-blue-500/25 to-transparent" />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                  {cap.map(idx => <HermesIndexCard key={idx.name} idx={idx} compact />)}
+                </div>
+              </>
+            )}
+
+            {/* Sektor */}
+            {sector.length > 0 && (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-amber-500/25 to-transparent" />
+                  <span className="text-[9px] text-amber-400 font-bold uppercase tracking-wider">Sektor Endeksleri</span>
+                  <div className="h-px flex-1 bg-gradient-to-l from-amber-500/25 to-transparent" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {sector.map(idx => <HermesIndexCard key={idx.name} idx={idx} compact />)}
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
+
       {/* ═══ SECTOR HEATMAP ═══ */}
       <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 lg:p-5 mb-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-sm">🗺️</span>
-          <span className="text-[10px] text-white/35 uppercase tracking-wider font-semibold">Sektor Haritasi</span>
-          <span className="text-[9px] text-white/20">(Teknik Skor Ortalamasi — dusuk = alis baskisi)</span>
+          <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Sektor Haritasi</span>
+          <span className="text-[9px] text-white/40">(Teknik Skor Ortalamasi — dusuk = alis baskisi)</span>
         </div>
         <SectorHeatmap sectorStats={indexStats.sectorStats} />
       </div>
@@ -726,22 +911,22 @@ export default function ModuleHermesIndex() {
       {/* ═══ FOOTER ═══ */}
       <div className="relative rounded-xl border border-gold-400/6 bg-[#0d0d0d]/50 p-3 mt-2">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-400/15 to-transparent" />
-        <div className="flex items-center justify-between text-[10px] text-white/20">
+        <div className="flex items-center justify-between text-[10px] text-white/40">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-hermes-green/50" />
-              Trade AI: <span className="text-white/40 font-semibold">{results.length}</span>
+              Trade AI: <span className="text-white/50 font-semibold">{results.length}</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-gold-400/50" />
-              Terminal AI: <span className="text-white/40 font-semibold">{fmpStocks.length}</span>
+              Terminal AI: <span className="text-white/50 font-semibold">{fmpStocks.length}</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-violet-400/50" />
-              Sektorler: <span className="text-white/40 font-semibold">{indexStats.sectorStats.length}</span>
+              Sektorler: <span className="text-white/50 font-semibold">{indexStats.sectorStats.length}</span>
             </span>
           </div>
-          <span className="tabular-nums text-white/15">Son guncelleme: {new Date().toLocaleTimeString('tr-TR')}</span>
+          <span className="tabular-nums text-white/35">Son guncelleme: {new Date().toLocaleTimeString('tr-TR')}</span>
         </div>
       </div>
     </div>

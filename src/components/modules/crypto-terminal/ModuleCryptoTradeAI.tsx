@@ -247,11 +247,11 @@ export default function ModuleCryptoTradeAI() {
           </div>
           <div>
             <h2 className="text-lg font-bold text-white">CRYPTO TRADE <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">AI</span></h2>
-            <p className="text-[10px] text-white/30">Top 1000 Coin | Pure Z-Score Mean-Reversion</p>
+            <p className="text-[10px] text-white/40">Top 1000 Coin | Pure Z-Score Mean-Reversion</p>
           </div>
           {scanInfo && !loading && (
             <div className="hidden sm:flex items-center gap-2 ml-3">
-              <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] text-white/30">
+              <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] text-white/40">
                 {scanInfo.scanned} coin {scanInfo.cached ? '(cache)' : `(${(scanInfo.duration / 1000).toFixed(1)}s)`}
               </span>
             </div>
@@ -264,11 +264,11 @@ export default function ModuleCryptoTradeAI() {
                 <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
                   style={{ width: `${progressPct}%` }} />
               </div>
-              <span className="text-[9px] text-white/30 tabular-nums">{pagesLoaded}/{TOTAL_PAGES}</span>
+              <span className="text-[9px] text-white/40 tabular-nums">{pagesLoaded}/{TOTAL_PAGES}</span>
             </div>
           )}
           {sortedItems.length > 0 && canCSV && (
-            <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/40 border border-white/8 hover:bg-white/[0.08] hover:text-white/60 transition-all">
+            <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/50 border border-white/8 hover:bg-white/[0.08] hover:text-white/60 transition-all">
               <Download size={12} className="inline mr-1" />CSV
             </button>
           )}
@@ -324,21 +324,21 @@ export default function ModuleCryptoTradeAI() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[#0d0d14] text-[9px] text-white/30 uppercase tracking-wider">
+              <tr className="bg-[#0d0d14] text-[9px] text-white/40 uppercase tracking-wider">
                 <th className="text-left px-3 py-2.5 w-8"></th>
                 <th className="text-left px-3 py-2.5">Coin</th>
-                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/50" onClick={() => handleSort('price')}>Fiyat <SortIcon k="price" /></th>
-                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/50" onClick={() => handleSort('change')}>24s % <SortIcon k="change" /></th>
+                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/60" onClick={() => handleSort('price')}>Fiyat <SortIcon k="price" /></th>
+                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/60" onClick={() => handleSort('change')}>24s % <SortIcon k="change" /></th>
                 <th className="text-center px-3 py-2.5">Sinyal</th>
-                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/50" onClick={() => handleSort('score')}>Skor <SortIcon k="score" /></th>
-                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/50" onClick={() => handleSort('zscore')}>Z-Score <SortIcon k="zscore" /></th>
-                <th className="text-center px-3 py-2.5 cursor-pointer select-none hover:text-white/50" onClick={() => handleSort('confidence')}>Guven <SortIcon k="confidence" /></th>
-                <th className="text-center px-3 py-2.5 cursor-pointer select-none hover:text-white/50" onClick={() => handleSort('valuation')}>Fiyatlama <SortIcon k="valuation" /></th>
-                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/50 hidden lg:table-cell" onClick={() => handleSort('vwapDist')}>VWAP % <SortIcon k="vwapDist" /></th>
+                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/60" onClick={() => handleSort('score')}>Skor <SortIcon k="score" /></th>
+                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/60" onClick={() => handleSort('zscore')}>Z-Score <SortIcon k="zscore" /></th>
+                <th className="text-center px-3 py-2.5 cursor-pointer select-none hover:text-white/60" onClick={() => handleSort('confidence')}>Guven <SortIcon k="confidence" /></th>
+                <th className="text-center px-3 py-2.5 cursor-pointer select-none hover:text-white/60" onClick={() => handleSort('valuation')}>Fiyatlama <SortIcon k="valuation" /></th>
+                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/60 hidden lg:table-cell" onClick={() => handleSort('vwapDist')}>VWAP % <SortIcon k="vwapDist" /></th>
                 <th className="text-right px-3 py-2.5 hidden xl:table-cell">Hedef</th>
                 <th className="text-right px-3 py-2.5 hidden xl:table-cell">Dip</th>
                 <th className="text-center px-3 py-2.5 hidden xl:table-cell">R:R</th>
-                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/50 hidden md:table-cell" onClick={() => handleSort('mcap')}>MCap <SortIcon k="mcap" /></th>
+                <th className="text-right px-3 py-2.5 cursor-pointer select-none hover:text-white/60 hidden md:table-cell" onClick={() => handleSort('mcap')}>MCap <SortIcon k="mcap" /></th>
                 <th className="text-center px-3 py-2.5 w-10">Takip</th>
               </tr>
             </thead>
@@ -360,7 +360,7 @@ export default function ModuleCryptoTradeAI() {
                 return (
                   <tr key={s.id} className={`hover:bg-white/[0.02] transition-colors cursor-pointer ${expanded ? 'bg-white/[0.015]' : ''}`} onClick={() => setExpandedRow(expanded ? null : s.id)}>
                     <td className="px-2 py-2" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => toggleWatchlist(s.id)} className="text-white/20 hover:text-amber-400 transition-colors">
+                      <button onClick={() => toggleWatchlist(s.id)} className="text-white/40 hover:text-amber-400 transition-colors">
                         <Star size={12} fill={watchlist.has(s.id) ? '#f59e0b' : 'none'} className={watchlist.has(s.id) ? 'text-amber-400' : ''} />
                       </button>
                     </td>
@@ -369,7 +369,7 @@ export default function ModuleCryptoTradeAI() {
                         {s.image && <img src={s.image} alt="" className="w-5 h-5 rounded-full" />}
                         <div>
                           <span className="font-bold text-white">{s.symbol}</span>
-                          <span className="text-[9px] text-white/25 ml-1 hidden sm:inline">{s.name}</span>
+                          <span className="text-[9px] text-white/35 ml-1 hidden sm:inline">{s.name}</span>
                         </div>
                       </div>
                     </td>
@@ -383,11 +383,11 @@ export default function ModuleCryptoTradeAI() {
                       </span>
                     </td>
                     <td className="px-3 py-2 text-right font-bold text-white">{ai.score}</td>
-                    <td className={`px-3 py-2 text-right font-mono text-[10px] ${ai.zscore < -1 ? 'text-emerald-400' : ai.zscore > 1 ? 'text-red-400' : 'text-white/40'}`}>
+                    <td className={`px-3 py-2 text-right font-mono text-[10px] ${ai.zscore < -1 ? 'text-emerald-400' : ai.zscore > 1 ? 'text-red-400' : 'text-white/50'}`}>
                       {ai.zscore > 0 ? '+' : ''}{ai.zscore.toFixed(2)}
                     </td>
                     <td className="px-3 py-2 text-center">
-                      <span className={`text-[10px] font-bold tabular-nums ${conf >= 70 ? 'text-amber-400' : conf >= 50 ? 'text-white/60' : 'text-white/30'}`}>{conf}%</span>
+                      <span className={`text-[10px] font-bold tabular-nums ${conf >= 70 ? 'text-amber-400' : conf >= 50 ? 'text-white/60' : 'text-white/40'}`}>{conf}%</span>
                     </td>
                     <td className="px-3 py-2 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
@@ -395,10 +395,10 @@ export default function ModuleCryptoTradeAI() {
                         val === 'UCUZ' ? 'text-emerald-400 bg-emerald-500/8 border-emerald-500/15' :
                         val === 'PAHALI' ? 'text-orange-400 bg-orange-500/8 border-orange-500/15' :
                         val === 'COK PAHALI' ? 'text-red-400 bg-red-500/8 border-red-500/15' :
-                        'text-white/30 bg-white/[0.02] border-white/[0.06]'
+                        'text-white/40 bg-white/[0.02] border-white/[0.06]'
                       }`}>{val}</span>
                     </td>
-                    <td className={`px-3 py-2 text-right text-[10px] hidden lg:table-cell ${ai.vwapDistPct < -3 ? 'text-emerald-400' : ai.vwapDistPct > 3 ? 'text-red-400' : 'text-white/30'}`}>
+                    <td className={`px-3 py-2 text-right text-[10px] hidden lg:table-cell ${ai.vwapDistPct < -3 ? 'text-emerald-400' : ai.vwapDistPct > 3 ? 'text-red-400' : 'text-white/40'}`}>
                       {ai.vwapDistPct > 0 ? '+' : ''}{ai.vwapDistPct.toFixed(1)}%
                     </td>
                     {/* Hedef (upperInner band) */}
@@ -408,18 +408,18 @@ export default function ModuleCryptoTradeAI() {
                           <span className={`font-mono text-[10px] font-semibold ${ai.bands.upperInner > s.current_price ? 'text-emerald-400' : 'text-red-400'}`}>
                             {formatPrice(ai.bands.upperInner)}
                           </span>
-                          <span className="text-[8px] text-white/20">{s.current_price > 0 ? `${((ai.bands.upperInner - s.current_price) / s.current_price * 100) >= 0 ? '+' : ''}${((ai.bands.upperInner - s.current_price) / s.current_price * 100).toFixed(1)}%` : ''}</span>
+                          <span className="text-[8px] text-white/40">{s.current_price > 0 ? `${((ai.bands.upperInner - s.current_price) / s.current_price * 100) >= 0 ? '+' : ''}${((ai.bands.upperInner - s.current_price) / s.current_price * 100).toFixed(1)}%` : ''}</span>
                         </div>
-                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                      ) : <span className="text-white/35">{'\u2014'}</span>}
                     </td>
                     {/* Dip (lowerInner band) */}
                     <td className="px-3 py-2 text-right hidden xl:table-cell">
                       {ai.bands.lowerInner > 0 ? (
                         <div className="flex flex-col items-end">
                           <span className="font-mono text-[10px] text-red-400/70">{formatPrice(ai.bands.lowerInner)}</span>
-                          <span className="text-[8px] text-white/20">{s.current_price > 0 ? `${((ai.bands.lowerInner - s.current_price) / s.current_price * 100).toFixed(1)}%` : ''}</span>
+                          <span className="text-[8px] text-white/40">{s.current_price > 0 ? `${((ai.bands.lowerInner - s.current_price) / s.current_price * 100).toFixed(1)}%` : ''}</span>
                         </div>
-                      ) : <span className="text-white/15">{'\u2014'}</span>}
+                      ) : <span className="text-white/35">{'\u2014'}</span>}
                     </td>
                     {/* R:R */}
                     <td className="px-3 py-2 text-center hidden xl:table-cell">
@@ -427,17 +427,17 @@ export default function ModuleCryptoTradeAI() {
                         const upside = ai.bands.upperInner > 0 ? ai.bands.upperInner - s.current_price : 0
                         const downside = ai.bands.lowerInner > 0 ? s.current_price - ai.bands.lowerInner : 0
                         const rr = downside > 0 ? upside / downside : 0
-                        if (rr <= 0) return <span className="text-white/15">{'\u2014'}</span>
+                        if (rr <= 0) return <span className="text-white/35">{'\u2014'}</span>
                         return <span className={`font-mono text-[10px] font-bold ${rr >= 2 ? 'text-emerald-400' : rr >= 1 ? 'text-amber-400' : 'text-red-400'}`}>{rr.toFixed(1)}</span>
                       })()}
                     </td>
-                    <td className="px-3 py-2 text-right text-[10px] text-white/25 hidden md:table-cell">{formatMcap(s.market_cap)}</td>
+                    <td className="px-3 py-2 text-right text-[10px] text-white/35 hidden md:table-cell">{formatMcap(s.market_cap)}</td>
                     <td className="px-3 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                       {ai.signalType !== 'neutral' && (
                         <button
                           onClick={() => trackSignal(s.id, s.symbol, ai.signal, s.current_price, tp, sl)}
                           title="Sinyali takip et"
-                          className="text-white/20 hover:text-amber-400 transition-colors"
+                          className="text-white/40 hover:text-amber-400 transition-colors"
                         >
                           <Crosshair size={12} />
                         </button>
@@ -458,38 +458,38 @@ export default function ModuleCryptoTradeAI() {
           return (
             <div className="px-4 py-3 border-t border-white/[0.06] bg-[#0d0d14]/50 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 text-[10px]">
               <div>
-                <div className="text-white/25 uppercase mb-0.5">VWAP (377g)</div>
+                <div className="text-white/35 uppercase mb-0.5">VWAP (377g)</div>
                 <div className="text-white font-mono">{formatPrice(ai.vwap)}</div>
               </div>
               <div>
-                <div className="text-white/25 uppercase mb-0.5">Z-Score</div>
+                <div className="text-white/35 uppercase mb-0.5">Z-Score</div>
                 <div className={`font-mono ${ai.zscore < -1 ? 'text-emerald-400' : ai.zscore > 1 ? 'text-red-400' : 'text-white/60'}`}>
                   {ai.zscore > 0 ? '+' : ''}{ai.zscore.toFixed(3)}
                 </div>
               </div>
               <div>
-                <div className="text-white/25 uppercase mb-0.5">Ust Bant (+1σ)</div>
+                <div className="text-white/35 uppercase mb-0.5">Ust Bant (+1σ)</div>
                 <div className="text-red-400/60 font-mono">{formatPrice(ai.bands.upperInner)}</div>
               </div>
               <div>
-                <div className="text-white/25 uppercase mb-0.5">Alt Bant (-1σ)</div>
+                <div className="text-white/35 uppercase mb-0.5">Alt Bant (-1σ)</div>
                 <div className="text-emerald-400/60 font-mono">{formatPrice(ai.bands.lowerInner)}</div>
               </div>
               <div>
-                <div className="text-white/25 uppercase mb-0.5">StdDev</div>
-                <div className="text-white/40 font-mono">{formatPrice(ai.std)}</div>
+                <div className="text-white/35 uppercase mb-0.5">StdDev</div>
+                <div className="text-white/50 font-mono">{formatPrice(ai.std)}</div>
               </div>
               <div>
-                <div className="text-white/25 uppercase mb-0.5">Veri</div>
-                <div className="text-white/40">{ai.dataPoints} gun {ai.hasEnoughData ? '(Tam)' : '(Kismi)'}</div>
+                <div className="text-white/35 uppercase mb-0.5">Veri</div>
+                <div className="text-white/50">{ai.dataPoints} gun {ai.hasEnoughData ? '(Tam)' : '(Kismi)'}</div>
               </div>
             </div>
           )
         })()}
 
         <div className="px-4 py-2 border-t border-white/[0.04] flex justify-between">
-          <span className="text-[10px] text-white/20">{sortedItems.length} sinyal / {items.length} coin tarandi</span>
-          <span className="text-[10px] text-white/15">Top 1000 Coin | Pure Z-Score | TP {TP_PCT}% / SL {SL_PCT}%</span>
+          <span className="text-[10px] text-white/40">{sortedItems.length} sinyal / {items.length} coin tarandi</span>
+          <span className="text-[10px] text-white/35">Top 1000 Coin | Pure Z-Score | TP {TP_PCT}% / SL {SL_PCT}%</span>
         </div>
       </div>
     </div>

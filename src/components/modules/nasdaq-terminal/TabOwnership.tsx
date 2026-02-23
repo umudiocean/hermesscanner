@@ -43,7 +43,7 @@ export default function TabOwnership({ symbol }: TabOwnershipProps) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[40vh]">
         <span className="text-3xl sm:text-4xl mb-2 sm:mb-3">🏛️</span>
-        <p className="text-white/40 text-sm">Sahiplik verilerini görmek için hisse seçin</p>
+        <p className="text-white/50 text-sm">Sahiplik verilerini görmek için hisse seçin</p>
       </div>
     )
   }
@@ -63,7 +63,7 @@ export default function TabOwnership({ symbol }: TabOwnershipProps) {
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
               view === tab.id
                 ? 'bg-violet-600/80 text-white'
-                : 'text-white/40 hover:text-white/70'
+                : 'text-white/50 hover:text-white/70'
             }`}
           >
             {tab.label}
@@ -113,12 +113,12 @@ function InsiderView({ trades }: { trades: InsiderTrade[] }) {
           <table className="w-full">
             <thead className="sticky top-0 bg-[#0F0F15]">
               <tr className="border-b border-white/5">
-                <th className="text-left px-2 sm:px-4 py-2 text-[10px] text-white/30">Tarih</th>
-                <th className="text-left px-3 py-2 text-[10px] text-white/30">İsim</th>
-                <th className="text-left px-3 py-2 text-[10px] text-white/30">Ünvan</th>
-                <th className="text-center px-3 py-2 text-[10px] text-white/30">Tür</th>
-                <th className="text-right px-3 py-2 text-[10px] text-white/30">Adet</th>
-                <th className="text-right px-2 sm:px-4 py-2 text-[10px] text-white/30">Fiyat</th>
+                <th className="text-left px-2 sm:px-4 py-2 text-[10px] text-white/40">Tarih</th>
+                <th className="text-left px-3 py-2 text-[10px] text-white/40">İsim</th>
+                <th className="text-left px-3 py-2 text-[10px] text-white/40">Ünvan</th>
+                <th className="text-center px-3 py-2 text-[10px] text-white/40">Tür</th>
+                <th className="text-right px-3 py-2 text-[10px] text-white/40">Adet</th>
+                <th className="text-right px-2 sm:px-4 py-2 text-[10px] text-white/40">Fiyat</th>
               </tr>
             </thead>
             <tbody>
@@ -126,13 +126,13 @@ function InsiderView({ trades }: { trades: InsiderTrade[] }) {
                 const isBuy = t.acquistionOrDisposition === 'A'
                 return (
                   <tr key={i} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
-                    <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/40">
+                    <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/50">
                       {new Date(t.transactionDate).toLocaleDateString('tr-TR')}
                     </td>
                     <td className="px-3 py-1.5 text-xs text-white/70 truncate max-w-[150px]">
                       {t.reportingName}
                     </td>
-                    <td className="px-3 py-1.5 text-[10px] text-white/40 truncate max-w-[120px]">
+                    <td className="px-3 py-1.5 text-[10px] text-white/50 truncate max-w-[120px]">
                       {t.typeOfOwner}
                     </td>
                     <td className="px-3 py-1.5 text-center">
@@ -170,11 +170,11 @@ function InstitutionalView({ holders }: { holders: InstitutionalHolder[] }) {
         <table className="w-full">
           <thead className="sticky top-0 bg-[#0F0F15]">
             <tr className="border-b border-white/5">
-              <th className="text-left px-2 sm:px-4 py-2 text-[10px] text-white/30">#</th>
-              <th className="text-left px-3 py-2 text-[10px] text-white/30">Kurum</th>
-              <th className="text-right px-3 py-2 text-[10px] text-white/30">Hisse</th>
-              <th className="text-right px-3 py-2 text-[10px] text-white/30">Değişim</th>
-              <th className="text-right px-2 sm:px-4 py-2 text-[10px] text-white/30">Tarih</th>
+              <th className="text-left px-2 sm:px-4 py-2 text-[10px] text-white/40">#</th>
+              <th className="text-left px-3 py-2 text-[10px] text-white/40">Kurum</th>
+              <th className="text-right px-3 py-2 text-[10px] text-white/40">Hisse</th>
+              <th className="text-right px-3 py-2 text-[10px] text-white/40">Değişim</th>
+              <th className="text-right px-2 sm:px-4 py-2 text-[10px] text-white/40">Tarih</th>
             </tr>
           </thead>
           <tbody>
@@ -182,7 +182,7 @@ function InstitutionalView({ holders }: { holders: InstitutionalHolder[] }) {
               const changePositive = h.change > 0
               return (
                 <tr key={i} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
-                  <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/30">{i + 1}</td>
+                  <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/40">{i + 1}</td>
                   <td className="px-3 py-1.5 text-xs text-white/70 truncate max-w-[200px]">
                     {h.holder}
                   </td>
@@ -191,12 +191,12 @@ function InstitutionalView({ holders }: { holders: InstitutionalHolder[] }) {
                   </td>
                   <td className="px-3 py-1.5 text-right">
                     <span className={`text-[10px] tabular-nums ${
-                      changePositive ? 'text-hermes-green' : h.change < 0 ? 'text-red-400' : 'text-white/40'
+                      changePositive ? 'text-hermes-green' : h.change < 0 ? 'text-red-400' : 'text-white/50'
                     }`}>
                       {changePositive ? '+' : ''}{h.change?.toLocaleString()}
                     </span>
                   </td>
-                  <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/40 text-right">
+                  <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/50 text-right">
                     {h.dateReported ? new Date(h.dateReported).toLocaleDateString('tr-TR') : '—'}
                   </td>
                 </tr>
@@ -220,11 +220,11 @@ function CongressionalView({ trades }: { trades: CongressionalTrade[] }) {
         <table className="w-full">
           <thead className="sticky top-0 bg-[#0F0F15]">
             <tr className="border-b border-white/5">
-              <th className="text-left px-2 sm:px-4 py-2 text-[10px] text-white/30">Tarih</th>
-              <th className="text-left px-3 py-2 text-[10px] text-white/30">Üye</th>
-              <th className="text-left px-3 py-2 text-[10px] text-white/30">Parti</th>
-              <th className="text-center px-3 py-2 text-[10px] text-white/30">Tür</th>
-              <th className="text-right px-2 sm:px-4 py-2 text-[10px] text-white/30">Tutar</th>
+              <th className="text-left px-2 sm:px-4 py-2 text-[10px] text-white/40">Tarih</th>
+              <th className="text-left px-3 py-2 text-[10px] text-white/40">Üye</th>
+              <th className="text-left px-3 py-2 text-[10px] text-white/40">Parti</th>
+              <th className="text-center px-3 py-2 text-[10px] text-white/40">Tür</th>
+              <th className="text-right px-2 sm:px-4 py-2 text-[10px] text-white/40">Tutar</th>
             </tr>
           </thead>
           <tbody>
@@ -232,7 +232,7 @@ function CongressionalView({ trades }: { trades: CongressionalTrade[] }) {
               const isBuy = t.type?.toLowerCase().includes('purchase')
               return (
                 <tr key={i} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
-                  <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/40">
+                  <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/50">
                     {t.transactionDate ? new Date(t.transactionDate).toLocaleDateString('tr-TR') : '—'}
                   </td>
                   <td className="px-3 py-1.5 text-xs text-white/70 truncate max-w-[150px]">
@@ -242,7 +242,7 @@ function CongressionalView({ trades }: { trades: CongressionalTrade[] }) {
                     <span className={`text-[9px] px-1.5 py-0.5 rounded ${
                       t.party === 'Republican' ? 'bg-red-500/15 text-red-400' :
                       t.party === 'Democrat' ? 'bg-blue-500/15 text-blue-400' :
-                      'bg-white/5 text-white/40'
+                      'bg-white/5 text-white/50'
                     }`}>
                       {t.party?.charAt(0) || '?'}
                     </span>
@@ -254,7 +254,7 @@ function CongressionalView({ trades }: { trades: CongressionalTrade[] }) {
                       {isBuy ? 'ALIM' : 'SATIŞ'}
                     </span>
                   </td>
-                  <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/50 text-right">
+                  <td className="px-2 sm:px-4 py-1.5 text-[10px] text-white/60 text-right">
                     {t.amount || '—'}
                   </td>
                 </tr>
@@ -272,7 +272,7 @@ function CongressionalView({ trades }: { trades: CongressionalTrade[] }) {
 function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div className="bg-[#0F0F15] rounded-lg border border-white/5 px-2 sm:px-3 py-2 sm:py-2.5">
-      <div className="text-[9px] text-white/30 uppercase mb-1">{label}</div>
+      <div className="text-[9px] text-white/40 uppercase mb-1">{label}</div>
       <div className={`text-base sm:text-lg font-bold tabular-nums ${
         color === 'hermes-green' ? 'text-hermes-green' :
         color === 'red' ? 'text-red-400' :
@@ -308,13 +308,13 @@ function LiveInsiderFeed() {
   return (
     <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4 mt-2 sm:mt-4">
       <div className="flex items-center justify-between mb-2 sm:mb-3">
-        <h4 className="text-[10px] text-white/30 uppercase tracking-wider">Canli Insider Akisi (RSS)</h4>
+        <h4 className="text-[10px] text-white/40 uppercase tracking-wider">Canli Insider Akisi (RSS)</h4>
         <div className="flex items-center gap-1.5">
           <div className="w-1.5 h-1.5 rounded-full bg-hermes-green animate-pulse" />
           <span className="text-[10px] text-hermes-green/60">CANLI</span>
         </div>
       </div>
-      <p className="text-xs text-white/25">
+      <p className="text-xs text-white/35">
         Son insider islemleri burada canli olarak gosterilir.
         Bir hisse sectiginizde o hisseye ait insider bilgileri yukarda goruntulenir.
       </p>
@@ -325,7 +325,7 @@ function LiveInsiderFeed() {
 function EmptyView({ message }: { message: string }) {
   return (
     <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-4 sm:p-8 text-center">
-      <p className="text-white/30 text-sm">{message}</p>
+      <p className="text-white/40 text-sm">{message}</p>
     </div>
   )
 }

@@ -762,7 +762,7 @@ export function computeFMPScore(
   const overvaluation = computeOvervaluationScore(metrics, categories.valuation)
   const badges = computeBadges(metrics, categories.valuation, overvaluation)
 
-  // Valuation label from category score
+  // Valuation label — category score + DCF/analyst cross-check
   const valS = categories.valuation
   let valuationLabel: 'COK UCUZ' | 'UCUZ' | 'NORMAL' | 'PAHALI' | 'COK PAHALI'
   if (valS >= 80) valuationLabel = 'COK UCUZ'
@@ -770,6 +770,34 @@ export function computeFMPScore(
   else if (valS >= 40) valuationLabel = 'NORMAL'
   else if (valS >= 25) valuationLabel = 'PAHALI'
   else valuationLabel = 'COK PAHALI'
+
+  // Cross-check: DCF + analyst target + 52W position vs price
+  // Only boost/lower by ONE step at a time to prevent score-label mismatch
+  if (metrics.price > 0) {
+    const dcfUpside = metrics.dcf > 0 ? ((metrics.dcf - metrics.price) / metrics.price) * 100 : 0
+    const targetUpside = metrics.priceTarget > 0 ? ((metrics.priceTarget - metrics.price) / metrics.price) * 100 : 0
+    const pos52w = (metrics.yearHigh > 0 && metrics.yearLow > 0 && metrics.yearHigh > metrics.yearLow)
+      ? (metrics.price - metrics.yearLow) / (metrics.yearHigh - metrics.yearLow)
+      : 0.5
+
+    // Undervaluation: boost label (max 1 step unless score also supports it)
+    const underSignals = [dcfUpside > 40, targetUpside > 30, pos52w < 0.15].filter(Boolean).length
+    if (underSignals >= 2) {
+      if (valuationLabel === 'COK PAHALI') valuationLabel = 'PAHALI'
+      else if (valuationLabel === 'PAHALI') valuationLabel = 'NORMAL'
+      else if (valuationLabel === 'NORMAL') valuationLabel = 'UCUZ'
+      else if (valuationLabel === 'UCUZ' && underSignals >= 3 && valS >= 55) valuationLabel = 'COK UCUZ'
+    }
+
+    // Overvaluation: lower label (max 1 step unless score also supports it)
+    const overSignals = [dcfUpside < -30, targetUpside < -20, pos52w > 0.9].filter(Boolean).length
+    if (overSignals >= 2) {
+      if (valuationLabel === 'COK UCUZ') valuationLabel = 'UCUZ'
+      else if (valuationLabel === 'UCUZ') valuationLabel = 'NORMAL'
+      else if (valuationLabel === 'NORMAL') valuationLabel = 'PAHALI'
+      else if (valuationLabel === 'PAHALI' && overSignals >= 3 && valS <= 30) valuationLabel = 'COK PAHALI'
+    }
+  }
 
   return {
     total,

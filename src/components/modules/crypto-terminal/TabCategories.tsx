@@ -55,7 +55,7 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
       ))}
     </div>
   )
-  if (error) return <div className="text-center py-20 text-white/40">{error}</div>
+  if (error) return <div className="text-center py-20 text-white/50">{error}</div>
 
   return (
     <div className="space-y-2 sm:space-y-3 animate-fade-in">
@@ -63,10 +63,10 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
         <div className="flex items-center gap-2">
           <PieChart size={16} className="text-violet-400" />
           <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Kripto Kategorileri</h3>
-          <span className="text-[10px] text-white/20">{filtered.length}</span>
+          <span className="text-[10px] text-white/40">{filtered.length}</span>
         </div>
         <div className="relative">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/25" />
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/35" />
           <input
             type="text"
             value={search}
@@ -85,13 +85,13 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
               <div className="flex items-start justify-between mb-1.5 sm:mb-2">
                 <div>
                   <h4 className="text-sm font-bold text-white">{cat.name}</h4>
-                  <span className="text-[10px] text-white/25">{formatLarge(cat.market_cap)} Piyasa Deg.</span>
+                  <span className="text-[10px] text-white/35">{formatLarge(cat.market_cap)} Piyasa Deg.</span>
                 </div>
                 <span className={`text-xs font-medium tabular-nums ${isPos ? 'text-emerald-400' : 'text-red-400'}`}>
                   {isPos ? '+' : ''}{(cat.market_cap_change_24h ?? 0).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-[10px] text-white/30">
+              <div className="flex items-center gap-2 text-[10px] text-white/40">
                 <span>24s Hacim: {formatLarge(cat.volume_24h)}</span>
               </div>
               {cat.top_3_coins && cat.top_3_coins.length > 0 && (
@@ -99,7 +99,7 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
                   {cat.top_3_coins.slice(0, 3).map((img, i) => (
                     <img key={i} src={img} alt="" className="w-4 h-4 rounded-full" loading="lazy" />
                   ))}
-                  <span className="text-[9px] text-white/20 ml-1">Top 3</span>
+                  <span className="text-[9px] text-white/40 ml-1">Top 3</span>
                 </div>
               )}
             </div>

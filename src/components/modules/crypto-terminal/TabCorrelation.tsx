@@ -48,7 +48,7 @@ function getCorrelationColor(r: number): string {
 function getCorrelationText(r: number): string {
   if (r > 0.7) return 'text-white'
   if (r > 0.4) return 'text-emerald-200'
-  if (r > -0.4) return 'text-white/40'
+  if (r > -0.4) return 'text-white/50'
   if (r > -0.7) return 'text-red-200'
   return 'text-white'
 }
@@ -111,7 +111,7 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
         <div className="flex items-center gap-2">
           <Grid3X3 size={16} className="text-amber-400" />
           <h3 className="text-sm font-bold text-white">KORELASYON MATRISI</h3>
-          <span className="text-[10px] text-white/20">7 gunluk fiyat korelasyonu</span>
+          <span className="text-[10px] text-white/40">7 gunluk fiyat korelasyonu</span>
         </div>
         <div className="flex items-center gap-1">
           {[10, 20, 50].map(n => (
@@ -119,7 +119,7 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
               key={n}
               onClick={() => setCount(n)}
               className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all duration-300 border ${
-                count === n ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-white/40 hover:text-amber-200/80 border-white/[0.04] hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
+                count === n ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-white/50 hover:text-amber-200/80 border-white/[0.04] hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
               }`}
             >
               Top {n}
@@ -130,11 +130,11 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
 
       {/* Legend */}
       <div className="flex items-center gap-1 sm:gap-2 justify-center text-[9px]">
-        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-red-500" /><span className="text-white/30">-1.0</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-red-500/40" /><span className="text-white/30">-0.5</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-white/10" /><span className="text-white/30">0</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-emerald-500/40" /><span className="text-white/30">+0.5</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-emerald-500" /><span className="text-white/30">+1.0</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-red-500" /><span className="text-white/40">-1.0</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-red-500/40" /><span className="text-white/40">-0.5</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-white/10" /><span className="text-white/40">0</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-emerald-500/40" /><span className="text-white/40">+0.5</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-emerald-500" /><span className="text-white/40">+1.0</span></div>
       </div>
 
       {loading ? (
@@ -149,7 +149,7 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
                 <tr>
                   <th className="w-12" />
                   {displayCoins.map(c => (
-                    <th key={c.id} className="text-[8px] text-white/30 font-medium px-0.5 pb-1 text-center w-10" style={{ writingMode: 'vertical-rl' }}>
+                    <th key={c.id} className="text-[8px] text-white/40 font-medium px-0.5 pb-1 text-center w-10" style={{ writingMode: 'vertical-rl' }}>
                       {c.symbol}
                     </th>
                   ))}
@@ -158,7 +158,7 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
               <tbody>
                 {displayCoins.map((row, i) => (
                   <tr key={row.id}>
-                    <td className="text-[9px] text-white/40 font-medium pr-2 text-right whitespace-nowrap">
+                    <td className="text-[9px] text-white/50 font-medium pr-2 text-right whitespace-nowrap">
                       <button onClick={() => onSelectCoin(row.id)} className="hover:text-amber-400 transition-colors">
                         {row.symbol}
                       </button>
@@ -190,8 +190,8 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
 
       {/* Interpretation */}
       <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2 sm:p-3 hover:border-white/[0.12] hover:shadow-md hover:shadow-black/20 transition-all duration-300">
-        <h4 className="text-[10px] font-bold text-white/40 mb-1.5">YORUM</h4>
-        <p className="text-[10px] text-white/25 leading-relaxed">
+        <h4 className="text-[10px] font-bold text-white/50 mb-1.5">YORUM</h4>
+        <p className="text-[10px] text-white/35 leading-relaxed">
           Yuksek pozitif korelasyon (yeYil): Coinler birlikte hareket ediyor — ceslilendirme faydasi dusuk.
           Negatif korelasyon (kirmizi): Coinler zit hareket ediyor — hedge potansiyeli yuksek.
           Sifira yakin: Bagimsiz hareket — en iyi cesitlendirme.
