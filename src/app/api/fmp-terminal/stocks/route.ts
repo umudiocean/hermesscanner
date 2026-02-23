@@ -797,11 +797,16 @@ export async function GET(request: NextRequest) {
     // Percentile esiklerini cache disinda hesapla (stocks cache'den gelebilir)
     const currentThresholds = computeScoreThresholds(stocks.map(s => s.signalScore))
 
-    const evrenCount = hermesSymbols.size
+    const universeCount = hermesSymbols.size
+    const loadedCount = stocks.length
+    const missingCount = Math.max(0, universeCount - loadedCount)
     return NextResponse.json({
       stocks,
-      count: Math.max(stocks.length, evrenCount),
-      evrenCount,
+      count: loadedCount,
+      universeCount,
+      loadedCount,
+      missingCount,
+      evrenCount: universeCount, // backward compat
       thresholds: currentThresholds,
       timestamp: new Date().toISOString(),
       version: 'v5-8cat-smart-money-badges',

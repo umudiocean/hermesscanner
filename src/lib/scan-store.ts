@@ -1,31 +1,18 @@
 // ═══════════════════════════════════════════════════════════════════
 // HERMES Scanner - Scan Results Store
-// In-memory + Disk cache (server restart'a dayanikli)
+// In-memory + Redis (Vercel serverless uyumlu — disk yazimi YOK)
+// Redis: cross-instance paylasim | In-memory: ayni instance hizi
 // ═══════════════════════════════════════════════════════════════════
 
-import { promises as fs } from 'fs'
-import path from 'path'
 import { ScanResult, ScanSummary } from './types'
 import { getRedisCache, setRedisCache } from './cache/redis-cache'
+import { isRedisAvailable } from './cache/redis-client'
 
-const SCANS_DIR = path.join(process.cwd(), 'data', 'scans')
-const LATEST_SCAN_FILE = path.join(SCANS_DIR, 'latest.json')
-
-// Son tarama sonuclari (segment bazli)
 const scanResults = new Map<string, ScanResult[]>()
 const scanSummaries = new Map<string, ScanSummary>()
 
-// Son full scan sonucu (tum segmentler birlesik)
 let lastFullScan: ScanSummary | null = null
 
-/** Dizinin var oldugundan emin ol */
-async function ensureDir(): Promise<void> {
-  await fs.mkdir(SCANS_DIR, { recursive: true })
-}
-
-/**
- * Segment tarama sonuclarini kaydet
- */
 const SCAN_REDIS_KEY = 'scan:latest'
 const SCAN_REDIS_TTL = 7 * 24 * 60 * 60 * 1000 // 7 days
 
@@ -35,17 +22,17 @@ export function saveScanResults(segment: string, results: ScanResult[], summary:
 
   updateFullScan()
   
-  // Disk + Redis async save
   const payload = {
     scanId: lastFullScan?.scanId || `full-${Date.now()}`,
     timestamp: new Date().toISOString(),
     totalResults: getAllResults().length,
     results: getAllResults(),
   }
-  saveLatestToDisk().catch(err => {
-    console.error('[SCAN-STORE] Failed to save to disk:', err)
-  })
-  setRedisCache(SCAN_REDIS_KEY, payload, SCAN_REDIS_TTL).catch(() => {})
+  if (isRedisAvailable()) {
+    setRedisCache(SCAN_REDIS_KEY, payload, SCAN_REDIS_TTL).catch(err => {
+      console.warn('[SCAN-STORE] Redis save failed:', (err as Error).message)
+    })
+  }
 }
 
 /**
@@ -122,24 +109,7 @@ export function clearStore(): void {
 }
 
 /**
- * Son tarama sonuclarini disk'e kaydet (internal)
- */
-async function saveLatestToDisk(): Promise<void> {
-  const all = getAllResults()
-  if (all.length === 0) return
-  
-  await ensureDir()
-  await fs.writeFile(LATEST_SCAN_FILE, JSON.stringify({
-    scanId: lastFullScan?.scanId || `full-${Date.now()}`,
-    timestamp: new Date().toISOString(),
-    totalResults: all.length,
-    results: all,
-  }, null, 2))
-}
-
-/**
- * Tam tarama sonuçlarını disk'e kaydet (client'tan çağrılır)
- * Bu fonksiyon tüm sonuçları tek seferde kaydeder
+ * Tam tarama sonuclarini kaydet (Redis + in-memory)
  */
 export async function saveFullScan(results: ScanResult[], scanId: string): Promise<void> {
   if (!results || results.length === 0) return
@@ -151,39 +121,50 @@ export async function saveFullScan(results: ScanResult[], scanId: string): Promi
     results,
   }
   
-  await ensureDir()
-  await fs.writeFile(LATEST_SCAN_FILE, JSON.stringify(payload, null, 2))
-  await setRedisCache(SCAN_REDIS_KEY, payload, SCAN_REDIS_TTL).catch(() => {})
+  if (isRedisAvailable()) {
+    await setRedisCache(SCAN_REDIS_KEY, payload, SCAN_REDIS_TTL).catch(err => {
+      console.warn('[SCAN-STORE] Redis save failed:', (err as Error).message)
+    })
+  }
+
+  // In-memory'ye de kaydet (ayni instance icin hiz)
+  for (const r of results) {
+    const seg = r.segment || 'ALL'
+    if (!scanResults.has(seg)) scanResults.set(seg, [])
+    scanResults.get(seg)!.push(r)
+  }
+  updateFullScan()
   
-  console.log(`[SCAN-STORE] Saved ${results.length} results to disk + Redis`)
+  console.log(`[SCAN-STORE] Saved ${results.length} results${isRedisAvailable() ? ' (Redis + memory)' : ' (memory only — Redis unavailable)'}`)
 }
 
 /**
- * Son tarama sonuclarini disk'ten yukle
+ * Son tarama sonuclarini yukle (Redis > in-memory fallback)
  */
 export async function loadLatestScan(): Promise<{
   scanId: string
   timestamp: string
   results: ScanResult[]
 } | null> {
-  // 1. Try Redis first (shared across instances)
-  try {
-    const redis = await getRedisCache<{ scanId: string; timestamp: string; results: ScanResult[] }>(SCAN_REDIS_KEY)
-    if (redis && redis.results?.length > 0) return redis
-  } catch {
-    // fallback to disk
+  // 1. Redis (cross-instance paylasim)
+  if (isRedisAvailable()) {
+    try {
+      const redis = await getRedisCache<{ scanId: string; timestamp: string; results: ScanResult[] }>(SCAN_REDIS_KEY)
+      if (redis && redis.results?.length > 0) return redis
+    } catch (err) {
+      console.warn('[SCAN-STORE] Redis load failed:', (err as Error).message)
+    }
   }
 
-  // 2. Disk fallback
-  try {
-    const content = await fs.readFile(LATEST_SCAN_FILE, 'utf-8')
-    const parsed = JSON.parse(content)
-    // Promote to Redis for other instances
-    if (parsed?.results?.length > 0) {
-      setRedisCache(SCAN_REDIS_KEY, parsed, SCAN_REDIS_TTL).catch(() => {})
+  // 2. In-memory fallback (ayni instance)
+  const all = getAllResults()
+  if (all.length > 0) {
+    return {
+      scanId: lastFullScan?.scanId || `mem-${Date.now()}`,
+      timestamp: lastFullScan?.timestamp || new Date().toISOString(),
+      results: all,
     }
-    return parsed
-  } catch {
-    return null
   }
+
+  return null
 }

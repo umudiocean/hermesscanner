@@ -190,34 +190,63 @@ const MARKET_IDS: MarketId[] = ['nasdaq', 'europe', 'crypto', 'bist100', 'forex'
 const PERSIST_KEY = 'hermes_active_market'
 const MANIFESTO_CLOSED_KEY = 'hermes_manifesto_closed'
 
+function safeGetItem(key: string): string | null {
+  try { return typeof window !== 'undefined' ? localStorage.getItem(key) : null }
+  catch { return null }
+}
+function safeSetItem(key: string, value: string): void {
+  try { if (typeof window !== 'undefined') localStorage.setItem(key, value) }
+  catch { /* quota exceeded or private mode */ }
+}
+function safeRemoveItem(key: string): void {
+  try { if (typeof window !== 'undefined') localStorage.removeItem(key) }
+  catch { /* ignore */ }
+}
+
 function HomeContent() {
   const searchParams = useSearchParams()
   const [activeMarket, setActiveMarket] = useState<MarketId | null>(() => {
     if (typeof window === 'undefined') return null
     const p = new URLSearchParams(window.location.search)
     const fromUrl = p.get('market')
-    const fromStorage = localStorage.getItem(PERSIST_KEY)
+    const fromStorage = safeGetItem(PERSIST_KEY)
     const m = fromUrl || fromStorage
     return (m && MARKET_IDS.includes(m as MarketId)) ? (m as MarketId) : null
   })
   const [showManifesto, setShowManifesto] = useState(() => {
     if (typeof window === 'undefined') return true
-    return !localStorage.getItem(MANIFESTO_CLOSED_KEY)
+    return !safeGetItem(MANIFESTO_CLOSED_KEY)
   })
 
   useEffect(() => {
     const fromUrl = searchParams.get('market')
-    const fromStorage = localStorage.getItem(PERSIST_KEY)
+    const fromStorage = safeGetItem(PERSIST_KEY)
     const m = fromUrl || fromStorage
     if (m && MARKET_IDS.includes(m as MarketId)) {
       setActiveMarket(m as MarketId)
     }
   }, [searchParams])
 
+  // Multi-tab sync via storage events
+  useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key === PERSIST_KEY) {
+        const v = e.newValue
+        if (v && MARKET_IDS.includes(v as MarketId)) setActiveMarket(v as MarketId)
+        else if (!v) setActiveMarket(null)
+      }
+      if (e.key === MANIFESTO_CLOSED_KEY) {
+        setShowManifesto(e.newValue !== 'true')
+      }
+    }
+    window.addEventListener('storage', handler)
+    return () => window.removeEventListener('storage', handler)
+  }, [])
+
   const handleSelectMarket = useCallback((market: MarketId) => {
     setActiveMarket(market)
+    safeSetItem(PERSIST_KEY, market)
     if (typeof window !== 'undefined') {
-      localStorage.setItem(PERSIST_KEY, market)
       const url = new URL(window.location.href)
       url.searchParams.set('market', market)
       window.history.replaceState({}, '', url.toString())
@@ -226,8 +255,8 @@ function HomeContent() {
 
   const handleBackToLauncher = useCallback(() => {
     setActiveMarket(null)
+    safeRemoveItem(PERSIST_KEY)
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(PERSIST_KEY)
       const url = new URL(window.location.href)
       url.searchParams.delete('market')
       window.history.replaceState({}, '', url.toString())
@@ -239,7 +268,7 @@ function HomeContent() {
       <ManifestoSplash
         onClose={() => {
           setShowManifesto(false)
-          if (typeof window !== 'undefined') localStorage.setItem(MANIFESTO_CLOSED_KEY, '1')
+          safeSetItem(MANIFESTO_CLOSED_KEY, 'true')
         }}
       />
     )

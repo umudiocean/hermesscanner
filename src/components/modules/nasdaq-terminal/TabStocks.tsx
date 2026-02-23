@@ -6,7 +6,8 @@
 // Font sizes: %25 buyutulmus, sutun bosuklari daraltilmis
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { TrendingUp, TrendingDown, Search, Filter, Shield, Zap, AlertTriangle, Minus, Info, Star, BarChart3, Crown, Building2, Layers, Store, Bug } from 'lucide-react'
 import { getWatchlist, toggleWatchlist } from '@/lib/store'
 import { computeSegmentFromMarketCap } from '@/lib/symbols'
@@ -219,6 +220,14 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
     setPage(0)
   }, [sortField])
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const rowVirtualizer = useVirtualizer({
+    count: filteredStocks.length,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => 44,
+    overscan: 20,
+  })
+
   if (loading) return <TableSkeleton />
   if (error) return <ErrorState message={error} />
 
@@ -382,9 +391,9 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
         </div>
       )}
 
-      {/* Table — Virtualized */}
+      {/* Table — Virtualized with @tanstack/react-virtual */}
       <div className="bg-[#151520] rounded-2xl border border-white/[0.06] overflow-hidden shadow-xl shadow-black/20">
-        <div className="overflow-x-auto overflow-y-auto max-h-[80vh]" style={{ willChange: 'transform' }}>
+        <div ref={scrollContainerRef} className="overflow-x-auto overflow-y-auto max-h-[80vh]" style={{ willChange: 'transform' }}>
           <table className="w-full border-collapse">
             <thead className="sticky top-0 bg-[#0e0e18] z-10 after:absolute after:left-0 after:right-0 after:bottom-0 after:h-px after:bg-white/[0.08]">
               <tr className="border-b border-white/[0.08]">
@@ -437,12 +446,20 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredStocks.map((s, idx) => {
+              {/* Virtual spacer — top */}
+              {rowVirtualizer.getVirtualItems().length > 0 && rowVirtualizer.getVirtualItems()[0].start > 0 && (
+                <tr><td colSpan={99} style={{ height: rowVirtualizer.getVirtualItems()[0].start, padding: 0, border: 'none' }} /></tr>
+              )}
+              {rowVirtualizer.getVirtualItems().map(virtualRow => {
+                const s = filteredStocks[virtualRow.index]
+                if (!s) return null
+                const idx = virtualRow.index
                 const sig = SIGNAL_CONFIG[s.signal] || SIGNAL_CONFIG.NEUTRAL
                 const SIGNAL_COLORS: Record<string, string> = { STRONG: '#fbbf24', GOOD: '#62cbc1', NEUTRAL: '#94a3b8', WEAK: '#fb923c', BAD: '#f87171' }
                 const scoreColor = SIGNAL_COLORS[s.signal] || SIGNAL_COLORS.NEUTRAL
                 return (
                   <tr key={s.symbol}
+                    data-index={virtualRow.index}
                     onClick={() => onSelectSymbol(s.symbol)}
                     className={`border-b border-white/[0.03] premium-row cursor-pointer transition-colors duration-150 ${idx % 2 === 0 ? '' : 'bg-white/[0.01]'}`}>
                     <td className="px-1.5 py-2">
@@ -649,6 +666,10 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                   </tr>
                 )
               })}
+              {/* Virtual spacer — bottom */}
+              {rowVirtualizer.getVirtualItems().length > 0 && (
+                <tr><td colSpan={99} style={{ height: rowVirtualizer.getTotalSize() - (rowVirtualizer.getVirtualItems().at(-1)?.end ?? 0), padding: 0, border: 'none' }} /></tr>
+              )}
             </tbody>
           </table>
         </div>
