@@ -14,7 +14,7 @@ import { getBatchQuotes, getCompanyProfiles, getHistorical15Min } from '@/lib/fm
 import { calculateHermes } from '@/lib/hermes-engine'
 import { saveScanResults } from '@/lib/scan-store'
 import { updateTrendFromScanResults, getTrendContext, hasTrendCache } from '@/lib/trend-context'
-import { ScanResult, ScanSummary, Segment, OHLCV, PriceTargetData } from '@/lib/types'
+import { ScanResult, ScanSummary, Segment, OHLCV, PriceTargetData, HermesResult } from '@/lib/types'
 import { computeNasdaqTargetFloor } from '@/lib/target-engine'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { segmentSchema, symbolsParamSchema, validateParams } from '@/lib/validation/schemas'
@@ -56,6 +56,36 @@ async function isBootstrapReady(): Promise<boolean> {
 }
 
 const MIN_SCAN_BARS = 6331
+
+/** Placeholder for symbols without FMP 15dk data — evren 2064 tutarliligi */
+function createPlaceholderResult(symbol: string, quote?: { price: number; change: number; changePercent: number; volume: number; marketCap: number }): ScanResult {
+  const price = quote?.price ?? 0
+  const hermes: HermesResult = {
+    score: 50,
+    signal: 'NOTR',
+    signalType: 'neutral',
+    components: { point52w: 50, pointMfi: 50, pointRsi: 50 },
+    multipliers: { atrCarpan: 1, adxCarpan: 1, quality: 0.5 },
+    rawScore: 50,
+    indicators: { rsi: 50, mfi: 50, adx: 0, atr: 0, volRatio: 1 },
+    zscores: { zscore52w: 0 },
+    bands: { vwap52w: price, upperInner: price, lowerInner: price, upperOuter: price, lowerOuter: price },
+    touches: { touchOuterUpper: false, touchOuterLower: false, touchInnerUpper: false, touchInnerLower: false },
+    filters: { longFiltersOk: false, shortFiltersOk: false, rsiOk: true, mfiOk: true, adxOk: true },
+    price,
+    dataPoints: 0,
+    hasEnough52w: false,
+    error: 'FMP 15dk veri yok',
+  }
+  return {
+    symbol,
+    segment: computeSegmentFromMarketCap(quote?.marketCap),
+    hermes: hermes as unknown as HermesResult,
+    quote: quote ? { price: quote.price, change: quote.change, changePercent: quote.changePercent, volume: quote.volume, marketCap: quote.marketCap } : undefined,
+    priceTarget: null,
+    timestamp: new Date().toISOString(),
+  }
+}
 
 async function processSymbol(
   symbol: string,
@@ -222,6 +252,11 @@ export async function GET(request: NextRequest) {
                   ))
                 } else {
                   errorCount++
+                  const placeholder = createPlaceholderResult(sym, ctx.quotes.get(sym))
+                  results.push(placeholder)
+                  controller.enqueue(encoder.encode(
+                    JSON.stringify({ type: 'result', data: placeholder }) + '\n'
+                  ))
                 }
 
                 // Progress every 10 symbols
@@ -282,8 +317,12 @@ export async function GET(request: NextRequest) {
         const sym = queue.shift()
         if (!sym) break
         const result = await processSymbol(sym, ctx)
-        if (result) results.push(result)
-        else errorCount++
+        if (result) {
+          results.push(result)
+        } else {
+          errorCount++
+          results.push(createPlaceholderResult(sym, ctx.quotes.get(sym)))
+        }
         await new Promise(r => setTimeout(r, 30))
       }
     }

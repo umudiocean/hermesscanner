@@ -1,5 +1,5 @@
 // Admin-only: Trade-ready vs insufficient symbols (scan sonuclarindan)
-// Son taramada gorunen 2054 = trade-ready, digerleri FMP 15dk verisi yetersiz
+// Son taramada gorunen = trade-ready, digerleri FMP 15dk verisi yetersiz (evren 2064)
 
 import { NextResponse } from 'next/server'
 import { getCleanSymbols } from '@/lib/symbols'

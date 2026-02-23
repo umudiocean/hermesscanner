@@ -451,12 +451,12 @@ export default function ModuleNasdaqTrade() {
 
   return (
     <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
-      {/* Filters */}
-      <div className="glass-card rounded-xl p-2 sm:p-4 mb-2 sm:mb-4">
-        <div className="space-y-2">
-          {/* Sinyal Row */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gold-400/50 w-20 shrink-0 text-right">Sinyal:</span>
+      {/* Filters — Yatay simetrik layout */}
+      <div className="glass-card rounded-xl p-3 sm:p-4 mb-2 sm:mb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          {/* Sinyal */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-xs text-gold-400/50 w-16 shrink-0">Sinyal</span>
             <div className="flex flex-wrap items-center gap-1.5">
               <FilterButton active={signalFilter === 'all'} onClick={() => setSignalFilter('all')} count={results.length}>Tumu</FilterButton>
               <FilterButton active={signalFilter === 'strong_long'} onClick={() => setSignalFilter('strong_long')} variant="yellow" count={signalCounts.strong_long}>Strong Long</FilterButton>
@@ -466,9 +466,10 @@ export default function ModuleNasdaqTrade() {
               <FilterButton active={signalFilter === 'strong_short'} onClick={() => setSignalFilter('strong_short')} variant="red" count={signalCounts.strong_short}>Strong Short</FilterButton>
             </div>
           </div>
-          {/* Market Cap Row */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gold-400/50 w-20 shrink-0 text-right">Market Cap:</span>
+          <div className="hidden lg:block w-px h-8 bg-white/[0.06] shrink-0" />
+          {/* Market Cap */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-xs text-gold-400/50 w-16 shrink-0">Market Cap</span>
             <div className="flex flex-wrap items-center gap-1.5">
               <FilterButton active={segmentFilter === 'ALL'} onClick={() => setSegmentFilter('ALL')} count={getSegmentCount('ALL')}>Tumu</FilterButton>
               {SEGMENTS.map(seg => (
@@ -476,10 +477,11 @@ export default function ModuleNasdaqTrade() {
               ))}
             </div>
           </div>
-          {/* Fiyatlama Row */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gold-400/50 w-20 shrink-0 text-right">Fiyatlama:</span>
-            <div className="flex flex-wrap items-center gap-1.5 flex-1">
+          <div className="hidden lg:block w-px h-8 bg-white/[0.06] shrink-0" />
+          {/* Fiyatlama */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-xs text-gold-400/50 w-16 shrink-0">Fiyatlama</span>
+            <div className="flex flex-wrap items-center gap-1.5">
               {[
                 { key: 'all', label: 'Tumu', variant: 'default' as const },
                 { key: 'COK UCUZ', label: 'Cok Ucuz', variant: 'green' as const },
@@ -490,29 +492,30 @@ export default function ModuleNasdaqTrade() {
               ].map(f => (
                 <FilterButton key={f.key} active={valuationFilter === f.key} onClick={() => setValuationFilter(f.key)} variant={f.variant}>{f.label}</FilterButton>
               ))}
-              <div className="ml-auto flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Sembol ara..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="bg-midnight-50/50 border border-gold-400/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-gold-400/25 w-36"
-                />
-                {canCSV && (
-                  <button
-                    onClick={() => exportToCSV(filteredResults, 'hermes_52week', fmpStocksMap)}
-                    disabled={filteredResults.length === 0}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold-400/8 hover:bg-gold-400/15 text-gold-400/60 hover:text-gold-300 border border-gold-400/15 flex items-center gap-1.5"
-                  >
-                    CSV
-                  </button>
-                )}
-                <span className="text-xs text-white/60 tabular-nums">
-                  <span className="font-bold text-gold-300">{filteredResults.length}</span>
-                  <span className="text-white/40"> / {results.length}</span>
-                </span>
-              </div>
             </div>
+          </div>
+          {/* Arama + CSV + sayac — sagda */}
+          <div className="flex items-center gap-2 shrink-0">
+            <input
+              type="text"
+              placeholder="Sembol ara..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="bg-midnight-50/50 border border-gold-400/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-gold-400/25 w-32"
+            />
+            {canCSV && (
+              <button
+                onClick={() => exportToCSV(filteredResults, 'hermes_52week', fmpStocksMap)}
+                disabled={filteredResults.length === 0}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold-400/8 hover:bg-gold-400/15 text-gold-400/60 hover:text-gold-300 border border-gold-400/15 flex items-center gap-1.5"
+              >
+                CSV
+              </button>
+            )}
+            <span className="text-xs text-white/60 tabular-nums whitespace-nowrap">
+              <span className="font-bold text-gold-300">{filteredResults.length}</span>
+              <span className="text-white/40"> / {results.length}</span>
+            </span>
           </div>
         </div>
       </div>
