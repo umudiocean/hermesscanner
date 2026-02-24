@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { loadLatestScan, saveFullScan, getAllResults } from '@/lib/scan-store'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { scanLatestBodySchema, validateParams } from '@/lib/validation/schemas'
+import { SCAN_GUARD } from '@/lib/config/constants'
 
 function ageMinFromIso(ts: string): number {
   const t = new Date(ts).getTime()
@@ -19,7 +20,7 @@ export async function GET() {
   try {
     // Once memory'den kontrol et
     const memResults = getAllResults()
-    if (memResults.length > 0) {
+    if (memResults.length >= SCAN_GUARD.MIN_TRUSTED_RESULTS) {
       const ts = new Date().toISOString()
       return NextResponse.json({
         results: memResults,
@@ -39,7 +40,7 @@ export async function GET() {
     // Memory bossa disk'ten oku
     const diskCache = await loadLatestScan()
     
-    if (diskCache && diskCache.results && diskCache.results.length > 0) {
+    if (diskCache && diskCache.results && diskCache.results.length >= SCAN_GUARD.MIN_TRUSTED_RESULTS) {
       const ts = diskCache.timestamp || new Date().toISOString()
       const age = ageMinFromIso(ts)
       return NextResponse.json({
@@ -96,11 +97,13 @@ export async function POST(request: NextRequest) {
     }
     const { results, scanId } = parsed.data
 
-    await saveFullScan(results, scanId || `full-${Date.now()}`)
+    const saveResult = await saveFullScan(results, scanId || `full-${Date.now()}`)
 
     return NextResponse.json({
-      success: true,
-      savedCount: results.length,
+      success: saveResult.saved,
+      savedCount: saveResult.saved ? results.length : 0,
+      ignoredReason: saveResult.saved ? null : (saveResult.reason || 'snapshot_rejected'),
+      minTrustedResults: SCAN_GUARD.MIN_TRUSTED_RESULTS,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {

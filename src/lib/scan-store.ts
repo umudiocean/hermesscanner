@@ -7,6 +7,7 @@
 import { ScanResult, ScanSummary } from './types'
 import { getRedisCache, setRedisCache } from './cache/redis-cache'
 import { isRedisAvailable } from './cache/redis-client'
+import { SCAN_GUARD } from './config/constants'
 
 const scanResults = new Map<string, ScanResult[]>()
 const scanSummaries = new Map<string, ScanSummary>()
@@ -16,7 +17,20 @@ let lastFullScan: ScanSummary | null = null
 const SCAN_REDIS_KEY = 'scan:latest'
 const SCAN_REDIS_TTL = 7 * 24 * 60 * 60 * 1000 // 7 days
 
+function isTrustedAllSnapshot(count: number): boolean {
+  return count >= SCAN_GUARD.MIN_TRUSTED_RESULTS
+}
+
 export function saveScanResults(segment: string, results: ScanResult[], summary: ScanSummary): void {
+  // Guardrail: never let a partial ALL scan (e.g. 120 symbols test run)
+  // overwrite production snapshot expected to be ~2050-2064.
+  if (segment === 'ALL' && !isTrustedAllSnapshot(results.length)) {
+    console.warn(
+      `[SCAN-STORE] Partial ALL snapshot ignored: ${results.length} < ${SCAN_GUARD.MIN_TRUSTED_RESULTS}`
+    )
+    return
+  }
+
   scanResults.set(segment, results)
   scanSummaries.set(segment, summary)
 
@@ -111,8 +125,17 @@ export function clearStore(): void {
 /**
  * Tam tarama sonuclarini kaydet (Redis + in-memory)
  */
-export async function saveFullScan(results: ScanResult[], scanId: string): Promise<void> {
-  if (!results || results.length === 0) return
+export async function saveFullScan(
+  results: ScanResult[],
+  scanId: string
+): Promise<{ saved: boolean; reason?: string }> {
+  if (!results || results.length === 0) return { saved: false, reason: 'empty_results' }
+
+  if (!isTrustedAllSnapshot(results.length)) {
+    const reason = `partial_snapshot_${results.length}_lt_${SCAN_GUARD.MIN_TRUSTED_RESULTS}`
+    console.warn(`[SCAN-STORE] saveFullScan ignored (${reason})`)
+    return { saved: false, reason }
+  }
   
   const payload = {
     scanId,
@@ -136,6 +159,7 @@ export async function saveFullScan(results: ScanResult[], scanId: string): Promi
   updateFullScan()
   
   console.log(`[SCAN-STORE] Saved ${results.length} results${isRedisAvailable() ? ' (Redis + memory)' : ' (memory only — Redis unavailable)'}`)
+  return { saved: true }
 }
 
 /**

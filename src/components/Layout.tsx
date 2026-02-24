@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
 import { ScanResult, ScanSummary } from '@/lib/types'
 import { getWatchlist, getSettings, setCachedResults, getCachedResults } from '@/lib/store'
-import { REFRESH, MARKET } from '@/lib/config/constants'
+import { REFRESH, MARKET, SCAN_GUARD } from '@/lib/config/constants'
 import { LEGAL_DISCLAIMER_TEXT } from '@/lib/legal-disclaimer'
 
 // ═══════════════════════════════════════════════════════════════════
@@ -347,7 +347,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
   }, [watchlist])
 
   // Scan function
-  const MIN_TRUSTED_CACHE = 50
+  const MIN_TRUSTED_CACHE = SCAN_GUARD.MIN_TRUSTED_RESULTS
 
   const runScan = useCallback(async () => {
     setLoading(true)

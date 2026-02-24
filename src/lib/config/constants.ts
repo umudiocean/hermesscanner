@@ -75,6 +75,14 @@ export const SCORING = {
   SHORT_THRESHOLD: 90,
 } as const
 
+// ─── Scan Snapshot Guardrail ────────────────────────────────────────
+// Trade AI cache should represent near-full universe. Keep tolerance
+// for temporary symbol availability drift without hard failing.
+export const SCAN_GUARD = {
+  EXPECTED_UNIVERSE: 2064,
+  MIN_TRUSTED_RESULTS: 2050,
+} as const
+
 // ─── FMP API ────────────────────────────────────────────────────────
 
 export const FMP = {
