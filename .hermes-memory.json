@@ -1,1 +1,373 @@
-{"version":"3.0","last_session":"2026-02-22","current_phase":"PRODUCTION","system_health":{"scoring_engine":"OPERATIONAL","data_pipeline":"OPERATIONAL","cache_layer":"OPERATIONAL","ui_layer":"OPERATIONAL"},"universe":{"total":2064,"loaded":0,"eligible":0,"scored":0},"scoring_version":"v5-8cat-smart-money-badges","active_weights":{"Valuation":22,"Health":21,"Growth":16,"Analyst":13,"Momentum":8,"Sector":6,"Insider":5,"Institutional":5,"Congressional":4},"decisions":[{"id":"HRM-2026-02-22-001","category":"ARCHITECTURE","description":"scan-store Redis-first, disk write removed","rationale":"Vercel read-only filesystem. Cross-instance persistence via Redis.","alternatives_rejected":["Disk fallback","Vercel KV only"],"timestamp":"2026-02-22"},{"id":"HRM-2026-02-22-002","category":"PERFORMANCE","description":"TabStocks @tanstack/react-virtual","rationale":"2000+ rows DOM bottleneck. Virtual scroll ~95% reduction.","alternatives_rejected":["Pagination","Canvas render"],"timestamp":"2026-02-22"},{"id":"HRM-2026-02-22-003","category":"DATA","description":"stocks API universeCount/loadedCount/missingCount","rationale":"PRINCIPLE 4: Universe != Loaded. Clear semantics for Product Strategist.","alternatives_rejected":["Single count field"],"timestamp":"2026-02-22"}],"tech_debt":[],"open_issues":[],"next_priority":"HERMES: AUDIT — full integrity pass per IIC framework","risk_flags":[],"deployment":{"platform":"Vercel","last_push":"2026-02-22","commit":"8a85a41","build_status":"SUCCESS"}}
+{
+  "version": "3.0",
+  "last_session": "2026-02-24T02:52:00Z",
+  "current_phase": "PRODUCTION",
+  "system_health": {
+    "scoring_engine": "OPERATIONAL",
+    "data_pipeline": "OPERATIONAL",
+    "cache_layer": "OPERATIONAL",
+    "ui_layer": "OPERATIONAL"
+  },
+  "universe": {
+    "total": 2064,
+    "loaded": 0,
+    "eligible": 0,
+    "scored": 0
+  },
+  "scoring_version": "v5-8cat-smart-money-badges",
+  "active_weights": {
+    "Valuation": 22,
+    "Health": 21,
+    "Growth": 16,
+    "Analyst": 13,
+    "Momentum": 8,
+    "Sector": 6,
+    "Insider": 5,
+    "Institutional": 5,
+    "Congressional": 4
+  },
+  "decisions": [
+    {
+      "id": "HRM-2026-02-22-001",
+      "category": "ARCHITECTURE",
+      "description": "scan-store Redis-first, disk write removed",
+      "rationale": "Vercel read-only filesystem. Cross-instance persistence via Redis.",
+      "alternatives_rejected": ["Disk fallback", "Vercel KV only"],
+      "timestamp": "2026-02-22"
+    },
+    {
+      "id": "HRM-2026-02-22-002",
+      "category": "PERFORMANCE",
+      "description": "TabStocks @tanstack/react-virtual",
+      "rationale": "2000+ rows DOM bottleneck. Virtual scroll ~95% reduction.",
+      "alternatives_rejected": ["Pagination", "Canvas render"],
+      "timestamp": "2026-02-22"
+    },
+    {
+      "id": "HRM-2026-02-22-003",
+      "category": "DATA",
+      "description": "stocks API universeCount/loadedCount/missingCount",
+      "rationale": "PRINCIPLE 4: Universe != Loaded. Clear semantics for Product Strategist.",
+      "alternatives_rejected": ["Single count field"],
+      "timestamp": "2026-02-22"
+    },
+    {
+      "id": "HRM-2026-02-22-004",
+      "category": "ARCHITECTURE",
+      "description": "Adopt HERMES-IIC v3.0 operating protocol and memory-first execution",
+      "rationale": "Institutional continuity, decision traceability, fail-loud production posture.",
+      "alternatives_rejected": ["Ad-hoc session memory", "Feature-first flow without audit trail"],
+      "risk_accepted": "Higher implementation overhead for logging and governance.",
+      "validation_method": "Health/SLA telemetry + type-check/lint + cron watchdog drills.",
+      "rollback_plan": "Disable strict gates via env toggles and keep telemetry passive.",
+      "timestamp": "2026-02-22T23:10:00Z"
+    },
+    {
+      "id": "HRM-2026-02-22-005",
+      "category": "RISK",
+      "description": "Freshness guardrail and SLO trend badges rolled out to Trade/Signals/Watchlist modules (NASDAQ + Europe)",
+      "rationale": "Prevent hidden stale-data risk and expose live reliability state to users.",
+      "alternatives_rejected": ["Health only in backend logs", "Single layout-only indicator"],
+      "risk_accepted": "Extra periodic health polling in client UI.",
+      "validation_method": "Type-check + lints + health endpoint field validation.",
+      "rollback_plan": "Remove badge imports and keep backend telemetry only.",
+      "timestamp": "2026-02-22T23:45:00Z"
+    },
+    {
+      "id": "HRM-2026-02-22-006",
+      "category": "RISK",
+      "description": "Config-driven signal fail-closed guard enabled with stale masking in Signals/Watchlist modules",
+      "rationale": "Block stale signal rendering to protect decision integrity.",
+      "alternatives_rejected": ["Warn-only mode", "Layout-only badge without render controls"],
+      "risk_accepted": "Potential temporary loss of signal visibility during freshness incidents.",
+      "validation_method": "Type-check + lints + stale banner/render block paths.",
+      "rollback_plan": "Set NEXT_PUBLIC_SIGNAL_FAIL_CLOSED=false to revert to warn-only behavior.",
+      "timestamp": "2026-02-23T00:20:00Z"
+    },
+    {
+      "id": "HRM-2026-02-22-007",
+      "category": "PERFORMANCE",
+      "description": "Freshness headers added to health/scan/latest/quotes endpoints for proxy and ops observability",
+      "rationale": "Expose stale state at transport layer for monitoring and edge decisions.",
+      "alternatives_rejected": ["Body-only freshness metadata"],
+      "risk_accepted": "Slightly larger response headers.",
+      "validation_method": "Type-check + endpoint contract validation.",
+      "rollback_plan": "Remove X-Hermes-* headers without changing body schema.",
+      "timestamp": "2026-02-23T00:22:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-008",
+      "category": "RISK",
+      "description": "Legal disclaimer strip hardened across NASDAQ/Europe Trade, Signals, and Watchlist modules",
+      "rationale": "Increase user-facing risk disclosure where signal decisions are made, not only in global layout footer.",
+      "alternatives_rejected": ["Footer-only disclaimer", "Single popup modal disclaimer"],
+      "risk_accepted": "Slightly denser module header area.",
+      "validation_method": "Type-check + lint + visual component integration checks.",
+      "rollback_plan": "Remove LegalDisclaimerStrip imports from modules and keep layout disclaimer only.",
+      "timestamp": "2026-02-23T01:10:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-009",
+      "category": "ARCHITECTURE",
+      "description": "Production API key rotation checklist and env guardrails documented for no-downtime key rollover",
+      "rationale": "Operationalize repeatable key rotation and fail-closed defaults before 7/24 production launch.",
+      "alternatives_rejected": ["Ad-hoc manual rotation", "Undocumented on-call tribal knowledge"],
+      "risk_accepted": "Process overhead during each rotation window.",
+      "validation_method": "Runbook + checklist review and smoke checks after env redeploy.",
+      "rollback_plan": "Use previous active keys in Vercel env and redeploy.",
+      "timestamp": "2026-02-23T01:12:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-010",
+      "category": "PERFORMANCE",
+      "description": "SLO dashboard wiring expanded in NASDAQ/Europe headers with watchdog and self-heal trend badges",
+      "rationale": "Expose operational stability directly in UI for fast incident detection without opening admin pages.",
+      "alternatives_rejected": ["Backend-only trend visibility", "Admin-only ops panel"],
+      "risk_accepted": "Slightly denser header controls on xl screens.",
+      "validation_method": "Type-check + lint + health payload field mapping check.",
+      "rollback_plan": "Remove OPS badge blocks and keep freshness badge only.",
+      "timestamp": "2026-02-23T01:38:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-011",
+      "category": "SCORING",
+      "description": "Analyst category upgraded with EPS revision momentum factor (30d/90d) and coverage depth",
+      "rationale": "Reduce static-consensus bias and capture analyst estimate direction as dynamic signal quality input.",
+      "alternatives_rejected": ["Consensus-only analyst score", "Price-target-only analyst score"],
+      "risk_accepted": "Revision inputs can be sparse on some symbols; falls back to existing analyst components.",
+      "validation_method": "Type-check + lint + parser fallback guards + default zero-safe scoring.",
+      "rollback_plan": "Remove revision fields from ScoreInputMetrics and scoreAnalyst weighting branch.",
+      "timestamp": "2026-02-23T02:10:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-012",
+      "category": "PERFORMANCE",
+      "description": "Tiered cache TTL tuning applied for analyst/dcf/fundamentals with centralized constants mapping",
+      "rationale": "Align data freshness with semantic volatility and cut unnecessary refresh pressure on heavy bulk endpoints.",
+      "alternatives_rejected": ["Single BULK TTL for all endpoint classes"],
+      "risk_accepted": "Longer TTL on stable datasets can delay low-impact updates.",
+      "validation_method": "Type-check + lint + endpoint cache key compatibility verification.",
+      "rollback_plan": "Re-point endpoint calls to CACHE_TTL.BULK or revert constants mapping.",
+      "timestamp": "2026-02-23T02:12:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-013",
+      "category": "PRODUCT",
+      "description": "Analyst EPS revision metrics exposed in NASDAQ and Europe Terminal Stocks tables (REV30/REV90) with sortable columns",
+      "rationale": "Make analyst momentum signals visible to operators and enable direct rank/sort workflows on revision direction.",
+      "alternatives_rejected": ["Keep revision metrics backend-only", "Expose only in stock detail view"],
+      "risk_accepted": "Wider tables on small screens; handled via existing horizontal scroll.",
+      "validation_method": "Type-check + lint + table render with missing-value fallback.",
+      "rollback_plan": "Remove REV30/REV90 columns and fields from table SortField/interface mappings.",
+      "timestamp": "2026-02-23T02:36:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-014",
+      "category": "PERFORMANCE",
+      "description": "Cache tier hit telemetry added (memory/redis/disk/origin) and exposed from system health payload",
+      "rationale": "Add measurable cache effectiveness by tier to support production tuning and incident triage.",
+      "alternatives_rejected": ["Single aggregate cache hit metric", "Logs-only cache telemetry"],
+      "risk_accepted": "Small Redis counter write overhead per cache resolution path.",
+      "validation_method": "Type-check + health route contract update + monitor key path verification.",
+      "rollback_plan": "Disable tier-hit increments and remove tierHits1h from health response schema.",
+      "timestamp": "2026-02-23T02:38:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-015",
+      "category": "PRODUCT",
+      "description": "Admin dashboard now surfaces cache tier telemetry and session-level origin trend sparkline",
+      "rationale": "Give operators immediate cache efficiency observability and quick drift detection without backend log access.",
+      "alternatives_rejected": ["System health JSON only", "Static counters without trend"],
+      "risk_accepted": "Small additional admin polling load (60s interval).",
+      "validation_method": "Type-check + lint + admin payload typing verification.",
+      "rollback_plan": "Remove ops cache cards/sparkline and revert to base system summary cards.",
+      "timestamp": "2026-02-23T03:03:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-016",
+      "category": "PRODUCT",
+      "description": "Analyst EPS revision visibility expanded to Signals/Watchlist modules (NASDAQ + Europe) with revision filters/chips",
+      "rationale": "Carry analyst momentum context into action surfaces where users consume cross-signals and watchlist decisions.",
+      "alternatives_rejected": ["Keep revision data only in terminal stock tables", "Expose only via tooltip"],
+      "risk_accepted": "Slightly denser table layout in compact widths.",
+      "validation_method": "Type-check + lint + safe fallback when revision fields are missing.",
+      "rollback_plan": "Remove REV fields/filters from modules and keep existing signal columns unchanged.",
+      "timestamp": "2026-02-23T03:18:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-017",
+      "category": "RISK",
+      "description": "Admin ops alert thresholds added for SLA breach and cache origin ratio warning/critical states",
+      "rationale": "Convert raw telemetry into actionable operational states for faster incident triage.",
+      "alternatives_rejected": ["Telemetry-only counters without thresholds", "Manual interpretation from logs"],
+      "risk_accepted": "Simple static thresholds may need tuning per regime/load profile.",
+      "validation_method": "Type-check + lint + visual badge rendering and threshold branch checks.",
+      "rollback_plan": "Remove threshold badges and keep telemetry cards only.",
+      "timestamp": "2026-02-23T03:30:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-018",
+      "category": "ARCHITECTURE",
+      "description": "Ops thresholds moved to config/env and exposed via health->admin pipeline",
+      "rationale": "Avoid hardcoded alert cutoffs and support runtime tuning without code-level threshold drift.",
+      "alternatives_rejected": ["Hardcoded thresholds in admin UI only"],
+      "risk_accepted": "Misconfigured env values can shift alert sensitivity.",
+      "validation_method": "Type-check + lint + admin threshold rendering verification.",
+      "rollback_plan": "Fallback to default constants and remove threshold exposure from admin payload.",
+      "timestamp": "2026-02-23T03:43:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-019",
+      "category": "RISK",
+      "description": "OPS threshold envs documented in .env.example and operations runbook",
+      "rationale": "Ensure production operators can tune alert sensitivity consistently without code edits.",
+      "alternatives_rejected": ["Undocumented env variables", "Code-only threshold notes"],
+      "risk_accepted": "Operational misuse if thresholds are changed without monitoring discipline.",
+      "validation_method": "Type-check + runbook review + admin threshold visibility check.",
+      "rollback_plan": "Remove OPS env docs and rely on default in-code thresholds.",
+      "timestamp": "2026-02-23T03:50:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-020",
+      "category": "PRODUCT",
+      "description": "Europe Signals now supports EPS revision filter chips (Rev Up/Down) and CSV export including REV30/REV90",
+      "rationale": "Align Europe cross-signal workflow with analyst revision visibility standards used in NASDAQ modules.",
+      "alternatives_rejected": ["No revision filter in Europe", "CSV without revision fields"],
+      "risk_accepted": "Slightly denser filter row on smaller screens.",
+      "validation_method": "Type-check + lint + export column verification.",
+      "rollback_plan": "Remove revision chips and CSV revision columns from Europe Signals module.",
+      "timestamp": "2026-02-23T03:58:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-021",
+      "category": "PRODUCT",
+      "description": "Europe Watchlist parity completed with CSV export and sortable REV30/REV90 columns",
+      "rationale": "Align watchlist decision surfaces with analyst revision-aware workflows and export parity.",
+      "alternatives_rejected": ["Keep static columns without sort", "No CSV parity for Europe Watchlist"],
+      "risk_accepted": "More sortable headers can increase UI density on narrow screens.",
+      "validation_method": "Type-check + lint + sort/export flow verification.",
+      "rollback_plan": "Remove additional sort handlers and CSV button from Europe Watchlist module.",
+      "timestamp": "2026-02-23T04:10:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-022",
+      "category": "PRODUCT",
+      "description": "Shared revision contract added for REV tooltips and CSV header consistency across NASDAQ/Europe Signals and Watchlist modules",
+      "rationale": "Prevent drift between modules by centralizing REV30/REV90 tooltip text and CSV header contracts in one source of truth.",
+      "alternatives_rejected": ["Keep per-module hardcoded headers/tooltips", "Document-only convention without shared constants"],
+      "risk_accepted": "Shared contract import coupling between modules.",
+      "validation_method": "Type-check + lint + CSV header and table tooltip smoke checks.",
+      "rollback_plan": "Inline per-module header/tooltip constants and remove shared contract module.",
+      "timestamp": "2026-02-23T04:35:00Z"
+    },
+    {
+      "id": "HRM-2026-02-23-023",
+      "category": "PRODUCT",
+      "description": "Legal disclaimer text centralized and localized with a shared constant across module strips and both main footers",
+      "rationale": "Eliminate wording drift and enforce a single compliance-safe disclaimer sentence in NASDAQ and Europe surfaces.",
+      "alternatives_rejected": ["Keep duplicated hardcoded disclaimer strings per component", "Layout-only disclaimer standardization"],
+      "risk_accepted": "Single-source text change impacts all bound UIs at once.",
+      "validation_method": "Type-check + lint + string usage verification in LegalDisclaimerStrip/Layout/EuropeLayout.",
+      "rollback_plan": "Revert to prior per-file disclaimer strings and remove shared legal-disclaimer constant.",
+      "timestamp": "2026-02-23T04:52:00Z"
+    },
+    {
+      "id": "HRM-2026-02-24-024",
+      "category": "RISK",
+      "description": "Institutional pre-launch audit v2.1 published with claim revalidation matrix (valid/resolved/missing) against current codebase",
+      "rationale": "Prevent stale audit actions by separating already-resolved findings from true remaining launch blockers.",
+      "alternatives_rejected": ["Continue with v2.0 raw list", "Patch v2.0 informally without written delta audit"],
+      "risk_accepted": "Delta audit may need frequent refresh as hardening continues.",
+      "validation_method": "File-level evidence scan across route/cache/scoring/ui guardrail/admin telemetry paths.",
+      "rollback_plan": "Fall back to v2.0 report and manual per-claim verification.",
+      "timestamp": "2026-02-24T01:20:00Z"
+    },
+    {
+      "id": "HRM-2026-02-24-025",
+      "category": "ARCHITECTURE",
+      "description": "fmp-terminal/stocks route migrated from local raw fetch helper to centralized fmpClient raw fetch path",
+      "rationale": "Close launch-blocking resilience gap by inheriting shared timeout/retry/dedup/circuit-breaker behavior on the heaviest terminal route.",
+      "alternatives_rejected": ["Keep local fmpFetch wrapper", "Partially migrate only selected endpoint calls"],
+      "risk_accepted": "Route now depends on centralized client behavior for all bulk calls.",
+      "validation_method": "Type-check + lint clean on modified route with unchanged response contract.",
+      "rollback_plan": "Reinstate local fmpFetch wrapper in stocks route and remove centralized import.",
+      "timestamp": "2026-02-24T01:34:00Z"
+    },
+    {
+      "id": "HRM-2026-02-24-026",
+      "category": "PERFORMANCE",
+      "description": "Central FMP client retry backoff updated with +/-20% jitter to reduce synchronized retry bursts",
+      "rationale": "Lower thundering-herd risk during upstream transient failures and align retry behavior with production resilience best practices.",
+      "alternatives_rejected": ["Keep pure exponential backoff without jitter", "Use fixed delay retries"],
+      "risk_accepted": "Slightly variable retry latency per request.",
+      "validation_method": "Type-check + lint clean and callsite verification for both retry branches.",
+      "rollback_plan": "Revert to direct exponential delay formula in fmpClient.",
+      "timestamp": "2026-02-24T01:46:00Z"
+    },
+    {
+      "id": "HRM-2026-02-24-027",
+      "category": "PRODUCT",
+      "description": "Conflict-state advisory counters added to NASDAQ and Europe Signals without changing locked 6-signal taxonomy",
+      "rationale": "Expose technical-vs-AI direction mismatch volume while preserving existing signal contract and UI filtering semantics.",
+      "alternatives_rejected": ["Introduce new signal types", "Keep conflicts fully invisible"],
+      "risk_accepted": "Additional compact badge in filter rows increases minor UI density.",
+      "validation_method": "Type-check + lint clean; conflict badge rendering path verified by code inspection.",
+      "rollback_plan": "Remove conflict counters and advisory badges from signals modules.",
+      "timestamp": "2026-02-24T02:02:00Z"
+    },
+    {
+      "id": "HRM-2026-02-24-028",
+      "category": "RISK",
+      "description": "Production smoke checklist executed for health/scan/latest/quotes/admin endpoints with temporary local dev server",
+      "rationale": "Validate core observability and freshness/header contracts after resilience hardening sequence.",
+      "alternatives_rejected": ["Skip runtime smoke and rely on static checks only"],
+      "risk_accepted": "Smoke checks in local dev environment may not mirror full production auth/session state.",
+      "validation_method": "Runtime endpoint probes + type-check + lint; temporary server terminated after checks.",
+      "rollback_plan": "Re-run smoke checklist on previous baseline commit if regression is suspected.",
+      "timestamp": "2026-02-24T02:22:00Z"
+    },
+    {
+      "id": "HRM-2026-02-24-029",
+      "category": "ARCHITECTURE",
+      "description": "Raw FMP fetch path updated to disable dedup by default to prevent shared Response body consumption errors",
+      "rationale": "Centralized client dedup is unsafe for raw Response streams because body is single-consume.",
+      "alternatives_rejected": ["Keep dedup for raw and clone response", "Route-level workaround in each caller"],
+      "risk_accepted": "Slightly higher request volume for concurrent identical raw calls.",
+      "validation_method": "Type-check + lint + runtime smoke where /fmp-terminal/stocks returns 200 without prior body-consume error signature.",
+      "rollback_plan": "Re-enable raw dedup and move callers to parsed JSON mode if needed.",
+      "timestamp": "2026-02-24T02:30:00Z"
+    },
+    {
+      "id": "HRM-2026-02-24-030",
+      "category": "PERFORMANCE",
+      "description": "Deploy-readiness verify pipeline passed (type-check + production build) after resilience hardening sequence",
+      "rationale": "Confirm no compile/build regressions before production packaging.",
+      "alternatives_rejected": ["Rely on type-check only", "Defer build verification to deployment step"],
+      "risk_accepted": "Local verify run does not fully emulate production traffic and auth sessions.",
+      "validation_method": "npm run verify success with Next.js build artifacts generated.",
+      "rollback_plan": "Revert latest hardening commits and rerun verify on previous stable state.",
+      "timestamp": "2026-02-24T02:38:00Z"
+    },
+    {
+      "id": "HRM-2026-02-24-031",
+      "category": "RISK",
+      "description": "Authenticated admin smoke and fresh mini-scan bootstrap completed; admin ops payload now verified with thresholds and tier-hit telemetry present",
+      "rationale": "Close handoff gap by validating protected admin path under real session cookie and confirming freshness pipeline reset path.",
+      "alternatives_rejected": ["Unauthenticated admin checks only", "Skip mini-scan freshness bootstrap"],
+      "risk_accepted": "Smoke used minimal symbol set for bootstrap, not full-universe runtime load.",
+      "validation_method": "admin login 200 + admin stats 200 + ops fields present + system health 200 + scan/latest age reset to 0.",
+      "rollback_plan": "Re-run authenticated smoke on previous stable build and compare endpoint contracts.",
+      "timestamp": "2026-02-24T02:52:00Z"
+    }
+  ],
+  "tech_debt": [],
+  "open_issues": [],
+  "next_priority": "PHASE NEXT: final production handoff packaging (optional commit + deploy checklist execution on Vercel dashboard)",
+  "risk_flags": [],
+  "deployment": {
+    "platform": "Vercel",
+    "last_push": "2026-02-22",
+    "commit": "8a85a41",
+    "build_status": "SUCCESS"
+  }
+}

@@ -4,6 +4,11 @@ import { useState, useMemo } from 'react'
 import { useEuropeTradeContext } from '../EuropeLayout'
 import { ScanResult } from '@/lib/types'
 import { EUROPE_EXCHANGES } from '@/lib/europe-config'
+import { useSignalRenderGuard } from '@/lib/hooks/useSignalRenderGuard'
+import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
+import SystemFreshnessBadge from '../SystemFreshnessBadge'
+import LegalDisclaimerStrip from '../LegalDisclaimerStrip'
+import { CSV_HEADERS, REVISION_TOOLTIPS } from './shared/revision-contract'
 
 type SignalType = 'CONFLUENCE_BUY' | 'ALPHA_LONG' | 'HERMES_LONG' | 'HERMES_SHORT' | 'ALPHA_SHORT' | 'CONFLUENCE_SELL'
 
@@ -18,6 +23,8 @@ interface CrossSignal {
   price: number
   change: number
   exchange?: string
+  analystEpsRevision30d?: number
+  analystEpsRevision90d?: number
 }
 
 const SIGNAL_CONFIG: Record<SignalType, { label: string; color: string; bg: string; border: string; direction: 'LONG' | 'SHORT' }> = {
@@ -29,7 +36,7 @@ const SIGNAL_CONFIG: Record<SignalType, { label: string; color: string; bg: stri
   CONFLUENCE_SELL: { label: 'KONSENSUS SATIS', color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/40', direction: 'SHORT' },
 }
 
-function matchSignal(r: ScanResult, fmpLookup: Map<string, { signal: string; fmpScore: number; riskScore: number }>): CrossSignal | null {
+function matchSignal(r: ScanResult, fmpLookup: Map<string, { signal: string; fmpScore: number; riskScore: number; analystEpsRevision30d?: number; analystEpsRevision90d?: number }>): CrossSignal | null {
   const fmp = fmpLookup.get(r.symbol)
   const signalType = r.hermes.signalType
   const isLong = signalType === 'strong_long' || signalType === 'long'
@@ -52,26 +59,83 @@ function matchSignal(r: ScanResult, fmpLookup: Map<string, { signal: string; fmp
     type, symbol: r.symbol, tradeSignal: signalType, tradeScore: r.hermes.score,
     fmpSignal: fmp?.signal, fmpScore: fmp?.fmpScore, riskScore: fmp?.riskScore,
     price: r.quote?.price ?? r.hermes.price, change: r.quote?.changePercent ?? 0, exchange: exConfig?.shortLabel,
+    analystEpsRevision30d: fmp?.analystEpsRevision30d,
+    analystEpsRevision90d: fmp?.analystEpsRevision90d,
   }
 }
 
 export default function ModuleEuropeSignals() {
   const ctx = useEuropeTradeContext()
+  const renderGuard = useSignalRenderGuard()
+  const canCSV = useCanDownloadCSV()
   const [activeFilter, setActiveFilter] = useState<SignalType | 'all'>('all')
+  const [revisionFilter, setRevisionFilter] = useState<'all' | 'up' | 'down'>('all')
 
-  const signals = useMemo(() => {
+  const { signals, conflictCount } = useMemo(() => {
     const all: CrossSignal[] = []
+    let conflicts = 0
     for (const r of ctx.results) {
       const fmpItem = ctx.fmpStocksMap.get(r.symbol)
-      const fmpLookup = new Map<string, { signal: string; fmpScore: number; riskScore: number }>()
-      if (fmpItem) fmpLookup.set(r.symbol, { signal: fmpItem.signal || 'NEUTRAL', fmpScore: fmpItem.valuationScore ?? 50, riskScore: fmpItem.riskScore ?? 50 })
+      if (fmpItem) {
+        const st = r.hermes.signalType
+        const isLong = st === 'strong_long' || st === 'long'
+        const isShort = st === 'strong_short' || st === 'short'
+        const ai = fmpItem.signal || 'NEUTRAL'
+        if ((isLong && (ai === 'WEAK' || ai === 'BAD')) || (isShort && (ai === 'GOOD' || ai === 'STRONG'))) {
+          conflicts++
+        }
+      }
+      const fmpLookup = new Map<string, { signal: string; fmpScore: number; riskScore: number; analystEpsRevision30d?: number; analystEpsRevision90d?: number }>()
+      if (fmpItem) {
+        fmpLookup.set(r.symbol, {
+          signal: fmpItem.signal || 'NEUTRAL',
+          fmpScore: fmpItem.valuationScore ?? 50,
+          riskScore: fmpItem.riskScore ?? 50,
+          analystEpsRevision30d: (fmpItem as { analystEpsRevision30d?: number }).analystEpsRevision30d,
+          analystEpsRevision90d: (fmpItem as { analystEpsRevision90d?: number }).analystEpsRevision90d,
+        })
+      }
       const sig = matchSignal(r, fmpLookup)
       if (sig) all.push(sig)
     }
-    return all
+    return { signals: all, conflictCount: conflicts }
   }, [ctx.results, ctx.fmpStocksMap])
 
-  const filtered = activeFilter === 'all' ? signals : signals.filter(s => s.type === activeFilter)
+  const filtered = useMemo(() => {
+    let list = activeFilter === 'all' ? signals : signals.filter(s => s.type === activeFilter)
+    if (revisionFilter === 'up') {
+      list = list.filter(s => (s.analystEpsRevision30d || 0) > 0 || (s.analystEpsRevision90d || 0) > 0)
+    } else if (revisionFilter === 'down') {
+      list = list.filter(s => (s.analystEpsRevision30d || 0) < 0 || (s.analystEpsRevision90d || 0) < 0)
+    }
+    return list
+  }, [signals, activeFilter, revisionFilter])
+
+  function downloadCSV() {
+    if (filtered.length === 0) return
+    const header = CSV_HEADERS.europeSignals
+    const rows = filtered.map(sig => [
+      sig.type,
+      sig.symbol,
+      sig.exchange || '',
+      sig.price.toFixed(2),
+      sig.change.toFixed(2),
+      sig.tradeScore.toFixed(2),
+      sig.fmpScore ?? '',
+      (sig.analystEpsRevision30d || 0).toFixed(2),
+      (sig.analystEpsRevision90d || 0).toFixed(2),
+      sig.riskScore ?? '',
+    ].join(','))
+    const csv = [header, ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    a.download = `hermes_europe_signals_${ts}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: signals.length }
     for (const s of signals) c[s.type] = (c[s.type] || 0) + 1
@@ -93,7 +157,20 @@ export default function ModuleEuropeSignals() {
           <h2 className="text-sm sm:text-base font-bold text-white">AVRUPA AI <span className="text-blue-400 font-extrabold">SINYALLER</span></h2>
           <p className="text-[10px] text-white/35">Trade AI + Terminal AI Capraz Sinyaller • {signals.length} sinyal</p>
         </div>
+        <div className="ml-auto">
+          <SystemFreshnessBadge compact />
+        </div>
       </div>
+      <LegalDisclaimerStrip compact />
+
+      {renderGuard.blocked && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3">
+          <p className="text-xs font-bold text-red-300">SIGNAL RENDER BLOCKED (FAIL-CLOSED)</p>
+          <p className="text-[10px] text-red-200/80 mt-1">
+            Reason: {renderGuard.reason} | ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | QuoteAge: {renderGuard.quoteAgeMin ?? 'n/a'}m
+          </p>
+        </div>
+      )}
 
       {/* Filter Buttons */}
       <div className="flex items-center gap-1.5 flex-wrap">
@@ -107,10 +184,44 @@ export default function ModuleEuropeSignals() {
               activeFilter === key ? `${cfg.color} ${cfg.bg} ${cfg.border} ring-1 ring-white/10` : 'text-white/35 bg-white/[0.02] border-white/[0.04]'
             }`}>{cfg.label} ({counts[key] || 0})</button>
         ))}
+        <div className="w-px h-5 bg-white/[0.08] mx-1" />
+        <button onClick={() => setRevisionFilter('all')}
+          className={`text-xs font-medium px-2.5 py-1.5 rounded-xl border transition-all ${
+            revisionFilter === 'all' ? 'text-blue-300 bg-blue-500/15 border-blue-500/25 ring-1 ring-blue-400/15' : 'text-white/35 bg-white/[0.02] border-white/[0.04]'
+          }`}>Rev Tumu</button>
+        <button onClick={() => setRevisionFilter('up')}
+          className={`text-xs font-medium px-2.5 py-1.5 rounded-xl border transition-all ${
+            revisionFilter === 'up' ? 'text-hermes-green bg-hermes-green/12 border-hermes-green/25 ring-1 ring-hermes-green/15' : 'text-white/35 bg-white/[0.02] border-white/[0.04]'
+          }`}>Rev Up</button>
+        <button onClick={() => setRevisionFilter('down')}
+          className={`text-xs font-medium px-2.5 py-1.5 rounded-xl border transition-all ${
+            revisionFilter === 'down' ? 'text-red-400 bg-red-500/12 border-red-500/25 ring-1 ring-red-500/15' : 'text-white/35 bg-white/[0.02] border-white/[0.04]'
+          }`}>Rev Down</button>
+        {conflictCount > 0 && (
+          <span
+            className="text-[10px] font-semibold px-2.5 py-1.5 rounded-xl border bg-amber-500/10 border-amber-500/25 text-amber-300"
+            title="Teknik ve HERMES AI yonu celisen senaryo adedi. Bu satirlar 6-sinyal kontrati nedeniyle listede yer almaz."
+          >
+            Conflict {conflictCount}
+          </span>
+        )}
+        {canCSV && (
+          <button
+            onClick={downloadCSV}
+            disabled={filtered.length === 0 || renderGuard.blocked}
+            className="ml-auto text-xs font-semibold px-3 py-1.5 rounded-xl border bg-blue-500/10 border-blue-500/25 text-blue-300 hover:bg-blue-500/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          >
+            CSV Indir
+          </button>
+        )}
       </div>
 
       {/* Signal Cards */}
-      {filtered.length === 0 ? (
+      {renderGuard.blocked ? (
+        <div className="bg-[#151520] rounded-2xl border border-red-500/25 p-8 text-center">
+          <p className="text-red-300 text-sm">Signals are temporarily blocked due to stale freshness guardrail.</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-8 text-center">
           <p className="text-white/40 text-sm">Capraz sinyal tespit edilemedi</p>
           <p className="text-white/25 text-xs mt-1">Sinyaller icin hem Trade AI hem Terminal AI verisi gereklidir</p>
@@ -128,6 +239,8 @@ export default function ModuleEuropeSignals() {
                   <th className="px-1 py-2 text-[10px] text-white/50 font-semibold text-right">DEG%</th>
                   <th className="px-1 py-2 text-[10px] text-white/50 font-semibold text-right">TRADE</th>
                   <th className="px-1 py-2 text-[10px] text-white/50 font-semibold text-right">AI SKOR</th>
+                  <th className="px-1 py-2 text-[10px] text-white/50 font-semibold text-right" title={REVISION_TOOLTIPS.rev30}>REV30</th>
+                  <th className="px-1 py-2 text-[10px] text-white/50 font-semibold text-right" title={REVISION_TOOLTIPS.rev90}>REV90</th>
                   <th className="px-1 py-2 text-[10px] text-white/50 font-semibold text-right">RISK</th>
                 </tr>
               </thead>
@@ -151,6 +264,20 @@ export default function ModuleEuropeSignals() {
                       </td>
                       <td className="px-1 py-2 text-right"><span className="text-xs text-white/50 tabular-nums">{sig.tradeScore}</span></td>
                       <td className="px-1 py-2 text-right"><span className="text-xs text-white/50 tabular-nums">{sig.fmpScore || '\u2014'}</span></td>
+                      <td className="px-1 py-2 text-right">
+                        <span className={`text-[10px] tabular-nums ${
+                          (sig.analystEpsRevision30d || 0) > 0 ? 'text-hermes-green/80' : (sig.analystEpsRevision30d || 0) < 0 ? 'text-red-400/80' : 'text-white/35'
+                        }`}>
+                          {(sig.analystEpsRevision30d || 0) !== 0 ? `${(sig.analystEpsRevision30d || 0) > 0 ? '+' : ''}${(sig.analystEpsRevision30d || 0).toFixed(1)}%` : '\u2014'}
+                        </span>
+                      </td>
+                      <td className="px-1 py-2 text-right">
+                        <span className={`text-[10px] tabular-nums ${
+                          (sig.analystEpsRevision90d || 0) > 0 ? 'text-hermes-green/70' : (sig.analystEpsRevision90d || 0) < 0 ? 'text-red-400/70' : 'text-white/35'
+                        }`}>
+                          {(sig.analystEpsRevision90d || 0) !== 0 ? `${(sig.analystEpsRevision90d || 0) > 0 ? '+' : ''}${(sig.analystEpsRevision90d || 0).toFixed(1)}%` : '\u2014'}
+                        </span>
+                      </td>
                       <td className="px-1 py-2 text-right">
                         <span className={`text-[10px] tabular-nums font-semibold px-1.5 py-0.5 rounded-full ${
                           (sig.riskScore || 50) <= 30 ? 'text-hermes-green bg-hermes-green/10' :

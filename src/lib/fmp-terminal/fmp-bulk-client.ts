@@ -71,13 +71,13 @@ export async function fetchBulkProfiles(): Promise<CompanyProfile[]> {
 }
 
 export async function fetchBulkKeyMetricsTTM(): Promise<KeyMetricsTTM[]> {
-  return getCached<KeyMetricsTTM[]>('bulk_key_metrics_ttm', CACHE_TTL.BULK, async () => {
+  return getCached<KeyMetricsTTM[]>('bulk_key_metrics_ttm', CACHE_TTL.FUNDAMENTALS, async () => {
     return fmpFetch<KeyMetricsTTM[]>('/key-metrics-ttm-bulk')
   })
 }
 
 export async function fetchBulkRatiosTTM(): Promise<RatiosTTM[]> {
-  return getCached<RatiosTTM[]>('bulk_ratios_ttm', CACHE_TTL.BULK, async () => {
+  return getCached<RatiosTTM[]>('bulk_ratios_ttm', CACHE_TTL.FUNDAMENTALS, async () => {
     return fmpFetch<RatiosTTM[]>('/ratios-ttm-bulk')
   })
 }
@@ -89,19 +89,19 @@ export async function fetchBulkScores(): Promise<FinancialScores[]> {
 }
 
 export async function fetchBulkDCF(): Promise<DCFValuation[]> {
-  return getCached<DCFValuation[]>('bulk_dcf', CACHE_TTL.BULK, async () => {
+  return getCached<DCFValuation[]>('bulk_dcf', CACHE_TTL.DCF, async () => {
     return fmpFetch<DCFValuation[]>('/dcf-bulk')
   })
 }
 
 export async function fetchBulkRatings(): Promise<AnalystConsensus[]> {
-  return getCached<AnalystConsensus[]>('bulk_ratings', CACHE_TTL.BULK, async () => {
+  return getCached<AnalystConsensus[]>('bulk_ratings', CACHE_TTL.ANALYST, async () => {
     return fmpFetch<AnalystConsensus[]>('/upgrades-downgrades-consensus-bulk')
   })
 }
 
 export async function fetchBulkPriceTargetSummary(): Promise<PriceTarget[]> {
-  return getCached<PriceTarget[]>('bulk_price_targets', CACHE_TTL.BULK, async () => {
+  return getCached<PriceTarget[]>('bulk_price_targets', CACHE_TTL.ANALYST, async () => {
     return fmpFetch<PriceTarget[]>('/price-target-summary-bulk')
   })
 }
@@ -147,14 +147,14 @@ export async function fetchCashFlowStatements(symbol: string, period: 'annual' |
 }
 
 export async function fetchKeyMetrics(symbol: string): Promise<KeyMetricsTTM | null> {
-  return getCached<KeyMetricsTTM | null>(`metrics_${symbol}`, CACHE_TTL.BULK, async () => {
+  return getCached<KeyMetricsTTM | null>(`metrics_${symbol}`, CACHE_TTL.FUNDAMENTALS, async () => {
     const data = await fmpFetch<KeyMetricsTTM[]>('/key-metrics-ttm', { symbol })
     return data?.[0] || null
   })
 }
 
 export async function fetchRatios(symbol: string): Promise<RatiosTTM | null> {
-  return getCached<RatiosTTM | null>(`ratios_${symbol}`, CACHE_TTL.BULK, async () => {
+  return getCached<RatiosTTM | null>(`ratios_${symbol}`, CACHE_TTL.FUNDAMENTALS, async () => {
     const data = await fmpFetch<RatiosTTM[]>('/ratios-ttm', { symbol })
     return data?.[0] || null
   })
@@ -170,7 +170,7 @@ export async function fetchFinancialScores(symbol: string): Promise<FinancialSco
 // ─── DCF ───────────────────────────────────────────────────────────
 
 export async function fetchDCF(symbol: string): Promise<DCFValuation | null> {
-  return getCached<DCFValuation | null>(`dcf_${symbol}`, CACHE_TTL.BULK, async () => {
+  return getCached<DCFValuation | null>(`dcf_${symbol}`, CACHE_TTL.DCF, async () => {
     const data = await fmpFetch<DCFValuation[]>('/discounted-cash-flow', { symbol })
     return data?.[0] || null
   })
@@ -179,27 +179,27 @@ export async function fetchDCF(symbol: string): Promise<DCFValuation | null> {
 // ─── Analyst ───────────────────────────────────────────────────────
 
 export async function fetchAnalystConsensus(symbol: string): Promise<AnalystConsensus | null> {
-  return getCached<AnalystConsensus | null>(`analyst_consensus_${symbol}`, CACHE_TTL.BULK, async () => {
+  return getCached<AnalystConsensus | null>(`analyst_consensus_${symbol}`, CACHE_TTL.ANALYST, async () => {
     const data = await fmpFetch<AnalystConsensus[]>('/grades-consensus', { symbol })
     return data?.[0] || null
   })
 }
 
 export async function fetchPriceTarget(symbol: string): Promise<PriceTarget | null> {
-  return getCached<PriceTarget | null>(`price_target_${symbol}`, CACHE_TTL.BULK, async () => {
+  return getCached<PriceTarget | null>(`price_target_${symbol}`, CACHE_TTL.ANALYST, async () => {
     const data = await fmpFetch<PriceTarget[]>('/price-target-consensus', { symbol })
     return data?.[0] || null
   })
 }
 
 export async function fetchStockGrades(symbol: string): Promise<StockGrade[]> {
-  return getCached<StockGrade[]>(`grades_${symbol}`, CACHE_TTL.BULK, async () => {
+  return getCached<StockGrade[]>(`grades_${symbol}`, CACHE_TTL.ANALYST, async () => {
     return fmpFetch<StockGrade[]>('/grades', { symbol, limit: '30' })
   })
 }
 
 export async function fetchEstimates(symbol: string): Promise<AnalystEstimate[]> {
-  return getCached<AnalystEstimate[]>(`estimates_${symbol}`, CACHE_TTL.BULK, async () => {
+  return getCached<AnalystEstimate[]>(`estimates_${symbol}`, CACHE_TTL.ANALYST, async () => {
     return fmpFetch<AnalystEstimate[]>('/analyst-estimates', { symbol, period: 'quarter', limit: '8' })
   })
 }

@@ -14,6 +14,7 @@ export type DataKey =
   | 'coinsBulk'
   | 'derivatives'
   | 'scan'
+  | 'stocksQuote'
   | 'onchain'
 
 export interface ProviderStatus {
@@ -29,6 +30,7 @@ export interface DataFreshness {
   coinsBulkAgeMin: number | null
   derivativesAgeMin: number | null
   scanAgeMin: number | null
+  stocksQuoteAgeMin: number | null
 }
 
 export interface GuardStats {
@@ -43,6 +45,12 @@ export interface CacheStats {
     lastWriteAt: string | null
     lastReadAt: string | null
   }
+  tierHits1h: {
+    memory: number
+    redis: number
+    disk: number
+    origin: number
+  }
 }
 
 export interface SlaStatus {
@@ -50,6 +58,26 @@ export interface SlaStatus {
   derivativesBreached: boolean
   scanBreached: boolean
   coinsBulkBreached: boolean
+  stocksQuoteBreached: boolean
+}
+
+export interface WatchdogStats {
+  lastRunAt: string | null
+  lastStatus: 'OK' | 'DEGRADED' | 'DOWN' | null
+  lastSelfHealAt: string | null
+  selfHealSuccess1h: number
+  selfHealFail1h: number
+}
+
+export interface SlaTrend1h {
+  totalChecks1h: number
+  breachCounts1h: {
+    cryptoMarket: number
+    derivatives: number
+    scan: number
+    coinsBulk: number
+    stocksQuote: number
+  }
 }
 
 // HERMES_FIX: SLA_THRESHOLDS_v1 — Data freshness SLA definitions
@@ -57,7 +85,8 @@ export const SLA_THRESHOLDS_MINUTES: Record<DataKey, number> = {
   cryptoMarket: 30,
   coinsBulk: 60,
   derivatives: 60,
-  scan: 15,
+  scan: 90,
+  stocksQuote: 15,
   onchain: 120,
 }
 
@@ -67,6 +96,8 @@ const pmKey = (provider: ProviderName, suffix: string) => `pm:${provider}:${suff
 const freshKey = (key: DataKey) => `fresh:${key}:fetchedAt`
 const squeezeKey = (suffix: string) => `squeeze:${suffix}`
 const cacheStatsKey = (suffix: string) => `cache:stats:${suffix}`
+const watchdogKey = (suffix: string) => `watchdog:${suffix}`
+const slaKey = (suffix: string) => `sla:${suffix}`
 
 const TTL_1H = 3600
 const TTL_2H = 7200
@@ -155,6 +186,16 @@ export const providerMonitor = {
     }, undefined)
   },
 
+  async recordCacheTierHit(tier: 'memory' | 'redis' | 'disk' | 'origin'): Promise<void> {
+    await safeRedis(async () => {
+      const r = getRedis()!
+      const p = r.pipeline()
+      p.incr(cacheStatsKey(`tier:${tier}:1h`))
+      p.expire(cacheStatsKey(`tier:${tier}:1h`), TTL_1H)
+      await p.exec()
+    }, undefined)
+  },
+
   // ── Read methods for health endpoint ──
 
   async getProviderStatus(provider: ProviderName): Promise<ProviderStatus> {
@@ -196,7 +237,7 @@ export const providerMonitor = {
   async getDataFreshness(): Promise<DataFreshness> {
     return safeRedis(async () => {
       const r = getRedis()!
-      const keys: DataKey[] = ['cryptoMarket', 'coinsBulk', 'derivatives', 'scan']
+      const keys: DataKey[] = ['cryptoMarket', 'coinsBulk', 'derivatives', 'scan', 'stocksQuote']
       const p = r.pipeline()
       for (const k of keys) p.get(freshKey(k))
       const results = await p.exec()
@@ -212,12 +253,14 @@ export const providerMonitor = {
         coinsBulkAgeMin: ageMin(results[1]),
         derivativesAgeMin: ageMin(results[2]),
         scanAgeMin: ageMin(results[3]),
+        stocksQuoteAgeMin: ageMin(results[4]),
       }
     }, {
       cryptoMarketAgeMin: null,
       coinsBulkAgeMin: null,
       derivativesAgeMin: null,
       scanAgeMin: null,
+      stocksQuoteAgeMin: null,
     })
   },
 
@@ -262,6 +305,10 @@ export const providerMonitor = {
       const p = r.pipeline()
       p.get(cacheStatsKey('lastWriteAt'))
       p.get(cacheStatsKey('lastReadAt'))
+      p.get(cacheStatsKey('tier:memory:1h'))
+      p.get(cacheStatsKey('tier:redis:1h'))
+      p.get(cacheStatsKey('tier:disk:1h'))
+      p.get(cacheStatsKey('tier:origin:1h'))
       const results = await p.exec()
 
       return {
@@ -270,9 +317,16 @@ export const providerMonitor = {
           lastWriteAt: (results[0] as string | null) ?? null,
           lastReadAt: (results[1] as string | null) ?? null,
         },
+        tierHits1h: {
+          memory: Number(results[2] ?? 0),
+          redis: Number(results[3] ?? 0),
+          disk: Number(results[4] ?? 0),
+          origin: Number(results[5] ?? 0),
+        },
       }
     }, {
       redis: { ok: false, lastWriteAt: null, lastReadAt: null },
+      tierHits1h: { memory: 0, redis: 0, disk: 0, origin: 0 },
     })
   },
 
@@ -289,6 +343,7 @@ export const providerMonitor = {
       derivativesBreached: breached(freshness.derivativesAgeMin, 'derivatives'),
       scanBreached: breached(freshness.scanAgeMin, 'scan'),
       coinsBulkBreached: breached(freshness.coinsBulkAgeMin, 'coinsBulk'),
+      stocksQuoteBreached: breached(freshness.stocksQuoteAgeMin, 'stocksQuote'),
     }
 
     if (Object.values(status).some(Boolean)) {
@@ -299,5 +354,123 @@ export const providerMonitor = {
     }
 
     return status
+  },
+
+  async recordWatchdogRun(status: 'OK' | 'DEGRADED' | 'DOWN'): Promise<void> {
+    await safeRedis(async () => {
+      const r = getRedis()!
+      const now = new Date().toISOString()
+      const p = r.pipeline()
+      p.set(watchdogKey('lastRunAt'), now, { ex: TTL_2H })
+      p.set(watchdogKey('lastStatus'), status, { ex: TTL_2H })
+      await p.exec()
+    }, undefined)
+  },
+
+  async recordWatchdogSelfHeal(success: boolean): Promise<void> {
+    await safeRedis(async () => {
+      const r = getRedis()!
+      const now = new Date().toISOString()
+      const p = r.pipeline()
+      p.set(watchdogKey('lastSelfHealAt'), now, { ex: TTL_2H })
+      if (success) {
+        p.incr(watchdogKey('selfHealSuccess:1h'))
+        p.expire(watchdogKey('selfHealSuccess:1h'), TTL_1H)
+      } else {
+        p.incr(watchdogKey('selfHealFail:1h'))
+        p.expire(watchdogKey('selfHealFail:1h'), TTL_1H)
+      }
+      await p.exec()
+    }, undefined)
+  },
+
+  async getWatchdogStats(): Promise<WatchdogStats> {
+    return safeRedis(async () => {
+      const r = getRedis()!
+      const p = r.pipeline()
+      p.get(watchdogKey('lastRunAt'))
+      p.get(watchdogKey('lastStatus'))
+      p.get(watchdogKey('lastSelfHealAt'))
+      p.get(watchdogKey('selfHealSuccess:1h'))
+      p.get(watchdogKey('selfHealFail:1h'))
+      const results = await p.exec()
+      return {
+        lastRunAt: (results[0] as string | null) ?? null,
+        lastStatus: ((results[1] as 'OK' | 'DEGRADED' | 'DOWN' | null) ?? null),
+        lastSelfHealAt: (results[2] as string | null) ?? null,
+        selfHealSuccess1h: Number(results[3] ?? 0),
+        selfHealFail1h: Number(results[4] ?? 0),
+      }
+    }, {
+      lastRunAt: null,
+      lastStatus: null,
+      lastSelfHealAt: null,
+      selfHealSuccess1h: 0,
+      selfHealFail1h: 0,
+    })
+  },
+
+  async recordSlaSnapshot(sla: SlaStatus): Promise<void> {
+    await safeRedis(async () => {
+      const r = getRedis()!
+      const p = r.pipeline()
+      p.incr(slaKey('checks:1h'))
+      p.expire(slaKey('checks:1h'), TTL_1H)
+
+      if (sla.cryptoMarketBreached) {
+        p.incr(slaKey('breach:cryptoMarket:1h'))
+        p.expire(slaKey('breach:cryptoMarket:1h'), TTL_1H)
+      }
+      if (sla.derivativesBreached) {
+        p.incr(slaKey('breach:derivatives:1h'))
+        p.expire(slaKey('breach:derivatives:1h'), TTL_1H)
+      }
+      if (sla.scanBreached) {
+        p.incr(slaKey('breach:scan:1h'))
+        p.expire(slaKey('breach:scan:1h'), TTL_1H)
+      }
+      if (sla.coinsBulkBreached) {
+        p.incr(slaKey('breach:coinsBulk:1h'))
+        p.expire(slaKey('breach:coinsBulk:1h'), TTL_1H)
+      }
+      if (sla.stocksQuoteBreached) {
+        p.incr(slaKey('breach:stocksQuote:1h'))
+        p.expire(slaKey('breach:stocksQuote:1h'), TTL_1H)
+      }
+      await p.exec()
+    }, undefined)
+  },
+
+  async getSlaTrend1h(): Promise<SlaTrend1h> {
+    return safeRedis(async () => {
+      const r = getRedis()!
+      const p = r.pipeline()
+      p.get(slaKey('checks:1h'))
+      p.get(slaKey('breach:cryptoMarket:1h'))
+      p.get(slaKey('breach:derivatives:1h'))
+      p.get(slaKey('breach:scan:1h'))
+      p.get(slaKey('breach:coinsBulk:1h'))
+      p.get(slaKey('breach:stocksQuote:1h'))
+      const results = await p.exec()
+      return {
+        totalChecks1h: Number(results[0] ?? 0),
+        breachCounts1h: {
+          cryptoMarket: Number(results[1] ?? 0),
+          derivatives: Number(results[2] ?? 0),
+          scan: Number(results[3] ?? 0),
+          coinsBulk: Number(results[4] ?? 0),
+          stocksQuote: Number(results[5] ?? 0),
+        },
+      }
+    }, {
+      totalChecks1h: 0,
+      breachCounts1h: {
+        cryptoMarket: 0,
+        derivatives: 0,
+        scan: 0,
+        coinsBulk: 0,
+        stocksQuote: 0,
+      },
+    })
   },
 }

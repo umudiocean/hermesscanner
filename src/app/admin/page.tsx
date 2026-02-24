@@ -33,6 +33,43 @@ interface AnalyticsData {
     cryptoMemory: { memoryEntries: number; maxEntries: number; oldestEntry: number | null }
   }
   system: Record<string, unknown>
+  ops: {
+    status: string
+    freshness: {
+      scanAgeMin?: number | null
+      stocksQuoteAgeMin?: number | null
+    } | null
+    sla: {
+      scanBreached?: boolean
+      stocksQuoteBreached?: boolean
+    } | null
+    sloTrend1h: {
+      totalChecks1h: number
+      breachCounts1h: {
+        cryptoMarket: number
+        derivatives: number
+        scan: number
+        coinsBulk: number
+        stocksQuote: number
+      }
+    } | null
+    watchdog: {
+      selfHealSuccess1h?: number
+      selfHealFail1h?: number
+    } | null
+    cache: {
+      tierHits1h?: {
+        memory: number
+        redis: number
+        disk: number
+        origin: number
+      }
+    } | null
+    thresholds: {
+      cacheOriginWarnPct?: number
+      cacheOriginCriticalPct?: number
+    } | null
+  }
   generatedAt: string
 }
 
@@ -107,6 +144,34 @@ function StatusDot({ ok }: { ok: boolean }) {
   return <div className={`w-2 h-2 rounded-full ${ok ? 'bg-emerald-400' : 'bg-red-400'}`} />
 }
 
+function Sparkline({ values }: { values: number[] }) {
+  if (!values.length) {
+    return <div className="h-10 rounded-lg bg-white/[0.03] border border-white/[0.06]" />
+  }
+  const max = Math.max(...values, 1)
+  const points = values
+    .map((v, i) => {
+      const x = values.length === 1 ? 0 : (i / (values.length - 1)) * 100
+      const y = 100 - (v / max) * 100
+      return `${x},${y}`
+    })
+    .join(' ')
+  return (
+    <div className="h-10 rounded-lg bg-white/[0.03] border border-white/[0.06] p-1">
+      <svg viewBox="0 0 100 100" className="w-full h-full">
+        <polyline
+          fill="none"
+          stroke="rgba(179,148,91,0.95)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={points}
+        />
+      </svg>
+    </div>
+  )
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // Tab definitions for header menu
 // ═══════════════════════════════════════════════════════════════════
@@ -149,6 +214,7 @@ export default function AdminDashboard() {
     tradeReady: string[]; tradeReadyCount: number;
     insufficient: string[]; insufficientCount: number;
   } | null>(null)
+  const [cacheOriginTrend, setCacheOriginTrend] = useState<number[]>([])
 
   const router = useRouter()
 
@@ -160,7 +226,16 @@ export default function AdminDashboard() {
         fetch('/api/admin/stats?days=7'),
         fetch('/api/admin/flags'),
       ])
-      if (statsRes.ok) setData(await statsRes.json())
+      if (statsRes.ok) {
+        const statsData: AnalyticsData = await statsRes.json()
+        setData(statsData)
+        const tier = statsData.ops?.cache?.tierHits1h
+        if (tier) {
+          const total = tier.memory + tier.redis + tier.disk + tier.origin
+          const originPct = total > 0 ? (tier.origin / total) * 100 : 0
+          setCacheOriginTrend(prev => [...prev.slice(-19), Number(originPct.toFixed(2))])
+        }
+      }
       if (flagsRes.ok) setFlags(await flagsRes.json())
     } catch { /* retry later */ } finally {
       setLoading(false)
@@ -168,6 +243,10 @@ export default function AdminDashboard() {
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+    const interval = setInterval(fetchData, 60_000)
+    return () => clearInterval(interval)
+  }, [fetchData])
 
   // ── Fetch market statuses ──
   const fetchNasdaqStatus = useCallback(async () => {
@@ -457,6 +536,8 @@ export default function AdminDashboard() {
                 europe={europeStatus}
                 crypto={cryptoStatus}
                 cache={c}
+                ops={data?.ops}
+                cacheOriginTrend={cacheOriginTrend}
                 onRefreshNasdaq={refreshNasdaq}
                 onRefreshEurope={refreshEurope}
                 onRefreshCrypto={refreshCrypto}
@@ -490,6 +571,8 @@ export default function AdminDashboard() {
             {activeTab === 'system' && (
               <SystemTab
                 cache={c}
+                ops={data?.ops}
+                cacheOriginTrend={cacheOriginTrend}
                 flags={flags}
                 flagLabels={FLAG_LABELS}
                 flagLoading={flagLoading}
@@ -611,15 +694,28 @@ function MarketCard({
 }
 
 function OverviewTab({
-  nasdaq, europe, crypto, cache,
+  nasdaq, europe, crypto, cache, ops, cacheOriginTrend,
   onRefreshNasdaq, onRefreshEurope, onRefreshCrypto,
   onSelectTab,
 }: {
   nasdaq: MarketStatus; europe: MarketStatus; crypto: MarketStatus
   cache: AnalyticsData['cache'] | undefined
+  ops: AnalyticsData['ops'] | undefined
+  cacheOriginTrend: number[]
   onRefreshNasdaq: () => void; onRefreshEurope: () => void; onRefreshCrypto: () => void
   onSelectTab: (tab: AdminTab) => void
 }) {
+  const tier = ops?.cache?.tierHits1h
+  const tierTotal = (tier?.memory || 0) + (tier?.redis || 0) + (tier?.disk || 0) + (tier?.origin || 0)
+  const hitPct = tierTotal > 0 ? Math.round((((tier?.memory || 0) + (tier?.redis || 0) + (tier?.disk || 0)) / tierTotal) * 100) : 0
+  const originPct = tierTotal > 0 ? Math.round(((tier?.origin || 0) / tierTotal) * 100) : 0
+  const originWarnThreshold = ops?.thresholds?.cacheOriginWarnPct ?? 25
+  const originCriticalThreshold = ops?.thresholds?.cacheOriginCriticalPct ?? 40
+  const slaScanBreached = !!ops?.sla?.scanBreached
+  const slaQuoteBreached = !!ops?.sla?.stocksQuoteBreached
+  const watchdogFail = (ops?.watchdog?.selfHealFail1h || 0) > 0
+  const isOriginCritical = originPct >= originCriticalThreshold
+  const isOriginWarn = originPct >= originWarnThreshold && originPct < originCriticalThreshold
   return (
     <div className="space-y-6">
       {/* Market Cards */}
@@ -714,6 +810,73 @@ function OverviewTab({
               {(nasdaq.stockCount + europe.stockCount + crypto.stockCount).toLocaleString()}
             </div>
             <div className="text-[9px] text-white/35">hisse + coin</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Ops Alert Thresholds */}
+      <div>
+        <h2 className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-4">Ops Alert Esikleri</h2>
+        <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+          <div className="flex flex-wrap gap-2">
+            <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
+              slaScanBreached ? 'text-red-300 bg-red-500/15 border-red-500/35' : 'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+            }`}>
+              SLA Scan {slaScanBreached ? 'BREACH' : 'OK'}
+            </span>
+            <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
+              slaQuoteBreached ? 'text-red-300 bg-red-500/15 border-red-500/35' : 'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+            }`}>
+              SLA Quote {slaQuoteBreached ? 'BREACH' : 'OK'}
+            </span>
+            <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
+              isOriginCritical ? 'text-red-300 bg-red-500/15 border-red-500/35' :
+              isOriginWarn ? 'text-amber-300 bg-amber-500/15 border-amber-500/35' :
+              'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+            }`}>
+              Origin Ratio {originPct}%
+            </span>
+            <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
+              watchdogFail ? 'text-amber-300 bg-amber-500/15 border-amber-500/35' : 'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+            }`}>
+              SelfHeal Fail1h {(ops?.watchdog?.selfHealFail1h || 0)}
+            </span>
+          </div>
+          <p className="text-[10px] text-white/40 mt-3">
+            Esik: Origin ratio warn &gt;={originWarnThreshold}%, critical &gt;={originCriticalThreshold}%. SLA breach veya self-heal fail durumunda ops incelemesi onerilir.
+          </p>
+        </div>
+      </div>
+
+      {/* Cache Tier Telemetry */}
+      <div>
+        <h2 className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-4">Cache Tier Telemetry (1h)</h2>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] text-white/50 uppercase tracking-wider">Tier Hit Dagilimi</span>
+              <span className="text-[10px] text-white/40">Toplam {tierTotal}</span>
+            </div>
+            <div className="space-y-2 text-[11px]">
+              <div className="flex justify-between"><span className="text-white/55">Memory</span><span className="text-white/75 tabular-nums">{tier?.memory || 0}</span></div>
+              <div className="flex justify-between"><span className="text-white/55">Redis</span><span className="text-white/75 tabular-nums">{tier?.redis || 0}</span></div>
+              <div className="flex justify-between"><span className="text-white/55">Disk</span><span className="text-white/75 tabular-nums">{tier?.disk || 0}</span></div>
+              <div className="flex justify-between"><span className="text-red-300/80">Origin</span><span className="text-red-300 tabular-nums">{tier?.origin || 0}</span></div>
+            </div>
+            <div className="mt-3 pt-2 border-t border-white/[0.06] flex justify-between">
+              <span className="text-[10px] text-white/45">Cache hit rate</span>
+              <span className="text-[10px] text-emerald-300 tabular-nums">{hitPct}%</span>
+            </div>
+          </div>
+          <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] text-white/50 uppercase tracking-wider">Origin Trend (Session)</span>
+              <span className="text-[10px] text-white/40">{cacheOriginTrend.length} nokta</span>
+            </div>
+            <Sparkline values={cacheOriginTrend} />
+            <p className="text-[10px] text-white/40 mt-2">
+              Dusuk origin yuzdesi = daha iyi cache verimliligi.
+            </p>
           </div>
         </div>
       </div>
@@ -1239,13 +1402,22 @@ function AnalyticsTab({ analytics: a }: { analytics: AnalyticsData['analytics'] 
 // ═══════════════════════════════════════════════════════════════════
 
 function SystemTab({
-  cache: c, flags, flagLabels, flagLoading, onToggleFlag, onClearCache,
+  cache: c, ops, cacheOriginTrend, flags, flagLabels, flagLoading, onToggleFlag, onClearCache,
 }: {
   cache: AnalyticsData['cache'] | undefined
+  ops: AnalyticsData['ops'] | undefined
+  cacheOriginTrend: number[]
   flags: FlagMap; flagLabels: Record<string, string>; flagLoading: string | null
   onToggleFlag: (key: string) => void
   onClearCache: (type: 'fmp' | 'crypto' | 'all') => void
 }) {
+  const tier = ops?.cache?.tierHits1h
+  const tierTotal = (tier?.memory || 0) + (tier?.redis || 0) + (tier?.disk || 0) + (tier?.origin || 0)
+  const hitPct = tierTotal > 0 ? Math.round((((tier?.memory || 0) + (tier?.redis || 0) + (tier?.disk || 0)) / tierTotal) * 100) : 0
+  const originPct = tierTotal > 0 ? Math.round(((tier?.origin || 0) / tierTotal) * 100) : 0
+  const originWarnThreshold = ops?.thresholds?.cacheOriginWarnPct ?? 25
+  const originCriticalThreshold = ops?.thresholds?.cacheOriginCriticalPct ?? 40
+  const originState = originPct >= originCriticalThreshold ? 'critical' : originPct >= originWarnThreshold ? 'warn' : 'ok'
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {/* System Health */}
@@ -1343,6 +1515,32 @@ function SystemTab({
             value={(c?.fmpMemory?.memoryEntries || 0) + (c?.cryptoMemory?.memoryEntries || 0)}
             sub="FMP + Crypto"
           />
+        </div>
+        <div className="mt-4 pt-3 border-t border-white/5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] text-white/50 uppercase tracking-wider">Cache Tier Hit 1h</span>
+            <span className="text-[10px] text-emerald-300 tabular-nums">{hitPct}% hit</span>
+          </div>
+          <div className="grid grid-cols-4 gap-2 text-center mb-2">
+            <div><div className="text-[11px] text-white/75 tabular-nums">{tier?.memory || 0}</div><div className="text-[9px] text-white/40">Mem</div></div>
+            <div><div className="text-[11px] text-white/75 tabular-nums">{tier?.redis || 0}</div><div className="text-[9px] text-white/40">Redis</div></div>
+            <div><div className="text-[11px] text-white/75 tabular-nums">{tier?.disk || 0}</div><div className="text-[9px] text-white/40">Disk</div></div>
+            <div><div className="text-[11px] text-red-300 tabular-nums">{tier?.origin || 0}</div><div className="text-[9px] text-white/40">Origin</div></div>
+          </div>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10px] text-white/45">Origin ratio</span>
+            <span className={`text-[10px] font-semibold tabular-nums px-2 py-0.5 rounded-full border ${
+              originState === 'critical' ? 'text-red-300 bg-red-500/15 border-red-500/35' :
+              originState === 'warn' ? 'text-amber-300 bg-amber-500/15 border-amber-500/35' :
+              'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+            }`}>
+              {originPct}% {originState === 'critical' ? 'CRITICAL' : originState === 'warn' ? 'WARN' : 'OK'}
+            </span>
+          </div>
+          <p className="text-[9px] text-white/35 mb-2">
+            Thresholds: warn {originWarnThreshold}% | critical {originCriticalThreshold}%
+          </p>
+          <Sparkline values={cacheOriginTrend} />
         </div>
       </Card>
     </div>

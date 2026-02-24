@@ -11,6 +11,7 @@ import { getSymbols } from '@/lib/symbols'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import { fmpApiFetchRaw } from '@/lib/api/fmpClient'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
@@ -21,22 +22,10 @@ import {
 } from '@/lib/fmp-terminal/fmp-score-engine'
 import { FMPScore, RedFlag, computeScoreThresholds, StockBadge, OvervaluationResult } from '@/lib/fmp-terminal/fmp-types'
 
-const FMP_BASE = 'https://financialmodelingprep.com/stable'
 const SECTORS_FILE = path.join(process.cwd(), 'data', 'sectors.json')
 
-function getApiKey(): string {
-  const key = process.env.FMP_API_KEY
-  if (!key) {
-    console.error('[FMP-STOCKS] CFG_MISSING_FMP_KEY — env var not set')
-    throw new Error('API configuration error')
-  }
-  return key
-}
-
 async function fmpFetch(endpoint: string, params: Record<string, string> = {}): Promise<Response> {
-  const url = new URL(`${FMP_BASE}${endpoint}`)
-  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
-  return fetch(url.toString(), { headers: { 'apikey': getApiKey() }, cache: 'no-store' })
+  return fmpApiFetchRaw(endpoint, params)
 }
 
 interface StockRow {
@@ -80,6 +69,8 @@ interface StockRow {
   dcfUpside: number
   priceTarget: number
   analystConsensus: string
+  analystEpsRevision30d: number
+  analystEpsRevision90d: number
   // Risk
   riskScore: number
   riskLevel: string
@@ -164,6 +155,7 @@ export async function GET(request: NextRequest) {
       type AnalystData = { strongBuy: number; buy: number; hold: number; sell: number; strongSell: number; consensus: string }
       type PriceTargetData = { targetConsensus: number }
       type GrowthData = { revenueGrowth: number; epsGrowth: number; netIncomeGrowth: number }
+      type AnalystEstimateData = { epsRevision30d: number; epsRevision90d: number; estimateCount: number }
 
       const metricsMap = new Map<string, MetricsData>()
       const scoresMap = new Map<string, ScoreData>()
@@ -171,9 +163,10 @@ export async function GET(request: NextRequest) {
       const analystMap = new Map<string, AnalystData>()
       const targetMap = new Map<string, PriceTargetData>()
       const growthMap = new Map<string, GrowthData>()
+      const analystEstimateMap = new Map<string, AnalystEstimateData>()
 
       // Parallel fetch: ratios, scores, dcf, analyst, price-targets, growth, key-metrics, sector-perf, earnings-surprises
-      const [ratiosRes, scoresRes, dcfRes, analystRes, targetRes, growthRes, keyMetricsRes, sectorPerfRes, earningsSurprisesRes] = await Promise.allSettled([
+      const [ratiosRes, scoresRes, dcfRes, analystRes, targetRes, growthRes, keyMetricsRes, sectorPerfRes, earningsSurprisesRes, analystEstimatesRes] = await Promise.allSettled([
         fmpFetch('/ratios-ttm-bulk'),
         fmpFetch('/scores-bulk'),
         fmpFetch('/dcf-bulk'),
@@ -193,6 +186,7 @@ export async function GET(request: NextRequest) {
           return fmpFetch('/sector-performance-snapshot', { date: d.toISOString().split('T')[0] })
         })(),
         fmpFetch('/earnings-surprises-bulk'),
+        fmpFetch('/analyst-estimates-bulk'),
       ])
 
       // Parse Ratios TTM Bulk
@@ -538,6 +532,49 @@ export async function GET(request: NextRequest) {
         } catch (e) { console.warn('[V5] Earnings surprises parse error:', e) }
       }
 
+      // Parse Analyst Estimates Bulk (EPS revision momentum proxy)
+      if (analystEstimatesRes.status === 'fulfilled' && analystEstimatesRes.value.ok) {
+        try {
+          const text = await analystEstimatesRes.value.text()
+
+          const getNum = (row: Record<string, string | number>, keys: string[]): number => {
+            for (const k of keys) {
+              if (k in row) {
+                const n = safeNum(row[k] as string | number)
+                if (isFinite(n)) return n
+              }
+            }
+            return 0
+          }
+
+          const parseRow = (row: Record<string, string | number>) => {
+            const sym = String(row.symbol || '')
+            if (!sym || !hermesSymbols.has(sym) || analystEstimateMap.has(sym)) return
+
+            const curr = getNum(row, ['estimatedEpsAvg', 'epsAvg', 'estimatedEPSAvg', 'epsEstimateAvg'])
+            const prev30 = getNum(row, ['estimatedEpsAvg30DaysAgo', 'epsAvg30DaysAgo', 'estimatedEPSAvg30DaysAgo'])
+            const prev90 = getNum(row, ['estimatedEpsAvg90DaysAgo', 'epsAvg90DaysAgo', 'estimatedEPSAvg90DaysAgo'])
+            const count = getNum(row, ['numberAnalystsEstimatedEps', 'numberAnalystEstimatedEps', 'analystCount'])
+
+            const rev30 = prev30 !== 0 ? ((curr - prev30) / Math.abs(prev30)) * 100 : 0
+            const rev90 = prev90 !== 0 ? ((curr - prev90) / Math.abs(prev90)) * 100 : 0
+
+            analystEstimateMap.set(sym, {
+              epsRevision30d: Math.max(-100, Math.min(100, rev30)),
+              epsRevision90d: Math.max(-100, Math.min(100, rev90)),
+              estimateCount: Math.max(0, Math.round(count)),
+            })
+          }
+
+          if (isCSV(text)) {
+            for (const row of parseCSV(text) as unknown as Array<Record<string, string | number>>) parseRow(row)
+          } else if (text.startsWith('[')) {
+            for (const row of JSON.parse(text)) parseRow(row)
+          }
+          console.log(`[V5] Analyst estimates bulk: ${analystEstimateMap.size} stocks`)
+        } catch (e) { console.warn('[V5] Analyst estimates parse error:', e) }
+      }
+
       // ═══════════════════════════════════════════════════════════
       // STEP 3: COMPANY SCREENER (missing sectors)
       // ═══════════════════════════════════════════════════════════
@@ -668,6 +705,9 @@ export async function GET(request: NextRequest) {
         input.sell = analyst?.sell || 0
         input.strongSell = analyst?.strongSell || 0
         input.priceTarget = target?.targetConsensus || 0
+        input.epsRevision30d = analystEstimateMap.get(sym)?.epsRevision30d || 0
+        input.epsRevision90d = analystEstimateMap.get(sym)?.epsRevision90d || 0
+        input.analystRevisionCount = analystEstimateMap.get(sym)?.estimateCount || 0
 
         // Quality
         input.roic = km?.roicTTM || 0
@@ -774,6 +814,8 @@ export async function GET(request: NextRequest) {
           dcfUpside: Math.round(dcfUpside * 10) / 10,
           priceTarget: target?.targetConsensus || 0,
           analystConsensus: analyst?.consensus || '',
+          analystEpsRevision30d: analystEstimateMap.get(sym)?.epsRevision30d || 0,
+          analystEpsRevision90d: analystEstimateMap.get(sym)?.epsRevision90d || 0,
           riskScore: risk.total,
           riskLevel: risk.level,
           // Valuation — from score engine

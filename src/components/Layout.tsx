@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
 import { ScanResult, ScanSummary } from '@/lib/types'
 import { getWatchlist, getSettings, setCachedResults, getCachedResults } from '@/lib/store'
+import { REFRESH, MARKET } from '@/lib/config/constants'
+import { LEGAL_DISCLAIMER_TEXT } from '@/lib/legal-disclaimer'
 
 // ═══════════════════════════════════════════════════════════════════
 // HERMES Scanner - Main Layout with Module Navigation
@@ -60,6 +62,31 @@ interface ScanContextType {
   signalsPaused: boolean
   pauseReason: string | null
   positionSizeMultiplier: number
+}
+
+interface HealthSnapshot {
+  status: 'OK' | 'DEGRADED' | 'DOWN'
+  dataFreshness?: {
+    scanAgeMin?: number | null
+    stocksQuoteAgeMin?: number | null
+  }
+  sla?: {
+    scanBreached?: boolean
+    stocksQuoteBreached?: boolean
+  }
+  sloTrend1h?: {
+    totalChecks1h: number
+    breachCounts1h: {
+      scan: number
+      stocksQuote: number
+    }
+  }
+  watchdog?: {
+    runs: number
+    failures: number
+    selfHealRuns: number
+    selfHealFailures: number
+  }
 }
 
 const ScanContext = createContext<ScanContextType | null>(null)
@@ -128,6 +155,8 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
   const [lastAutoRefresh, setLastAutoRefresh] = useState<Date | null>(null)
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(false)
   const [nextRefreshCountdown, setNextRefreshCountdown] = useState('')
+  const [lastPriceRefresh, setLastPriceRefresh] = useState<Date | null>(null)
+  const [healthSnapshot, setHealthSnapshot] = useState<HealthSnapshot | null>(null)
   const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null)
   const marketCheckTimerRef = useRef<NodeJS.Timeout | null>(null)
   const wasMarketOpenRef = useRef(false)
@@ -169,6 +198,65 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
     const iv = setInterval(fetchRisk, 5 * 60 * 1000)
     return () => { cancelled = true; clearInterval(iv) }
   }, [])
+
+  // System health snapshot (freshness guardrail + SLO trend exposure)
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchSystemHealth() {
+      try {
+        const res = await fetch('/api/system/health', { cache: 'no-store' })
+        if (!res.ok || cancelled) return
+        const data = await res.json()
+        if (cancelled) return
+        setHealthSnapshot({
+          status: data.status,
+          dataFreshness: {
+            scanAgeMin: data?.dataFreshness?.scanAgeMin ?? null,
+            stocksQuoteAgeMin: data?.dataFreshness?.stocksQuoteAgeMin ?? null,
+          },
+          sla: {
+            scanBreached: !!data?.sla?.scanBreached,
+            stocksQuoteBreached: !!data?.sla?.stocksQuoteBreached,
+          },
+          sloTrend1h: {
+            totalChecks1h: data?.sloTrend1h?.totalChecks1h ?? 0,
+            breachCounts1h: {
+              scan: data?.sloTrend1h?.breachCounts1h?.scan ?? 0,
+              stocksQuote: data?.sloTrend1h?.breachCounts1h?.stocksQuote ?? 0,
+            },
+          },
+          watchdog: {
+            runs: data?.watchdog?.runs ?? 0,
+            failures: data?.watchdog?.failures ?? 0,
+            selfHealRuns: data?.watchdog?.selfHealRuns ?? 0,
+            selfHealFailures: data?.watchdog?.selfHealFailures ?? 0,
+          },
+        })
+      } catch {
+        // non-blocking
+      }
+    }
+
+    fetchSystemHealth()
+    const iv = setInterval(fetchSystemHealth, 60 * 1000)
+    return () => { cancelled = true; clearInterval(iv) }
+  }, [])
+
+  const scanAgeMin = healthSnapshot?.dataFreshness?.scanAgeMin ?? null
+  const quoteAgeMin = healthSnapshot?.dataFreshness?.stocksQuoteAgeMin ?? null
+  const freshnessLevel: 'good' | 'warn' | 'bad' = (
+    healthSnapshot?.status === 'DOWN'
+    || !!healthSnapshot?.sla?.scanBreached
+    || !!healthSnapshot?.sla?.stocksQuoteBreached
+  )
+    ? 'bad'
+    : (
+      (scanAgeMin !== null && scanAgeMin > 60)
+      || (quoteAgeMin !== null && quoteAgeMin > 10)
+    )
+      ? 'warn'
+      : 'good'
 
   // FMP stocks (GUVEN/FIYATLAMA) — NASDAQ Terminal Hisseler ile ayni kaynak
   useEffect(() => {
@@ -425,6 +513,42 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
     console.log('[AutoRefresh] Starting incremental refresh at', new Date().toLocaleTimeString())
 
     try {
+      // First, try cheap server-side cached snapshot (cron-fed) to avoid client heavy refresh storms.
+      try {
+        const latestRes = await fetch('/api/scan/latest')
+        if (latestRes.ok) {
+          const latest = await latestRes.json()
+          const latestCount = latest.results?.length ?? 0
+          if (latestCount >= MIN_TRUSTED_CACHE) {
+            const allResults: ScanResult[] = latest.results
+            const strongLongs = allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_long')
+            const strongShorts = allResults.filter((r: ScanResult) => r.hermes.signalType === 'strong_short')
+            setResults(allResults)
+            setSummary({
+              scanId: latest.scanId || `refresh-cache-${Date.now()}`,
+              timestamp: latest.timestamp || new Date().toISOString(),
+              duration: 0,
+              totalScanned: allResults.length,
+              strongLongs,
+              strongShorts,
+              longs: allResults.filter((r: ScanResult) => r.hermes.signalType === 'long'),
+              shorts: allResults.filter((r: ScanResult) => r.hermes.signalType === 'short'),
+              neutrals: allResults.filter((r: ScanResult) => r.hermes.signalType === 'neutral').length,
+              errors: 0,
+              segment: 'ALL',
+            })
+            setCachedResults(allResults)
+            const now = new Date()
+            setLastAutoRefresh(now)
+            setLastRefresh(now)
+            setProgress('')
+            return
+          }
+        }
+      } catch {
+        // continue to heavier fallback
+      }
+
       // 52W refresh (eğer sonuç varsa)
       if (results.length > 0) {
         setProgress('Yenileniyor (52W)...')
@@ -501,13 +625,64 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
   useEffect(() => { runIncrementalRefreshRef.current = runIncrementalRefresh }, [runIncrementalRefresh])
 
   // ═══════════════════════════════════════════════════════════════════
+  // LIVE PRICE ONLY REFRESH (lightweight, no heavy rescoring)
+  // ═══════════════════════════════════════════════════════════════════
+  const refreshLiveQuotes = useCallback(async () => {
+    if (resultsRef.current.length === 0) return
+
+    try {
+      const symbols = resultsRef.current.map(r => r.symbol)
+      const res = await fetch('/api/quotes/live', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbols }),
+      })
+      if (!res.ok) return
+
+      const data = await res.json()
+      const quotes = data.quotes || {}
+      if (Object.keys(quotes).length === 0) return
+
+      setResults(prev => prev.map(r => {
+        const q = quotes[r.symbol]
+        if (!q) return r
+        return {
+          ...r,
+          quote: {
+            price: q.price,
+            change: q.change,
+            changePercent: q.changePercent,
+            volume: q.volume,
+            marketCap: q.marketCap,
+          },
+          timestamp: data.timestamp || new Date().toISOString(),
+        }
+      }))
+      setLastPriceRefresh(new Date())
+    } catch {
+      // lightweight loop, fail silently
+    }
+  }, [])
+
+  useEffect(() => {
+    const intervalSec = marketOpen
+      ? REFRESH.PRICE_OPEN_INTERVAL_SEC
+      : REFRESH.PRICE_CLOSED_INTERVAL_SEC
+
+    const timer = setInterval(() => {
+      refreshLiveQuotes()
+    }, intervalSec * 1000)
+
+    return () => clearInterval(timer)
+  }, [marketOpen, refreshLiveQuotes])
+
+  // ═══════════════════════════════════════════════════════════════════
   // MARKET STATUS CHECK & AUTO-REFRESH TIMER
   // Stable useEffect - refs kullanarak sık re-render'dan kaçınır
   // ═══════════════════════════════════════════════════════════════════
 
   useEffect(() => {
-    const settings = getSettings()
-    const refreshIntervalMs = (settings.refreshInterval || 30) * 60 * 1000 // 30 dakika (her 2 mum kapanışı)
+    const refreshIntervalMs = REFRESH.TRADE_OPEN_INTERVAL_MIN * 60 * 1000
 
     function checkMarketAndRefresh() {
       try {
@@ -552,6 +727,12 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
           }
         }
 
+        // Seans kapanisinda bir kez final incremental refresh
+        if (!isOpen && wasMarketOpenRef.current && resultsRef.current.length > 0 && !isRefreshingRef.current) {
+          console.log('[AutoRefresh] Market just closed, running final incremental refresh')
+          runIncrementalRefreshRef.current()
+        }
+
         if (!isOpen) {
           wasMarketOpenRef.current = false
         }
@@ -578,7 +759,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
 
           if (timeSinceLastRefresh >= refreshIntervalMs) {
             if (resultsRef.current.length > 0) {
-              console.log('[AutoRefresh] 30min interval reached (2 mum kapanisi), starting incremental refresh')
+              console.log('[AutoRefresh] 60min interval reached, starting incremental refresh')
               runIncrementalRefreshRef.current()
             }
           }
@@ -594,7 +775,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
     checkMarketAndRefresh()
 
     // Her 30 saniyede bir kontrol et (daha hassas zamanlama)
-    marketCheckTimerRef.current = setInterval(checkMarketAndRefresh, 30 * 1000)
+    marketCheckTimerRef.current = setInterval(checkMarketAndRefresh, MARKET.CHECK_INTERVAL_MS)
 
     return () => {
       if (marketCheckTimerRef.current) {
@@ -707,6 +888,47 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                   )}
                 </div>
 
+                {/* Freshness Guardrail + SLO trend (1h) */}
+                {healthSnapshot && (
+                  <div
+                    className={`flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border ${
+                      freshnessLevel === 'bad'
+                        ? 'bg-red-500/12 text-red-300 border-red-500/30'
+                        : freshnessLevel === 'warn'
+                          ? 'bg-amber-500/12 text-amber-300 border-amber-500/30'
+                          : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
+                    }`}
+                    title={
+                      `Freshness Guardrail | ScanAge=${scanAgeMin ?? 'n/a'}m | QuoteAge=${quoteAgeMin ?? 'n/a'}m | `
+                      + `SLO1h scan=${healthSnapshot.sloTrend1h?.breachCounts1h.scan ?? 0}, quote=${healthSnapshot.sloTrend1h?.breachCounts1h.stocksQuote ?? 0}, checks=${healthSnapshot.sloTrend1h?.totalChecks1h ?? 0}`
+                    }
+                  >
+                    <span className="text-[10px] sm:text-[11px] font-semibold tracking-wide">
+                      {freshnessLevel === 'bad' ? 'FRESHNESS BAD' : freshnessLevel === 'warn' ? 'FRESHNESS WARN' : 'FRESHNESS OK'}
+                    </span>
+                    <span className="hidden xl:inline text-[10px] opacity-80">
+                      SLO1h {healthSnapshot.sloTrend1h?.breachCounts1h.scan ?? 0}/{healthSnapshot.sloTrend1h?.breachCounts1h.stocksQuote ?? 0}
+                    </span>
+                  </div>
+                )}
+                {healthSnapshot && (
+                  <div
+                    className="hidden xl:flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-white/10 bg-white/[0.03] text-white/70"
+                    title={
+                      `Ops Trend | Watchdog runs=${healthSnapshot.watchdog?.runs ?? 0}, fail=${healthSnapshot.watchdog?.failures ?? 0}, `
+                      + `selfHeal=${healthSnapshot.watchdog?.selfHealRuns ?? 0}, selfHealFail=${healthSnapshot.watchdog?.selfHealFailures ?? 0}`
+                    }
+                  >
+                    <span className="text-[10px] font-semibold tracking-wide">OPS</span>
+                    <span className="text-[10px] opacity-80">
+                      W {healthSnapshot.watchdog?.failures ?? 0}/{healthSnapshot.watchdog?.runs ?? 0}
+                    </span>
+                    <span className="text-[10px] opacity-70">
+                      H {healthSnapshot.watchdog?.selfHealFailures ?? 0}/{healthSnapshot.watchdog?.selfHealRuns ?? 0}
+                    </span>
+                  </div>
+                )}
+
                 {/* Regime Badge */}
                 {marketRegime !== 'RISK_ON' && (
                   <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold border ${
@@ -730,7 +952,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                       ? 'bg-hermes-green/10 text-hermes-green border-hermes-green/20' 
                       : 'bg-midnight-50/50 text-white/50 border-gold-400/8'
                   }`}
-                  title={autoRefreshEnabled ? 'Auto-refresh active (30min)' : 'Auto-refresh paused'}
+                  title={autoRefreshEnabled ? 'Auto-refresh active (60min)' : 'Auto-refresh paused'}
                 >
                   {isAutoRefreshing ? (
                     <span className="animate-spin inline-block">↻</span>
@@ -750,6 +972,11 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
                         {lastRefresh?.toLocaleTimeString('en-US', { hour12: false })}
                       </span>
                     </div>
+                  )}
+                  {lastPriceRefresh && (
+                    <span className="text-[10px] text-white/35 font-mono">
+                      Px: {lastPriceRefresh.toLocaleTimeString('en-US', { hour12: false })}
+                    </span>
                   )}
                   {isAutoRefreshing && (
                     <span className="text-[10px] text-gold-300 animate-pulse">Refreshing...</span>
@@ -813,9 +1040,7 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
               <span className="text-[10px] sm:text-[11px] text-white/35 font-medium tracking-wide truncate">HERMES AI • NASDAQ/NYSE Scanner</span>
               <span className="hidden md:inline text-[11px] text-white/40 shrink-0">Neural Core • Real-Time Analysis</span>
             </div>
-            <p className="text-[9px] text-white/35 leading-tight">
-              Not financial advice. Signals are algorithmic, based on historical patterns; past performance does not guarantee future results. Always do your own research (DYOR). Use at your own risk.
-            </p>
+            <p className="text-[9px] text-white/35 leading-tight">{LEGAL_DISCLAIMER_TEXT}</p>
           </div>
         </footer>
 

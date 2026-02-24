@@ -9,17 +9,30 @@ import { loadLatestScan, saveFullScan, getAllResults } from '@/lib/scan-store'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { scanLatestBodySchema, validateParams } from '@/lib/validation/schemas'
 
+function ageMinFromIso(ts: string): number {
+  const t = new Date(ts).getTime()
+  if (!Number.isFinite(t)) return -1
+  return Math.round((Date.now() - t) / 60000)
+}
+
 export async function GET() {
   try {
     // Once memory'den kontrol et
     const memResults = getAllResults()
     if (memResults.length > 0) {
+      const ts = new Date().toISOString()
       return NextResponse.json({
         results: memResults,
-        timestamp: new Date().toISOString(),
+        timestamp: ts,
         scanId: 'memory',
         fromCache: true,
         source: 'memory',
+      }, {
+        headers: {
+          'X-Hermes-Scan-Source': 'memory',
+          'X-Hermes-Scan-Timestamp': ts,
+          'X-Hermes-Scan-Age-Min': '0',
+        },
       })
     }
     
@@ -27,12 +40,20 @@ export async function GET() {
     const diskCache = await loadLatestScan()
     
     if (diskCache && diskCache.results && diskCache.results.length > 0) {
+      const ts = diskCache.timestamp || new Date().toISOString()
+      const age = ageMinFromIso(ts)
       return NextResponse.json({
         results: diskCache.results,
-        timestamp: diskCache.timestamp,
+        timestamp: ts,
         scanId: diskCache.scanId,
         fromCache: true,
         source: 'disk',
+      }, {
+        headers: {
+          'X-Hermes-Scan-Source': 'disk',
+          'X-Hermes-Scan-Timestamp': ts,
+          'X-Hermes-Scan-Age-Min': String(age),
+        },
       })
     }
     
@@ -40,6 +61,11 @@ export async function GET() {
       results: [], 
       fromCache: false,
       message: 'No cached scan results'
+    }, {
+      headers: {
+        'X-Hermes-Scan-Source': 'none',
+        'X-Hermes-Scan-Age-Min': '-1',
+      },
     })
     
   } catch (error) {

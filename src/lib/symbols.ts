@@ -79,3 +79,24 @@ export function getSegmentStats(): Record<string, number> {
 export const getCleanSymbolCount = getTotalSymbolCount
 export const getCleanSymbols = getSymbols
 export const getCleanSegmentStats = getSegmentStats
+
+export type UniverseTier = 'ALL' | 'HOT' | 'WARM' | 'COLD'
+
+/**
+ * Universe tiers (deterministic, stable partition):
+ * HOT  ~40%, WARM ~30%, COLD ~30%
+ * Deterministic partition avoids random symbol churn between runs.
+ */
+export function getUniverseTierSymbols(tier: UniverseTier): string[] {
+  const all = getSymbols('ALL')
+  if (tier === 'ALL') return all
+
+  const list: string[] = []
+  for (let i = 0; i < all.length; i++) {
+    const bucket = i % 10
+    if (tier === 'HOT' && bucket <= 3) list.push(all[i])       // 0,1,2,3 => 40%
+    if (tier === 'WARM' && (bucket === 4 || bucket === 5 || bucket === 6)) list.push(all[i]) // 30%
+    if (tier === 'COLD' && bucket >= 7) list.push(all[i])      // 7,8,9 => 30%
+  }
+  return list
+}

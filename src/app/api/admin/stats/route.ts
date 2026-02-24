@@ -35,6 +35,15 @@ export async function GET(request: NextRequest) {
       cryptoMemory: cryptoCache,
     },
     system: systemHealth,
+    ops: {
+      status: (systemHealth as { status?: string })?.status ?? 'unknown',
+      freshness: (systemHealth as { dataFreshness?: unknown })?.dataFreshness ?? null,
+      sla: (systemHealth as { sla?: unknown })?.sla ?? null,
+      sloTrend1h: (systemHealth as { sloTrend1h?: unknown })?.sloTrend1h ?? null,
+      watchdog: (systemHealth as { watchdog?: unknown })?.watchdog ?? null,
+      cache: (systemHealth as { cache?: unknown })?.cache ?? null,
+      thresholds: (systemHealth as { opsThresholds?: unknown })?.opsThresholds ?? null,
+    },
     generatedAt: new Date().toISOString(),
   })
 }

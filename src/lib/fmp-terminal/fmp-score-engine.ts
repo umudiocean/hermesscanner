@@ -64,6 +64,9 @@ export interface ScoreInputMetrics {
   sell: number
   strongSell: number
   priceTarget: number
+  epsRevision30d: number      // Analyst EPS revision %, 30d
+  epsRevision90d: number      // Analyst EPS revision %, 90d
+  analystRevisionCount: number // Analyst estimate coverage count
   // Insider
   insiderNetBuys: number
   insiderNetValue: number
@@ -357,25 +360,54 @@ function scoreGrowth(m: ScoreInputMetrics): { score: number; dataPoints: number;
 
 function scoreAnalyst(m: ScoreInputMetrics): { score: number; dataPoints: number; maxPoints: number } {
   let total = 0
+  let weights = 0
   let dataPoints = 0
-  const maxPoints = 3
+  const maxPoints = 5
   const totalAnalysts = m.strongBuy + m.buy + m.hold + m.sell + m.strongSell
+
+  // 1) Consensus breadth / direction
   if (totalAnalysts > 0) {
     const buyRatio = (m.strongBuy + m.buy) / totalAnalysts
-    total += buyRatio * 100
+    total += buyRatio * 100 * 0.25
+    weights += 0.25
     dataPoints++
   }
+
+  // 2) Price target upside
   if (m.priceTarget > 0 && m.price > 0) {
     const upside = ((m.priceTarget - m.price) / m.price) * 100
-    total += sigmoid(upside, 10, 0.1)
+    total += sigmoid(upside, 10, 0.1) * 0.25
+    weights += 0.25
     dataPoints++
   }
+
+  // 3) Consensus label
   if (m.analystConsensus) {
     const consensusScores: Record<string, number> = { 'Strong Buy': 95, 'Buy': 75, 'Hold': 50, 'Sell': 25, 'Strong Sell': 5 }
-    total += consensusScores[m.analystConsensus] ?? 50
+    total += (consensusScores[m.analystConsensus] ?? 50) * 0.15
+    weights += 0.15
     dataPoints++
   }
-  const score = dataPoints > 0 ? total / dataPoints : 50
+
+  // 4) EPS revision momentum (30d + 90d)
+  if (m.analystRevisionCount > 0) {
+    const rev30Score = sigmoid(m.epsRevision30d, 0, 0.35)
+    const rev90Score = sigmoid(m.epsRevision90d, 0, 0.22)
+    const revisionComposite = rev30Score * 0.65 + rev90Score * 0.35
+    total += revisionComposite * 0.30
+    weights += 0.30
+    dataPoints++
+  }
+
+  // 5) Coverage depth (higher analyst count -> slightly higher confidence score)
+  if (totalAnalysts > 0) {
+    const depthScore = clamp(35 + Math.min(15, totalAnalysts) * 4)
+    total += depthScore * 0.05
+    weights += 0.05
+    dataPoints++
+  }
+
+  const score = weights > 0 ? total / weights : 50
   return { score: clamp(score), dataPoints, maxPoints }
 }
 
@@ -852,7 +884,8 @@ export function buildSectorPeerData(
       pbValues: stocks.map(s => s.pb).filter(v => v > 0 && isFinite(v)),
       evEbitdaValues: stocks.map(s => s.evEbitda).filter(v => v > 0 && isFinite(v)),
       psValues: stocks.map(s => s.priceToSales).filter(v => v > 0 && isFinite(v)),
-      roeValues: stocks.map(s => s.pe > 0 ? s.pe : 0).filter(v => v > 0),
+      // Sector peer quality baseline should use ROIC/ROE proxy, never P/E.
+      roeValues: stocks.map(s => s.roic !== 0 ? s.roic : 0).filter(v => v !== 0 && isFinite(v)),
       debtEquityValues: stocks.map(s => s.debtEquity).filter(v => v >= 0 && isFinite(v)),
       revenueGrowthValues: stocks.map(s => s.revenueGrowth).filter(v => isFinite(v) && v !== 0),
       sectorMedianPE: (() => {
@@ -891,6 +924,7 @@ export function createDefaultInput(symbol: string, sector: string = 'Unknown'): 
     roic: 0, grossMargin: 0, fcfToNetIncome: 0,
     priceChange1M: 0, priceChange6M: 0, volumeRatio: 0,
     analystConsensus: '', strongBuy: 0, buy: 0, hold: 0, sell: 0, strongSell: 0, priceTarget: 0,
+    epsRevision30d: 0, epsRevision90d: 0, analystRevisionCount: 0,
     insiderNetBuys: 0, insiderNetValue: 0, cSuiteBuying: false, clusterBuy: false,
     institutionalOwnership: 0, institutionalChange: 0, newPositions: 0,
     sectorPerformance1M: 0,

@@ -210,6 +210,14 @@ export async function GET(
     if (priceTarget) {
       scoreInput.priceTarget = priceTarget.targetConsensus ?? 0
     }
+    if (estimates.length > 0) {
+      const curr = estimates[0]?.estimatedEpsAvg ?? 0
+      const prev30 = estimates[1]?.estimatedEpsAvg ?? 0
+      const prev90 = estimates[3]?.estimatedEpsAvg ?? 0
+      scoreInput.epsRevision30d = prev30 !== 0 ? ((curr - prev30) / Math.abs(prev30)) * 100 : 0
+      scoreInput.epsRevision90d = prev90 !== 0 ? ((curr - prev90) / Math.abs(prev90)) * 100 : 0
+      scoreInput.analystRevisionCount = estimates[0]?.numberAnalystsEstimatedEps ?? 0
+    }
 
     // Insider
     if (insiderStats) {

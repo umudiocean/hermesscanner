@@ -54,6 +54,8 @@ interface StockRow {
   dcfUpside: number
   priceTarget: number
   analystConsensus: string
+  analystEpsRevision30d: number
+  analystEpsRevision90d: number
   riskScore: number
   riskLevel: string
   valuationScore: number
@@ -71,7 +73,7 @@ interface TabStocksProps {
   onSelectSymbol: (symbol: string) => void
 }
 
-type SortField = keyof Pick<StockRow, 'symbol' | 'companyName' | 'sector' | 'price' | 'changePercent' | 'marketCap' | 'pe' | 'roe' | 'debtEquity' | 'dividendYield' | 'volume' | 'signalScore' | 'confidence' | 'altmanZ' | 'piotroski' | 'dcfUpside' | 'riskScore' | 'valuationScore' | 'shortFloat' | 'overvalScore' | 'priceTarget' | 'yearLow'>
+type SortField = keyof Pick<StockRow, 'symbol' | 'companyName' | 'sector' | 'price' | 'changePercent' | 'marketCap' | 'pe' | 'roe' | 'debtEquity' | 'dividendYield' | 'volume' | 'signalScore' | 'confidence' | 'altmanZ' | 'piotroski' | 'dcfUpside' | 'riskScore' | 'valuationScore' | 'shortFloat' | 'overvalScore' | 'priceTarget' | 'yearLow' | 'analystEpsRevision30d' | 'analystEpsRevision90d'>
 type SortDir = 'asc' | 'desc'
 type SegmentFilter = 'ALL' | 'MEGA' | 'LARGE' | 'MID' | 'SMALL' | 'MICRO'
 
@@ -120,6 +122,8 @@ const COLUMN_TIPS: Record<string, string> = {
   shortFloat: 'HALKA ACIK ORAN (%) — Hisse senetlerinin yuzde kacinin serbest piyasada islem gordugunu gosterir. %90+ = Cok yuksek likidite, %50-90 = Normal, <%50 = Dusuk likidite (buyuk hissedar agirlikli)',
   overval: 'OVERVAL — Asiri degerlenme skoru (0-100). Yuksek = hisse pahali + momentum kirilmis + analist hedefinin altinda. SHORT sinyalleri icin kullanilir. EXTREME(70+), HIGH(50+), MEDIUM(30+), LOW(<30)',
   badges: 'BADGES — Otomatik tespit edilen durumlar: KAZANC GUCLU (earnings beat), BUBBLE RISKI, SQUEEZE RISKI, VALUE TRAP, GENIS MOAT vb.',
+  rev30: 'EPS REV30 — Son 30 gunde analist ortalama EPS tahminindeki yuzdesel revizyon.',
+  rev90: 'EPS REV90 — Son 90 gunde analist ortalama EPS tahminindeki yuzdesel revizyon.',
 }
 
 export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
@@ -375,6 +379,8 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
             <option value="overvalScore" className="bg-[#151520]">Overval</option>
             <option value="shortFloat" className="bg-[#151520]">Float %</option>
             <option value="volume" className="bg-[#151520]">Hacim</option>
+            <option value="analystEpsRevision30d" className="bg-[#151520]">EPS Rev30</option>
+            <option value="analystEpsRevision90d" className="bg-[#151520]">EPS Rev90</option>
           </select>
         </div>
         <div className="flex items-center gap-4 text-xs text-white/45">
@@ -423,6 +429,10 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                   tip={COLUMN_TIPS.piotroski} onTip={setTooltip} />
                 <ThC field="dcfUpside" label="DCF %" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
                   tip={COLUMN_TIPS.dcfUpside} onTip={setTooltip} />
+                <ThC field="analystEpsRevision30d" label="REV30" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
+                  tip={COLUMN_TIPS.rev30} onTip={setTooltip} />
+                <ThC field="analystEpsRevision90d" label="REV90" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
+                  tip={COLUMN_TIPS.rev90} onTip={setTooltip} />
                 <ThC field="roe" label="ROE %" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
                   tip={COLUMN_TIPS.roe} onTip={setTooltip} />
                 <ThC field="debtEquity" label="BORC/OZ" sort={sortField} dir={sortDir} onSort={handleSort} align="right"
@@ -570,6 +580,20 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                       <span className={`text-[11px] tabular-nums font-medium ${
                         (s.dcfUpside || 0) > 20 ? 'text-hermes-green' : (s.dcfUpside || 0) > 0 ? 'text-hermes-green/60' : (s.dcfUpside || 0) < -20 ? 'text-red-400' : (s.dcfUpside || 0) < 0 ? 'text-red-400/60' : 'text-white/40'
                       }`}>{s.dcfUpside ? `${s.dcfUpside > 0 ? '+' : ''}${s.dcfUpside.toFixed(0)}%` : '\u2014'}</span>
+                    </td>
+                    <td className="px-1 py-2 text-right">
+                      <span className={`text-[10px] tabular-nums ${
+                        (s.analystEpsRevision30d || 0) > 0 ? 'text-hermes-green/80' : (s.analystEpsRevision30d || 0) < 0 ? 'text-red-400/80' : 'text-white/35'
+                      }`}>
+                        {(s.analystEpsRevision30d || 0) !== 0 ? `${(s.analystEpsRevision30d || 0) > 0 ? '+' : ''}${(s.analystEpsRevision30d || 0).toFixed(1)}%` : '\u2014'}
+                      </span>
+                    </td>
+                    <td className="px-1 py-2 text-right">
+                      <span className={`text-[10px] tabular-nums ${
+                        (s.analystEpsRevision90d || 0) > 0 ? 'text-hermes-green/70' : (s.analystEpsRevision90d || 0) < 0 ? 'text-red-400/70' : 'text-white/35'
+                      }`}>
+                        {(s.analystEpsRevision90d || 0) !== 0 ? `${(s.analystEpsRevision90d || 0) > 0 ? '+' : ''}${(s.analystEpsRevision90d || 0).toFixed(1)}%` : '\u2014'}
+                      </span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[13px] tabular-nums ${s.roe > 0 ? 'text-hermes-green/70' : s.roe < 0 ? 'text-red-400/70' : 'text-white/35'}`}>

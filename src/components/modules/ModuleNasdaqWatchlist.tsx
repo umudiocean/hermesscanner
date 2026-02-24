@@ -12,13 +12,17 @@ import { ScanResult } from '@/lib/types'
 import { Star, Trash2, Download, Search, Plus, ChevronUp, ChevronDown } from 'lucide-react'
 import { PriceFlashCell } from '../premium-ui'
 import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
+import SystemFreshnessBadge from '../SystemFreshnessBadge'
+import { useSignalRenderGuard } from '@/lib/hooks/useSignalRenderGuard'
+import LegalDisclaimerStrip from '../LegalDisclaimerStrip'
+import { CSV_HEADERS, REVISION_TOOLTIPS } from './shared/revision-contract'
 
 type TerminalSignal = 'STRONG' | 'GOOD' | 'NEUTRAL' | 'WEAK' | 'BAD'
 type TradeSignal = 'STRONG LONG' | 'LONG' | 'NOTR' | 'SHORT' | 'STRONG SHORT'
 type AISignal = 'CONFLUENCE BUY' | 'ALPHA LONG' | 'HERMES LONG' | 'HERMES SHORT' | 'ALPHA SHORT' | 'CONFLUENCE SELL' | '-'
 
 type SortField = 'symbol' | 'segment' | 'price' | 'change' | 'score' | 'terminalSignal' | 'tradeSignal' | 'aiSignal' |
-  'rsi' | 'mfi' | 'marketCap' | 'point52w' | 'zscore' | 'quality' | 'confidence' | 'valuation'
+  'rsi' | 'mfi' | 'marketCap' | 'point52w' | 'zscore' | 'quality' | 'confidence' | 'valuation' | 'rev30' | 'rev90'
 type SortDir = 'asc' | 'desc'
 
 const TRADE_SIGNAL_LABELS: Record<string, string> = {
@@ -91,6 +95,7 @@ function ScoreBar({ score }: { score: number }) {
 
 export default function ModuleNasdaqWatchlist() {
   const { results, watchlist, toggleWatchlistItem, fmpStocksMap } = useNasdaqTradeContext()
+  const renderGuard = useSignalRenderGuard()
   const canCSV = useCanDownloadCSV()
   const [sortField, setSortField] = useState<SortField>('aiSignal')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
@@ -124,6 +129,8 @@ export default function ModuleNasdaqWatchlist() {
         case 'zscore': aVal = a.hermes.zscores.zscore52w; bVal = b.hermes.zscores.zscore52w; break
         case 'quality': aVal = a.hermes.multipliers.quality; bVal = b.hermes.multipliers.quality; break
         case 'confidence': aVal = fmpA?.confidence || 0; bVal = fmpB?.confidence || 0; break
+        case 'rev30': aVal = (fmpA as { analystEpsRevision30d?: number } | undefined)?.analystEpsRevision30d || 0; bVal = (fmpB as { analystEpsRevision30d?: number } | undefined)?.analystEpsRevision30d || 0; break
+        case 'rev90': aVal = (fmpA as { analystEpsRevision90d?: number } | undefined)?.analystEpsRevision90d || 0; bVal = (fmpB as { analystEpsRevision90d?: number } | undefined)?.analystEpsRevision90d || 0; break
         case 'valuation': {
           const vr: Record<string, number> = { 'COK UCUZ': 0, 'UCUZ': 1, 'NORMAL': 2, 'PAHALI': 3, 'COK PAHALI': 4 }
           aVal = vr[fmpA?.valuationLabel || 'NORMAL'] ?? 2; bVal = vr[fmpB?.valuationLabel || 'NORMAL'] ?? 2; break
@@ -186,7 +193,7 @@ export default function ModuleNasdaqWatchlist() {
 
   const downloadCSV = useCallback(() => {
     if (watchlistResults.length === 0) return
-    const headers = 'Symbol,Segment,Price,Change%,Terminal AI,Trade AI,AI Signal,Skor,RSI,MFI,Guven%,Fiyatlama,Risk,MCap,52W,Z'
+    const headers = CSV_HEADERS.nasdaqWatchlist
     const rows = watchlistResults.map(r => {
       const fmp = fmpStocksMap.get(r.symbol)
       const aiSig = matchAISignal(r.hermes.signalType, fmp?.signal || 'NEUTRAL', fmp?.riskScore)
@@ -201,6 +208,8 @@ export default function ModuleNasdaqWatchlist() {
         r.hermes.indicators.rsi.toFixed(1),
         r.hermes.indicators.mfi.toFixed(1),
         fmp?.confidence || '',
+        ((fmp as { analystEpsRevision30d?: number } | undefined)?.analystEpsRevision30d ?? 0).toFixed(2),
+        ((fmp as { analystEpsRevision90d?: number } | undefined)?.analystEpsRevision90d ?? 0).toFixed(2),
         fmp?.valuationLabel || '',
         fmp?.riskScore ?? '',
         r.quote?.marketCap || 0,
@@ -216,11 +225,12 @@ export default function ModuleNasdaqWatchlist() {
     link.click()
   }, [watchlistResults, fmpStocksMap])
 
-  function WTH({ field, children }: { field: SortField; children: React.ReactNode }) {
+  function WTH({ field, children, title }: { field: SortField; children: React.ReactNode; title?: string }) {
     const active = sortField === field
     return (
       <th
         onClick={() => handleSort(field)}
+        title={title}
         className={`px-2 py-3 text-[10px] font-bold uppercase tracking-wider cursor-pointer select-none transition-colors
           ${active ? 'text-gold-300' : 'text-white/40 hover:text-white/60'}`}
       >
@@ -245,6 +255,7 @@ export default function ModuleNasdaqWatchlist() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <SystemFreshnessBadge compact />
           <div ref={searchRef} className="relative">
             <button
               onClick={() => setShowSearch(!showSearch)}
@@ -298,6 +309,18 @@ export default function ModuleNasdaqWatchlist() {
           )}
         </div>
       </div>
+      <div className="mb-2">
+        <LegalDisclaimerStrip compact />
+      </div>
+
+      {renderGuard.blocked && (
+        <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3">
+          <p className="text-xs font-bold text-red-300">WATCHLIST AI SIGNAL MASKED (FAIL-CLOSED)</p>
+          <p className="text-[10px] text-red-200/80 mt-1">
+            Reason: {renderGuard.reason} | ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | QuoteAge: {renderGuard.quoteAgeMin ?? 'n/a'}m
+          </p>
+        </div>
+      )}
 
       {watchlistResults.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 sm:py-20 text-center">
@@ -341,6 +364,8 @@ export default function ModuleNasdaqWatchlist() {
                 <WTH field="aiSignal">AI Signal</WTH>
                 <WTH field="score">Skor</WTH>
                 <WTH field="confidence">Guven</WTH>
+                <WTH field="rev30" title={REVISION_TOOLTIPS.rev30}>Rev30</WTH>
+                <WTH field="rev90" title={REVISION_TOOLTIPS.rev90}>Rev90</WTH>
                 <WTH field="valuation">Fiyatlama</WTH>
                 <WTH field="rsi">RSI</WTH>
                 <WTH field="mfi">MFI</WTH>
@@ -358,7 +383,9 @@ export default function ModuleNasdaqWatchlist() {
                 const fmp = fmpStocksMap.get(result.symbol)
                 const terminalSignal = (fmp?.signal || 'NEUTRAL') as TerminalSignal
                 const tradeSignal = getTradeSignal(result.hermes.score)
-                const aiSignal = matchAISignal(result.hermes.signalType, terminalSignal, fmp?.riskScore)
+                const aiSignal = renderGuard.blocked
+                  ? '-'
+                  : matchAISignal(result.hermes.signalType, terminalSignal, fmp?.riskScore)
                 const changePercent = result.quote?.changePercent || 0
 
                 return (
@@ -419,6 +446,26 @@ export default function ModuleNasdaqWatchlist() {
                       <span className={`text-[10px] font-semibold tabular-nums ${(fmp?.confidence || 0) >= 70 ? 'text-amber-400' : (fmp?.confidence || 0) >= 50 ? 'text-white/60' : 'text-white/35'}`}>
                         {fmp?.confidence ? `%${Math.round(fmp.confidence)}` : '—'}
                       </span>
+                    </td>
+                    <td className="px-2 py-2.5 text-right">
+                      {(() => {
+                        const v = (fmp as { analystEpsRevision30d?: number } | undefined)?.analystEpsRevision30d || 0
+                        return (
+                          <span className={`text-[10px] tabular-nums ${v > 0 ? 'text-hermes-green/80' : v < 0 ? 'text-red-400/80' : 'text-white/35'}`}>
+                            {v !== 0 ? `${v > 0 ? '+' : ''}${v.toFixed(1)}%` : '—'}
+                          </span>
+                        )
+                      })()}
+                    </td>
+                    <td className="px-2 py-2.5 text-right">
+                      {(() => {
+                        const v = (fmp as { analystEpsRevision90d?: number } | undefined)?.analystEpsRevision90d || 0
+                        return (
+                          <span className={`text-[10px] tabular-nums ${v > 0 ? 'text-hermes-green/70' : v < 0 ? 'text-red-400/70' : 'text-white/35'}`}>
+                            {v !== 0 ? `${v > 0 ? '+' : ''}${v.toFixed(1)}%` : '—'}
+                          </span>
+                        )
+                      })()}
                     </td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${

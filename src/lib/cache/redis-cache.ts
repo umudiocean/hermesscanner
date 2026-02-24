@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { getRedis } from './redis-client'
+import { providerMonitor } from '@/lib/monitor/provider-monitor'
 
 const MAX_TTL_SEC = 7 * 24 * 60 * 60 // 7 days hard ceiling
 const KEY_PREFIX = 'hermes:cache:'
@@ -18,6 +19,7 @@ export async function getRedisCache<T>(key: string): Promise<T | null> {
   if (!r) return null
   try {
     const raw = await r.get<string>(KEY_PREFIX + key)
+    await providerMonitor.recordCacheRead()
     if (raw === null || raw === undefined) return null
     return typeof raw === 'string' ? JSON.parse(raw) as T : raw as T
   } catch {
@@ -31,6 +33,7 @@ export async function setRedisCache(key: string, data: unknown, ttlMs: number): 
   try {
     const ttlSec = redisTtlSec(ttlMs)
     await r.set(KEY_PREFIX + key, JSON.stringify(data), { ex: ttlSec })
+    await providerMonitor.recordCacheWrite()
   } catch {
     // silent — Redis write failure is non-critical
   }
@@ -138,13 +141,24 @@ export async function setTradeReadySymbols(symbols: string[]): Promise<void> {
 
 const REFRESH_LOCK_KEY = 'refresh:lock'
 const REFRESH_LOCK_TTL_SEC = 5 * 60 // 5 min
+const REFRESH_LOCK_STALE_MS = 10 * 60 * 1000 // 10 min hard stale
 
 export async function acquireRefreshLockRedis(): Promise<boolean> {
   const r = getRedis()
   if (!r) return true
   try {
     const ok = await r.set(REFRESH_LOCK_KEY, Date.now().toString(), { nx: true, ex: REFRESH_LOCK_TTL_SEC })
-    return !!ok
+    if (ok) return true
+
+    // Self-heal: if lock key survived past stale threshold, force-clear once.
+    const existing = await r.get<string>(REFRESH_LOCK_KEY)
+    const ts = existing ? Number(existing) : NaN
+    if (Number.isFinite(ts) && Date.now() - ts > REFRESH_LOCK_STALE_MS) {
+      await r.del(REFRESH_LOCK_KEY)
+      const recovered = await r.set(REFRESH_LOCK_KEY, Date.now().toString(), { nx: true, ex: REFRESH_LOCK_TTL_SEC })
+      return !!recovered
+    }
+    return false
   } catch {
     return true
   }

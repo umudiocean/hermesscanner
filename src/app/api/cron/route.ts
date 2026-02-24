@@ -9,17 +9,18 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getCleanSymbols, computeSegmentFromMarketCap } from '@/lib/symbols'
+import { getUniverseTierSymbols, computeSegmentFromMarketCap, UniverseTier } from '@/lib/symbols'
 import { getHistorical15MinDelta, getBatchQuotes } from '@/lib/fmp-client'
 // getHistorical15Min removed — cron no longer does full FMP stitching
 import { calculateHermes } from '@/lib/hermes-engine'
-import { saveScanResults } from '@/lib/scan-store'
+import { saveScanResults, loadLatestScan } from '@/lib/scan-store'
 import { ScanResult, ScanSummary, OHLCV } from '@/lib/types'
 import { getBarCache, setBarCache, getBootstrapProgress, acquireRefreshLockRedis, releaseRefreshLockRedis, setTradeReadySymbols } from '@/lib/cache/redis-cache'
-import { isRedisAvailable } from '@/lib/cache/redis-client'
+import { isRedisAvailable, isRedisRequired } from '@/lib/cache/redis-client'
 import { isMarketOpen, getNowET, getETMinutes } from '@/lib/scheduler/marketHours'
 import { createApiError } from '@/lib/validation/ohlcv-validator'
 import logger from '@/lib/logger'
+import { providerMonitor } from '@/lib/monitor/provider-monitor'
 
 export const maxDuration = 300
 
@@ -56,6 +57,8 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const forceParam = url.searchParams.get('force')
   const forceRun = forceParam === '1' || forceParam === 'true'
+  const universeParam = (url.searchParams.get('universe') || 'ALL').toUpperCase()
+  const universe: UniverseTier = (['ALL', 'HOT', 'WARM', 'COLD'].includes(universeParam) ? universeParam : 'ALL') as UniverseTier
   const bypassLock = forceRun
   const marketOpen = isMarketOpen()
 
@@ -85,6 +88,14 @@ export async function GET(request: NextRequest) {
 
   const context = getScanContext()
   const redisReady = isRedisAvailable()
+  const redisRequired = isRedisRequired()
+  if (redisRequired && !redisReady) {
+    logger.error('CRON_REDIS_REQUIRED_UNAVAILABLE', { module: 'cron', context })
+    return NextResponse.json(
+      createApiError('Redis required but unavailable', 'Set REQUIRE_REDIS=false only for local emergency use', 'REDIS_REQUIRED'),
+      { status: 503 }
+    )
+  }
 
   let bootstrapComplete = false
   if (redisReady) {
@@ -105,7 +116,7 @@ export async function GET(request: NextRequest) {
   logger.info(`Cron ${context} scan starting (mode: ${mode}, market: ${marketOpen ? 'OPEN' : 'CLOSED'})`, { module: 'cron' })
 
   try {
-    const allSymbols = getCleanSymbols('ALL')
+    const allSymbols = getUniverseTierSymbols(universe)
     const results: ScanResult[] = []
     let totalErrors = 0
     let redisHits = 0
@@ -182,9 +193,22 @@ export async function GET(request: NextRequest) {
     const workers = Array.from({ length: concurrency }, () => worker())
     await Promise.all(workers)
 
-    const allStrongLongs = results.filter(r => r.hermes.signalType === 'strong_long')
-    const allStrongShorts = results.filter(r => r.hermes.signalType === 'strong_short')
-    const totalScanned = results.length
+    let finalResults = results
+
+    // Partial universe scans should merge into latest full cache, never overwrite with subset.
+    if (universe !== 'ALL') {
+      const latest = await loadLatestScan()
+      if (latest?.results?.length) {
+        const merged = new Map<string, ScanResult>()
+        for (const r of latest.results) merged.set(r.symbol, r)
+        for (const r of results) merged.set(r.symbol, r)
+        finalResults = Array.from(merged.values())
+      }
+    }
+
+    const allStrongLongs = finalResults.filter(r => r.hermes.signalType === 'strong_long')
+    const allStrongShorts = finalResults.filter(r => r.hermes.signalType === 'strong_short')
+    const totalScanned = finalResults.length
 
     const summary: ScanSummary = {
       scanId: `cron-ALL-${Date.now()}`,
@@ -193,31 +217,34 @@ export async function GET(request: NextRequest) {
       totalScanned,
       strongLongs: allStrongLongs,
       strongShorts: allStrongShorts,
-      longs: results.filter(r => r.hermes.signalType === 'long'),
-      shorts: results.filter(r => r.hermes.signalType === 'short'),
-      neutrals: results.filter(r => r.hermes.signalType === 'neutral').length,
+      longs: finalResults.filter(r => r.hermes.signalType === 'long'),
+      shorts: finalResults.filter(r => r.hermes.signalType === 'short'),
+      neutrals: finalResults.filter(r => r.hermes.signalType === 'neutral').length,
       errors: totalErrors,
       segment: 'ALL',
     }
 
-    saveScanResults('ALL', results, summary)
+    saveScanResults('ALL', finalResults, summary)
+    await providerMonitor.recordDataFetch('scan')
 
     // Save trade-ready symbol list to Redis
-    if (results.length > 1000) {
-      const tradeReadySymbols = results.map(r => r.symbol).sort()
+    if (finalResults.length > 1000) {
+      const tradeReadySymbols = finalResults.map(r => r.symbol).sort()
       await setTradeReadySymbols(tradeReadySymbols)
     }
 
     const duration = Date.now() - startTime
-    logger.info(`Cron ${context}: ${totalScanned} scanned (mode: ${mode}, redis: ${redisHits}, delta: ${deltaHits}, skipped: ${skippedBars}) — ${(duration / 1000).toFixed(1)}s`, { module: 'cron' })
+    logger.info(`Cron ${context}: ${totalScanned} scanned (mode: ${mode}, universe: ${universe}, redis: ${redisHits}, delta: ${deltaHits}, skipped: ${skippedBars}) — ${(duration / 1000).toFixed(1)}s`, { module: 'cron' })
 
     return NextResponse.json({
       status: 'completed',
       mode,
+      universe,
       context,
       timestamp: new Date().toISOString(),
       duration: `${(duration / 1000).toFixed(1)}s`,
       totalScanned,
+      refreshedSymbols: results.length,
       totalErrors,
       redisHits,
       deltaHits,
@@ -227,7 +254,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    logger.error('Cron error', { module: 'cron', error })
+    logger.error('CRON_SCAN_FAILED', { module: 'cron', error })
     return NextResponse.json(
       createApiError('Cron scan failed', (error as Error).message, 'CRON_ERROR'),
       { status: 500 }

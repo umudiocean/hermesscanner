@@ -4,7 +4,11 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useNasdaqTradeContext } from '../Layout'
 import { getWatchlist, toggleWatchlist } from '@/lib/store'
 import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
+import { useSignalRenderGuard } from '@/lib/hooks/useSignalRenderGuard'
 import { PriceFlashCell, ScoreMiniBar } from '../premium-ui'
+import SystemFreshnessBadge from '../SystemFreshnessBadge'
+import LegalDisclaimerStrip from '../LegalDisclaimerStrip'
+import { CSV_HEADERS, REVISION_TOOLTIPS } from './shared/revision-contract'
 
 // ================================================================
 // AI SIGNALS Module — V5
@@ -39,9 +43,13 @@ interface BestSignalItem {
   sector: string
   // FMP extras
   confidence: number
+  signalConfidence: number
   valuationLabel: string
   overvalScore: number
   overvalLevel: string
+  earningsDays: number | null
+  analystEpsRevision30d: number
+  analystEpsRevision90d: number
   // Target/Floor price
   targetPrice: number | null
   floorPrice: number | null
@@ -80,6 +88,8 @@ interface FmpStock {
   priceTarget?: number
   yearHigh?: number
   yearLow?: number
+  analystEpsRevision30d?: number
+  analystEpsRevision90d?: number
 }
 
 // SADECE 6 SINYAL — Gorselde gorunen final liste
@@ -99,11 +109,61 @@ const COLUMN_TIPS: Record<string, string> = {
   teknikScore: 'TEKNIK SKOR (0-100): <=20 STRONG LONG, 21-30 LONG, 31-69 NOTR, 70-89 SHORT, >=90 STRONG SHORT',
   hAi: 'HERMES AI SINYAL: Temel analiz sonucu. STRONG = cok iyi, GOOD = iyi, NEUTRAL = notr, WEAK = zayif, BAD = kotu',
   aiScore: 'HERMES AI SKOR (0-100): Sirketin temel analiz puani. Percentile bazli hesaplanir.',
-  confidence: 'GUVEN: Temel analiz veri tamligi (%). Yuksek = daha guvenilir sonuc.',
+  confidence: 'GUVEN: Sinyal guveni (%). Teknik-temel uyum, risk ve squeeze/overval guard etkisine gore hesaplanir.',
   valuation: 'FIYATLAMA: Ucuzluk/Pahalik seviyesi. COK UCUZ, UCUZ, NORMAL, PAHALI, COK PAHALI',
   price: 'GUNCEL FIYAT: Hissenin son islem fiyati ($)',
   changePercent: 'GUNLUK DEGISIM: Bugunun fiyat degisimi (%)',
   marketCap: 'PIYASA DEGERI: Sirketin toplam degeri (B=Milyar, M=Milyon)',
+  rev30: REVISION_TOOLTIPS.rev30,
+  rev90: REVISION_TOOLTIPS.rev90,
+}
+
+function daysUntil(dateStr: string): number | null {
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return null
+  const now = new Date()
+  const a = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+  const b = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
+  return Math.round((b.getTime() - a.getTime()) / 86400000)
+}
+
+function calcSignalConfidence(
+  signalType: BestSignalType,
+  teknikSignalType: string,
+  aiSignal: string,
+  fmpConfidence: number,
+  riskScore?: number,
+  overvalScore?: number,
+  earningsDays?: number | null,
+): number {
+  let score = Math.max(30, Math.min(100, fmpConfidence || 50))
+
+  // Strong technical states are more reliable than neutral edge cases.
+  if (teknikSignalType === 'strong_long' || teknikSignalType === 'strong_short') score += 8
+  else if (teknikSignalType === 'long' || teknikSignalType === 'short') score += 3
+
+  // AI quality alignment
+  if (aiSignal === 'STRONG' || aiSignal === 'BAD') score += 6
+  else if (aiSignal === 'GOOD' || aiSignal === 'WEAK') score += 3
+
+  // Risk-aware adjustment
+  if (riskScore !== undefined) {
+    if (signalType.includes('long') && riskScore > 65) score -= 10
+    if (signalType.includes('short') && riskScore < 35) score -= 8
+  }
+
+  // Overvaluation supports short confidence, weakens long confidence.
+  if (overvalScore !== undefined) {
+    if (signalType.includes('short') && overvalScore >= 65) score += 5
+    if (signalType.includes('long') && overvalScore >= 65) score -= 6
+  }
+
+  // Earnings proximity penalty: event risk rises close to report day.
+  if (earningsDays !== null && earningsDays !== undefined && Math.abs(earningsDays) <= 7) {
+    score -= 12
+  }
+
+  return Math.max(5, Math.min(99, Math.round(score)))
 }
 
 const SIGNAL_CONFIG: Record<BestSignalType, {
@@ -418,17 +478,20 @@ function SkeletonRow() {
 
 export default function ModuleNasdaqSignals() {
   const { results: results52w, loading: loading52w, marketRegime, vixValue, signalsPaused, pauseReason, positionSizeMultiplier } = useNasdaqTradeContext()
+  const renderGuard = useSignalRenderGuard()
   const canCSV = useCanDownloadCSV()
   const [fmpStocks, setFmpStocks] = useState<FmpStock[]>([])
   const [loadingFmp, setLoadingFmp] = useState(true)
   const [fmpError, setFmpError] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<BestSignalType | 'all'>('all')
+  const [revisionFilter, setRevisionFilter] = useState<'all' | 'up' | 'down'>('all')
   const [search, setSearch] = useState('')
   const [sortField, setSortField] = useState<'symbol' | 'sector' | 'bestSignal' | 'nTeknik' | 'teknikScore' | 'hAi' | 'aiScore' | 'confidence' | 'valuation' | 'price' | 'changePercent' | 'marketCap'>('teknikScore')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [watchlist, setWatchlist] = useState<string[]>([])
   const [tooltip, setTooltip] = useState<string | null>(null)
   const [fmpRetryCount, setFmpRetryCount] = useState(0)
+  const [earningsMap, setEarningsMap] = useState<Map<string, number>>(new Map())
 
   useEffect(() => { setWatchlist(getWatchlist()) }, [])
 
@@ -470,9 +533,40 @@ export default function ModuleNasdaqSignals() {
     return () => { cancelled = true }
   }, [results52w.length, fmpRetryCount])
 
+  // Earnings proximity map (for event-risk aware signal confidence)
+  useEffect(() => {
+    if (results52w.length === 0) {
+      setEarningsMap(new Map())
+      return
+    }
+
+    let cancelled = false
+    async function fetchEarningsWindow() {
+      try {
+        const res = await fetch('/api/fmp-terminal/calendar?days=21')
+        if (!res.ok) return
+        const data = await res.json()
+        const m = new Map<string, number>()
+        for (const e of (data.earnings || [])) {
+          const sym = typeof e.symbol === 'string' ? e.symbol.toUpperCase() : ''
+          const ds = typeof e.date === 'string' ? daysUntil(e.date) : null
+          if (!sym || ds === null) continue
+          const prev = m.get(sym)
+          if (prev === undefined || Math.abs(ds) < Math.abs(prev)) m.set(sym, ds)
+        }
+        if (!cancelled) setEarningsMap(m)
+      } catch {
+        // advisory only
+      }
+    }
+    fetchEarningsWindow()
+    return () => { cancelled = true }
+  }, [results52w.length])
+
   // Combine signals - sadece 6 sinyal
-  const { signals, counts } = useMemo(() => {
+  const { signals, counts, conflictCount } = useMemo(() => {
     const items: BestSignalItem[] = []
+    let conflicts = 0
     const cnt: Record<BestSignalType | 'all', number> = {
       all: 0,
       confluence_buy: 0, alpha_long: 0, hermes_long: 0,
@@ -481,7 +575,7 @@ export default function ModuleNasdaqSignals() {
       smart_long: 0, signal_long: 0, signal_short: 0, smart_short: 0,
     }
 
-    if (!results52w.length || !fmpStocks.length) return { signals: items, counts: cnt }
+    if (!results52w.length || !fmpStocks.length) return { signals: items, counts: cnt, conflictCount: 0 }
 
     // Build FMP lookup
     const fmpMap = new Map<string, FmpStock>()
@@ -492,6 +586,13 @@ export default function ModuleNasdaqSignals() {
     for (const r of results52w) {
       const fmp = fmpMap.get(r.symbol)
       if (!fmp) continue
+
+      const isLong = r.hermes.signalType === 'strong_long' || r.hermes.signalType === 'long'
+      const isShort = r.hermes.signalType === 'strong_short' || r.hermes.signalType === 'short'
+      const ai = fmp.signal
+      if ((isLong && (ai === 'WEAK' || ai === 'BAD')) || (isShort && (ai === 'GOOD' || ai === 'STRONG'))) {
+        conflicts++
+      }
 
       const bestType = matchSignal(
         r.hermes.signalType, fmp.signal, fmp.riskScore,
@@ -513,11 +614,23 @@ export default function ModuleNasdaqSignals() {
         marketCap: r.quote?.marketCap || fmp.marketCap || 0,
         sector: fmp.sector || '-',
         confidence: fmp.confidence || 0,
+        signalConfidence: calcSignalConfidence(
+          bestType,
+          r.hermes.signalType,
+          fmp.signal,
+          fmp.confidence || 0,
+          fmp.riskScore,
+          fmp.overvalScore,
+          earningsMap.get(r.symbol) ?? null,
+        ),
         valuationLabel: fmp.valuationLabel || '',
         overvalScore: fmp.overvalScore || 0,
         overvalLevel: fmp.overvalLevel || 'LOW',
+        earningsDays: earningsMap.get(r.symbol) ?? null,
         targetPrice: r.priceTarget?.targetPrice ?? ((fmp.priceTarget ?? 0) > 0 ? (fmp.priceTarget as number) : null),
         floorPrice: r.priceTarget?.floorPrice ?? ((fmp.yearLow ?? 0) > 0 ? (fmp.yearLow as number) : null),
+        analystEpsRevision30d: fmp.analystEpsRevision30d || 0,
+        analystEpsRevision90d: fmp.analystEpsRevision90d || 0,
         riskReward: r.priceTarget?.riskReward ?? (() => {
           const p = r.quote?.price || r.hermes.price
           const t = fmp.priceTarget ?? 0
@@ -535,12 +648,18 @@ export default function ModuleNasdaqSignals() {
       cnt.all++
     }
 
-    return { signals: items, counts: cnt }
-  }, [results52w, fmpStocks])
+    return { signals: items, counts: cnt, conflictCount: conflicts }
+  }, [results52w, fmpStocks, earningsMap])
 
   // Filter & sort
   const filtered = useMemo(() => {
     let list = activeFilter === 'all' ? signals : signals.filter(s => s.signalType === activeFilter)
+
+    if (revisionFilter === 'up') {
+      list = list.filter(s => (s.analystEpsRevision30d || 0) > 0 || (s.analystEpsRevision90d || 0) > 0)
+    } else if (revisionFilter === 'down') {
+      list = list.filter(s => (s.analystEpsRevision30d || 0) < 0 || (s.analystEpsRevision90d || 0) < 0)
+    }
 
     if (search.trim()) {
       const q = search.trim().toUpperCase()
@@ -574,7 +693,7 @@ export default function ModuleNasdaqSignals() {
         case 'teknikScore': va = a.teknikScore; vb = b.teknikScore; break
         case 'hAi': va = AI_RANK[a.aiSignal] || 99; vb = AI_RANK[b.aiSignal] || 99; break
         case 'aiScore': va = a.aiScore; vb = b.aiScore; break
-        case 'confidence': va = a.confidence; vb = b.confidence; break
+        case 'confidence': va = a.signalConfidence; vb = b.signalConfidence; break
         case 'valuation': va = valuationRank(a.valuationLabel || ''); vb = valuationRank(b.valuationLabel || ''); break
         case 'price': va = a.price; vb = b.price; break
         case 'changePercent': va = a.changePercent; vb = b.changePercent; break
@@ -587,7 +706,7 @@ export default function ModuleNasdaqSignals() {
     })
 
     return list
-  }, [signals, activeFilter, search, sortField, sortDir])
+  }, [signals, activeFilter, revisionFilter, search, sortField, sortDir])
 
   const isLoading = loading52w || loadingFmp
 
@@ -611,7 +730,7 @@ export default function ModuleNasdaqSignals() {
     const rows = filtered
     if (rows.length === 0) return
 
-    const header = 'Symbol,Sector,Best Signal,N.Teknik,Teknik Score,H.AI,AI Score,Guven%,Fiyatlama,Price,Change%,MarketCap'
+    const header = CSV_HEADERS.nasdaqSignals
     const csvRows = rows.map(r => {
       const cfg = SIGNAL_CONFIG[r.signalType]
       return [
@@ -622,7 +741,9 @@ export default function ModuleNasdaqSignals() {
         r.teknikScore,
         r.aiSignal,
         r.aiScore,
-        r.confidence > 0 ? r.confidence : '',
+        r.signalConfidence > 0 ? r.signalConfidence : '',
+        (r.analystEpsRevision30d || 0).toFixed(2),
+        (r.analystEpsRevision90d || 0).toFixed(2),
         r.valuationLabel || '',
         r.price.toFixed(2),
         r.changePercent.toFixed(2),
@@ -649,10 +770,16 @@ export default function ModuleNasdaqSignals() {
           <span className="text-2xl">{'\u26A1'}</span>
           <h2 className="text-base sm:text-lg font-bold text-white tracking-wide">AI SIGNALS</h2>
           <span className="text-xs text-gold-400/40 ml-2">TRADE AI + NASDAQ TERMINAL AI</span>
+          <div className="ml-auto">
+            <SystemFreshnessBadge />
+          </div>
         </div>
         <p className="text-[11px] text-white/40 ml-9">
           Teknik analiz (52W Z-Score/VWAP) ve temel analiz (P/E, P/B, ROE, Borc) sinyallerinin capraz onay birlesimleri
         </p>
+        <div className="ml-9 mt-2">
+          <LegalDisclaimerStrip compact />
+        </div>
       </div>
 
       {/* Regime Warning Banner */}
@@ -691,6 +818,16 @@ export default function ModuleNasdaqSignals() {
         </div>
       )}
 
+      {/* Freshness fail-closed banner */}
+      {renderGuard.blocked && (
+        <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3">
+          <p className="text-xs font-bold text-red-300">SIGNAL RENDER BLOCKED (FAIL-CLOSED)</p>
+          <p className="text-[10px] text-red-200/80 mt-1">
+            Reason: {renderGuard.reason} | ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | QuoteAge: {renderGuard.quoteAgeMin ?? 'n/a'}m
+          </p>
+        </div>
+      )}
+
       {/* Signal Filter Buttons */}
       <div className="glass-card rounded-xl p-2 sm:p-4 mb-2 sm:mb-4">
         <div className="flex items-center gap-2 mb-3">
@@ -704,6 +841,39 @@ export default function ModuleNasdaqSignals() {
             }`}
           >
             Tumu <span className={`ml-1 font-bold tabular-nums ${activeFilter === 'all' ? 'text-white/90' : 'text-white/60'}`}>{counts.all}</span>
+          </button>
+        </div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs text-gold-400/50 mr-1">EPS Rev:</span>
+          <button
+            onClick={() => setRevisionFilter('all')}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
+              revisionFilter === 'all'
+                ? 'bg-gold-400/10 text-gold-300 border-gold-400/25'
+                : 'bg-midnight-50/50 text-white/50 border-gold-400/8 hover:bg-midnight-50/80'
+            }`}
+          >
+            Tumu
+          </button>
+          <button
+            onClick={() => setRevisionFilter('up')}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
+              revisionFilter === 'up'
+                ? 'bg-hermes-green/12 text-hermes-green border-hermes-green/30'
+                : 'bg-midnight-50/50 text-white/50 border-gold-400/8 hover:bg-midnight-50/80'
+            }`}
+          >
+            Rev Up
+          </button>
+          <button
+            onClick={() => setRevisionFilter('down')}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
+              revisionFilter === 'down'
+                ? 'bg-red-500/12 text-red-400 border-red-500/30'
+                : 'bg-midnight-50/50 text-white/50 border-gold-400/8 hover:bg-midnight-50/80'
+            }`}
+          >
+            Rev Down
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -740,10 +910,18 @@ export default function ModuleNasdaqSignals() {
             </div>
           )}
           <div className="ml-auto flex items-center gap-2">
+            {conflictCount > 0 && (
+              <span
+                className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-amber-500/10 border border-amber-500/25 text-amber-300"
+                title="Teknik ve HERMES AI yonu celisen senaryo adedi. Bu satirlar 6-sinyal kontrati nedeniyle listede yer almaz."
+              >
+                Conflict {conflictCount}
+              </span>
+            )}
             {canCSV && (
               <button
                 onClick={() => downloadCSV('nasdaq')}
-                disabled={filtered.length === 0}
+                disabled={filtered.length === 0 || renderGuard.blocked}
                 className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-gold-400/10 text-gold-300 border border-gold-400/20 hover:bg-gold-400/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 title="NASDAQ sinyallerini CSV olarak indir"
               >
@@ -900,7 +1078,13 @@ export default function ModuleNasdaqSignals() {
               </tr>
             </thead>
             <tbody>
-              {isLoading ? (
+              {renderGuard.blocked ? (
+                <tr>
+                  <td colSpan={15} className="text-center py-12 text-red-300 text-sm">
+                    Signals are temporarily blocked due to stale freshness guardrail.
+                  </td>
+                </tr>
+              ) : isLoading ? (
                 Array.from({ length: 12 }).map((_, i) => <SkeletonRow key={i} />)
               ) : filtered.length === 0 ? (
                 <tr>
@@ -980,9 +1164,22 @@ export default function ModuleNasdaqSignals() {
 
                       {/* Guven (Confidence) */}
                       <td className="px-3 py-2.5 text-center">
-                        <span className={`text-[11px] tabular-nums font-medium ${
-                          item.confidence >= 70 ? 'text-hermes-green/60' : item.confidence >= 50 ? 'text-amber-400/60' : 'text-white/35'
-                        }`}>{item.confidence > 0 ? `${item.confidence}%` : '—'}</span>
+                        <div className="flex flex-col items-center leading-tight">
+                          <span className={`text-[11px] tabular-nums font-medium ${
+                            item.signalConfidence >= 70 ? 'text-hermes-green/70' : item.signalConfidence >= 50 ? 'text-amber-400/70' : 'text-white/35'
+                          }`}>{item.signalConfidence > 0 ? `${item.signalConfidence}%` : '—'}</span>
+                          <span className={`text-[9px] tabular-nums ${
+                            (item.analystEpsRevision30d || 0) > 0 ? 'text-hermes-green/80' :
+                            (item.analystEpsRevision30d || 0) < 0 ? 'text-red-400/80' : 'text-white/35'
+                          }`}>
+                            R30 {(item.analystEpsRevision30d || 0) !== 0 ? `${(item.analystEpsRevision30d || 0) > 0 ? '+' : ''}${(item.analystEpsRevision30d || 0).toFixed(1)}%` : '—'}
+                          </span>
+                          {item.earningsDays !== null && Math.abs(item.earningsDays) <= 7 && (
+                            <span className="text-[9px] text-red-300/80 font-semibold">
+                              E{item.earningsDays >= 0 ? '+' : ''}{item.earningsDays}d
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Fiyatlama (Valuation) */}

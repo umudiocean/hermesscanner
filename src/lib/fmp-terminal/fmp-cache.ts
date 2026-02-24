@@ -7,8 +7,12 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import logger from '../logger'
 import { getRedisCache, setRedisCache, clearRedisCacheByPrefix } from '../cache/redis-cache'
+import { CACHE } from '../config/constants'
+import { providerMonitor } from '../monitor/provider-monitor'
 
-const CACHE_DIR = path.join(process.cwd(), '.next', 'cache', 'fmp-terminal')
+const CACHE_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'fmp-terminal')
+  : path.join(process.cwd(), '.next', 'cache', 'fmp-terminal')
 
 // ─── LRU Memory Cache ───────────────────────────────────────────────
 // Bounded to MAX_ENTRIES to prevent unbounded memory growth
@@ -44,19 +48,22 @@ function evictIfNeeded(): void {
 
 // Cache TTL defaults (ms)
 export const CACHE_TTL = {
-  BULK: 24 * 60 * 60 * 1000,         // 24h (bulk profiles, ratios, etc.)
-  QUOTE: 5 * 60 * 1000,              // 5m (real-time price)
-  INSIDER: 15 * 60 * 1000,           // 15m
-  NEWS: 60 * 60 * 1000,              // 1h
-  INSTITUTIONAL: 6 * 60 * 60 * 1000, // 6h
-  CONGRESSIONAL: 60 * 60 * 1000,     // 1h
-  FINANCIALS: 24 * 60 * 60 * 1000,   // 24h
-  SECTOR: 24 * 60 * 60 * 1000,       // 24h
-  MARKET: 5 * 60 * 1000,             // 5m
-  TREASURY: 12 * 60 * 60 * 1000,     // 12h
-  SCORES: 24 * 60 * 60 * 1000,       // 24h
-  TRANSCRIPT: 7 * 24 * 60 * 60 * 1000, // 7d
-  TECHNICAL: 5 * 60 * 1000,          // 5m
+  BULK: CACHE.BULK,
+  QUOTE: CACHE.QUOTE,
+  ANALYST: CACHE.ANALYST,
+  DCF: CACHE.DCF,
+  FUNDAMENTALS: CACHE.FUNDAMENTALS,
+  INSIDER: CACHE.INSIDER,
+  NEWS: CACHE.NEWS,
+  INSTITUTIONAL: CACHE.INSTITUTIONAL,
+  CONGRESSIONAL: CACHE.CONGRESSIONAL,
+  FINANCIALS: CACHE.FINANCIALS,
+  SECTOR: CACHE.SECTOR,
+  MARKET: CACHE.MARKET,
+  TREASURY: CACHE.TREASURY,
+  SCORES: CACHE.SCORES,
+  TRANSCRIPT: CACHE.TRANSCRIPT,
+  TECHNICAL: CACHE.TECHNICAL,
 } as const
 
 async function ensureCacheDir(): Promise<void> {
@@ -126,13 +133,17 @@ export async function getCached<T>(
 ): Promise<T> {
   // 1. Memory cache (LRU) — fastest
   const mem = getMemoryCache<T>(key, maxAge)
-  if (mem !== null) return mem
+  if (mem !== null) {
+    providerMonitor.recordCacheTierHit('memory').catch(() => {})
+    return mem
+  }
 
   // 2. Redis cache — shared across serverless instances
   const redisKey = `fmp:${key}`
   const redis = await getRedisCache<T>(redisKey)
   if (redis !== null) {
     setMemoryCache(key, redis)
+    providerMonitor.recordCacheTierHit('redis').catch(() => {})
     return redis
   }
 
@@ -141,6 +152,7 @@ export async function getCached<T>(
   if (disk !== null) {
     setMemoryCache(key, disk)
     setRedisCache(redisKey, disk, maxAge).catch(() => {})
+    providerMonitor.recordCacheTierHit('disk').catch(() => {})
     return disk
   }
 
@@ -149,6 +161,7 @@ export async function getCached<T>(
   setMemoryCache(key, data)
   setRedisCache(redisKey, data, maxAge).catch(() => {})
   await setDiskCache(key, data)
+  providerMonitor.recordCacheTierHit('origin').catch(() => {})
   return data
 }
 
@@ -162,7 +175,10 @@ export async function getStaleWhileRevalidate<T>(
 ): Promise<T> {
   // 1. Memory cache (fresh)
   const mem = getMemoryCache<T>(key, maxAge)
-  if (mem !== null) return mem
+  if (mem !== null) {
+    providerMonitor.recordCacheTierHit('memory').catch(() => {})
+    return mem
+  }
 
   // 2. Memory cache (stale but usable)
   const stale = getMemoryCache<T>(key, staleAge)
@@ -172,6 +188,7 @@ export async function getStaleWhileRevalidate<T>(
       setRedisCache(`fmp:${key}`, data, staleAge).catch(() => {})
       setDiskCache(key, data).catch(err => logger.debug('SWR disk write failed', { module: 'fmpCache', error: err }))
     }).catch(err => logger.debug('SWR background revalidation failed', { module: 'fmpCache', error: err, key }))
+    providerMonitor.recordCacheTierHit('memory').catch(() => {})
     return stale
   }
 
@@ -180,6 +197,7 @@ export async function getStaleWhileRevalidate<T>(
   const redis = await getRedisCache<T>(redisKey)
   if (redis !== null) {
     setMemoryCache(key, redis)
+    providerMonitor.recordCacheTierHit('redis').catch(() => {})
     return redis
   }
 
@@ -196,6 +214,7 @@ export async function getStaleWhileRevalidate<T>(
         setDiskCache(key, data).catch(err => logger.debug('SWR disk rewrite failed', { module: 'fmpCache', error: err }))
       }).catch(err => logger.debug('SWR disk revalidation failed', { module: 'fmpCache', error: err, key }))
     }
+    providerMonitor.recordCacheTierHit('disk').catch(() => {})
     return disk
   }
 
@@ -204,6 +223,7 @@ export async function getStaleWhileRevalidate<T>(
   setMemoryCache(key, data)
   setRedisCache(redisKey, data, staleAge).catch(() => {})
   await setDiskCache(key, data)
+  providerMonitor.recordCacheTierHit('origin').catch(() => {})
   return data
 }
 

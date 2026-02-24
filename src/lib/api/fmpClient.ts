@@ -27,6 +27,13 @@ const DEFAULT_CONFIG: FMPClientConfig = {
   circuitBreakerCooldownMs: 60_000, // 60s cooldown
 }
 
+function getRetryDelayMs(baseMs: number, attempt: number): number {
+  const expDelay = baseMs * Math.pow(2, attempt)
+  // Add +/-20% jitter to avoid synchronized retry bursts.
+  const jitterFactor = 0.8 + Math.random() * 0.4
+  return Math.max(50, Math.round(expDelay * jitterFactor))
+}
+
 // ─── Metrics Tracking ───────────────────────────────────────────────
 
 export interface EndpointMetrics {
@@ -250,7 +257,7 @@ export async function fmpApiFetch<T = unknown>(
           recordFailure(endpoint, duration, statusText, config)
 
           if (attempt < maxRetries - 1) {
-            const delay = config.retryBaseMs * Math.pow(2, attempt)
+            const delay = getRetryDelayMs(config.retryBaseMs, attempt)
             logger.warn(`Retry ${attempt + 1}/${maxRetries} after ${delay}ms`, {
               module: 'fmpClient',
               endpoint,
@@ -294,7 +301,7 @@ export async function fmpApiFetch<T = unknown>(
         lastError = err
 
         if (attempt < maxRetries - 1) {
-          const delay = config.retryBaseMs * Math.pow(2, attempt)
+          const delay = getRetryDelayMs(config.retryBaseMs, attempt)
           logger.warn(`Retry ${attempt + 1}/${maxRetries} after ${delay}ms`, {
             module: 'fmpClient',
             endpoint,
@@ -331,7 +338,8 @@ export async function fmpApiFetchRaw(
   params: Record<string, string> = {},
   options: Omit<FMPFetchOptions, 'rawResponse'> = {},
 ): Promise<Response> {
-  return fmpApiFetch<Response>(endpoint, params, { ...options, rawResponse: true })
+  // Raw Response bodies are single-consume streams; dedup can cause shared-body read failures.
+  return fmpApiFetch<Response>(endpoint, params, { ...options, rawResponse: true, skipDedup: true })
 }
 
 export default fmpApiFetch

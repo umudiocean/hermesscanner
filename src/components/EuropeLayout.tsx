@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, createContext, useContext, useCallback } f
 import { ScanResult, ScanSummary } from '@/lib/types'
 import { getWatchlist, getSettings } from '@/lib/store'
 import { FmpLookupItem } from './Layout'
+import { LEGAL_DISCLAIMER_TEXT } from '@/lib/legal-disclaimer'
 
 // ═══════════════════════════════════════════════════════════════════
 // HERMES AI — Europe Layout with Module Navigation
@@ -25,6 +26,31 @@ const MODULES: Module[] = [
   { id: 'europe-watchlist', label: 'Takip Listesi', icon: '⭐', ready: true },
   { id: 'europe-index', label: 'HERMES AI ENDEKS', icon: '💎', ready: true },
 ]
+
+interface HealthSnapshot {
+  status: 'OK' | 'DEGRADED' | 'DOWN'
+  dataFreshness?: {
+    scanAgeMin?: number | null
+    stocksQuoteAgeMin?: number | null
+  }
+  sla?: {
+    scanBreached?: boolean
+    stocksQuoteBreached?: boolean
+  }
+  sloTrend1h?: {
+    totalChecks1h: number
+    breachCounts1h: {
+      scan: number
+      stocksQuote: number
+    }
+  }
+  watchdog?: {
+    runs: number
+    failures: number
+    selfHealRuns: number
+    selfHealFailures: number
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // CONTEXT
@@ -90,6 +116,7 @@ export default function EuropeLayout({ children, onBack }: { children: (activeMo
   const [lastAutoRefresh, setLastAutoRefresh] = useState<Date | null>(null)
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(false)
   const [nextRefreshCountdown, setNextRefreshCountdown] = useState('')
+  const [healthSnapshot, setHealthSnapshot] = useState<HealthSnapshot | null>(null)
   const marketCheckTimerRef = useRef<NodeJS.Timeout | null>(null)
   const wasMarketOpenRef = useRef(false)
   const isRefreshingRef = useRef(false)
@@ -129,6 +156,64 @@ export default function EuropeLayout({ children, onBack }: { children: (activeMo
     fetchEuStocks()
     return () => { cancelled = true }
   }, [])
+
+  // System health snapshot (freshness guardrail + SLO trend exposure)
+  useEffect(() => {
+    let cancelled = false
+    async function fetchSystemHealth() {
+      try {
+        const res = await fetch('/api/system/health', { cache: 'no-store' })
+        if (!res.ok || cancelled) return
+        const data = await res.json()
+        if (cancelled) return
+        setHealthSnapshot({
+          status: data.status,
+          dataFreshness: {
+            scanAgeMin: data?.dataFreshness?.scanAgeMin ?? null,
+            stocksQuoteAgeMin: data?.dataFreshness?.stocksQuoteAgeMin ?? null,
+          },
+          sla: {
+            scanBreached: !!data?.sla?.scanBreached,
+            stocksQuoteBreached: !!data?.sla?.stocksQuoteBreached,
+          },
+          sloTrend1h: {
+            totalChecks1h: data?.sloTrend1h?.totalChecks1h ?? 0,
+            breachCounts1h: {
+              scan: data?.sloTrend1h?.breachCounts1h?.scan ?? 0,
+              stocksQuote: data?.sloTrend1h?.breachCounts1h?.stocksQuote ?? 0,
+            },
+          },
+          watchdog: {
+            runs: data?.watchdog?.runs ?? 0,
+            failures: data?.watchdog?.failures ?? 0,
+            selfHealRuns: data?.watchdog?.selfHealRuns ?? 0,
+            selfHealFailures: data?.watchdog?.selfHealFailures ?? 0,
+          },
+        })
+      } catch {
+        // non-blocking
+      }
+    }
+
+    fetchSystemHealth()
+    const iv = setInterval(fetchSystemHealth, 60 * 1000)
+    return () => { cancelled = true; clearInterval(iv) }
+  }, [])
+
+  const scanAgeMin = healthSnapshot?.dataFreshness?.scanAgeMin ?? null
+  const quoteAgeMin = healthSnapshot?.dataFreshness?.stocksQuoteAgeMin ?? null
+  const freshnessLevel: 'good' | 'warn' | 'bad' = (
+    healthSnapshot?.status === 'DOWN'
+    || !!healthSnapshot?.sla?.scanBreached
+    || !!healthSnapshot?.sla?.stocksQuoteBreached
+  )
+    ? 'bad'
+    : (
+      (scanAgeMin !== null && scanAgeMin > 60)
+      || (quoteAgeMin !== null && quoteAgeMin > 10)
+    )
+      ? 'warn'
+      : 'good'
 
   const toggleWatchlistItem = useCallback((symbol: string) => {
     setWatchlist(prev => {
@@ -257,6 +342,45 @@ export default function EuropeLayout({ children, onBack }: { children: (activeMo
                   </span>
                   {marketNextEvent && <span className="text-[10px] text-white/40 hidden lg:inline">{marketNextEvent}</span>}
                 </div>
+                {healthSnapshot && (
+                  <div
+                    className={`flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border ${
+                      freshnessLevel === 'bad'
+                        ? 'bg-red-500/12 text-red-300 border-red-500/30'
+                        : freshnessLevel === 'warn'
+                          ? 'bg-amber-500/12 text-amber-300 border-amber-500/30'
+                          : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
+                    }`}
+                    title={
+                      `Freshness Guardrail | ScanAge=${scanAgeMin ?? 'n/a'}m | QuoteAge=${quoteAgeMin ?? 'n/a'}m | `
+                      + `SLO1h scan=${healthSnapshot.sloTrend1h?.breachCounts1h.scan ?? 0}, quote=${healthSnapshot.sloTrend1h?.breachCounts1h.stocksQuote ?? 0}, checks=${healthSnapshot.sloTrend1h?.totalChecks1h ?? 0}`
+                    }
+                  >
+                    <span className="text-[10px] sm:text-[11px] font-semibold tracking-wide">
+                      {freshnessLevel === 'bad' ? 'FRESHNESS BAD' : freshnessLevel === 'warn' ? 'FRESHNESS WARN' : 'FRESHNESS OK'}
+                    </span>
+                    <span className="hidden xl:inline text-[10px] opacity-80">
+                      SLO1h {healthSnapshot.sloTrend1h?.breachCounts1h.scan ?? 0}/{healthSnapshot.sloTrend1h?.breachCounts1h.stocksQuote ?? 0}
+                    </span>
+                  </div>
+                )}
+                {healthSnapshot && (
+                  <div
+                    className="hidden xl:flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-white/10 bg-white/[0.03] text-white/70"
+                    title={
+                      `Ops Trend | Watchdog runs=${healthSnapshot.watchdog?.runs ?? 0}, fail=${healthSnapshot.watchdog?.failures ?? 0}, `
+                      + `selfHeal=${healthSnapshot.watchdog?.selfHealRuns ?? 0}, selfHealFail=${healthSnapshot.watchdog?.selfHealFailures ?? 0}`
+                    }
+                  >
+                    <span className="text-[10px] font-semibold tracking-wide">OPS</span>
+                    <span className="text-[10px] opacity-80">
+                      W {healthSnapshot.watchdog?.failures ?? 0}/{healthSnapshot.watchdog?.runs ?? 0}
+                    </span>
+                    <span className="text-[10px] opacity-70">
+                      H {healthSnapshot.watchdog?.selfHealFailures ?? 0}/{healthSnapshot.watchdog?.selfHealRuns ?? 0}
+                    </span>
+                  </div>
+                )}
                 <button onClick={() => setAutoRefreshEnabled(prev => !prev)}
                   className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all duration-200 border ${autoRefreshEnabled ? 'bg-hermes-green/10 text-hermes-green border-hermes-green/20' : 'bg-midnight-50/50 text-white/50 border-blue-400/8'}`}>
                   {isAutoRefreshing ? <span className="animate-spin inline-block">↻</span> : 'Auto'}
@@ -295,7 +419,7 @@ export default function EuropeLayout({ children, onBack }: { children: (activeMo
               <span className="text-[10px] sm:text-[11px] text-white/35 font-medium tracking-wide truncate">HERMES AI • AVRUPA Tarayici • 8 Borsa</span>
               <span className="hidden md:inline text-[11px] text-white/40 shrink-0">LSE • XETRA • PARIS • AMS • SWISS • MILAN • MADRID • NORDIC</span>
             </div>
-            <p className="text-[9px] text-white/35 leading-tight">Yatirim tavsiyesi degildir. Sinyaller algoritmiktir, gecmis verilere dayanir; gecmis performans gelecek sonuclari garanti etmez.</p>
+            <p className="text-[9px] text-white/35 leading-tight">{LEGAL_DISCLAIMER_TEXT}</p>
           </div>
         </footer>
 

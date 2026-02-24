@@ -6,8 +6,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyCronAuth } from '@/lib/monitor/cron-auth'
 import { sentinelLog } from '@/lib/logger/sentinel-log'
 import { providerMonitor } from '@/lib/monitor/provider-monitor'
+import { getNowET } from '@/lib/scheduler/marketHours'
+import type { UniverseTier } from '@/lib/symbols'
+import { isRedisAvailable, isRedisRequired } from '@/lib/cache/redis-client'
 
 export const maxDuration = 300
+
+function pickUniverseTierForHour(etHour: number): UniverseTier {
+  // Open + pre-close cycles keep full universe fresh.
+  if (etHour === 9 || etHour === 15) return 'ALL'
+  // Rotate to keep API usage controlled while preserving coverage.
+  if (etHour % 3 === 0) return 'COLD'
+  if (etHour % 2 === 0) return 'WARM'
+  return 'HOT'
+}
 
 export async function GET(request: NextRequest) {
   if (!verifyCronAuth(request)) {
@@ -17,11 +29,18 @@ export async function GET(request: NextRequest) {
   const startAt = Date.now()
 
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000'
+    if (isRedisRequired() && !isRedisAvailable()) {
+      sentinelLog.error('CRON_STOCKS_REFRESH_FAILED', { reason: 'REDIS_REQUIRED_UNAVAILABLE' })
+      return NextResponse.json({ ran: false, error: 'Redis required but unavailable' }, { status: 503 })
+    }
 
-    const scanRes = await fetch(`${appUrl}/api/cron`, {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
+      ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+
+    const etNow = getNowET()
+    const universe = pickUniverseTierForHour(etNow.getHours())
+
+    const scanRes = await fetch(`${appUrl}/api/cron?universe=${universe}`, {
       headers: {
         'x-vercel-cron': '1',
         'authorization': `Bearer ${process.env.CRON_SECRET ?? ''}`,
@@ -41,9 +60,10 @@ export async function GET(request: NextRequest) {
     sentinelLog.info('CRON_STOCKS_REFRESH_OK', {
       durationMs,
       scanResult: result?.status ?? 'unknown',
+      universe,
     })
 
-    return NextResponse.json({ ran: true, durationMs })
+    return NextResponse.json({ ran: true, durationMs, universe })
   } catch (err) {
     const durationMs = Date.now() - startAt
     sentinelLog.error('CRON_STOCKS_REFRESH_FAILED', {

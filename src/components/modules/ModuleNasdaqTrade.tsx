@@ -6,6 +6,8 @@ import { useNasdaqTradeContext } from '../Layout'
 import { ScanResult } from '@/lib/types'
 import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 import { PriceFlashCell, SignalBadge, ScoreMiniBar } from '../premium-ui'
+import SystemFreshnessBadge from '../SystemFreshnessBadge'
+import LegalDisclaimerStrip from '../LegalDisclaimerStrip'
 
 // ═══════════════════════════════════════════════════════════════════
 // TRADE AI Module — V15 Pure Z-Score (V377_R6.85_Z55)
@@ -451,6 +453,12 @@ export default function ModuleNasdaqTrade() {
 
   return (
     <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
+      <div className="flex justify-end mb-2">
+        <SystemFreshnessBadge />
+      </div>
+      <div className="mb-2">
+        <LegalDisclaimerStrip compact />
+      </div>
       {/* Filters — Yatay simetrik layout */}
       <div className="glass-card rounded-xl p-3 sm:p-4 mb-2 sm:mb-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">

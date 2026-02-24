@@ -20,7 +20,13 @@ export const MARKET = {
 
 export const REFRESH = {
   /** Default auto-refresh interval (minutes) */
-  DEFAULT_INTERVAL_MIN: 30,
+  DEFAULT_INTERVAL_MIN: 60,
+  /** Trade AI incremental refresh interval while market open (minutes) */
+  TRADE_OPEN_INTERVAL_MIN: 60,
+  /** Live price-only refresh interval while market open (seconds) */
+  PRICE_OPEN_INTERVAL_SEC: 300,
+  /** Live price-only refresh interval while market closed (seconds) */
+  PRICE_CLOSED_INTERVAL_SEC: 1800,
   /** 52W scan batch size */
   SCAN_52W_BATCH: 500,
   /** 5D scan batch size */
@@ -36,6 +42,9 @@ export const REFRESH = {
 export const CACHE = {
   BULK: 24 * 60 * 60 * 1000,         // 24h
   QUOTE: 5 * 60 * 1000,              // 5m
+  ANALYST: 6 * 60 * 60 * 1000,       // 6h
+  DCF: 12 * 60 * 60 * 1000,          // 12h
+  FUNDAMENTALS: 24 * 60 * 60 * 1000, // 24h
   INSIDER: 15 * 60 * 1000,           // 15m
   NEWS: 60 * 60 * 1000,              // 1h
   INSTITUTIONAL: 6 * 60 * 60 * 1000, // 6h
@@ -91,6 +100,27 @@ export const UI = {
   MAX_COMPARE: 4,
   /** Stocks table default page size */
   DEFAULT_PAGE_SIZE: 50,
+} as const
+
+// ─── Signal Render Guardrail ───────────────────────────────────────
+// Fail-closed policy: when freshness SLA is breached, signal modules
+// can block rendering/actionability to avoid stale-decision risk.
+export const SIGNAL_GUARDRAIL = {
+  /** Set NEXT_PUBLIC_SIGNAL_FAIL_CLOSED=false to disable emergency block */
+  FAIL_CLOSED: process.env.NEXT_PUBLIC_SIGNAL_FAIL_CLOSED !== 'false',
+  /** Client polling interval for health snapshot */
+  HEALTH_POLL_MS: 60 * 1000,
+} as const
+
+// ─── Ops Alert Thresholds ───────────────────────────────────────────
+const parseNumberEnv = (value: string | undefined, fallback: number): number => {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : fallback
+}
+
+export const OPS_THRESHOLDS = {
+  CACHE_ORIGIN_WARN_PCT: parseNumberEnv(process.env.OPS_CACHE_ORIGIN_WARN_PCT, 25),
+  CACHE_ORIGIN_CRITICAL_PCT: parseNumberEnv(process.env.OPS_CACHE_ORIGIN_CRITICAL_PCT, 40),
 } as const
 
 // ─── NYSE Holidays 2026 ─────────────────────────────────────────────

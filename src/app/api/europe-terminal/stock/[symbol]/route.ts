@@ -92,6 +92,26 @@ export async function GET(
       input.piotroski = scoresData.piotroskiScore || 0
     }
     if (dcfData) { input.dcf = dcfData.dcf || 0 }
+    if (analystData) {
+      input.analystConsensus = analystData.consensus || ''
+      input.strongBuy = analystData.strongBuy || 0
+      input.buy = analystData.buy || 0
+      input.hold = analystData.hold || 0
+      input.sell = analystData.sell || 0
+      input.strongSell = analystData.strongSell || 0
+    }
+    if (targetData) {
+      input.priceTarget = targetData.targetConsensus || 0
+    }
+    const est = val(estimates, [])
+    if (est.length > 0) {
+      const curr = est[0]?.estimatedEpsAvg ?? 0
+      const prev30 = est[1]?.estimatedEpsAvg ?? 0
+      const prev90 = est[3]?.estimatedEpsAvg ?? 0
+      input.epsRevision30d = prev30 !== 0 ? ((curr - prev30) / Math.abs(prev30)) * 100 : 0
+      input.epsRevision90d = prev90 !== 0 ? ((curr - prev90) / Math.abs(prev90)) * 100 : 0
+      input.analystRevisionCount = est[0]?.numberAnalystsEstimatedEps ?? 0
+    }
     input.price = enrichedProfile.price || profile.price || 0
 
     const fmpScore = computeFMPScore(input, null)

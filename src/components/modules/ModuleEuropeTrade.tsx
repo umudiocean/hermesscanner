@@ -7,6 +7,8 @@ import { ScanResult } from '@/lib/types'
 import { useCanDownloadCSV } from '@/lib/hooks/useFeatureFlags'
 import { PriceFlashCell, SignalBadge, ScoreMiniBar } from '../premium-ui'
 import { EUROPE_EXCHANGES } from '@/lib/europe-config'
+import SystemFreshnessBadge from '../SystemFreshnessBadge'
+import LegalDisclaimerStrip from '../LegalDisclaimerStrip'
 
 type SortField = 'score' | 'symbol' | 'price' | 'change' | 'signal' | 'rsi' | 'mfi' | 'marketCap' | 'quality' | 'confidence' | 'valuation' | 'targetPrice' | 'floorPrice' | 'riskReward'
 type SortDir = 'asc' | 'desc'
@@ -431,6 +433,12 @@ export default function ModuleEuropeTrade() {
 
   return (
     <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
+      <div className="flex justify-end mb-2">
+        <SystemFreshnessBadge />
+      </div>
+      <div className="mb-2">
+        <LegalDisclaimerStrip compact />
+      </div>
       {/* Filters */}
       <div className="glass-card rounded-xl p-2 sm:p-4 mb-2 sm:mb-4">
         <div className="space-y-2">

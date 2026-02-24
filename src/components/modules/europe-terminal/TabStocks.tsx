@@ -42,6 +42,8 @@ interface StockRow {
   dcfUpside: number
   priceTarget: number
   analystConsensus: string
+  analystEpsRevision30d: number
+  analystEpsRevision90d: number
   riskScore: number
   riskLevel: string
   valuationScore: number
@@ -58,7 +60,7 @@ interface StockRow {
   zone?: string
 }
 
-type SortField = 'symbol' | 'companyName' | 'sector' | 'price' | 'changePercent' | 'marketCap' | 'pe' | 'roe' | 'debtEquity' | 'volume' | 'signalScore' | 'confidence' | 'altmanZ' | 'piotroski' | 'dcfUpside' | 'riskScore' | 'valuationScore' | 'shortFloat' | 'overvalScore' | 'priceTarget' | 'yearLow' | 'dividendYield' | 'targetPrice' | 'floorPrice' | 'riskReward'
+type SortField = 'symbol' | 'companyName' | 'sector' | 'price' | 'changePercent' | 'marketCap' | 'pe' | 'roe' | 'debtEquity' | 'volume' | 'signalScore' | 'confidence' | 'altmanZ' | 'piotroski' | 'dcfUpside' | 'riskScore' | 'valuationScore' | 'shortFloat' | 'overvalScore' | 'priceTarget' | 'yearLow' | 'dividendYield' | 'targetPrice' | 'floorPrice' | 'riskReward' | 'analystEpsRevision30d' | 'analystEpsRevision90d'
 type SortDir = 'asc' | 'desc'
 type SegmentFilter = 'ALL' | 'MEGA' | 'LARGE' | 'MID' | 'SMALL' | 'MICRO'
 type ExchangeFilter = 'ALL' | EuropeExchangeId
@@ -326,6 +328,8 @@ export default function TabStocks({ onSelectSymbol, exchangeFilter: controlledEx
                 <ThC field="altmanZ" label="Z" sort={sortField} dir={sortDir} onSort={handleSort} align="right" />
                 <ThC field="piotroski" label="F" sort={sortField} dir={sortDir} onSort={handleSort} align="right" />
                 <ThC field="dcfUpside" label="DCF%" sort={sortField} dir={sortDir} onSort={handleSort} align="right" />
+                <ThC field="analystEpsRevision30d" label="REV30" sort={sortField} dir={sortDir} onSort={handleSort} align="right" />
+                <ThC field="analystEpsRevision90d" label="REV90" sort={sortField} dir={sortDir} onSort={handleSort} align="right" />
                 <ThC field="roe" label="ROE%" sort={sortField} dir={sortDir} onSort={handleSort} align="right" />
                 <ThC field="debtEquity" label="D/E" sort={sortField} dir={sortDir} onSort={handleSort} align="right" />
                 <ThC field="dividendYield" label="DIV%" sort={sortField} dir={sortDir} onSort={handleSort} align="right" />
@@ -413,6 +417,20 @@ export default function TabStocks({ onSelectSymbol, exchangeFilter: controlledEx
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[10px] tabular-nums ${(s.dcfUpside || 0) > 20 ? 'text-hermes-green' : (s.dcfUpside || 0) < -20 ? 'text-red-400' : 'text-white/40'}`}>
                         {s.dcfUpside ? `${s.dcfUpside > 0 ? '+' : ''}${s.dcfUpside.toFixed(0)}%` : '\u2014'}
+                      </span>
+                    </td>
+                    <td className="px-1 py-2 text-right">
+                      <span className={`text-[10px] tabular-nums ${
+                        (s.analystEpsRevision30d || 0) > 0 ? 'text-hermes-green/80' : (s.analystEpsRevision30d || 0) < 0 ? 'text-red-400/80' : 'text-white/35'
+                      }`}>
+                        {(s.analystEpsRevision30d || 0) !== 0 ? `${(s.analystEpsRevision30d || 0) > 0 ? '+' : ''}${(s.analystEpsRevision30d || 0).toFixed(1)}%` : '\u2014'}
+                      </span>
+                    </td>
+                    <td className="px-1 py-2 text-right">
+                      <span className={`text-[10px] tabular-nums ${
+                        (s.analystEpsRevision90d || 0) > 0 ? 'text-hermes-green/70' : (s.analystEpsRevision90d || 0) < 0 ? 'text-red-400/70' : 'text-white/35'
+                      }`}>
+                        {(s.analystEpsRevision90d || 0) !== 0 ? `${(s.analystEpsRevision90d || 0) > 0 ? '+' : ''}${(s.analystEpsRevision90d || 0).toFixed(1)}%` : '\u2014'}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-right">

@@ -6,9 +6,10 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextResponse } from 'next/server'
-import { isRedisAvailable } from '@/lib/cache/redis-client'
+import { isRedisAvailable, isRedisRequired } from '@/lib/cache/redis-client'
 import { providerMonitor, type ProviderStatus } from '@/lib/monitor/provider-monitor'
 import { sentinelLog } from '@/lib/logger/sentinel-log'
+import { OPS_THRESHOLDS } from '@/lib/config/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,8 +30,15 @@ interface HealthResponse {
   cache: {
     redis: {
       ok: boolean
+      required: boolean
       lastWriteAt: string | null
       lastReadAt: string | null
+    }
+    tierHits1h: {
+      memory: number
+      redis: number
+      disk: number
+      origin: number
     }
   }
   dataFreshness: {
@@ -38,17 +46,40 @@ interface HealthResponse {
     coinsBulkAgeMin: number | null
     derivativesAgeMin: number | null
     scanAgeMin: number | null
+    stocksQuoteAgeMin: number | null
   }
   guards: {
     squeezeGuardEnabled: boolean
     shortsBlocked1h: number
     blockedReasonCounts1h: Record<string, number>
   }
+  watchdog: {
+    lastRunAt: string | null
+    lastStatus: 'OK' | 'DEGRADED' | 'DOWN' | null
+    lastSelfHealAt: string | null
+    selfHealSuccess1h: number
+    selfHealFail1h: number
+  }
   sla: {
     cryptoMarketBreached: boolean
     derivativesBreached: boolean
     scanBreached: boolean
     coinsBulkBreached: boolean
+    stocksQuoteBreached: boolean
+  }
+  sloTrend1h: {
+    totalChecks1h: number
+    breachCounts1h: {
+      cryptoMarket: number
+      derivatives: number
+      scan: number
+      coinsBulk: number
+      stocksQuote: number
+    }
+  }
+  opsThresholds: {
+    cacheOriginWarnPct: number
+    cacheOriginCriticalPct: number
   }
 }
 
@@ -67,6 +98,7 @@ function determineStatus(h: Omit<HealthResponse, 'status'>): 'OK' | 'DEGRADED' |
     return 'DOWN'
   }
 
+  if (h.cache.redis.required && !h.cache.redis.ok) return 'DOWN'
   if (Object.values(h.sla).some(Boolean)) return 'DEGRADED'
   if (h.providers.coingecko.errorRate1h > 0.1) return 'DEGRADED'
   if (h.providers.coingecko.http429Rate1h > 0.05) return 'DEGRADED'
@@ -84,8 +116,10 @@ export async function GET() {
       moralisStatus,
       freshness,
       guards,
+      watchdog,
       cacheStats,
       sla,
+      sloTrend1h,
     ] = await Promise.all([
       providerMonitor.getProviderStatus('coingecko'),
       providerMonitor.getProviderStatus('defiLlama'),
@@ -93,11 +127,14 @@ export async function GET() {
       providerMonitor.getProviderStatus('moralis'),
       providerMonitor.getDataFreshness(),
       providerMonitor.getGuardStats(),
+      providerMonitor.getWatchdogStats(),
       providerMonitor.getCacheStats(),
       providerMonitor.getSlaStatus(),
+      providerMonitor.getSlaTrend1h(),
     ])
 
     const redisOk = isRedisAvailable()
+    const redisRequired = isRedisRequired()
 
     const body: Omit<HealthResponse, 'status'> = {
       timestamp: new Date().toISOString(),
@@ -115,12 +152,20 @@ export async function GET() {
       cache: {
         redis: {
           ...cacheStats.redis,
+          required: redisRequired,
           ok: redisOk && cacheStats.redis.ok,
         },
+        tierHits1h: cacheStats.tierHits1h,
       },
       dataFreshness: freshness,
       guards,
+      watchdog,
       sla,
+      sloTrend1h,
+      opsThresholds: {
+        cacheOriginWarnPct: OPS_THRESHOLDS.CACHE_ORIGIN_WARN_PCT,
+        cacheOriginCriticalPct: OPS_THRESHOLDS.CACHE_ORIGIN_CRITICAL_PCT,
+      },
     }
 
     const status = determineStatus(body)
@@ -132,6 +177,11 @@ export async function GET() {
       {
         headers: {
           'Cache-Control': 'no-store',
+          'X-Hermes-Health-Status': status,
+          'X-Hermes-Scan-Age-Min': String(body.dataFreshness.scanAgeMin ?? -1),
+          'X-Hermes-Quote-Age-Min': String(body.dataFreshness.stocksQuoteAgeMin ?? -1),
+          'X-Hermes-Sla-Scan-Breached': String(body.sla.scanBreached),
+          'X-Hermes-Sla-Quote-Breached': String(body.sla.stocksQuoteBreached),
         },
       },
     )
