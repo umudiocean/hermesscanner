@@ -21,6 +21,7 @@ import {
 import { PulseData } from '@/lib/wall-street-pulse/pulse-types'
 import { fetchVIXValue, fetchPutCallRatio } from '@/lib/wall-street-pulse/external-sources'
 import logger from '@/lib/logger'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
@@ -30,6 +31,9 @@ const PULSE_CACHE_TTL = 5 * 60 * 1000 // 5 min
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   const LOG = '[Pulse API]'
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`pulse:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
 
   try {
     const data = await getCached<PulseData>('wall_street_pulse', PULSE_CACHE_TTL, async () => {
@@ -150,7 +154,13 @@ async function fetchStockQuotes(): Promise<StockQuote[]> {
             })
           }
         }
-      } catch { /* skip batch on error */ }
+      } catch (error) {
+        logger.warn('[Pulse] batch-quote sub-batch failed', {
+          module: 'pulseRoute',
+          endpoint: '/batch-quote',
+          error: (error as Error).message,
+        })
+      }
     }
     return quotes
   } catch (e) {
@@ -162,20 +172,29 @@ async function fetchStockQuotes(): Promise<StockQuote[]> {
 async function fetchAnalystConsensus(): Promise<AnalystConsensus[]> {
   try {
     return await fmpApiFetch<AnalystConsensus[]>('/upgrades-downgrades-consensus-bulk')
-  } catch { return [] }
+  } catch (error) {
+    logger.warn('[Pulse] analyst consensus fetch failed', { module: 'pulseRoute', error: (error as Error).message })
+    return []
+  }
 }
 
 async function fetchEarningsSurprises(): Promise<EarningsSurprise[]> {
   try {
     const year = new Date().getFullYear()
     return await fmpApiFetch<EarningsSurprise[]>('/earnings-surprises-bulk', { year: String(year) })
-  } catch { return [] }
+  } catch (error) {
+    logger.warn('[Pulse] earnings surprises fetch failed', { module: 'pulseRoute', error: (error as Error).message })
+    return []
+  }
 }
 
 async function fetchTreasuryRates(): Promise<TreasuryRate[]> {
   try {
     return await fmpApiFetch<TreasuryRate[]>('/treasury-rates', { limit: '5' })
-  } catch { return [] }
+  } catch (error) {
+    logger.warn('[Pulse] treasury rates fetch failed', { module: 'pulseRoute', error: (error as Error).message })
+    return []
+  }
 }
 
 async function fetchSectorPerformance(): Promise<SectorPerf[]> {
@@ -192,14 +211,20 @@ async function fetchSectorPerformance(): Promise<SectorPerf[]> {
       d.setDate(d.getDate() - 1)
     }
     return []
-  } catch { return [] }
+  } catch (error) {
+    logger.warn('[Pulse] sector performance fetch failed', { module: 'pulseRoute', error: (error as Error).message })
+    return []
+  }
 }
 
 async function fetchCongressTradesAll(chamber: 'senate' | 'house'): Promise<CongressTrade[]> {
   try {
     const endpoint = chamber === 'senate' ? '/senate-trades' : '/house-trades'
     return await fmpApiFetch<CongressTrade[]>(endpoint, { limit: '50' })
-  } catch { return [] }
+  } catch (error) {
+    logger.warn('[Pulse] congress trades fetch failed', { module: 'pulseRoute', chamber, error: (error as Error).message })
+    return []
+  }
 }
 
 // ─── Helpers ────────────────────────────────────────────────────

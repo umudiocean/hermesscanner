@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit -p tsconfig.typecheck.json",
     "verify": "npm run type-check && npm run build",
     "sentinel:regression": "npx tsx src/scripts/sentinel-regression.ts",
     "sync-symbols": "node scripts/sync-symbols-from-trade.js"

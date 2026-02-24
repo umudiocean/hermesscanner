@@ -8,8 +8,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { fetchMarketDashboard } from '@/lib/fmp-terminal/fmp-bulk-client'
 import { EUROPE_EXCHANGES, getEuropeMarketStatus } from '@/lib/europe-config'
 import { fmpApiFetch } from '@/lib/api/fmpClient'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import logger from '@/lib/logger'
+
+export const maxDuration = 60
 
 export async function GET(_request: NextRequest) {
+  const start = Date.now()
+  const ip = getClientIP(_request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`eu-market:${ip}`, 30, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const marketStatus = getEuropeMarketStatus()
 
@@ -33,11 +42,18 @@ export async function GET(_request: NextRequest) {
           changePercent: q.changesPercentage || 0,
         }))
       }
-    } catch { /* ignore */ }
+    } catch (error) {
+      logger.warn('[EU Market] index quote fetch failed', {
+        module: 'europeMarketRoute',
+        endpoint: '/api/europe-terminal/market',
+        error: (error as Error).message,
+      })
+    }
 
     // Reuse NASDAQ market dashboard for sectors/gainers/losers (global data)
     const globalDashboard = await fetchMarketDashboard()
 
+    const duration = Date.now() - start
     return NextResponse.json({
       marketStatus,
       indexes,
@@ -48,9 +64,15 @@ export async function GET(_request: NextRequest) {
       fearGreedIndex: globalDashboard.fearGreedIndex || 50,
       fearGreedLabel: globalDashboard.fearGreedLabel || 'NEUTRAL',
       timestamp: new Date().toISOString(),
+      durationMs: duration,
     })
   } catch (error) {
-    console.error('[EU Market] Error:', (error as Error).message)
+    logger.error('[EU Market] fetch failed', {
+      module: 'europeMarketRoute',
+      endpoint: '/api/europe-terminal/market',
+      duration: Date.now() - start,
+      error: (error as Error).message,
+    })
     return NextResponse.json({ error: 'Failed', message: (error as Error).message }, { status: 500 })
   }
 }
