@@ -8,13 +8,20 @@ import { fetchCoinDetail, fetchDerivatives, fetchCoinTickers } from '@/lib/crypt
 import { getCached, CRYPTO_CACHE_TTL } from '@/lib/crypto-terminal/crypto-cache'
 import { CoinDetail, Derivative } from '@/lib/crypto-terminal/coingecko-types'
 import { scoreCoin } from '@/lib/crypto-terminal/crypto-score-engine'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import logger from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`crypto-coin-detail:${ip}`, 30, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const { id } = await params
     if (!id) {
@@ -118,7 +125,7 @@ export async function GET(
   } catch (err) {
     // HERMES_FIX: S4-DETAIL 2026-02-19 — Don't leak raw error to client
     const errMsg = err instanceof Error ? err.message : String(err)
-    console.error(`[CRYPTO] Coin detail failed: ${errMsg}`)
+    logger.error(`Coin detail failed: ${errMsg}`, { module: 'crypto-coin-detail' })
     return NextResponse.json(
       { error: 'Failed to fetch coin detail', timestamp: new Date().toISOString() },
       { status: 500 },

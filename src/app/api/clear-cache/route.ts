@@ -6,6 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { clearAllCaches } from '@/lib/fmp-client'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import logger from '@/lib/logger'
+
+export const maxDuration = 30
 
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
       message: `Memory: ${result.memory} entry, Disk: ${result.disk} dosya temizlendi.`,
     })
   } catch (error) {
-    console.error('[CLEAR-CACHE] Internal error:', (error as Error).message)
+    logger.error('Internal error', { module: 'clear-cache', error: (error as Error).message })
     return NextResponse.json(
       { error: 'Cache temizleme hatasi', code: 'INTERNAL_ERROR' },
       { status: 500 }

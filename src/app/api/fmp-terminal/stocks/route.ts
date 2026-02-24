@@ -12,6 +12,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { fmpApiFetchRaw } from '@/lib/api/fmpClient'
+import logger from '@/lib/logger'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
@@ -129,7 +130,7 @@ export async function GET(request: NextRequest) {
     const hermesSymbols = new Set(getSymbols('ALL'))
 
     const stocks = await getCached<StockRow[]>('fmp_stocks_v7_badges_overval', CACHE_TTL.QUOTE, async () => {
-      console.log('[FMP Stocks V2] Fetching bulk data for 8-category scoring...')
+      logger.info('Fetching bulk data for 8-category scoring', { module: 'fmp-stocks' })
 
       // ═══════════════════════════════════════════════════════════
       // STEP 1: SECTORS (disk cache)
@@ -143,7 +144,7 @@ export async function GET(request: NextRequest) {
             sectorsMap.set(sym, sec as string)
           }
         }
-        console.log(`[V2] Sectors loaded: ${sectorsMap.size}`)
+        logger.info(`Sectors loaded: ${sectorsMap.size}`, { module: 'fmp-stocks' })
       } catch { /* ignore */ }
 
       // ═══════════════════════════════════════════════════════════
@@ -219,7 +220,7 @@ export async function GET(request: NextRequest) {
               })
             }
           }
-          console.log(`[V2] Ratios CSV: ${metricsMap.size} stocks`)
+          logger.info(`Ratios CSV: ${metricsMap.size} stocks`, { module: 'fmp-stocks' })
         } else if (text.startsWith('[')) {
           const data = JSON.parse(text)
           for (const m of data) {
@@ -245,7 +246,7 @@ export async function GET(request: NextRequest) {
               })
             }
           }
-          console.log(`[V2] Ratios JSON: ${metricsMap.size} stocks`)
+          logger.info(`Ratios JSON: ${metricsMap.size} stocks`, { module: 'fmp-stocks' })
         }
       }
 
@@ -275,8 +276,8 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-          console.log(`[V2] Scores bulk: ${scoresMap.size} stocks`)
-        } catch (e) { console.warn('[V2] Scores parse error:', e) }
+          logger.info(`Scores bulk: ${scoresMap.size} stocks`, { module: 'fmp-stocks' })
+        } catch (e) { logger.warn('Scores parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse DCF Bulk — CSV format ("Stock Price" has space in header)
@@ -305,8 +306,8 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-          console.log(`[V2] DCF bulk: ${dcfMap.size} stocks`)
-        } catch (e) { console.warn('[V2] DCF parse error:', e) }
+          logger.info(`DCF bulk: ${dcfMap.size} stocks`, { module: 'fmp-stocks' })
+        } catch (e) { logger.warn('DCF parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Analyst Consensus Bulk — CSV format
@@ -343,8 +344,8 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-          console.log(`[V2] Analyst bulk: ${analystMap.size} stocks`)
-        } catch (e) { console.warn('[V2] Analyst parse error:', e) }
+          logger.info(`Analyst bulk: ${analystMap.size} stocks`, { module: 'fmp-stocks' })
+        } catch (e) { logger.warn('Analyst parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Price Target Bulk — CSV format
@@ -371,8 +372,8 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-          console.log(`[V2] Price targets bulk: ${targetMap.size} stocks`)
-        } catch (e) { console.warn('[V2] Targets parse error:', e) }
+          logger.info(`Price targets bulk: ${targetMap.size} stocks`, { module: 'fmp-stocks' })
+        } catch (e) { logger.warn('Targets parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Income Statement Growth Bulk (Revenue/EPS/NetIncome growth)
@@ -403,8 +404,8 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-          console.log(`[V3] Growth bulk: ${growthMap.size} stocks`)
-        } catch (e) { console.warn('[V3] Growth parse error:', e) }
+          logger.info(`Growth bulk: ${growthMap.size} stocks`, { module: 'fmp-stocks' })
+        } catch (e) { logger.warn('Growth parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Share Float — paginated /shares-float-all endpoint
@@ -432,8 +433,8 @@ export async function GET(request: NextRequest) {
           if (data.length < PAGE_LIMIT) break
           pageIdx++
         }
-        console.log(`[V3] Share float: ${shareFloatMap.size} stocks (${pageIdx + 1} pages)`)
-      } catch (e) { console.warn('[V3] Share float error:', e) }
+        logger.info(`Share float: ${shareFloatMap.size} stocks (${pageIdx + 1} pages)`, { module: 'fmp-stocks' })
+      } catch (e) { logger.warn('Share float error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
 
       // Parse Key Metrics TTM Bulk (extra valuation + profitability data)
       // CSV field names use TTM suffix: returnOnEquityTTM, earningsYieldTTM, etc.
@@ -470,8 +471,8 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-          console.log(`[V3] Key Metrics TTM bulk: ${keyMetricsTTMMap.size} stocks`)
-        } catch (e) { console.warn('[V3] Key Metrics TTM parse error:', e) }
+          logger.info(`Key Metrics TTM bulk: ${keyMetricsTTMMap.size} stocks`, { module: 'fmp-stocks' })
+        } catch (e) { logger.warn('Key Metrics TTM parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Sector Performance (for sector scoring)
@@ -487,8 +488,8 @@ export async function GET(request: NextRequest) {
               }
             }
           }
-          console.log(`[V3] Sector performance: ${sectorPerfMap.size} sectors`)
-        } catch (e) { console.warn('[V3] Sector perf parse error:', e) }
+          logger.info(`Sector performance: ${sectorPerfMap.size} sectors`, { module: 'fmp-stocks' })
+        } catch (e) { logger.warn('Sector perf parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Earnings Surprises Bulk (beat/miss counts for badges)
@@ -528,8 +529,8 @@ export async function GET(request: NextRequest) {
             }
             earningsMap.set(sym, { beatCount: beat, missCount: miss, lastSurprise: lastSurp })
           }
-          console.log(`[V5] Earnings surprises: ${earningsMap.size} stocks`)
-        } catch (e) { console.warn('[V5] Earnings surprises parse error:', e) }
+          logger.info(`Earnings surprises: ${earningsMap.size} stocks`, { module: 'fmp-stocks' })
+        } catch (e) { logger.warn('Earnings surprises parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Analyst Estimates Bulk (EPS revision momentum proxy)
@@ -571,8 +572,8 @@ export async function GET(request: NextRequest) {
           } else if (text.startsWith('[')) {
             for (const row of JSON.parse(text)) parseRow(row)
           }
-          console.log(`[V5] Analyst estimates bulk: ${analystEstimateMap.size} stocks`)
-        } catch (e) { console.warn('[V5] Analyst estimates parse error:', e) }
+          logger.info(`Analyst estimates bulk: ${analystEstimateMap.size} stocks`, { module: 'fmp-stocks' })
+        } catch (e) { logger.warn('Analyst estimates parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -581,7 +582,7 @@ export async function GET(request: NextRequest) {
       try {
         const missingCount = Array.from(hermesSymbols).filter(s => !sectorsMap.has(s)).length
         if (missingCount > 100) {
-          console.log(`[V2] Fetching company-screener for ${missingCount} missing sectors...`)
+          logger.info(`Fetching company-screener for ${missingCount} missing sectors`, { module: 'fmp-stocks' })
           const res = await fmpFetch('/company-screener', { limit: '10000' })
           if (res.ok) {
             const text = await res.text()
@@ -594,7 +595,7 @@ export async function GET(request: NextRequest) {
                   matched++
                 }
               }
-              console.log(`[V2] Screener matched ${matched} sectors (total: ${sectorsMap.size})`)
+              logger.info(`Screener matched ${matched} sectors (total: ${sectorsMap.size})`, { module: 'fmp-stocks' })
             }
           }
           // Save sectors to disk
@@ -650,9 +651,9 @@ export async function GET(request: NextRequest) {
           })())
         }
         await Promise.all(batchPromises)
-        console.log(`[V2] Quotes loaded: ${quotesMap.size}`)
+        logger.info(`Quotes loaded: ${quotesMap.size}`, { module: 'fmp-stocks' })
       } catch (err) {
-        console.warn('[V2] Quotes fetch failed:', err)
+        logger.warn('Quotes fetch failed', { module: 'fmp-stocks', error: err instanceof Error ? err.message : String(err) })
       }
 
       // ═══════════════════════════════════════════════════════════
@@ -751,7 +752,7 @@ export async function GET(request: NextRequest) {
 
       // Score all stocks with sector peer context
       const { scores: allScores, thresholds } = scoreAllStocks(allInputs)
-      console.log(`[V3] Scored: ${allScores.size} stocks | Thresholds: STRONG>=${thresholds.strong} GOOD>=${thresholds.good} WEAK<=${thresholds.weak} BAD<=${thresholds.bad}`)
+      logger.info(`Scored: ${allScores.size} stocks | Thresholds: STRONG>=${thresholds.strong} GOOD>=${thresholds.good} WEAK<=${thresholds.weak} BAD<=${thresholds.bad}`, { module: 'fmp-stocks' })
 
       // ═══════════════════════════════════════════════════════════
       // STEP 6: BUILD FINAL RESULT (V5 — badges, overval, yearHigh/Low)
@@ -832,7 +833,7 @@ export async function GET(request: NextRequest) {
       }
 
       const elapsed = Date.now() - startTime
-      console.log(`[V2] Final: ${result.length} stocks scored in ${elapsed}ms`)
+      logger.info(`Final: ${result.length} stocks scored in ${elapsed}ms`, { module: 'fmp-stocks' })
       return result
     })
 
@@ -854,7 +855,7 @@ export async function GET(request: NextRequest) {
       version: 'v5-8cat-smart-money-badges',
     })
   } catch (error) {
-    console.error('[FMP Terminal /stocks V2] Error:', (error as Error).message)
+    logger.error('Stocks API error', { module: 'fmp-stocks', error: (error as Error).message })
     return NextResponse.json(
       { error: 'Failed to fetch stocks', message: (error as Error).message },
       { status: 500 }

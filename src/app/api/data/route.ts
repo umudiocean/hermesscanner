@@ -9,6 +9,7 @@ import { getDataStats, listHistoricalSymbols, saveScanToFile, loadLatestScan } f
 import { getCleanSymbols } from '@/lib/symbols'
 import { getHistorical15Min, clearCache } from '@/lib/fmp-client'
 import { Segment } from '@/lib/types'
+import logger from '@/lib/logger'
 
 export const maxDuration = 300 // 5 dakika timeout
 
@@ -79,11 +80,11 @@ export async function POST(request: NextRequest) {
           
           // Her 50 hissede progress log
           if (downloaded % 50 === 0) {
-            console.log(`[DATA] Downloaded ${downloaded}/${toDownload.length}`)
+            logger.info(`Downloaded ${downloaded}/${toDownload.length}`, { module: 'data' })
           }
         } catch (err) {
           errors++
-          console.error(`[DATA] Failed ${symbol}:`, (err as Error).message)
+          logger.error(`Failed ${symbol}`, { module: 'data', error: (err as Error).message })
         }
         
         // Rate limiting

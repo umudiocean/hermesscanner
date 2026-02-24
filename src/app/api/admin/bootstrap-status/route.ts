@@ -10,6 +10,8 @@ import {
 } from '@/lib/cache/redis-cache'
 import { isRedisAvailable } from '@/lib/cache/redis-client'
 
+export const maxDuration = 30
+
 export async function GET() {
   const redisAvailable = isRedisAvailable()
   const progress = redisAvailable ? await getBootstrapProgress() : null

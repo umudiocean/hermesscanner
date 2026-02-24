@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
 
     const result = await scanRes.json()
     await providerMonitor.recordDataFetch('scan')
+    await providerMonitor.recordDataFetch('stocksQuote')
     await providerMonitor.recordSuccess('fmp')
 
     const durationMs = Date.now() - startAt

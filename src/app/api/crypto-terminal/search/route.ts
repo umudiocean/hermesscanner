@@ -8,8 +8,10 @@ import { fetchCoinsList } from '@/lib/crypto-terminal/coingecko-client'
 import { getCached, CRYPTO_CACHE_TTL } from '@/lib/crypto-terminal/crypto-cache'
 import { getSearchIndex } from '@/lib/crypto-terminal/search-index'
 import { searchQuerySchema, limitSchema, validateParams } from '@/lib/validation/schemas'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 interface CoinListItem {
   id: string
@@ -42,6 +44,10 @@ async function ensureIndex(): Promise<number> {
 }
 
 export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`crypto-search:${ip}`, 30, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const { searchParams } = new URL(request.url)
     const rawQ = searchParams.get('q') || ''

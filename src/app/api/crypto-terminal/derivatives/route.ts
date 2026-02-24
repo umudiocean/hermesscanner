@@ -8,10 +8,16 @@ import { fetchDerivatives, fetchDerivativeExchanges } from '@/lib/crypto-termina
 import { getCached, CRYPTO_CACHE_TTL } from '@/lib/crypto-terminal/crypto-cache'
 import { Derivative, DerivativeExchange } from '@/lib/crypto-terminal/coingecko-types'
 import { providerMonitor } from '@/lib/monitor/provider-monitor'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
-export async function GET() {
+export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`crypto-derivatives:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const [tickersRes, exchangesRes] = await Promise.allSettled([
       getCached<Derivative[]>(

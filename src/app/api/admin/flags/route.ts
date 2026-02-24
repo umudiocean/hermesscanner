@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllFlags, setFlag } from '@/lib/feature-flags'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
-export async function GET() {
+export const maxDuration = 30
+
+export async function GET(request: NextRequest) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`admin-flags:${ip}`, 10, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   const flags = await getAllFlags()
   return NextResponse.json(flags)
 }
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`admin-flags:${ip}`, 10, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const body = await request.json()
     const { key, enabled } = body as { key?: string; enabled?: boolean }

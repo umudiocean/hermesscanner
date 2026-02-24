@@ -225,7 +225,10 @@ export async function GET(request: NextRequest) {
     }
 
     saveScanResults('ALL', finalResults, summary)
-    await providerMonitor.recordDataFetch('scan')
+    await Promise.all([
+      providerMonitor.recordDataFetch('scan'),
+      providerMonitor.recordDataFetch('stocksQuote'),
+    ])
 
     // Save trade-ready symbol list to Redis
     if (finalResults.length > 1000) {

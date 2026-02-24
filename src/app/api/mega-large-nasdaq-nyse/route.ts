@@ -6,13 +6,17 @@
  */
 
 import { NextResponse } from 'next/server'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import logger from '@/lib/logger'
+
+export const maxDuration = 60
 
 const FMP_BASE = 'https://financialmodelingprep.com/stable'
 
 async function fetchScreener(exchange: string, marketCapMoreThan: number, marketCapLowerThan?: number) {
   const key = process.env.FMP_API_KEY
   if (!key) {
-    console.error('[MEGA-LARGE] CFG_MISSING_FMP_KEY — env var not set')
+    logger.error('CFG_MISSING_FMP_KEY — env var not set', { module: 'mega-large' })
     throw new Error('API configuration error')
   }
   const params = new URLSearchParams({
@@ -33,7 +37,11 @@ async function fetchScreener(exchange: string, marketCapMoreThan: number, market
 const MEGA_MIN = 200_000_000_000  // marketCapMoreThan 199999999999
 const LARGE_MAX = 200_000_000_000
 
-export async function GET() {
+export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`mega-large:${ip}`, 10, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const [nasdaqMega, nasdaqLarge, nyseMega, nyseLarge] = await Promise.all([
       fetchScreener('NASDAQ', 199999999999),

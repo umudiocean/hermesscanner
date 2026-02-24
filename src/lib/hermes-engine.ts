@@ -300,6 +300,7 @@ function tanh(x: number): number {
 }
 
 function zscoreTo100(zs: number, tanhDiv?: number): number {
+  if (isNaN(zs) || !isFinite(zs)) return 50
   return 50 + 50 * tanh(zs / (tanhDiv || TANH_DIV))
 }
 
@@ -419,7 +420,8 @@ export function calculateHermes(
   const minZLen = Math.min(cfg.zscore_len_52w, Math.max(10, Math.floor(cfg.zscore_len_52w * 0.5)))
   const zStd = zLen >= minZLen ? computeStdevAt(dev, zLen, last) : 0
   const zMean = zLen >= minZLen ? computeMeanAt(dev, zLen, last) : 0
-  const zscore = zStd > 0 ? (dev[last] - zMean) / zStd : 0
+  const zRaw = zStd > 0 ? (dev[last] - zMean) / zStd : 0
+  const zscore = (isNaN(zRaw) || !isFinite(zRaw)) ? 0 : zRaw
 
   // Z-Score bazli bantlar
   const zsCenter = vwap[last] + zMean
@@ -462,7 +464,8 @@ export function calculateHermes(
   const trend = computeTrendMultiplier(trendContext)
 
   // ═══ FINAL SKOR ═══
-  const totalScore = Math.max(0, Math.min(100, 50 + (rawScore - 50) * trend.multiplier))
+  const rawTotal = 50 + (rawScore - 50) * trend.multiplier
+  const totalScore = (isNaN(rawTotal) || !isFinite(rawTotal)) ? 50 : Math.max(0, Math.min(100, rawTotal))
 
   // ═══ SINYAL BELIRLEME ═══
   let signal: string

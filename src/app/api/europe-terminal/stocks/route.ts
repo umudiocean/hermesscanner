@@ -11,6 +11,7 @@ import { getExchangeFromSymbol, EuropeExchangeId, EUROPE_EXCHANGES } from '@/lib
 import { promises as fs } from 'fs'
 import path from 'path'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import logger from '@/lib/logger'
 
 export const maxDuration = 60
 export const dynamic = 'force-dynamic'
@@ -141,7 +142,7 @@ export async function GET(request: NextRequest) {
     const cacheKey = `europe_stocks_v5${exchangeFilter ? `_${exchangeFilter}` : ''}`
 
     const stocks = await getCached<EuropeStockRow[]>(cacheKey, CACHE_TTL.QUOTE, async () => {
-      console.log(`[EU Stocks] Fetching bulk data for ${europeSymbols.size} European stocks...`)
+      logger.info(`Fetching bulk data for ${europeSymbols.size} European stocks`, { module: 'europe-stocks' })
 
       // STEP 1: SECTORS
       const sectorsMap = new Map<string, string>()
@@ -234,7 +235,7 @@ export async function GET(request: NextRequest) {
         }
         if (isCSV(text)) { for (const r of parseCSV(text)) parseRow(r as any) }
         else if (text.startsWith('[')) { for (const r of JSON.parse(text)) parseRow(r) }
-        console.log(`[EU] Ratios: ${metricsMap.size} stocks`)
+        logger.info(`Ratios: ${metricsMap.size} stocks`, { module: 'europe-stocks' })
       }
 
       // Parse Scores Bulk
@@ -249,8 +250,8 @@ export async function GET(request: NextRequest) {
           }
           if (isCSV(text)) { for (const r of parseCSV(text)) parse(r as any) }
           else if (text.startsWith('[')) { for (const r of JSON.parse(text)) parse(r) }
-          console.log(`[EU] Scores: ${scoresMap.size}`)
-        } catch (e) { console.warn('[EU] Scores error:', e) }
+          logger.info(`Scores: ${scoresMap.size}`, { module: 'europe-stocks' })
+        } catch (e) { logger.warn('Scores error', { module: 'europe-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse DCF Bulk
@@ -265,8 +266,8 @@ export async function GET(request: NextRequest) {
           }
           if (isCSV(text)) { for (const r of parseCSV(text)) parse(r as any) }
           else if (text.startsWith('[')) { for (const r of JSON.parse(text)) parse(r) }
-          console.log(`[EU] DCF: ${dcfMap.size}`)
-        } catch (e) { console.warn('[EU] DCF error:', e) }
+          logger.info(`DCF: ${dcfMap.size}`, { module: 'europe-stocks' })
+        } catch (e) { logger.warn('DCF error', { module: 'europe-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Analyst Consensus Bulk
@@ -285,8 +286,8 @@ export async function GET(request: NextRequest) {
           }
           if (isCSV(text)) { for (const r of parseCSV(text)) parse(r as any) }
           else if (text.startsWith('[')) { for (const r of JSON.parse(text)) parse(r) }
-          console.log(`[EU] Analyst: ${analystMap.size}`)
-        } catch (e) { console.warn('[EU] Analyst error:', e) }
+          logger.info(`Analyst: ${analystMap.size}`, { module: 'europe-stocks' })
+        } catch (e) { logger.warn('Analyst error', { module: 'europe-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Price Targets Bulk
@@ -301,8 +302,8 @@ export async function GET(request: NextRequest) {
           }
           if (isCSV(text)) { for (const r of parseCSV(text)) parse(r as any) }
           else if (text.startsWith('[')) { for (const r of JSON.parse(text)) parse(r) }
-          console.log(`[EU] Targets: ${targetMap.size}`)
-        } catch (e) { console.warn('[EU] Targets error:', e) }
+          logger.info(`Targets: ${targetMap.size}`, { module: 'europe-stocks' })
+        } catch (e) { logger.warn('Targets error', { module: 'europe-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Growth Bulk
@@ -321,8 +322,8 @@ export async function GET(request: NextRequest) {
           }
           if (isCSV(text)) { for (const r of parseCSV(text)) parse(r as any) }
           else if (text.startsWith('[')) { for (const r of JSON.parse(text)) parse(r) }
-          console.log(`[EU] Growth: ${growthMap.size}`)
-        } catch (e) { console.warn('[EU] Growth error:', e) }
+          logger.info(`Growth: ${growthMap.size}`, { module: 'europe-stocks' })
+        } catch (e) { logger.warn('Growth error', { module: 'europe-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Parse Key Metrics TTM Bulk
@@ -345,8 +346,8 @@ export async function GET(request: NextRequest) {
           }
           if (isCSV(text)) { for (const r of parseCSV(text)) parse(r as any) }
           else if (text.startsWith('[')) { for (const r of JSON.parse(text)) parse(r) }
-          console.log(`[EU] Key Metrics: ${kmMap.size}`)
-        } catch (e) { console.warn('[EU] Key Metrics error:', e) }
+          logger.info(`Key Metrics: ${kmMap.size}`, { module: 'europe-stocks' })
+        } catch (e) { logger.warn('Key Metrics error', { module: 'europe-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Sector Performance
@@ -433,8 +434,8 @@ export async function GET(request: NextRequest) {
 
           if (isCSV(text)) { for (const row of parseCSV(text) as unknown as Array<Record<string, string | number>>) parse(row) }
           else if (text.startsWith('[')) { for (const row of JSON.parse(text)) parse(row) }
-          console.log(`[EU] Analyst estimates: ${analystEstimateMap.size}`)
-        } catch (e) { console.warn('[EU] Analyst estimates error:', e) }
+          logger.info(`Analyst estimates: ${analystEstimateMap.size}`, { module: 'europe-stocks' })
+        } catch (e) { logger.warn('Analyst estimates error', { module: 'europe-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
       // Share Float
@@ -483,7 +484,7 @@ export async function GET(request: NextRequest) {
           await fs.mkdir(path.dirname(SECTORS_FILE), { recursive: true })
           await fs.writeFile(SECTORS_FILE, JSON.stringify({ sectors: obj, updated: new Date().toISOString() }))
         } catch { /* ignore */ }
-        console.log(`[EU] Sectors: ${sectorsMap.size}`)
+        logger.info(`Sectors: ${sectorsMap.size}`, { module: 'europe-stocks' })
       }
 
       // STEP 4: BATCH QUOTES
@@ -518,7 +519,7 @@ export async function GET(request: NextRequest) {
           })())
         }
         await Promise.all(batchPromises)
-        console.log(`[EU] Quotes: ${quotesMap.size}`)
+        logger.info(`Quotes: ${quotesMap.size}`, { module: 'europe-stocks' })
       } catch { /* ignore */ }
 
       // STEP 5: BUILD SCORE INPUTS
@@ -570,7 +571,7 @@ export async function GET(request: NextRequest) {
       }
 
       const { scores: allScores, thresholds } = scoreAllStocks(allInputs)
-      console.log(`[EU] Scored: ${allScores.size} | STRONG>=${thresholds.strong} GOOD>=${thresholds.good}`)
+      logger.info(`Scored: ${allScores.size} | STRONG>=${thresholds.strong} GOOD>=${thresholds.good}`, { module: 'europe-stocks' })
 
       // STEP 6: BUILD RESULT
       const result: EuropeStockRow[] = []
@@ -671,7 +672,7 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      console.log(`[EU] Final: ${result.length} stocks in ${Date.now() - startTime}ms`)
+      logger.info(`Final: ${result.length} stocks in ${Date.now() - startTime}ms`, { module: 'europe-stocks' })
       return result
     })
 
@@ -685,7 +686,7 @@ export async function GET(request: NextRequest) {
       version: 'europe-v5-8cat',
     })
   } catch (error) {
-    console.error('[EU Terminal /stocks] Error:', (error as Error).message)
+    logger.error('EU stocks API error', { module: 'europe-stocks', error: (error as Error).message })
     return NextResponse.json(
       { error: 'Failed to fetch European stocks', message: (error as Error).message },
       { status: 500 }

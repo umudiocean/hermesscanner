@@ -16,8 +16,10 @@ import {
   AlternativeFearGreedData,
 } from '@/lib/crypto-terminal/coingecko-types'
 import { fetchAlternativeFearGreed } from '@/lib/crypto-terminal/alternative-fg-client'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 function computeCryptoFearGreed(
   global: GlobalData['data'] | null,
@@ -110,7 +112,11 @@ function computeCryptoFearGreed(
   return { index, label }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`crypto-market:${ip}`, 30, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     // Fetch all data in parallel (cached individually)
     const [globalRes, defiRes, trendingRes, coinsRes, gainersLosersRes, altFGRes] = await Promise.allSettled([

@@ -11,10 +11,16 @@ import {
   fetchMegafilter, fetchNewPools, fetchSearchPools,
 } from '@/lib/crypto-terminal/coingecko-client'
 import { getCached, CRYPTO_CACHE_TTL } from '@/lib/crypto-terminal/crypto-cache'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`crypto-onchain:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const { searchParams } = new URL(request.url)
     const network = searchParams.get('network') || ''

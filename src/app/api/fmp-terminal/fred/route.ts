@@ -2,10 +2,16 @@ import { NextResponse } from 'next/server'
 import { fetchFredDashboard, computeFredFearGreed, fetchFredDetailedSeries } from '@/lib/fred-client'
 import { createApiError } from '@/lib/validation/ohlcv-validator'
 import logger from '@/lib/logger'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`fmp-fred:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const { searchParams } = new URL(request.url)
     const mode = searchParams.get('mode') || 'dashboard'

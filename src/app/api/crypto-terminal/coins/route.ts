@@ -14,8 +14,10 @@ import { getMoralisOnChainBatch, extractEVMAddresses, MoralisOnChainResult } fro
 import { computeCryptoTargetFloor } from '@/lib/crypto-terminal/crypto-target-engine'
 import logger from '@/lib/logger'
 import { providerMonitor } from '@/lib/monitor/provider-monitor'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 const CG_PAGE_SIZE = 250
 const COINS_PER_PAGE = 1000
@@ -122,6 +124,10 @@ function transformCoin(
 }
 
 export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`crypto-coins:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const { searchParams } = new URL(request.url)
     const frontendPage = Math.max(1, parseInt(searchParams.get('page') || '1'))

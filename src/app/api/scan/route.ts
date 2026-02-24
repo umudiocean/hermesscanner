@@ -21,6 +21,7 @@ import { segmentSchema, symbolsParamSchema, validateParams } from '@/lib/validat
 import { getBarCache } from '@/lib/cache/redis-cache'
 import { isRedisAvailable } from '@/lib/cache/redis-client'
 import { providerMonitor } from '@/lib/monitor/provider-monitor'
+import logger from '@/lib/logger'
 
 export const maxDuration = 300
 
@@ -154,7 +155,7 @@ async function processSymbol(
   } catch (err) {
     // HERMES_FIX: S11 2026-02-19 SEVERITY: MEDIUM — was silently swallowing
     if (err instanceof Error) {
-      console.warn(`[SCAN] processSymbol ${symbol} failed: ${err.message}`)
+      logger.warn(`processSymbol ${symbol} failed: ${err.message}`, { module: 'scan' })
     }
     return null
   }
@@ -344,7 +345,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Scan error:', error)
+    logger.error('Scan error', { module: 'scan', error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json(
       { error: 'Scan failed', message: (error as Error).message },
       { status: 500 }

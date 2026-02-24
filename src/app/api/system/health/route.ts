@@ -5,13 +5,15 @@
 // Security: NEVER exposes weights, Z-scores, formula params, raw scoring data
 // ═══════════════════════════════════════════════════════════════════
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { isRedisAvailable, isRedisRequired } from '@/lib/cache/redis-client'
 import { providerMonitor, type ProviderStatus } from '@/lib/monitor/provider-monitor'
 import { sentinelLog } from '@/lib/logger/sentinel-log'
 import { OPS_THRESHOLDS } from '@/lib/config/constants'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 30
 
 interface HealthResponse {
   status: 'OK' | 'DEGRADED' | 'DOWN'
@@ -90,6 +92,12 @@ function getEnvName(): 'production' | 'preview' | 'development' {
   return 'development'
 }
 
+const OPTIONAL_PROVIDERS: Set<string> = new Set(['defiLlama', 'moralis'])
+
+function isProviderActive(p: ProviderStatus): boolean {
+  return p.lastSuccessAt !== null || p.lastErrorAt !== null
+}
+
 function determineStatus(h: Omit<HealthResponse, 'status'>): 'OK' | 'DEGRADED' | 'DOWN' {
   if (!h.providers.coingecko.ok && (h.dataFreshness.scanAgeMin === null || h.dataFreshness.scanAgeMin > 60)) {
     return 'DOWN'
@@ -99,6 +107,12 @@ function determineStatus(h: Omit<HealthResponse, 'status'>): 'OK' | 'DEGRADED' |
   }
 
   if (h.cache.redis.required && !h.cache.redis.ok) return 'DOWN'
+
+  const activeProviderIssue = (Object.entries(h.providers) as [string, ProviderStatus][]).some(
+    ([name, p]) => !OPTIONAL_PROVIDERS.has(name) && isProviderActive(p) && !p.ok
+  )
+  if (activeProviderIssue) return 'DEGRADED'
+
   if (Object.values(h.sla).some(Boolean)) return 'DEGRADED'
   if (h.providers.coingecko.errorRate1h > 0.1) return 'DEGRADED'
   if (h.providers.coingecko.http429Rate1h > 0.05) return 'DEGRADED'
@@ -107,7 +121,11 @@ function determineStatus(h: Omit<HealthResponse, 'status'>): 'OK' | 'DEGRADED' |
   return 'OK'
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`system-health:${ip}`, 30, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const [
       cgStatus,

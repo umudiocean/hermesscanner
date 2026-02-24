@@ -5,6 +5,8 @@ import { getCacheStats } from '@/lib/fmp-terminal/fmp-cache'
 import { getCryptoCacheStats } from '@/lib/crypto-terminal/crypto-cache'
 import { isRedisAvailable } from '@/lib/cache/redis-client'
 
+export const maxDuration = 30
+
 export async function GET(request: NextRequest) {
   const days = Math.min(Number(request.nextUrl.searchParams.get('days')) || 7, 30)
 

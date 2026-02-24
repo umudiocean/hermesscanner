@@ -6,8 +6,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { fmpApiFetch } from '@/lib/api/fmpClient'
 import { getCached, CACHE_TTL } from '@/lib/fmp-terminal/fmp-cache'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+
+export const maxDuration = 60
 
 export async function GET(_request: NextRequest) {
+  const ip = getClientIP(_request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`eu-macro:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const data = await getCached('europe_macro_dashboard', CACHE_TTL.MARKET, async () => {
       const from = new Date()

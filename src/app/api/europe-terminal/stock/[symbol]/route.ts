@@ -16,11 +16,18 @@ import {
 import { fmpApiFetch } from '@/lib/api/fmpClient'
 import { computeFMPScore, createDefaultInput, type ScoreInputMetrics } from '@/lib/fmp-terminal/fmp-score-engine'
 import { getExchangeFromSymbol, EUROPE_EXCHANGES } from '@/lib/europe-config'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+
+export const maxDuration = 60
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ symbol: string }> }
 ) {
+  const ip = getClientIP(_request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`eu-stock-detail:${ip}`, 30, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   const { symbol } = await params
   const sym = symbol?.toUpperCase()?.trim()
   if (!sym) return NextResponse.json({ error: 'Symbol required' }, { status: 400 })

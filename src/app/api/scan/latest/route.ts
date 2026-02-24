@@ -9,6 +9,9 @@ import { loadLatestScan, saveFullScan, getAllResults, evaluateAllSnapshot } from
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { scanLatestBodySchema, validateParams } from '@/lib/validation/schemas'
 import { SCAN_GUARD } from '@/lib/config/constants'
+import logger from '@/lib/logger'
+
+export const maxDuration = 60
 
 function ageMinFromIso(ts: string): number {
   const t = new Date(ts).getTime()
@@ -121,7 +124,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('[SCAN-LATEST] Save error:', (error as Error).message)
+    logger.error('Save error', { module: 'scan-latest', error: (error as Error).message })
     return NextResponse.json(
       { error: 'Failed to save results', code: 'SAVE_ERROR' },
       { status: 500 }

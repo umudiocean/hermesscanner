@@ -12,6 +12,7 @@ import { calculateHermes } from '@/lib/hermes-engine'
 import { ScanResult } from '@/lib/types'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { symbolsParamSchema, validateParams } from '@/lib/validation/schemas'
+import logger from '@/lib/logger'
 
 export const maxDuration = 60
 
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
           timestamp: new Date().toISOString(),
         }
       } catch (err) {
-        console.error(`[Refresh] Error for ${symbol}:`, (err as Error).message)
+        logger.error(`Error for ${symbol}`, { module: 'refresh', error: (err as Error).message })
         errorCount++
         return null
       }
@@ -90,7 +91,7 @@ export async function GET(request: NextRequest) {
     await Promise.all(workers)
 
     const duration = Date.now() - startTime
-    console.log(`[Refresh] ${results.length}/${symbols.length} symbols refreshed in ${duration}ms`)
+    logger.info(`${results.length}/${symbols.length} symbols refreshed in ${duration}ms`, { module: 'refresh' })
 
     return NextResponse.json({
       results: results.sort((a, b) => a.hermes.score - b.hermes.score),
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('[Refresh] Error:', error)
+    logger.error('Refresh failed', { module: 'refresh', error: error instanceof Error ? error.message : String(error) })
     return NextResponse.json(
       { error: 'Refresh failed', message: (error as Error).message },
       { status: 500 }

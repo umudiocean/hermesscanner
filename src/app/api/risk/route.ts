@@ -6,8 +6,15 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getMarketRisk, serializeRiskState, resetDailyDrawdown } from '@/lib/risk/market-risk-engine'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+
+export const maxDuration = 30
 
 export async function GET(request: NextRequest) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`risk:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const { searchParams } = new URL(request.url)
     const forceRefresh = searchParams.get('force') === '1'
@@ -26,6 +33,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`risk:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const body = await request.json().catch(() => ({}))
 

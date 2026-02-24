@@ -39,11 +39,18 @@ import type {
 } from '@/lib/fmp-terminal/fmp-types'
 import { createApiError } from '@/lib/validation/ohlcv-validator'
 import logger from '@/lib/logger'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+
+export const maxDuration = 60
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ symbol: string }> }
 ) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`fmp-stock-detail:${ip}`, 30, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   const startTime = Date.now()
   const { symbol } = await params
   const sym = symbol?.toUpperCase()?.trim()

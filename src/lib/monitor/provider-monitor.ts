@@ -102,6 +102,16 @@ const slaKey = (suffix: string) => `sla:${suffix}`
 const TTL_1H = 3600
 const TTL_2H = 7200
 
+function isUsMarketLikelyOpen(): boolean {
+  const now = new Date()
+  const etStr = now.toLocaleString('en-US', { timeZone: 'America/New_York' })
+  const et = new Date(etStr)
+  const day = et.getDay()
+  if (day === 0 || day === 6) return false
+  const mins = et.getHours() * 60 + et.getMinutes()
+  return mins >= 570 && mins <= 960
+}
+
 async function safeRedis<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
     const r = getRedis()
@@ -334,16 +344,18 @@ export const providerMonitor = {
     const freshness = await this.getDataFreshness()
 
     function breached(ageMin: number | null, key: DataKey): boolean {
-      if (ageMin === null) return true // Never fetched = breached
+      if (ageMin === null) return true
       return ageMin > SLA_THRESHOLDS_MINUTES[key]
     }
+
+    const marketOpen = isUsMarketLikelyOpen()
 
     const status: SlaStatus = {
       cryptoMarketBreached: breached(freshness.cryptoMarketAgeMin, 'cryptoMarket'),
       derivativesBreached: breached(freshness.derivativesAgeMin, 'derivatives'),
-      scanBreached: breached(freshness.scanAgeMin, 'scan'),
+      scanBreached: marketOpen ? breached(freshness.scanAgeMin, 'scan') : false,
       coinsBulkBreached: breached(freshness.coinsBulkAgeMin, 'coinsBulk'),
-      stocksQuoteBreached: breached(freshness.stocksQuoteAgeMin, 'stocksQuote'),
+      stocksQuoteBreached: marketOpen ? breached(freshness.stocksQuoteAgeMin, 'stocksQuote') : false,
     }
 
     if (Object.values(status).some(Boolean)) {

@@ -7,10 +7,16 @@ import { NextResponse } from 'next/server'
 import { fetchCategories } from '@/lib/crypto-terminal/coingecko-client'
 import { getCached, CRYPTO_CACHE_TTL } from '@/lib/crypto-terminal/crypto-cache'
 import { CoinCategory } from '@/lib/crypto-terminal/coingecko-types'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
-export async function GET() {
+export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`crypto-categories:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const categories = await getCached<CoinCategory[]>(
       'crypto-categories',

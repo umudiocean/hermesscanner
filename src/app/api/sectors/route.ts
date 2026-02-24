@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getCompanyProfiles } from '@/lib/fmp-client'
 import { promises as fs } from 'fs'
 import path from 'path'
+import logger from '@/lib/logger'
 
 const DATA_DIR = path.join(process.cwd(), 'data')
 const SECTORS_FILE = path.join(DATA_DIR, 'sectors.json')
@@ -45,7 +46,7 @@ async function saveSectorsToDisk(sectors: Map<string, string>): Promise<void> {
       sectors: obj,
     }, null, 2))
   } catch (err) {
-    console.error('Failed to save sectors to disk:', err)
+    logger.error('Failed to save sectors to disk', { module: 'sectors', error: err instanceof Error ? err.message : String(err) })
   }
 }
 

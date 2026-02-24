@@ -1,7 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { ADMIN_COOKIE_NAME } from '@/lib/admin-auth'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
-export async function POST() {
+export const maxDuration = 30
+
+export async function POST(request: NextRequest) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`admin-logout:${ip}`, 10, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   const response = NextResponse.json({ success: true })
   response.cookies.set({
     name: ADMIN_COOKIE_NAME,

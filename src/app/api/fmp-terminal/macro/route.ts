@@ -6,10 +6,16 @@ import {
 } from '@/lib/fmp-terminal/fmp-bulk-client'
 import { createApiError } from '@/lib/validation/ohlcv-validator'
 import logger from '@/lib/logger'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
-export async function GET() {
+export async function GET(request: Request) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`fmp-macro:${ip}`, 20, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const [gdp, sentiment, news, esg, sp500, nasdaq, dow] = await Promise.allSettled([
       fetchGDP(),

@@ -7,6 +7,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSymbols } from '@/lib/symbols'
 import { promises as fs } from 'fs'
 import path from 'path'
+import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+
+export const maxDuration = 30
 
 const SECTORS_FILE = path.join(process.cwd(), 'data', 'sectors.json')
 
@@ -53,6 +56,10 @@ async function getStocksWithNames(): Promise<{ symbol: string; companyName: stri
 }
 
 export async function GET(request: NextRequest) {
+  const ip = getClientIP(request)
+  const { allowed, retryAfterMs } = await checkRateLimit(`nasdaq-search:${ip}`, 30, 60_000)
+  if (!allowed) return rateLimitResponse(retryAfterMs)
+
   try {
     const { searchParams } = new URL(request.url)
     const qRaw = (searchParams.get('q') || '').trim()

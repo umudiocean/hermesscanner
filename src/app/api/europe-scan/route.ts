@@ -14,6 +14,7 @@ import { getBatchQuotes, getHistoricalDaily } from '@/lib/fmp-client'
 import { ScanResult } from '@/lib/types'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { setMemoryCache } from '@/lib/fmp-terminal/fmp-cache'
+import logger from '@/lib/logger'
 
 export const maxDuration = 120
 
@@ -138,12 +139,12 @@ export async function GET(request: NextRequest) {
     if (results.length > 0) {
       setMemoryCache('europe_scan_latest', { results, summary })
     } else if (failLog.samples.length > 0) {
-      console.warn('[EU Scan] 0 results. Sample failures:', JSON.stringify(failLog.samples))
+      logger.warn('0 results from scan', { module: 'europe-scan', samples: failLog.samples })
     }
 
     return NextResponse.json({ results, summary })
   } catch (error) {
-    console.error('[EU Scan] Error:', (error as Error).message)
+    logger.error('Scan failed', { module: 'europe-scan', error: (error as Error).message })
     return NextResponse.json({ error: 'Scan failed', message: (error as Error).message }, { status: 500 })
   }
 }

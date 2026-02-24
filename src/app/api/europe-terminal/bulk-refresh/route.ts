@@ -7,6 +7,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { clearMemoryCache } from '@/lib/fmp-terminal/fmp-cache'
 
+export const maxDuration = 120
+
 export async function POST(_request: NextRequest) {
   try {
     clearMemoryCache()
