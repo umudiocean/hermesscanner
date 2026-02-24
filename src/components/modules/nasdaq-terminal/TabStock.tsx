@@ -13,6 +13,7 @@ import ScoreGauge from './ScoreGauge'
 import DNABarcode from './DNABarcode'
 import RedFlags from './RedFlags'
 import SharePanel from '@/components/SharePanel'
+import { downloadHermesReportPdf } from '@/lib/report-pdf'
 
 function getValuationFromScore(valScore: number): { label: string; style: string } {
   if (valScore >= 80) return { label: 'COK UCUZ', style: 'text-hermes-green bg-hermes-green/15 border-hermes-green/30' }
@@ -34,6 +35,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
   const [error, setError] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')
   const [watchlist, setWatchlist] = useState<string[]>([])
+  const [pdfLoading, setPdfLoading] = useState(false)
 
   useEffect(() => { setWatchlist(getWatchlist()) }, [])
 
@@ -61,6 +63,57 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
     }
     load()
   }, [symbol])
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (!data || !symbol || pdfLoading) return
+    setPdfLoading(true)
+    try {
+      const profile = data.profile
+      const score = data.fmpScore
+      const valLabel = score && score.categories.valuation > 0
+        ? getValuationFromScore(score.categories.valuation).label
+        : '-'
+      const target = data.priceTarget?.targetConsensus || data.priceTarget?.targetMedian || null
+      const floor = data.priceTarget?.targetLow || null
+
+      await downloadHermesReportPdf({
+        fileName: `${symbol}-detail-report.pdf`,
+        title: `${symbol} Stock Detail Report`,
+        subtitle: profile?.companyName || 'Hermes AI Terminal',
+        sections: [
+          {
+            title: 'Market Snapshot',
+            rows: [
+              { label: 'Price', value: profile?.price != null ? `$${profile.price.toFixed(2)}` : null },
+              { label: 'Change', value: profile?.changesPercentage != null ? `${profile.changesPercentage.toFixed(2)}%` : null },
+              { label: 'Sector', value: profile?.sector },
+              { label: 'Industry', value: profile?.industry },
+            ],
+          },
+          {
+            title: 'Hermes AI Summary',
+            rows: [
+              { label: 'Total Score', value: score?.total },
+              { label: 'Signal', value: score?.level },
+              { label: 'Confidence', value: score?.confidence != null ? `${score.confidence}%` : null },
+              { label: 'Valuation', value: valLabel },
+            ],
+          },
+          {
+            title: 'Targets',
+            rows: [
+              { label: 'Target Price', value: target != null ? `$${target.toFixed(2)}` : null },
+              { label: 'Floor Price', value: floor != null ? `$${floor.toFixed(2)}` : null },
+              { label: 'Altman Z', value: data.scores?.altmanZScore?.toFixed(2) },
+              { label: 'Piotroski', value: data.scores?.piotroskiScore != null ? `${data.scores.piotroskiScore}/9` : null },
+            ],
+          },
+        ],
+      })
+    } finally {
+      setPdfLoading(false)
+    }
+  }, [data, symbol, pdfLoading])
 
   // Sembol seçilmemişse
   if (!symbol) {
@@ -189,6 +242,13 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
                          hover:border-violet-500/30 hover:text-violet-300 transition-all"
             >
               Karsilastir
+            </button>
+            <button
+              onClick={handleDownloadPdf}
+              disabled={pdfLoading}
+              className="px-3 py-1.5 rounded-lg border border-amber-500/30 text-[10px] text-amber-300 hover:bg-amber-500/10 transition-all disabled:opacity-60"
+            >
+              {pdfLoading ? 'PDF hazirlaniyor...' : 'Raporu PDF indir'} <span className="ml-1 text-[9px] text-amber-200/90">PREMIUM</span>
             </button>
             <SharePanel
               title={`${symbol} — ${profile?.companyName ?? ''}`}

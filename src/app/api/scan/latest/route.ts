@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server'
-import { loadLatestScan, saveFullScan, getAllResults } from '@/lib/scan-store'
+import { loadLatestScan, saveFullScan, getAllResults, evaluateAllSnapshot } from '@/lib/scan-store'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { scanLatestBodySchema, validateParams } from '@/lib/validation/schemas'
 import { SCAN_GUARD } from '@/lib/config/constants'
@@ -20,7 +20,8 @@ export async function GET() {
   try {
     // Once memory'den kontrol et
     const memResults = getAllResults()
-    if (memResults.length >= SCAN_GUARD.MIN_TRUSTED_RESULTS) {
+    const memSnapshot = evaluateAllSnapshot(memResults)
+    if (memSnapshot.trusted) {
       const ts = new Date().toISOString()
       return NextResponse.json({
         results: memResults,
@@ -40,7 +41,20 @@ export async function GET() {
     // Memory bossa disk'ten oku
     const diskCache = await loadLatestScan()
     
-    if (diskCache && diskCache.results && diskCache.results.length >= SCAN_GUARD.MIN_TRUSTED_RESULTS) {
+    if (diskCache && diskCache.results) {
+      const diskSnapshot = evaluateAllSnapshot(diskCache.results)
+      if (!diskSnapshot.trusted) {
+        return NextResponse.json({
+          results: [],
+          fromCache: false,
+          message: `No trusted cached scan results (${diskSnapshot.reason})`,
+        }, {
+          headers: {
+            'X-Hermes-Scan-Source': 'none',
+            'X-Hermes-Scan-Age-Min': '-1',
+          },
+        })
+      }
       const ts = diskCache.timestamp || new Date().toISOString()
       const age = ageMinFromIso(ts)
       return NextResponse.json({

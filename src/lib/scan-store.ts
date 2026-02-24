@@ -17,18 +17,52 @@ let lastFullScan: ScanSummary | null = null
 const SCAN_REDIS_KEY = 'scan:latest'
 const SCAN_REDIS_TTL = 7 * 24 * 60 * 60 * 1000 // 7 days
 
-function isTrustedAllSnapshot(count: number): boolean {
-  return count >= SCAN_GUARD.MIN_TRUSTED_RESULTS
+function countSnapshotErrors(results: ScanResult[]): number {
+  return results.filter(r => Boolean(r.hermes?.error)).length
+}
+
+export function evaluateAllSnapshot(results: ScanResult[]): {
+  trusted: boolean
+  reason?: string
+  errorCount: number
+  errorRate: number
+} {
+  const total = results.length
+  const errorCount = countSnapshotErrors(results)
+  const errorRate = total > 0 ? errorCount / total : 1
+
+  if (total < SCAN_GUARD.MIN_TRUSTED_RESULTS) {
+    return {
+      trusted: false,
+      reason: `partial_snapshot_${total}_lt_${SCAN_GUARD.MIN_TRUSTED_RESULTS}`,
+      errorCount,
+      errorRate,
+    }
+  }
+
+  if (errorRate > SCAN_GUARD.MAX_ERROR_RATE) {
+    return {
+      trusted: false,
+      reason: `error_rate_${errorRate.toFixed(3)}_gt_${SCAN_GUARD.MAX_ERROR_RATE}`,
+      errorCount,
+      errorRate,
+    }
+  }
+
+  return { trusted: true, errorCount, errorRate }
 }
 
 export function saveScanResults(segment: string, results: ScanResult[], summary: ScanSummary): void {
   // Guardrail: never let a partial ALL scan (e.g. 120 symbols test run)
   // overwrite production snapshot expected to be ~2050-2064.
-  if (segment === 'ALL' && !isTrustedAllSnapshot(results.length)) {
-    console.warn(
-      `[SCAN-STORE] Partial ALL snapshot ignored: ${results.length} < ${SCAN_GUARD.MIN_TRUSTED_RESULTS}`
-    )
-    return
+  if (segment === 'ALL') {
+    const snapshot = evaluateAllSnapshot(results)
+    if (!snapshot.trusted) {
+      console.warn(
+        `[SCAN-STORE] Untrusted ALL snapshot ignored: ${snapshot.reason} (errors=${snapshot.errorCount}, errorRate=${snapshot.errorRate.toFixed(3)})`
+      )
+      return
+    }
   }
 
   scanResults.set(segment, results)
@@ -131,10 +165,12 @@ export async function saveFullScan(
 ): Promise<{ saved: boolean; reason?: string }> {
   if (!results || results.length === 0) return { saved: false, reason: 'empty_results' }
 
-  if (!isTrustedAllSnapshot(results.length)) {
-    const reason = `partial_snapshot_${results.length}_lt_${SCAN_GUARD.MIN_TRUSTED_RESULTS}`
-    console.warn(`[SCAN-STORE] saveFullScan ignored (${reason})`)
-    return { saved: false, reason }
+  const snapshot = evaluateAllSnapshot(results)
+  if (!snapshot.trusted) {
+    console.warn(
+      `[SCAN-STORE] saveFullScan ignored (${snapshot.reason}) errors=${snapshot.errorCount} errorRate=${snapshot.errorRate.toFixed(3)}`
+    )
+    return { saved: false, reason: snapshot.reason }
   }
   
   const payload = {

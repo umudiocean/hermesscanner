@@ -5,6 +5,7 @@ import { Eye, AlertTriangle, TrendingUp, TrendingDown, Star, BarChart3, Shield, 
 import { EUROPE_EXCHANGES } from '@/lib/europe-config'
 import { getWatchlist, toggleWatchlist } from '@/lib/store'
 import { FMPScore, CATEGORY_LABELS, FMP_SCORE_WEIGHTS } from '@/lib/fmp-terminal/fmp-types'
+import { downloadHermesReportPdf } from '@/lib/report-pdf'
 
 interface StockDetailData {
   profile: any
@@ -81,6 +82,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: {
   const [error, setError] = useState<string | null>(null)
   const [watchlist, setWatchlist] = useState<string[]>([])
   const [searchInput, setSearchInput] = useState('')
+  const [pdfLoading, setPdfLoading] = useState(false)
 
   useEffect(() => { setWatchlist(getWatchlist()) }, [])
 
@@ -99,6 +101,56 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
   }, [symbol])
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (!data || !symbol || pdfLoading) return
+    setPdfLoading(true)
+    try {
+      const p = data.profile
+      const score = data.fmpScore
+      const target = data.priceTarget?.targetConsensus || null
+      const valLabel = score
+        ? (score.categories.valuation >= 65 ? 'UCUZ' : score.categories.valuation <= 25 ? 'PAHALI' : 'NORMAL')
+        : '-'
+
+      await downloadHermesReportPdf({
+        fileName: `${symbol}-europe-detail-report.pdf`,
+        title: `${symbol} Europe Stock Detail Report`,
+        subtitle: p?.companyName || 'Hermes AI Terminal',
+        sections: [
+          {
+            title: 'Market Snapshot',
+            rows: [
+              { label: 'Price', value: p?.price != null ? `${p.price.toFixed(2)} ${p.currency || ''}`.trim() : null },
+              { label: 'Change', value: p?.changesPercentage != null ? `${p.changesPercentage.toFixed(2)}%` : null },
+              { label: 'Exchange', value: p?.exchangeShortName },
+              { label: 'Sector', value: p?.sector },
+            ],
+          },
+          {
+            title: 'Hermes AI Summary',
+            rows: [
+              { label: 'Total Score', value: score?.total },
+              { label: 'Signal', value: score?.level },
+              { label: 'Confidence', value: score?.confidence != null ? `${score.confidence}%` : null },
+              { label: 'Valuation', value: valLabel },
+            ],
+          },
+          {
+            title: 'Financial Health',
+            rows: [
+              { label: 'Altman Z', value: data.scores?.altmanZScore?.toFixed(2) },
+              { label: 'Piotroski', value: data.scores?.piotroskiScore != null ? `${data.scores.piotroskiScore}/9` : null },
+              { label: 'Target Price', value: target != null ? `${target.toFixed(2)} ${p?.currency || ''}`.trim() : null },
+              { label: 'Market Cap', value: fmtMcap(p?.mktCap) },
+            ],
+          },
+        ],
+      })
+    } finally {
+      setPdfLoading(false)
+    }
+  }, [data, symbol, pdfLoading])
 
   if (!symbol) return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
@@ -180,6 +232,19 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: {
                   isInWatchlist ? 'bg-amber-400/15 border-amber-400/30 text-amber-300' : 'border-white/10 text-white/60 hover:border-amber-400/30 hover:text-amber-300'
                 }`}>
                 {isInWatchlist ? '★ Izleniyor' : '☆ Izle'}
+              </button>
+              <button
+                onClick={() => onAddToCompare(symbol)}
+                className="px-3 py-1.5 rounded-lg border border-white/10 text-[10px] text-white/60 hover:border-violet-500/30 hover:text-violet-300 transition-all"
+              >
+                Karsilastir
+              </button>
+              <button
+                onClick={handleDownloadPdf}
+                disabled={pdfLoading}
+                className="px-3 py-1.5 rounded-lg border border-amber-500/30 text-[10px] text-amber-300 hover:bg-amber-500/10 transition-all disabled:opacity-60"
+              >
+                {pdfLoading ? 'PDF hazirlaniyor...' : 'Raporu PDF indir'} <span className="ml-1 text-[9px] text-amber-200/90">PREMIUM</span>
               </button>
             </div>
           </div>

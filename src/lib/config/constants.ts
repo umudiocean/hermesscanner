@@ -81,6 +81,7 @@ export const SCORING = {
 export const SCAN_GUARD = {
   EXPECTED_UNIVERSE: 2064,
   MIN_TRUSTED_RESULTS: 2050,
+  MAX_ERROR_RATE: 0.25,
 } as const
 
 // ─── FMP API ────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import { Eye, Globe, ExternalLink, TrendingUp, TrendingDown, Activity, Users, Co
 // HERMES_FIX: CLIENT_BUNDLE_WEIGHTS 2026-02-19 — Removed CRYPTO_SCORE_WEIGHTS import (proprietary IP)
 import { CoinDetail, CryptoScore, Derivative, getCryptoScoreColor, CRYPTO_SCORE_LABELS, CRYPTO_CATEGORY_LABELS, CRYPTO_CATEGORY_KEYS, CryptoScoreBreakdown } from '@/lib/crypto-terminal/coingecko-types'
 import SharePanel from '@/components/SharePanel'
+import { downloadHermesReportPdf } from '@/lib/report-pdf'
 
 type ValuationTag = 'COK UCUZ' | 'UCUZ' | 'NORMAL' | 'PAHALI' | 'COK PAHALI'
 
@@ -101,6 +102,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
   const [showSplash, setShowSplash] = useState(false)
   const [splashFade, setSplashFade] = useState(false)
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set())
+  const [pdfLoading, setPdfLoading] = useState(false)
   const prevCoinRef = useRef<string>('')
 
   useEffect(() => {
@@ -301,6 +303,51 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
   const price = md?.current_price?.usd ?? 0
   const mcap = md?.market_cap?.usd ?? 0
 
+  const handleDownloadPdf = async () => {
+    if (!detail || pdfLoading) return
+    setPdfLoading(true)
+    try {
+      const valuation = computeDetailValuation(md)
+      const risk = computeDetailRisk(md)
+      await downloadHermesReportPdf({
+        fileName: `${coinId}-coin-detail-report.pdf`,
+        title: `${detail.name} Coin Detail Report`,
+        subtitle: `${detail.symbol?.toUpperCase() || coinId} - Hermes AI Terminal`,
+        sections: [
+          {
+            title: 'Market Snapshot',
+            rows: [
+              { label: 'Price', value: formatPrice(price) },
+              { label: 'Market Cap', value: formatLarge(mcap) },
+              { label: '24h Change', value: md?.price_change_percentage_24h != null ? `${md.price_change_percentage_24h.toFixed(2)}%` : null },
+              { label: 'Volume 24h', value: formatLarge(md?.total_volume?.usd ?? 0) },
+            ],
+          },
+          {
+            title: 'Hermes AI Summary',
+            rows: [
+              { label: 'Total Score', value: score?.total },
+              { label: 'Signal', value: score ? CRYPTO_SCORE_LABELS[score.level] : null },
+              { label: 'Confidence', value: score?.confidence != null ? `${Math.round(score.confidence)}%` : null },
+              { label: 'Valuation', value: valuation },
+            ],
+          },
+          {
+            title: 'Risk and Supply',
+            rows: [
+              { label: 'Risk Score', value: `${risk}/100` },
+              { label: 'FDV', value: formatLarge(md?.fully_diluted_valuation?.usd ?? 0) },
+              { label: 'Circulating Supply', value: md?.circulating_supply != null ? md.circulating_supply.toLocaleString('en-US') : null },
+              { label: 'Max Supply', value: md?.max_supply != null ? md.max_supply.toLocaleString('en-US') : 'Unlimited' },
+            ],
+          },
+        ],
+      })
+    } finally {
+      setPdfLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-2 sm:space-y-4 animate-fade-in">
       {/* Header */}
@@ -383,6 +430,13 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
         </button>
         <button onClick={() => onAddToCompare(coinId)} className="group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-white/[0.04] border border-white/8 text-white/60 text-xs font-bold hover:bg-white/[0.08] hover:border-white/15 hover:text-white/70 hover:shadow-md hover:shadow-black/20 hover:scale-[1.03] transition-all duration-300">
           Karsilastir
+        </button>
+        <button
+          onClick={handleDownloadPdf}
+          disabled={pdfLoading}
+          className="group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-bold hover:bg-amber-500/20 hover:border-amber-500/40 hover:scale-[1.03] transition-all duration-300 disabled:opacity-60"
+        >
+          {pdfLoading ? 'PDF hazirlaniyor...' : 'Raporu PDF indir'} <span className="ml-1 text-[9px] text-amber-200/90">PREMIUM</span>
         </button>
         {detail.links?.homepage?.[0] && (
           <a href={detail.links.homepage[0]} target="_blank" rel="noopener noreferrer" className="group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-white/[0.04] border border-white/8 text-white/60 text-xs font-bold hover:bg-white/[0.08] hover:border-white/15 hover:text-white/70 hover:shadow-md hover:shadow-black/20 hover:scale-[1.02] transition-all duration-300">

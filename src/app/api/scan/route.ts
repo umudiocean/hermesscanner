@@ -18,7 +18,7 @@ import { ScanResult, ScanSummary, Segment, OHLCV, PriceTargetData, HermesResult 
 import { computeNasdaqTargetFloor } from '@/lib/target-engine'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
 import { segmentSchema, symbolsParamSchema, validateParams } from '@/lib/validation/schemas'
-import { getBarCache, getBootstrapProgress } from '@/lib/cache/redis-cache'
+import { getBarCache } from '@/lib/cache/redis-cache'
 import { isRedisAvailable } from '@/lib/cache/redis-client'
 import { providerMonitor } from '@/lib/monitor/provider-monitor'
 
@@ -44,15 +44,6 @@ async function prepareScan(symbols: string[]): Promise<Omit<ScanContext, 'segmen
   }
 
   return { symbols, quotes, profileMap }
-}
-
-let _bootstrapReady: boolean | null = null
-async function isBootstrapReady(): Promise<boolean> {
-  if (_bootstrapReady !== null) return _bootstrapReady
-  if (!isRedisAvailable()) { _bootstrapReady = false; return false }
-  const progress = await getBootstrapProgress()
-  _bootstrapReady = !!(progress && progress.status === 'complete')
-  return _bootstrapReady
 }
 
 const MIN_SCAN_BARS = 6331
@@ -94,7 +85,7 @@ async function processSymbol(
   try {
     let bars: OHLCV[] | null = null
 
-    if (await isBootstrapReady()) {
+    if (isRedisAvailable()) {
       const cached = await getBarCache(symbol)
       if (cached && cached.length >= MIN_SCAN_BARS) {
         bars = cached
