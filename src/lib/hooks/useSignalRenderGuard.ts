@@ -15,6 +15,16 @@ interface HealthSnapshot {
   }
 }
 
+function isUsMarketOpen(): boolean {
+  const now = new Date()
+  const etStr = now.toLocaleString('en-US', { timeZone: 'America/New_York' })
+  const et = new Date(etStr)
+  const day = et.getDay()
+  if (day === 0 || day === 6) return false // Weekend
+  const mins = et.getHours() * 60 + et.getMinutes()
+  return mins >= 570 && mins <= 960 // 09:30 - 16:00 ET
+}
+
 export function useSignalRenderGuard() {
   const [health, setHealth] = useState<HealthSnapshot | null>(null)
 
@@ -38,13 +48,21 @@ export function useSignalRenderGuard() {
   }, [])
 
   const state = useMemo(() => {
-    const scanBreached = !!health?.sla?.scanBreached
-    const quoteBreached = !!health?.sla?.stocksQuoteBreached
+    const marketOpen = isUsMarketOpen()
+    
+    // Only check SLA breaches if market is OPEN
+    // During market hours, stale data is critical
+    // Outside market hours, stale data is expected
+    const scanBreached = marketOpen && !!health?.sla?.scanBreached
+    const quoteBreached = marketOpen && !!health?.sla?.stocksQuoteBreached
+    
     const hardDown = health?.status === 'DOWN'
 
-    // Only block signals on hard system DOWN, not on SLA warnings
-    const blocked = SIGNAL_GUARDRAIL.FAIL_CLOSED && hardDown
-    const reason = hardDown
+    // Only block signals on hard system DOWN during market hours
+    // Outside market hours, use last available data
+    const blocked = SIGNAL_GUARDRAIL.FAIL_CLOSED && hardDown && marketOpen
+    
+    const reason = hardDown && marketOpen
       ? 'SYSTEM_DOWN'
       : scanBreached
         ? 'SCAN_STALE'
@@ -59,6 +77,7 @@ export function useSignalRenderGuard() {
       quoteAgeMin: health?.dataFreshness?.stocksQuoteAgeMin ?? null,
       failClosed: SIGNAL_GUARDRAIL.FAIL_CLOSED,
       staleWarning: scanBreached || quoteBreached,
+      marketOpen,
     }
   }, [health])
 

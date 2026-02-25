@@ -17,6 +17,7 @@ import {
 } from '@/lib/crypto-terminal/coingecko-types'
 import { fetchAlternativeFearGreed } from '@/lib/crypto-terminal/alternative-fg-client'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import { providerMonitor } from '@/lib/monitor/provider-monitor'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -118,6 +119,10 @@ export async function GET(request: Request) {
   if (!allowed) return rateLimitResponse(retryAfterMs)
 
   try {
+    // Bootstrap: Record CoinGecko provider activity
+    // This initializes provider monitoring on first crypto request
+    providerMonitor.recordSuccess('coingecko').catch(() => {})
+
     // Fetch all data in parallel (cached individually)
     const [globalRes, defiRes, trendingRes, coinsRes, gainersLosersRes, altFGRes] = await Promise.allSettled([
       getCached<GlobalData>('crypto-global', CRYPTO_CACHE_TTL.GLOBAL, () => fetchGlobalData() as Promise<GlobalData>),

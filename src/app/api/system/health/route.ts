@@ -93,30 +93,35 @@ function getEnvName(): 'production' | 'preview' | 'development' {
   return 'development'
 }
 
-const OPTIONAL_PROVIDERS: Set<string> = new Set(['defiLlama', 'moralis'])
+const OPTIONAL_PROVIDERS: Set<string> = new Set(['coingecko', 'defiLlama', 'moralis'])
 
 function isProviderActive(p: ProviderStatus): boolean {
   return p.lastSuccessAt !== null || p.lastErrorAt !== null
 }
 
 function determineStatus(h: Omit<HealthResponse, 'status' | 'advisoryStatus'>): 'OK' | 'DEGRADED' | 'DOWN' {
-  if (!h.providers.coingecko.ok && (h.dataFreshness.scanAgeMin === null || h.dataFreshness.scanAgeMin > 60)) {
-    return 'DOWN'
-  }
+  // CRITICAL: Core trading path is FMP + scan data
+  // CoinGecko is optional for NASDAQ - only required for crypto terminal
+  
+  // If NO data at all (both NASDAQ and crypto), system is DOWN
   if (h.dataFreshness.scanAgeMin === null && h.dataFreshness.coinsBulkAgeMin === null) {
     return 'DOWN'
   }
 
+  // If Redis is required but down, critical failure
   if (h.cache.redis.required && !h.cache.redis.ok) return 'DOWN'
 
+  // FMP is core provider for NASDAQ - if down, DEGRADED
+  if (!h.providers.fmp.ok && isProviderActive(h.providers.fmp)) return 'DEGRADED'
+
+  // Active non-optional providers having issues -> DEGRADED
   const activeProviderIssue = (Object.entries(h.providers) as [string, ProviderStatus][]).some(
-    ([name, p]) => !OPTIONAL_PROVIDERS.has(name) && isProviderActive(p) && !p.ok
+    ([name, p]) => !OPTIONAL_PROVIDERS.has(name) && name !== 'coingecko' && isProviderActive(p) && !p.ok
   )
   if (activeProviderIssue) return 'DEGRADED'
 
-  // Core operational signal should prioritize the active trading path (scan + quotes).
+  // SLA breaches are warnings, not critical failures
   if (h.sla.scanBreached || h.sla.stocksQuoteBreached) return 'DEGRADED'
-  if (!h.providers.fmp.ok) return 'DEGRADED'
   if (!h.cache.redis.ok) return 'DEGRADED'
 
   return 'OK'

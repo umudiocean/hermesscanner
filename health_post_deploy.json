@@ -1,0 +1,96 @@
+﻿{
+    "status":  "DOWN",
+    "advisoryStatus":  "OK",
+    "timestamp":  "2026-02-25T19:30:13.643Z",
+    "build":  {
+                  "commitSha":  "a3562bd936e7938cd07d274a2d64a938059bf9be",
+                  "buildTime":  "unknown",
+                  "env":  "production"
+              },
+    "providers":  {
+                      "coingecko":  {
+                                        "ok":  false,
+                                        "lastSuccessAt":  null,
+                                        "lastErrorAt":  null,
+                                        "errorRate1h":  0,
+                                        "http429Rate1h":  0
+                                    },
+                      "defiLlama":  {
+                                        "ok":  false,
+                                        "lastSuccessAt":  null,
+                                        "lastErrorAt":  null,
+                                        "errorRate1h":  0,
+                                        "http429Rate1h":  0
+                                    },
+                      "fmp":  {
+                                  "ok":  true,
+                                  "lastSuccessAt":  "2026-02-25T19:29:47.662Z",
+                                  "lastErrorAt":  "2026-02-25T19:26:06.496Z",
+                                  "errorRate1h":  0.001,
+                                  "http429Rate1h":  0
+                              },
+                      "moralis":  {
+                                      "ok":  false,
+                                      "lastSuccessAt":  null,
+                                      "lastErrorAt":  null,
+                                      "errorRate1h":  0,
+                                      "http429Rate1h":  0
+                                  }
+                  },
+    "cache":  {
+                  "redis":  {
+                                "ok":  true,
+                                "lastWriteAt":  "2026-02-25T19:26:17.537Z",
+                                "lastReadAt":  "2026-02-25T19:27:23.682Z",
+                                "required":  false
+                            },
+                  "tierHits1h":  {
+                                     "memory":  24,
+                                     "redis":  16,
+                                     "disk":  0,
+                                     "origin":  9
+                                 }
+              },
+    "dataFreshness":  {
+                          "cryptoMarketAgeMin":  null,
+                          "coinsBulkAgeMin":  null,
+                          "derivativesAgeMin":  null,
+                          "scanAgeMin":  null,
+                          "stocksQuoteAgeMin":  0
+                      },
+    "guards":  {
+                   "squeezeGuardEnabled":  true,
+                   "shortsBlocked1h":  0,
+                   "blockedReasonCounts1h":  {
+
+                                             }
+               },
+    "watchdog":  {
+                     "lastRunAt":  null,
+                     "lastStatus":  null,
+                     "lastSelfHealAt":  null,
+                     "selfHealSuccess1h":  0,
+                     "selfHealFail1h":  0
+                 },
+    "sla":  {
+                "cryptoMarketBreached":  false,
+                "derivativesBreached":  false,
+                "scanBreached":  false,
+                "coinsBulkBreached":  false,
+                "stocksQuoteBreached":  false
+            },
+    "sloTrend1h":  {
+                       "totalChecks1h":  0,
+                       "breachCounts1h":  {
+                                              "cryptoMarket":  0,
+                                              "derivatives":  0,
+                                              "scan":  0,
+                                              "coinsBulk":  0,
+                                              "stocksQuote":  0
+                                          }
+                   },
+    "opsThresholds":  {
+                          "cacheOriginWarnPct":  25,
+                          "cacheOriginCriticalPct":  40
+                      }
+}

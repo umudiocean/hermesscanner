@@ -1087,8 +1087,17 @@ export default function ModuleNasdaqSignals() {
             <tbody>
               {renderGuard.blocked ? (
                 <tr>
-                  <td colSpan={15} className="text-center py-12 text-red-300 text-sm">
-                    Signals are temporarily blocked due to stale freshness guardrail.
+                  <td colSpan={15} className="text-center py-12 space-y-2">
+                    <div className="text-red-300 text-sm font-medium">
+                      {renderGuard.marketOpen 
+                        ? 'Signals temporarily blocked - System health check failed'
+                        : 'Market Closed - Using last available data'}
+                    </div>
+                    <div className="text-white/40 text-xs">
+                      {renderGuard.marketOpen
+                        ? `Scan age: ${renderGuard.scanAgeMin?.toFixed(0) || 'N/A'} min • System will auto-recover`
+                        : `Last scan: ${renderGuard.scanAgeMin ? Math.floor(renderGuard.scanAgeMin / 60) : 'N/A'}h ago • Next refresh at market open (09:30 ET)`}
+                    </div>
                   </td>
                 </tr>
               ) : isLoading ? (
