@@ -55,9 +55,13 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now()
 
   const authHeader = request.headers.get('authorization')
+  const internalCron = request.headers.get('x-internal-cron')
   const cronSecret = process.env.CRON_SECRET
   const vercelCron = request.headers.get('x-vercel-cron')
-  const isAuthorized = (cronSecret && authHeader === `Bearer ${cronSecret}`) || vercelCron === '1'
+  const isAuthorized = (cronSecret && (
+    authHeader === `Bearer ${cronSecret}` ||
+    internalCron === cronSecret
+  )) || vercelCron === '1'
 
   if (!isAuthorized) {
     logger.warn('Cron unauthorized request', { module: 'cron' })

@@ -34,22 +34,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ ran: false, error: 'Redis required but unavailable' }, { status: 503 })
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL
-      ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+    const appUrl = request.nextUrl.origin
+      ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : process.env.NEXT_PUBLIC_APP_URL)
+      ?? 'http://localhost:3000'
+    const cronSecret = process.env.CRON_SECRET ?? ''
 
     const etNow = getNowET()
     const universe = pickUniverseTierForHour(etNow.getHours())
 
     const scanRes = await fetch(`${appUrl}/api/cron?universe=${universe}`, {
       headers: {
-        'x-vercel-cron': '1',
-        'authorization': `Bearer ${process.env.CRON_SECRET ?? ''}`,
+        ...(cronSecret ? {
+          'authorization': `Bearer ${cronSecret}`,
+          'x-internal-cron': cronSecret,
+        } : {}),
       },
       signal: AbortSignal.timeout(290000),
     })
 
     if (!scanRes.ok) {
-      throw new Error(`Scan cron returned ${scanRes.status}`)
+      const errBody = await scanRes.text().catch(() => '')
+      throw new Error(`Scan cron returned ${scanRes.status}${errBody ? `: ${errBody.slice(0, 200)}` : ''}`)
     }
 
     const result = await scanRes.json()
