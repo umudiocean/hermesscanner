@@ -85,6 +85,114 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
       const changeColor = changePct >= 0 ? 'green' as const : 'red' as const
       const dcfUpside = (dc && p) ? ((dc.dcf - p.price) / p.price * 100) : null
 
+      let marketTrendRows: Array<{ label: string; value: string | number | null; color?: 'green' | 'red' | 'amber' }> = []
+      let pulseRows: Array<{ label: string; value: string | number | null; color?: 'green' | 'red' | 'amber' }> = []
+      try {
+        const marketRes = await fetch('/api/fmp-terminal/market')
+        if (marketRes.ok) {
+          const market = await marketRes.json() as {
+            indexes?: Array<{ symbol: string; changesPercentage?: number }>
+            fearGreedIndex?: number
+            fearGreedLabel?: string
+            sectorPerformance?: Array<{ changesPercentage?: number }>
+            topGainers?: Array<{ changesPercentage?: number }>
+            topLosers?: Array<{ changesPercentage?: number }>
+          }
+          const idx = market.indexes || []
+          const avgIdx = idx.length > 0
+            ? idx.reduce((s, i) => s + (i.changesPercentage ?? 0), 0) / idx.length
+            : null
+          const sectors = market.sectorPerformance || []
+          const sectorUp = sectors.filter(s => (s.changesPercentage ?? 0) > 0).length
+          const sectorTotal = sectors.length
+          const breadth = sectorTotal > 0 ? Math.round((sectorUp / sectorTotal) * 100) : null
+          const gainerStr = (market.topGainers || []).slice(0, 5).reduce((s, g) => s + Math.abs(g.changesPercentage ?? 0), 0)
+          const loserStr = (market.topLosers || []).slice(0, 5).reduce((s, l) => s + Math.abs(l.changesPercentage ?? 0), 0)
+          const momentumBias = gainerStr >= loserStr ? 'RISK-ON' : 'RISK-OFF'
+
+          marketTrendRows = [
+            {
+              label: 'Index Avg Change',
+              value: avgIdx != null ? `${avgIdx >= 0 ? '+' : ''}${avgIdx.toFixed(2)}%` : null,
+              color: avgIdx != null ? (avgIdx >= 0 ? 'green' : 'red') : undefined,
+            },
+            {
+              label: 'Sector Breadth',
+              value: breadth != null ? `${breadth}% (${sectorUp}/${sectorTotal})` : null,
+              color: breadth != null ? (breadth >= 55 ? 'green' : breadth <= 45 ? 'red' : 'amber') : undefined,
+            },
+            {
+              label: 'Fear & Greed',
+              value: market.fearGreedIndex != null ? `${market.fearGreedIndex} (${market.fearGreedLabel || 'NA'})` : null,
+              color: market.fearGreedIndex != null ? (market.fearGreedIndex >= 60 ? 'green' : market.fearGreedIndex <= 40 ? 'red' : 'amber') : undefined,
+            },
+            {
+              label: 'Momentum Bias',
+              value: momentumBias,
+              color: momentumBias === 'RISK-ON' ? 'green' : 'red',
+            },
+          ]
+        }
+      } catch {
+        // market context is optional for pdf
+      }
+
+      try {
+        const pulseRes = await fetch('/api/wall-street-pulse')
+        if (pulseRes.ok) {
+          const pulse = await pulseRes.json() as {
+            composite?: number
+            levelLabel?: string
+            marketOpen?: boolean
+            forecast?: {
+              bias?: 'POZITIF' | 'NEGATIF' | 'NOTR'
+              confidence?: number
+              regime?: 'EXTREME' | 'HIGH_VOL' | 'LOW_VOL' | 'NORMAL'
+              isGoldenSignal?: boolean
+              specialSignals?: Array<{ label: string }>
+            }
+          }
+          const conf = pulse.forecast?.confidence ?? null
+          const regime = pulse.forecast?.regime ?? null
+          const bias = pulse.forecast?.bias ?? null
+          const specialCount = pulse.forecast?.specialSignals?.length ?? 0
+          pulseRows = [
+            {
+              label: 'Pulse Composite',
+              value: pulse.composite != null ? `${pulse.composite}/100 (${pulse.levelLabel || 'NA'})` : null,
+              color: pulse.composite != null ? (pulse.composite >= 60 ? 'green' : pulse.composite <= 40 ? 'red' : 'amber') : undefined,
+            },
+            {
+              label: 'Market Regime',
+              value: regime,
+              color: regime ? (regime === 'LOW_VOL' || regime === 'NORMAL' ? 'green' : regime === 'EXTREME' ? 'red' : 'amber') : undefined,
+            },
+            {
+              label: 'Opening Forecast',
+              value: bias,
+              color: bias ? (bias === 'POZITIF' ? 'green' : bias === 'NEGATIF' ? 'red' : 'amber') : undefined,
+            },
+            {
+              label: 'Forecast Confidence',
+              value: conf != null ? `${conf}%` : null,
+              color: conf != null ? (conf >= 60 ? 'green' : conf >= 40 ? 'amber' : 'red') : undefined,
+            },
+            {
+              label: 'Special Signals',
+              value: `${specialCount}${pulse.forecast?.isGoldenSignal ? ' (GOLDEN)' : ''}`,
+              color: pulse.forecast?.isGoldenSignal ? 'green' : undefined,
+            },
+            {
+              label: 'Market Session',
+              value: pulse.marketOpen ? 'OPEN' : 'CLOSED',
+              color: pulse.marketOpen ? 'green' : 'amber',
+            },
+          ]
+        }
+      } catch {
+        // pulse context is optional for pdf
+      }
+
       const catLabels: Record<string, string> = {
         valuation: 'Degerleme', health: 'Finansal Saglik', growth: 'Buyume',
         analyst: 'Analist', quality: 'Kalite', momentum: 'Momentum',
@@ -121,6 +229,18 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               { label: '52W Range', value: p?.range },
               { label: 'Avg Volume', value: p?.volAvg ? `${(p.volAvg / 1e6).toFixed(2)}M` : null },
               { label: 'Employees', value: p?.fullTimeEmployees },
+            ],
+          },
+          {
+            title: 'Market Trend Context',
+            rows: marketTrendRows.length > 0 ? marketTrendRows : [
+              { label: 'Status', value: 'Market trend context unavailable', color: 'amber' as const },
+            ],
+          },
+          {
+            title: 'Market Regime & Pulse',
+            rows: pulseRows.length > 0 ? pulseRows : [
+              { label: 'Status', value: 'Pulse context unavailable', color: 'amber' as const },
             ],
           },
           {

@@ -225,6 +225,47 @@ function MiniMetric({ label, value, sub, color }: { label: string; value: string
   )
 }
 
+function ComponentHealthPanel({ data }: { data: PulseData }) {
+  const rows = (data.components || []).map((c) => {
+    const fallback = c.id === 'vix' && c.rawValue == null
+    const status = !c.available ? 'BEKLEME' : fallback ? 'PROXY' : 'AKTIF'
+    const statusColor =
+      status === 'AKTIF'
+        ? 'text-emerald-400'
+        : status === 'PROXY'
+          ? 'text-amber-300'
+          : 'text-slate-400'
+    return { ...c, status, statusColor }
+  })
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-[11px]">
+        <thead>
+          <tr className="text-white/40 border-b border-white/[0.06]">
+            <th className="text-left py-1.5 px-1">Bilesen</th>
+            <th className="text-left py-1.5 px-1">Kaynak</th>
+            <th className="text-right py-1.5 px-1">Skor</th>
+            <th className="text-right py-1.5 px-1">Agirlik</th>
+            <th className="text-right py-1.5 px-1">Durum</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id} className="border-b border-white/[0.03]">
+              <td className="py-1.5 px-1 text-white/75">{r.name}</td>
+              <td className="py-1.5 px-1 text-white/45">{r.source}</td>
+              <td className="py-1.5 px-1 text-right text-white/70 tabular-nums">{r.available ? r.value.toFixed(0) : '--'}</td>
+              <td className="py-1.5 px-1 text-right text-white/45 tabular-nums">{Math.round(r.weight * 100)}%</td>
+              <td className={`py-1.5 px-1 text-right font-medium ${r.statusColor}`}>{r.status}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ─── Component Icon Map ───────────────────────────────────────────
 
 function getComponentIcon(id: string) {
@@ -327,7 +368,7 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
           {sorted.filter(c => !c.available).length > 0 && (
             <div className="mt-2 pt-2 border-t border-white/[0.04]">
               <p className="text-[9px] text-white/25">
-                {!pulse.marketOpen ? 'Piyasa kapali — bazi bilesenlerin canli verisi yok (insider, kongre, analist, kazanc, put/call, kurumsal). Piyasa acildiginda aktif olur.' : 'Bazi bilesenler icin veri alinamiyor.'}
+                {!pulse.marketOpen ? 'Piyasa kapali — bazi bilesenler son kapanis/proxy veriyle hesaplanir, acilisla birlikte canli guncellenir.' : 'Bazi bilesenlerde kaynak veri eksik olabilir; model kalan aktif bilesenlerle adaptif hesap yapar.'}
               </p>
             </div>
           )}
@@ -358,6 +399,10 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
 
         <CollapseSection title="Short Squeeze Radar" icon={<AlertTriangle size={14} />}>
           <SqueezePanel data={pulse} onSelectSymbol={onSelectSymbol} />
+        </CollapseSection>
+
+        <CollapseSection title="Bilesen Saglik Paneli" icon={<Activity size={14} />}>
+          <ComponentHealthPanel data={pulse} />
         </CollapseSection>
 
         <CollapseSection title="Ongoru Zekasi (V4 Model)" icon={<Shield size={14} />} defaultOpen={true}>

@@ -483,17 +483,32 @@ export function calculateHermes(
   // Configurable thresholds: config > ENTRY_FILTERS > default
   const longTh = cfg.long_th ?? ENTRY_FILTERS.LONG_TH
   const shortTh = cfg.short_th ?? ENTRY_FILTERS.SHORT_TH
+  let adaptiveLongTh = longTh
+  let adaptiveShortTh = shortTh
+
+  // Regime-adaptive thresholding:
+  // bullish regime -> allow slightly more long triggers
+  // bearish regime -> allow slightly more short triggers
+  if (trendContext) {
+    if (trend.composite <= 40) {
+      adaptiveLongTh = Math.min(longTh + 4, 45)
+      adaptiveShortTh = Math.min(shortTh + 2, 95)
+    } else if (trend.composite >= 60) {
+      adaptiveLongTh = Math.max(longTh - 4, 20)
+      adaptiveShortTh = Math.max(shortTh - 4, 75)
+    }
+  }
 
   if (totalScore <= 20) {
     signal = 'STRONG LONG'
     signalType = 'strong_long'
-  } else if (totalScore <= longTh) {
+  } else if (totalScore <= adaptiveLongTh) {
     signal = 'LONG'
     signalType = 'long'
-  } else if (totalScore < (shortTh - 20)) {
+  } else if (totalScore < (adaptiveShortTh - 20)) {
     signal = 'NOTR'
     signalType = 'neutral'
-  } else if (totalScore < shortTh) {
+  } else if (totalScore < adaptiveShortTh) {
     signal = 'SHORT'
     signalType = 'short'
   } else {

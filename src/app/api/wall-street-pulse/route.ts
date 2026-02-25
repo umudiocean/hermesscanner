@@ -28,6 +28,15 @@ export const dynamic = 'force-dynamic'
 
 const PULSE_CACHE_TTL = 5 * 60 * 1000 // 5 min
 
+type TerminalStockLite = {
+  symbol: string
+  sector?: string
+  shortFloat?: number
+  categories?: {
+    smartMoney?: number
+  }
+}
+
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   const LOG = '[Pulse API]'
@@ -65,6 +74,7 @@ async function computePulseData(): Promise<PulseData> {
   // Parallel data fetching — maximize speed, minimize serial deps
   const [
     stocksData,
+    terminalStocksData,
     ratingsData,
     earningsData,
     treasuryData,
@@ -75,6 +85,7 @@ async function computePulseData(): Promise<PulseData> {
     putCallRatio,
   ] = await Promise.allSettled([
     fetchStockQuotes(),
+    fetchTerminalStocksSnapshot(),
     fetchAnalystConsensus(),
     fetchEarningsSurprises(),
     fetchTreasuryRates(),
@@ -86,6 +97,7 @@ async function computePulseData(): Promise<PulseData> {
   ])
 
   const stocks = getResult<StockQuote[]>(stocksData, [])
+  const terminalStocks = getResult<TerminalStockLite[]>(terminalStocksData, [])
   const ratings = getResult<AnalystConsensus[]>(ratingsData, [])
   const earnings = getResult<EarningsSurprise[]>(earningsData, [])
   const treasury = getResult<TreasuryRate[]>(treasuryData, [])
@@ -95,10 +107,36 @@ async function computePulseData(): Promise<PulseData> {
   const vix = getResult<number | null>(vixValue, null)
   const pc = getResult<number | null>(putCallRatio, null)
 
-  logger.info(`${LOG} Data: ${stocks.length} stocks, ${ratings.length} ratings, ${earnings.length} earnings, VIX=${vix}, P/C=${pc}`)
+  logger.info(`${LOG} Data: ${stocks.length} stocks, terminal=${terminalStocks.length}, ratings=${ratings.length}, earnings=${earnings.length}, VIX=${vix}, P/C=${pc}`)
 
-  // Insider stats — aggregate from stocks that have shortFloat data
-  const insiderStats: InsiderStat[] = []
+  // Enrich quote universe with sector/shortFloat from Hermes AI stocks snapshot.
+  const terminalBySymbol = new Map(terminalStocks.map(s => [s.symbol, s]))
+  for (const q of stocks) {
+    const t = terminalBySymbol.get(q.symbol)
+    if (!t) continue
+    if (q.sector == null && t.sector) q.sector = t.sector
+    if (q.shortFloat == null && typeof t.shortFloat === 'number') q.shortFloat = t.shortFloat
+  }
+
+  // SmartMoney category proxy -> insider/institutional market sentiment
+  const smartScores = terminalStocks
+    .map(s => s.categories?.smartMoney)
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+  const avgSmartMoney = smartScores.length > 0
+    ? smartScores.reduce((a, b) => a + b, 0) / smartScores.length
+    : 50
+  const smartBullCount = smartScores.filter(v => v >= 60).length
+  const smartBearCount = smartScores.filter(v => v <= 40).length
+  const insiderStats: InsiderStat[] = smartScores.length > 0
+    ? [{
+      symbol: 'MARKET',
+      purchases: smartBullCount,
+      sales: smartBearCount,
+      totalBought: smartBullCount,
+      totalSold: smartBearCount,
+    }]
+    : []
+  const institutionalDelta = Math.max(-1, Math.min(1, (avgSmartMoney - 50) / 50))
 
   const congressAll: CongressTrade[] = [
     ...senate.map(t => ({ type: t.type, amount: t.amount })),
@@ -117,11 +155,32 @@ async function computePulseData(): Promise<PulseData> {
     sectorPerformance: sectors,
     vixValue: vix,
     putCallRatio: pc,
-    institutionalDelta: 0,
+    institutionalDelta,
     marketOpen: isMarketOpen,
   }
 
   return calculatePulse(inputs)
+}
+
+async function fetchTerminalStocksSnapshot(): Promise<TerminalStockLite[]> {
+  try {
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    const res = await fetch(`${baseUrl}/api/fmp-terminal/stocks`, {
+      headers: {
+        'authorization': `Bearer ${process.env.CRON_SECRET ?? ''}`,
+      },
+      signal: AbortSignal.timeout(20000),
+      cache: 'no-store',
+    })
+    if (!res.ok) return []
+    const json = await res.json() as { stocks?: TerminalStockLite[] }
+    return Array.isArray(json.stocks) ? json.stocks : []
+  } catch (error) {
+    logger.warn('[Pulse] terminal stocks snapshot fetch failed', { module: 'pulseRoute', error: (error as Error).message })
+    return []
+  }
 }
 
 // ─── Data Fetchers ──────────────────────────────────────────────

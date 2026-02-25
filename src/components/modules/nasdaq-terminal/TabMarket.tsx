@@ -114,6 +114,16 @@ const INDEX_META: Record<string, { icon: string; desc: string; tier: 'official' 
   'FIN': { icon: '💰', desc: 'En buyuk 50 finans', tier: 'sector' },
 }
 
+type ForecastHistoryEntry = {
+  ts: number
+  bucket: string
+  bias: 'POZITIF' | 'NEGATIF' | 'NOTR'
+  confidence: number
+  idxChangeAtRecord: number
+  outcome30?: boolean
+  outcome60?: boolean
+}
+
 export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
   const [data, setData] = useState<MarketDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -1496,6 +1506,55 @@ function MarketOpenForecast({ data }: { data: MarketDashboardData }) {
   const borderColor = isGoldenSignal ? 'border-gold-400/40' : pct >= 65 ? 'border-emerald-500/30' : pct <= 35 ? 'border-red-500/30' : 'border-white/10'
   const bgColor = isGoldenSignal ? 'bg-gold-400/[0.04]' : pct >= 65 ? 'bg-emerald-500/[0.04]' : pct <= 35 ? 'bg-red-500/[0.04]' : 'bg-white/[0.02]'
   const accentColor = isGoldenSignal ? '#B3945B' : pct >= 65 ? '#62cbc1' : pct <= 35 ? '#ef4444' : '#94a3b8'
+  const idxAvgNow = idxs.length > 0
+    ? idxs.reduce((sum, i) => sum + (i.changesPercentage ?? 0), 0) / idxs.length
+    : 0
+
+  const [perf, setPerf] = useState<{ d7: number; d30: number; n7: number; n30: number }>({ d7: 0, d30: 0, n7: 0, n30: 0 })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const KEY = 'hermes_open_forecast_perf_v1'
+    const now = Date.now()
+    const bucket = new Date(now).toISOString().slice(0, 16)
+    const isMatch = (b: 'POZITIF' | 'NEGATIF' | 'NOTR', chg: number): boolean => {
+      if (b === 'POZITIF') return chg > 0
+      if (b === 'NEGATIF') return chg < 0
+      return Math.abs(chg) <= 0.2
+    }
+    try {
+      const raw = localStorage.getItem(KEY)
+      const arr: ForecastHistoryEntry[] = raw ? JSON.parse(raw) : []
+      // De-duplicate within same minute bucket
+      if (!arr.some(r => r.bucket === bucket && r.bias === biasShort)) {
+        arr.push({
+          ts: now,
+          bucket,
+          bias: biasShort,
+          confidence,
+          idxChangeAtRecord: idxAvgNow,
+        })
+      }
+
+      // Resolve pending outcomes using latest index direction once maturity passed
+      for (const r of arr) {
+        const ageMin = (now - r.ts) / 60000
+        if (r.outcome30 == null && ageMin >= 30) r.outcome30 = isMatch(r.bias, idxAvgNow)
+        if (r.outcome60 == null && ageMin >= 60) r.outcome60 = isMatch(r.bias, idxAvgNow)
+      }
+
+      const keep = arr.filter(r => now - r.ts <= 45 * 24 * 60 * 60 * 1000)
+      localStorage.setItem(KEY, JSON.stringify(keep))
+
+      const recent7 = keep.filter(r => now - r.ts <= 7 * 24 * 60 * 60 * 1000 && r.outcome30 != null)
+      const recent30 = keep.filter(r => now - r.ts <= 30 * 24 * 60 * 60 * 1000 && r.outcome30 != null)
+      const wr7 = recent7.length > 0 ? Math.round((recent7.filter(r => r.outcome30).length / recent7.length) * 100) : 0
+      const wr30 = recent30.length > 0 ? Math.round((recent30.filter(r => r.outcome30).length / recent30.length) * 100) : 0
+      setPerf({ d7: wr7, d30: wr30, n7: recent7.length, n30: recent30.length })
+    } catch {
+      // no-op
+    }
+  }, [biasShort, confidence, idxAvgNow])
 
   return (
     <div className={`rounded-2xl border p-3 sm:p-4 shadow-xl shadow-black/20 transition-all duration-500 ${borderColor} ${bgColor} ${cardGlow}`}>
@@ -1583,6 +1642,30 @@ function MarketOpenForecast({ data }: { data: MarketDashboardData }) {
           <span className="text-[9px] text-white/20">Backtest Hit Rate: %{isGoldenSignal ? '68.8 (1G) / %81.2 (3G)' : pct >= 65 || pct <= 35 ? '59.1 (1G)' : '--'}</span>
         </div>
         <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.03] text-white/15 font-mono">V4</span>
+      </div>
+
+      {/* Forecast Performance Tracker */}
+      <div className="mt-2 rounded-lg bg-white/[0.02] border border-white/[0.05] px-2.5 py-2">
+        <div className="flex items-center justify-between text-[9px] text-white/30 mb-1.5">
+          <span>Forecast Tracker (auto, browser)</span>
+          <span>30m validation</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-md bg-white/[0.02] border border-white/[0.04] px-2 py-1.5">
+            <div className="text-[9px] text-white/35">7 Gun WR</div>
+            <div className={`text-sm font-bold tabular-nums ${perf.d7 >= 60 ? 'text-hermes-green' : perf.d7 >= 45 ? 'text-gold-300' : 'text-red-400'}`}>
+              %{perf.d7}
+            </div>
+            <div className="text-[9px] text-white/25">{perf.n7} ornek</div>
+          </div>
+          <div className="rounded-md bg-white/[0.02] border border-white/[0.04] px-2 py-1.5">
+            <div className="text-[9px] text-white/35">30 Gun WR</div>
+            <div className={`text-sm font-bold tabular-nums ${perf.d30 >= 60 ? 'text-hermes-green' : perf.d30 >= 45 ? 'text-gold-300' : 'text-red-400'}`}>
+              %{perf.d30}
+            </div>
+            <div className="text-[9px] text-white/25">{perf.n30} ornek</div>
+          </div>
+        </div>
       </div>
     </div>
   )
