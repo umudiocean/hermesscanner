@@ -15,7 +15,17 @@ import { getHistorical15MinDelta, getBatchQuotes } from '@/lib/fmp-client'
 import { calculateHermes } from '@/lib/hermes-engine'
 import { saveScanResults, loadLatestScan } from '@/lib/scan-store'
 import { ScanResult, ScanSummary, OHLCV } from '@/lib/types'
-import { getBarCache, setBarCache, getBootstrapProgress, acquireRefreshLockRedis, releaseRefreshLockRedis, setTradeReadySymbols } from '@/lib/cache/redis-cache'
+import {
+  getBarCache,
+  setBarCache,
+  getBootstrapProgress,
+  getBootstrapCheckpoint,
+  getBootstrapSkipped,
+  getBarCacheCount,
+  acquireRefreshLockRedis,
+  releaseRefreshLockRedis,
+  setTradeReadySymbols,
+} from '@/lib/cache/redis-cache'
 import { isRedisAvailable, isRedisRequired } from '@/lib/cache/redis-client'
 import { isMarketOpen, getNowET, getETMinutes } from '@/lib/scheduler/marketHours'
 import { createApiError } from '@/lib/validation/ohlcv-validator'
@@ -97,11 +107,36 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  let bootstrapComplete = false
-  if (redisReady) {
-    const progress = await getBootstrapProgress()
-    bootstrapComplete = !!(progress && progress.status === 'complete')
-  }
+    let bootstrapComplete = false
+    if (redisReady) {
+      const progress = await getBootstrapProgress()
+      bootstrapComplete = !!(progress && progress.status === 'complete')
+
+      // Fallback guard:
+      // bootstrap:progress key can expire while Redis bar cache is still fully available.
+      // In that case, infer bootstrap completion from checkpoint/skipped or bar-cache coverage.
+      if (!bootstrapComplete) {
+        const [checkpoint, skipped, cacheCount] = await Promise.all([
+          getBootstrapCheckpoint(),
+          getBootstrapSkipped(),
+          getBarCacheCount(),
+        ])
+        const allCount = getUniverseTierSymbols('ALL').length
+        const checkpointCovered = (checkpoint?.length ?? 0) + (skipped?.length ?? 0)
+        const coverageThreshold = Math.floor(allCount * 0.95)
+
+        if (checkpointCovered >= coverageThreshold || cacheCount >= coverageThreshold) {
+          bootstrapComplete = true
+          logger.info('Cron bootstrap fallback activated from Redis coverage', {
+            module: 'cron',
+            checkpointCovered,
+            cacheCount,
+            allCount,
+            coverageThreshold,
+          })
+        }
+      }
+    }
 
   // Decide mode
   let mode: 'REDIS_SCAN' | 'DELTA' | 'FULL_STITCH'
