@@ -17,6 +17,7 @@ export const maxDuration = 30
 
 interface HealthResponse {
   status: 'OK' | 'DEGRADED' | 'DOWN'
+  advisoryStatus: 'OK' | 'DEGRADED'
   timestamp: string
   build: {
     commitSha: string
@@ -113,10 +114,22 @@ function determineStatus(h: Omit<HealthResponse, 'status'>): 'OK' | 'DEGRADED' |
   )
   if (activeProviderIssue) return 'DEGRADED'
 
+  // Core operational signal should prioritize the active trading path (scan + quotes).
+  if (h.sla.scanBreached || h.sla.stocksQuoteBreached) return 'DEGRADED'
+  if (!h.providers.fmp.ok) return 'DEGRADED'
+  if (!h.cache.redis.ok) return 'DEGRADED'
+
+  return 'OK'
+}
+
+function determineAdvisoryStatus(h: Omit<HealthResponse, 'status' | 'advisoryStatus'>): 'OK' | 'DEGRADED' {
+  const optionalProviderIssue = (Object.entries(h.providers) as [string, ProviderStatus][])
+    .some(([name, p]) => OPTIONAL_PROVIDERS.has(name) && isProviderActive(p) && !p.ok)
+
+  if (optionalProviderIssue) return 'DEGRADED'
   if (Object.values(h.sla).some(Boolean)) return 'DEGRADED'
   if (h.providers.coingecko.errorRate1h > 0.1) return 'DEGRADED'
   if (h.providers.coingecko.http429Rate1h > 0.05) return 'DEGRADED'
-  if (!h.cache.redis.ok) return 'DEGRADED'
 
   return 'OK'
 }
@@ -154,7 +167,7 @@ export async function GET(request: NextRequest) {
     const redisOk = isRedisAvailable()
     const redisRequired = isRedisRequired()
 
-    const body: Omit<HealthResponse, 'status'> = {
+    const body: Omit<HealthResponse, 'status' | 'advisoryStatus'> = {
       timestamp: new Date().toISOString(),
       build: {
         commitSha: process.env.VERCEL_GIT_COMMIT_SHA ?? 'local',
@@ -187,15 +200,17 @@ export async function GET(request: NextRequest) {
     }
 
     const status = determineStatus(body)
+    const advisoryStatus = determineAdvisoryStatus(body)
 
     sentinelLog.debug('CRON_HEALTH_CHECK', { status })
 
     return NextResponse.json(
-      { status, ...body } as HealthResponse,
+      { status, advisoryStatus, ...body } as HealthResponse,
       {
         headers: {
           'Cache-Control': 'no-store',
           'X-Hermes-Health-Status': status,
+          'X-Hermes-Advisory-Status': advisoryStatus,
           'X-Hermes-Scan-Age-Min': String(body.dataFreshness.scanAgeMin ?? -1),
           'X-Hermes-Quote-Age-Min': String(body.dataFreshness.stocksQuoteAgeMin ?? -1),
           'X-Hermes-Sla-Scan-Breached': String(body.sla.scanBreached),

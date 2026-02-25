@@ -84,9 +84,10 @@ export interface SlaTrend1h {
 // HERMES_FIX: SLA_THRESHOLDS_v2 — Data freshness SLA definitions
 // stocksQuote relaxed from 15 to 120 min (scan refreshes every 60 min during market hours)
 export const SLA_THRESHOLDS_MINUTES: Record<DataKey, number> = {
-  cryptoMarket: 30,
-  coinsBulk: 60,
-  derivatives: 60,
+  // Crypto refresh runs every 4h (6x/day). Keep an additional buffer for transient delays.
+  cryptoMarket: 300,
+  coinsBulk: 300,
+  derivatives: 300,
   scan: 120,
   stocksQuote: 120,
   europeScan: 600,
