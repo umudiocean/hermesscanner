@@ -25,6 +25,22 @@ export interface ChartData {
   type: 'line' | 'bar' | 'sparkline'
 }
 
+export interface PriceHistory {
+  dates: string[] // Last 30 days
+  prices: number[]
+  volumes: number[]
+}
+
+export interface ComparisonMetrics {
+  symbol: string
+  metrics: {
+    pe: number
+    pb: number
+    roe: number
+    score: number
+  }
+}
+
 export interface WallStreetPulse {
   insiderActivity: {
     netBuys: number
@@ -83,6 +99,10 @@ interface DownloadPdfInput {
   technicalIndicators?: TechnicalIndicators
   priceChart?: ChartData
   scoreBreakdown?: Array<{ category: string; score: number; weight: number }>
+  // NEW v2: Advanced visualizations
+  priceHistory?: PriceHistory // 30-day sparkline + volume bars
+  comparisonMatrix?: ComparisonMetrics[] // Heatmap for peers
+  detailPageUrl?: string // For QR code
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -140,11 +160,11 @@ function drawGradientHeader(doc: any, title: string, subtitle: string, marginX: 
   doc.text(title, marginX, y)
   y += 18
 
-  // Subtitle with icon
+  // Subtitle
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
   doc.setTextColor(180, 180, 195)
-  doc.text(`📊 ${subtitle}`, marginX, y)
+  doc.text(subtitle, marginX, y)
 
   // Timestamp - right aligned
   doc.setTextColor(140, 140, 155)
@@ -234,10 +254,11 @@ function drawPremiumSectionHeader(
   doc.setFillColor(180, 150, 90)
   doc.rect(x - 4, y - 2, 4, 20, 'F')
 
-  // Icon if provided
+  // Icon if provided (simplified - no emoji)
   if (icon) {
-    doc.setFontSize(12)
-    doc.text(icon, x + 4, y + 12)
+    // Draw icon box instead of emoji
+    doc.setFillColor(180, 150, 90)
+    doc.circle(x + 8, y + 8, 4, 'F')
   }
 
   // Title text
@@ -592,19 +613,223 @@ function drawWatermark(doc: any): void {
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
   doc.saveGraphicsState()
-  doc.setGState(new doc.GState({ opacity: 0.06 }))
+  doc.setGState(new doc.GState({ opacity: 0.05 }))
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(48)
+  doc.setFontSize(42)
   doc.setTextColor(180, 150, 90)
   for (let y = 100; y <= pageHeight + 50; y += 130) {
-    for (let x = 50; x <= pageWidth + 100; x += 360) {
-      doc.text('HERMES AI', x, y, { angle: 28, align: 'center' })
+    for (let x = 50; x <= pageWidth + 100; x += 320) {
+      doc.text('apphermesai.com', x, y, { angle: 28, align: 'center' })
     }
   }
   doc.restoreGraphicsState()
 }
 
-function drawPremiumFooter(doc: any): void {
+function drawPriceHistoryChart(
+  doc: any,
+  x: number,
+  y: number,
+  width: number,
+  history: PriceHistory
+): number {
+  const chartHeight = 80
+  const volumeHeight = 30
+
+  // Section header
+  y = drawPremiumSectionHeader(doc, 'FIYAT GECMISI (30 GUN)', x, y, width)
+
+  // Chart background
+  doc.setFillColor(18, 18, 28)
+  doc.roundedRect(x, y, width, chartHeight + volumeHeight + 10, 4, 4, 'F')
+
+  // Price sparkline
+  if (history.prices.length > 1) {
+    const min = Math.min(...history.prices)
+    const max = Math.max(...history.prices)
+    const range = max - min || 1
+    const chartX = x + 10
+    const chartY = y + 10
+    const chartW = width - 20
+
+    // Draw grid lines
+    doc.setDrawColor(40, 40, 55)
+    doc.setLineWidth(0.3)
+    for (let i = 0; i <= 4; i++) {
+      const gridY = chartY + (chartHeight * i) / 4
+      doc.line(chartX, gridY, chartX + chartW, gridY)
+    }
+
+    // Draw area fill
+    const priceColor = history.prices[history.prices.length - 1] >= history.prices[0] ? [98, 203, 193] : [239, 68, 68]
+    doc.setFillColor(priceColor[0], priceColor[1], priceColor[2], 15)
+    
+    // Draw price line
+    doc.setDrawColor(priceColor[0], priceColor[1], priceColor[2])
+    doc.setLineWidth(2)
+    for (let i = 0; i < history.prices.length - 1; i++) {
+      const x1 = chartX + (i / (history.prices.length - 1)) * chartW
+      const y1 = chartY + chartHeight - ((history.prices[i] - min) / range) * chartHeight
+      const x2 = chartX + ((i + 1) / (history.prices.length - 1)) * chartW
+      const y2 = chartY + chartHeight - ((history.prices[i + 1] - min) / range) * chartHeight
+      doc.line(x1, y1, x2, y2)
+    }
+
+    // Price labels
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.setTextColor(140, 140, 155)
+    doc.text(`$${max.toFixed(2)}`, chartX + chartW + 5, chartY + 5)
+    doc.text(`$${min.toFixed(2)}`, chartX + chartW + 5, chartY + chartHeight)
+  }
+
+  // Volume bars
+  const volumeY = y + chartHeight + 20
+  if (history.volumes.length > 0) {
+    const maxVol = Math.max(...history.volumes)
+    const barW = (width - 20) / history.volumes.length - 1
+    
+    // Take last 10 days
+    const recent = history.volumes.slice(-10)
+    recent.forEach((vol, i) => {
+      const barH = (vol / maxVol) * volumeHeight
+      const barX = x + 10 + i * (barW + 1)
+      const barY = volumeY + volumeHeight - barH
+      
+      doc.setFillColor(80, 80, 95)
+      doc.rect(barX, barY, barW, barH, 'F')
+    })
+
+    // Volume label
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.setTextColor(140, 140, 155)
+    doc.text('Volume (10 gun)', x + 10, volumeY - 5)
+  }
+
+  return volumeY + volumeHeight + 15
+}
+
+function drawComparisonHeatmap(
+  doc: any,
+  x: number,
+  y: number,
+  width: number,
+  comparison: ComparisonMetrics[]
+): number {
+  if (comparison.length === 0) return y
+
+  y = drawPremiumSectionHeader(doc, 'METRIK HEATMAP', x, y, width)
+
+  const cellW = (width - 80) / comparison.length
+  const cellH = 35
+  const metrics = ['pe', 'pb', 'roe', 'score'] as const
+  const labels = ['P/E', 'P/B', 'ROE%', 'Skor']
+
+  // Background
+  doc.setFillColor(18, 18, 28)
+  doc.roundedRect(x, y, width, (metrics.length + 1) * cellH + 10, 4, 4, 'F')
+
+  y += 10
+
+  // Header row (symbols)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8)
+  doc.setTextColor(180, 150, 90)
+  comparison.forEach((comp, i) => {
+    const cellX = x + 80 + i * cellW
+    doc.text(comp.symbol, cellX + cellW / 2, y + 15, { align: 'center' })
+  })
+
+  y += cellH
+
+  // Data rows with heatmap coloring
+  metrics.forEach((metric, rowIdx) => {
+    // Metric label
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(140, 140, 155)
+    doc.text(labels[rowIdx], x + 10, y + 18)
+
+    // Get min/max for normalization
+    const values = comparison.map(c => c.metrics[metric])
+    const min = Math.min(...values)
+    const max = Math.max(...values)
+    const range = max - min || 1
+
+    // Draw cells
+    comparison.forEach((comp, colIdx) => {
+      const cellX = x + 80 + colIdx * cellW
+      const value = comp.metrics[metric]
+      const normalized = (value - min) / range
+
+      // Heatmap color (green = good, red = bad for most metrics)
+      let r, g, b
+      if (metric === 'score' || metric === 'roe') {
+        // Higher is better
+        r = Math.round(239 - normalized * 141)
+        g = Math.round(68 + normalized * 135)
+        b = Math.round(68 + normalized * 125)
+      } else {
+        // Lower is better (PE, PB)
+        r = Math.round(98 + (1 - normalized) * 141)
+        g = Math.round(203 - (1 - normalized) * 135)
+        b = Math.round(193 - (1 - normalized) * 125)
+      }
+
+      // Cell background
+      doc.setFillColor(r, g, b, 40)
+      doc.rect(cellX + 2, y, cellW - 4, cellH, 'F')
+
+      // Value text
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.setTextColor(r, g, b)
+      const displayValue = metric === 'roe' || metric === 'score' 
+        ? value.toFixed(0) 
+        : value.toFixed(1)
+      doc.text(displayValue, cellX + cellW / 2, y + 18, { align: 'center' })
+    })
+
+    y += cellH
+  })
+
+  return y + 15
+}
+
+async function drawQRCode(
+  doc: any,
+  x: number,
+  y: number,
+  url: string
+): Promise<void> {
+  try {
+    // Use dynamic import for QR code generation
+    const QRCode = (await import('qrcode')).default
+    
+    // Generate QR code as data URL
+    const qrDataUrl = await QRCode.toDataURL(url, {
+      width: 80,
+      margin: 1,
+      color: {
+        dark: '#B4965AFF', // Gold
+        light: '#00000000', // Transparent
+      },
+    })
+
+    // Add QR code image
+    doc.addImage(qrDataUrl, 'PNG', x, y, 60, 60)
+
+    // Label
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.setTextColor(140, 140, 155)
+    doc.text('Detay Sayfasi', x + 30, y + 68, { align: 'center' })
+  } catch (e) {
+    // QR code generation failed, skip silently
+  }
+}
+
+async function drawPremiumFooter(doc: any, qrCodeUrl?: string): Promise<void> {
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
   const footerY = pageHeight - 18
@@ -628,6 +853,11 @@ function drawPremiumFooter(doc: any): void {
   
   doc.setTextColor(180, 150, 90)
   doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - 30, footerY, { align: 'right' })
+
+  // QR Code if URL provided
+  if (qrCodeUrl) {
+    await drawQRCode(doc, pageWidth - 90, footerY - 72, qrCodeUrl)
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -736,7 +966,7 @@ export async function downloadHermesReportPdf(input: DownloadPdfInput): Promise<
   // PAGE 2: Score Breakdown + Macro + Technical
   // ═══════════════════════════════════════════════════════════════════════
 
-  drawPremiumFooter(doc)
+  await drawPremiumFooter(doc, input.detailPageUrl)
   doc.addPage()
   doc.setFillColor(240, 240, 245)
   doc.rect(0, 0, pageWidth, pageHeight, 'F')
@@ -770,12 +1000,18 @@ export async function downloadHermesReportPdf(input: DownloadPdfInput): Promise<
     rightY += 20
   }
 
+  // Price History Chart (if provided) - full width
+  if (input.priceHistory && input.priceHistory.prices.length > 0) {
+    const maxY = Math.max(leftY, rightY)
+    y = drawPriceHistoryChart(doc, marginX, maxY, pageWidth - marginX * 2, input.priceHistory)
+  }
+
   // ═══════════════════════════════════════════════════════════════════════
-  // PAGE 3: Sector Comparison (if provided)
+  // PAGE 3: Sector Comparison + Heatmap (if provided)
   // ═══════════════════════════════════════════════════════════════════════
 
   if (input.sectorComparison && input.sectorComparison.peers.length > 0) {
-    drawPremiumFooter(doc)
+    await drawPremiumFooter(doc, input.detailPageUrl)
     doc.addPage()
     doc.setFillColor(240, 240, 245)
     doc.rect(0, 0, pageWidth, pageHeight, 'F')
@@ -783,8 +1019,23 @@ export async function downloadHermesReportPdf(input: DownloadPdfInput): Promise<
 
     y = 36
     y = drawSectorComparisonTable(doc, marginX, y, pageWidth - marginX * 2, input.sectorComparison)
+    y += 20
   }
 
-  drawPremiumFooter(doc)
+  // Comparison Heatmap (if provided)
+  if (input.comparisonMatrix && input.comparisonMatrix.length > 0) {
+    if (!input.sectorComparison || input.sectorComparison.peers.length === 0) {
+      await drawPremiumFooter(doc, input.detailPageUrl)
+      doc.addPage()
+      doc.setFillColor(240, 240, 245)
+      doc.rect(0, 0, pageWidth, pageHeight, 'F')
+      drawWatermark(doc)
+      y = 36
+    }
+    
+    y = drawComparisonHeatmap(doc, marginX, y, pageWidth - marginX * 2, input.comparisonMatrix)
+  }
+
+  await drawPremiumFooter(doc, input.detailPageUrl)
   doc.save(input.fileName)
 }

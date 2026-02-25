@@ -8,7 +8,7 @@ import { Eye, Globe, ExternalLink, TrendingUp, TrendingDown, Activity, Users, Co
 // HERMES_FIX: CLIENT_BUNDLE_WEIGHTS 2026-02-19 — Removed CRYPTO_SCORE_WEIGHTS import (proprietary IP)
 import { CoinDetail, CryptoScore, Derivative, getCryptoScoreColor, CRYPTO_SCORE_LABELS, CRYPTO_CATEGORY_LABELS, CRYPTO_CATEGORY_KEYS, CryptoScoreBreakdown } from '@/lib/crypto-terminal/coingecko-types'
 import SharePanel from '@/components/SharePanel'
-import { downloadHermesReportPdf } from '@/lib/report-pdf'
+import { downloadHermesReportPdf } from '@/lib/report-pdf-premium'
 
 type ValuationTag = 'COK UCUZ' | 'UCUZ' | 'NORMAL' | 'PAHALI' | 'COK PAHALI'
 
@@ -317,11 +317,69 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
         sentiment: 'Sentiment', fundamentals: 'Fundamentals', onchain: 'On-Chain',
         exchange: 'Exchange', derivatives: 'Derivatives',
       }
+      const catWeights: Record<string, number> = {
+        marketStructure: 20, momentum: 18, volume: 15, sentiment: 12,
+        fundamentals: 12, onchain: 10, exchange: 8, derivatives: 5,
+      }
       const scoreRows = score ? Object.entries(score.categories).map(([k, v]) => ({
         label: catLabels[k] || k,
         value: `${Math.round(v as number)}/100`,
         color: ((v as number) >= 66 ? 'green' : (v as number) >= 33 ? 'amber' : 'red') as 'green' | 'amber' | 'red',
       })) : []
+
+      // NEW: Fetch price history for sparkline (30 days)
+      let priceHistory: any = undefined
+      try {
+        const historyRes = await fetch(`/api/crypto-terminal/chart/${coinId}?days=30&interval=daily`)
+        if (historyRes.ok) {
+          const histData = await historyRes.json()
+          if (histData.prices && histData.prices.length > 0) {
+            priceHistory = {
+              dates: histData.prices.map((p: [number, number]) => new Date(p[0]).toLocaleDateString()),
+              prices: histData.prices.map((p: [number, number]) => p[1]),
+              volumes: histData.volumes?.map((v: [number, number]) => v[1]) || [],
+            }
+          }
+        }
+      } catch (e) {
+        // Optional
+      }
+
+      // NEW: Comparison matrix (similar coins)
+      let comparisonMatrix: any = undefined
+      try {
+        // Fetch top coins in same category
+        const category = detail.categories?.[0]
+        if (category) {
+          const catRes = await fetch(`/api/crypto-terminal/coins?limit=5&category=${encodeURIComponent(category)}`)
+          if (catRes.ok) {
+            const coins = await catRes.json()
+            if (Array.isArray(coins) && coins.length > 0) {
+              comparisonMatrix = coins.slice(0, 4).map((c: any) => ({
+                symbol: c.symbol?.toUpperCase() || c.id,
+                metrics: {
+                  pe: 0, // Crypto doesn't have P/E
+                  pb: c.market_cap && c.total_volume ? c.total_volume / c.market_cap : 0,
+                  roe: c.change_24h || 0,
+                  score: c.score?.total || 50,
+                },
+              }))
+            }
+          }
+        }
+      } catch (e) {
+        // Optional
+      }
+
+      // Score breakdown for bars
+      const scoreBreakdown = score ? Object.entries(score.categories).map(([k, v]) => ({
+        category: catLabels[k] || k,
+        score: v as number,
+        weight: catWeights[k] || 0,
+      })) : []
+
+      // Detail page URL for QR code
+      const detailPageUrl = `https://www.apphermesai.com/crypto?coin=${coinId}`
 
       await downloadHermesReportPdf({
         fileName: `${coinId}-coin-detail-report.pdf`,
@@ -381,6 +439,11 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
             ],
           },
         ],
+        // NEW: Premium data
+        priceHistory,
+        comparisonMatrix,
+        scoreBreakdown: scoreBreakdown.length > 0 ? scoreBreakdown : undefined,
+        detailPageUrl,
       })
     } finally {
       setPdfLoading(false)

@@ -315,6 +315,38 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
         weight: catWeights[k] || 0,
       })) : []
 
+      // NEW: Price history for sparkline (30 days)
+      let priceHistory: any = undefined
+      try {
+        const histRes = await fetch(`/api/fmp-terminal/historical/${symbol}?days=30`)
+        if (histRes.ok) {
+          const hist = await histRes.json()
+          if (Array.isArray(hist) && hist.length > 0) {
+            priceHistory = {
+              dates: hist.map(h => h.date),
+              prices: hist.map(h => h.close),
+              volumes: hist.map(h => h.volume),
+            }
+          }
+        }
+      } catch (e) {
+        // Optional
+      }
+
+      // Comparison matrix for heatmap
+      const comparisonMatrix = sectorComparison?.peers.map((peer: any) => ({
+        symbol: peer.symbol,
+        metrics: {
+          pe: peer.peRatio,
+          pb: 0, // Could fetch from additional endpoint
+          roe: 0,
+          score: peer.score,
+        },
+      }))
+
+      // Detail page URL for QR code
+      const detailPageUrl = `https://www.apphermesai.com/nasdaq?symbol=${symbol}`
+
       await downloadHermesReportPdf({
         fileName: `${symbol}-detail-report.pdf`,
         title: `${symbol} — Stock Detail Report`,
@@ -419,6 +451,9 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
         technicalIndicators,
         sectorComparison,
         scoreBreakdown: scoreBreakdown.length > 0 ? scoreBreakdown : undefined,
+        priceHistory,
+        comparisonMatrix,
+        detailPageUrl,
       })
     } finally {
       setPdfLoading(false)
