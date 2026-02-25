@@ -163,19 +163,12 @@ export default function ModuleEuropeSignals() {
       </div>
       <LegalDisclaimerStrip compact />
 
-      {renderGuard.blocked && (
+      {/* Only show warning during market hours if blocked */}
+      {renderGuard.blocked && renderGuard.marketOpen && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3">
-          <p className="text-xs font-bold text-red-300">SIGNAL RENDER BLOCKED (SYSTEM DOWN)</p>
+          <p className="text-xs font-bold text-red-300">SYSTEM DOWN (MARKET HOURS)</p>
           <p className="text-[10px] text-red-200/80 mt-1">
-            Reason: {renderGuard.reason} | ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | QuoteAge: {renderGuard.quoteAgeMin ?? 'n/a'}m
-          </p>
-        </div>
-      )}
-      {!renderGuard.blocked && renderGuard.staleWarning && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
-          <p className="text-xs font-bold text-amber-300">FRESHNESS WARNING</p>
-          <p className="text-[10px] text-amber-200/80 mt-1">
-            Scan verisi guncel olmayabilir. ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | QuoteAge: {renderGuard.quoteAgeMin ?? 'n/a'}m
+            ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | System will auto-recover
           </p>
         </div>
       )}
@@ -225,9 +218,10 @@ export default function ModuleEuropeSignals() {
       </div>
 
       {/* Signal Cards */}
-      {renderGuard.blocked ? (
+      {renderGuard.blocked && renderGuard.marketOpen ? (
         <div className="bg-[#151520] rounded-2xl border border-red-500/25 p-8 text-center">
-          <p className="text-red-300 text-sm">Signals are temporarily blocked due to stale freshness guardrail.</p>
+          <p className="text-red-300 text-sm">Signals temporarily blocked - System health check failed</p>
+          <p className="text-white/40 text-xs mt-1">ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | System will auto-recover</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-8 text-center">

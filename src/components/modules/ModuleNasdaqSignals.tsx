@@ -178,9 +178,12 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
   gradient: string
   badgeBg: string
   icon: string
+  color: string
+  shortLabel: string
 }> = {
   confluence_buy: {
     label: 'CONFLUENCE BUY',
+    shortLabel: 'CONF BUY',
     desc: 'Teknik + Temel + Dusuk Risk',
     teknikReq: 'STRONG LONG',
     aiReq: 'STRONG',
@@ -191,9 +194,11 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     gradient: 'from-violet-500/25 to-indigo-500/10',
     badgeBg: 'bg-violet-500/25',
     icon: '\u{1F48E}',
+    color: 'text-violet-300 bg-violet-500/15',
   },
   alpha_long: {
     label: 'ALPHA LONG',
+    shortLabel: 'ALPHA L',
     desc: 'Teknik + Temel mukemmel',
     teknikReq: 'STRONG LONG',
     aiReq: 'STRONG',
@@ -204,9 +209,11 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     gradient: 'from-gold-400/20 to-gold-600/5',
     badgeBg: 'bg-gold-400/20',
     icon: '\u{1F451}',
+    color: 'text-gold-300 bg-gold-400/10',
   },
   hermes_long: {
     label: 'HERMES LONG',
+    shortLabel: 'H-LONG',
     desc: 'Teknik guclu + Temel iyi',
     teknikReq: 'STRONG LONG',
     aiReq: 'GOOD',
@@ -217,9 +224,11 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     gradient: 'from-hermes-green/20 to-hermes-green/5',
     badgeBg: 'bg-hermes-green/20',
     icon: '\u{1F7E2}',
+    color: 'text-hermes-green bg-hermes-green/10',
   },
   smart_long: {
     label: 'SMART LONG',
+    shortLabel: 'SM-L',
     desc: 'Teknik alis + Temel mukemmel',
     teknikReq: 'LONG',
     aiReq: 'STRONG',
@@ -230,9 +239,11 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     gradient: 'from-cyan-500/20 to-sky-500/5',
     badgeBg: 'bg-cyan-500/20',
     icon: '\u{1F9E0}',
+    color: 'text-cyan-400 bg-cyan-500/10',
   },
   signal_long: {
     label: 'SIGNAL LONG',
+    shortLabel: 'SIG-L',
     desc: 'Teknik alis + Temel iyi',
     teknikReq: 'LONG',
     aiReq: 'GOOD',
@@ -243,9 +254,11 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     gradient: 'from-teal-500/20 to-hermes-green/5',
     badgeBg: 'bg-teal-500/20',
     icon: '\u{2705}',
+    color: 'text-teal-400 bg-teal-500/10',
   },
   signal_short: {
     label: 'SIGNAL SHORT',
+    shortLabel: 'SIG-S',
     desc: 'Teknik satis + Temel zayif',
     teknikReq: 'SHORT',
     aiReq: 'WEAK',
@@ -256,9 +269,11 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     gradient: 'from-orange-500/20 to-amber-500/5',
     badgeBg: 'bg-orange-500/20',
     icon: '\u{26A0}\u{FE0F}',
+    color: 'text-orange-400 bg-orange-500/10',
   },
   smart_short: {
     label: 'SMART SHORT',
+    shortLabel: 'SM-S',
     desc: 'Teknik satis + Temel kotu',
     teknikReq: 'SHORT',
     aiReq: 'BAD',
@@ -269,9 +284,11 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     gradient: 'from-rose-500/20 to-red-500/5',
     badgeBg: 'bg-rose-500/20',
     icon: '\u{1F4C9}',
+    color: 'text-rose-400 bg-rose-500/10',
   },
   hermes_short: {
     label: 'HERMES SHORT',
+    shortLabel: 'H-SHORT',
     desc: 'Teknik guclu satis + Temel zayif',
     teknikReq: 'STRONG SHORT',
     aiReq: 'WEAK',
@@ -279,12 +296,14 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     text: 'text-red-400',
     border: 'border-red-500/30',
     glow: 'shadow-red-500/20',
-    gradient: 'from-red-500/20 to-rose-500/5',
+    gradient: 'from-red-500/20 to-red-600/5',
     badgeBg: 'bg-red-500/20',
     icon: '\u{1F534}',
+    color: 'text-red-400 bg-red-500/10',
   },
   alpha_short: {
     label: 'ALPHA SHORT',
+    shortLabel: 'ALPHA S',
     desc: 'Teknik + Temel en kotu',
     teknikReq: 'STRONG SHORT',
     aiReq: 'BAD',
@@ -295,9 +314,11 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     gradient: 'from-red-600/25 to-rose-600/10',
     badgeBg: 'bg-red-600/25',
     icon: '\u{1F480}',
+    color: 'text-red-500 bg-red-600/15',
   },
   confluence_sell: {
     label: 'CONFLUENCE SELL',
+    shortLabel: 'CONF SELL',
     desc: 'Teknik + Temel + Yuksek Risk',
     teknikReq: 'STRONG SHORT',
     aiReq: 'BAD',
@@ -305,9 +326,10 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     text: 'text-fuchsia-400',
     border: 'border-fuchsia-600/40',
     glow: 'shadow-fuchsia-600/30',
-    gradient: 'from-fuchsia-600/25 to-purple-600/10',
+    gradient: 'from-fuchsia-600/25 to-pink-600/10',
     badgeBg: 'bg-fuchsia-600/25',
-    icon: '\u{26D4}',
+    icon: '\u{1F52E}',
+    color: 'text-fuchsia-400 bg-fuchsia-600/15',
   },
 }
 
@@ -488,17 +510,42 @@ export default function ModuleNasdaqSignals() {
   const [search, setSearch] = useState('')
   const [sortField, setSortField] = useState<'symbol' | 'sector' | 'bestSignal' | 'nTeknik' | 'teknikScore' | 'hAi' | 'aiScore' | 'confidence' | 'valuation' | 'price' | 'changePercent' | 'marketCap'>('teknikScore')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
-  const [watchlist, setWatchlist] = useState<string[]>([])
+  const [watchlist, setWatchlist] = useState<Set<string>>(new Set())
+  const [watchTrigger, setWatchTrigger] = useState(0)
+
+  // Load watchlist from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('hermes-watchlist-nasdaq')
+    if (stored) {
+      try {
+        const arr = JSON.parse(stored)
+        if (Array.isArray(arr)) {
+          setWatchlist(new Set(arr))
+        }
+      } catch {}
+    }
+  }, [])
+
+  // Toggle watchlist
+  const toggleWatchlist = (symbol: string) => {
+    setWatchlist(prev => {
+      const next = new Set(prev)
+      if (next.has(symbol)) {
+        next.delete(symbol)
+      } else {
+        next.add(symbol)
+      }
+      localStorage.setItem('hermes-watchlist-nasdaq', JSON.stringify([...next]))
+      return next
+    })
+  }
   const [tooltip, setTooltip] = useState<string | null>(null)
   const [fmpRetryCount, setFmpRetryCount] = useState(0)
   const [earningsMap, setEarningsMap] = useState<Map<string, number>>(new Map())
 
-  useEffect(() => { setWatchlist(getWatchlist()) }, [])
-
   const handleToggleWatchlist = useCallback((e: React.MouseEvent, symbol: string) => {
     e.stopPropagation()
-    const result = toggleWatchlist(symbol)
-    setWatchlist(result.list)
+    toggleWatchlist(symbol)
   }, [])
 
   // FMP verisi SADECE Trade AI verisi hazir oldugunda cekilir (senkronizasyon)
@@ -1086,20 +1133,176 @@ export default function ModuleNasdaqSignals() {
             </thead>
             <tbody>
               {renderGuard.blocked ? (
-                <tr>
-                  <td colSpan={15} className="text-center py-12 space-y-2">
-                    <div className="text-red-300 text-sm font-medium">
-                      {renderGuard.marketOpen 
-                        ? 'Signals temporarily blocked - System health check failed'
-                        : 'Market Closed - Using last available data'}
-                    </div>
-                    <div className="text-white/40 text-xs">
-                      {renderGuard.marketOpen
-                        ? `Scan age: ${renderGuard.scanAgeMin?.toFixed(0) || 'N/A'} min • System will auto-recover`
-                        : `Last scan: ${renderGuard.scanAgeMin ? Math.floor(renderGuard.scanAgeMin / 60) : 'N/A'}h ago • Next refresh at market open (09:30 ET)`}
-                    </div>
-                  </td>
-                </tr>
+                // Only show block message during market hours
+                renderGuard.marketOpen ? (
+                  <tr>
+                    <td colSpan={15} className="text-center py-12 space-y-2">
+                      <div className="text-red-300 text-sm font-medium">
+                        Signals temporarily blocked - System health check failed
+                      </div>
+                      <div className="text-white/40 text-xs">
+                        Scan age: {renderGuard.scanAgeMin?.toFixed(0) || 'N/A'} min • System will auto-recover
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  // Market closed - show signals normally (no block)
+                  filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={15} className="text-center py-12 text-white/40 text-sm">
+                        {counts.all === 0
+                          ? 'Veri bekleniyor... NASDAQ TEKNIK ve Hermes AI taramasi tamamlaninca sinyaller gorunecek.'
+                          : 'Bu filtreye uygun sinyal bulunamadi.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((item, idx) => {
+                      const cfg = SIGNAL_CONFIG[item.signalType]
+                      return (
+                        <tr
+                          key={`${item.symbol}-${item.signalType}`}
+                          className={`
+                            border-b border-gold-400/5 premium-row
+                            hover:bg-gradient-to-r hover:from-gold-400/[0.02] hover:to-transparent
+                            transition-all duration-200 cursor-pointer
+                          `}
+                          onClick={() => window.location.href = `/nasdaq?tab=terminal&symbol=${item.symbol}`}
+                        >
+                          {/* Symbol */}
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  toggleWatchlist(item.symbol)
+                                  setWatchTrigger(t => t + 1)
+                                }}
+                                className="opacity-0 group-hover:opacity-100 hover:scale-110 transition-all"
+                                title={watchlist.has(item.symbol) ? 'Favori' : 'Favorilere ekle'}
+                              >
+                                {watchlist.has(item.symbol) ? (
+                                  <svg className="w-3.5 h-3.5 fill-gold-400" viewBox="0 0 24 24">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                  </svg>
+                                ) : (
+                                  <svg className="w-3.5 h-3.5 stroke-white/40" fill="none" viewBox="0 0 24 24" strokeWidth={2}>
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                  </svg>
+                                )}
+                              </button>
+                              <span className="text-xs font-bold text-white tracking-wide">{item.symbol}</span>
+                            </div>
+                          </td>
+
+                          {/* Best Signal Badge */}
+                          <td className="px-3 py-2.5">
+                            <span className={`
+                              inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide
+                              ${cfg.color} border ${cfg.border}
+                            `}>
+                              <span className={cfg.icon}></span>
+                              {cfg.shortLabel}
+                            </span>
+                          </td>
+
+                          {/* Rest of the row... continue with existing code */}
+                          <td className="px-3 py-2.5 text-center hidden lg:table-cell">
+                            <span className={`text-xs ${
+                              item.teknikSignalType === 'strong_long' ? 'text-hermes-green font-bold' :
+                              item.teknikSignalType === 'long' ? 'text-hermes-green' :
+                              item.teknikSignalType === 'strong_short' ? 'text-red-400 font-bold' :
+                              item.teknikSignalType === 'short' ? 'text-red-400' :
+                              'text-white/40'
+                            }`}>
+                              {item.teknikScore.toFixed(0)}
+                            </span>
+                          </td>
+
+                          {/* AI Signal */}
+                          <td className="px-3 py-2.5 text-center hidden lg:table-cell">
+                            <span className={`text-xs ${
+                              item.aiSignal === 'STRONG' ? 'text-gold-400 font-bold' :
+                              item.aiSignal === 'GOOD' ? 'text-hermes-green font-bold' :
+                              item.aiSignal === 'WEAK' ? 'text-orange-400' :
+                              item.aiSignal === 'BAD' ? 'text-red-400 font-bold' :
+                              'text-white/40'
+                            }`}>
+                              {item.aiScore.toFixed(0)}
+                            </span>
+                          </td>
+
+                          {/* Confidence */}
+                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
+                            <div className="flex items-center justify-center gap-1">
+                              <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full ${item.signalConfidence >= 70 ? 'bg-hermes-green' : item.signalConfidence >= 40 ? 'bg-gold-300' : 'bg-white/20'}`}
+                                  style={{ width: `${item.signalConfidence}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] text-white/40">{item.signalConfidence}%</span>
+                            </div>
+                          </td>
+
+                          {/* Valuation */}
+                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                              item.valuationLabel === 'COK UCUZ' ? 'bg-hermes-green/20 text-hermes-green' :
+                              item.valuationLabel === 'UCUZ' ? 'bg-hermes-green/10 text-hermes-green/80' :
+                              item.valuationLabel === 'PAHALI' ? 'bg-red-400/10 text-red-400/80' :
+                              item.valuationLabel === 'COK PAHALI' ? 'bg-red-400/20 text-red-400' :
+                              'bg-white/5 text-white/40'
+                            }`}>
+                              {item.valuationLabel}
+                            </span>
+                          </td>
+
+                          {/* Price */}
+                          <td className="px-3 py-2.5 text-right">
+                            <PriceFlashCell price={item.price} />
+                            <div className={`text-[10px] ${item.changePercent >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                              {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
+                            </div>
+                          </td>
+
+                          {/* Market Cap */}
+                          <td className="px-3 py-2.5 text-right text-xs text-white/60 hidden xl:table-cell">
+                            {item.marketCap >= 1e9 ? `${(item.marketCap / 1e9).toFixed(1)}B` : `${(item.marketCap / 1e6).toFixed(0)}M`}
+                          </td>
+
+                          {/* Sector */}
+                          <td className="px-3 py-2.5 text-xs text-white/50 hidden 2xl:table-cell truncate max-w-[120px]">
+                            {item.sector || '—'}
+                          </td>
+
+                          {/* Target Price */}
+                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
+                            {item.targetPrice != null ? (
+                              <span className="text-xs font-mono text-hermes-green/80">${item.targetPrice.toFixed(2)}</span>
+                            ) : <span className="text-white/40 text-[10px]">—</span>}
+                          </td>
+
+                          {/* Floor Price */}
+                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
+                            {item.floorPrice != null ? (
+                              <span className="text-xs font-mono text-red-400/80">${item.floorPrice.toFixed(2)}</span>
+                            ) : <span className="text-white/40 text-[10px]">—</span>}
+                          </td>
+
+                          {/* R:R */}
+                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
+                            {item.riskReward != null ? (
+                              <span className={`text-xs font-mono font-bold ${
+                                item.riskReward >= 2 ? 'text-hermes-green' :
+                                item.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+                              }`}>{item.riskReward.toFixed(1)}</span>
+                            ) : <span className="text-white/40 text-[10px]">—</span>}
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )
+                )
               ) : isLoading ? (
                 Array.from({ length: 12 }).map((_, i) => <SkeletonRow key={i} />)
               ) : filtered.length === 0 ? (
@@ -1132,13 +1335,13 @@ export default function ModuleNasdaqSignals() {
                           <button
                             onClick={(e) => handleToggleWatchlist(e, item.symbol)}
                             className={`shrink-0 p-0.5 rounded transition-all duration-200 ${
-                              watchlist.includes(item.symbol)
+                              watchlist.has(item.symbol)
                                 ? 'text-amber-400 hover:text-amber-300'
                                 : 'text-white/35 hover:text-amber-400/60'
                             }`}
-                            title={watchlist.includes(item.symbol) ? 'Watchlist\'ten cikar' : 'Watchlist\'e ekle'}
+                            title={watchlist.has(item.symbol) ? 'Watchlist\'ten cikar' : 'Watchlist\'e ekle'}
                           >
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill={watchlist.includes(item.symbol) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill={watchlist.has(item.symbol) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
                           </button>
                           <span className="text-xs font-bold text-white">{item.symbol}</span>
                           <span className="text-[9px] text-white/40 font-medium">{item.segment}</span>

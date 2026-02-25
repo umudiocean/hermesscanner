@@ -215,26 +215,39 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
       let sectorComparison: any = undefined
 
       try {
-        // Wall Street Pulse data
-        const insiderRes = await fetch(`/api/fmp-terminal/stock/${symbol}`)
-        if (insiderRes.ok) {
-          const stockData = await insiderRes.json()
-          wallStreetPulse = {
-            insiderActivity: {
-              netBuys: stockData.insiderTrading?.recentBuys || 0,
-              netSales: stockData.insiderTrading?.recentSales || 0,
-              recentClusterBuy: (stockData.insiderTrading?.recentBuys || 0) >= 3,
-            },
-            institutionalFlow: {
-              netFlow: stockData.institutionalOwnership?.change || 'N/A',
-              majorBuyers: [],
-              trend: (stockData.institutionalOwnership?.change || '').includes('+') ? 'ACCUMULATION' : 
-                     (stockData.institutionalOwnership?.change || '').includes('-') ? 'DISTRIBUTION' : 'NEUTRAL',
-            },
-            smartMoney: {
-              score: sc?.categories?.smartMoney || 50,
-              confidence: sc?.confidence || 0,
-            },
+        // Wall Street Pulse data (Quiver API)
+        const wsRes = await fetch(`/api/wall-street-pulse/${symbol}`)
+        if (wsRes.ok) {
+          const wsData = await wsRes.json()
+          if (wsData.available) {
+            wallStreetPulse = {
+              insiderActivity: {
+                netBuys: wsData.insiderSentiment.recentTrades > 0 
+                  ? Math.round(wsData.insiderSentiment.recentTrades * wsData.insiderSentiment.bullishRatio)
+                  : 0,
+                netSales: wsData.insiderSentiment.recentTrades > 0
+                  ? Math.round(wsData.insiderSentiment.recentTrades * (1 - wsData.insiderSentiment.bullishRatio))
+                  : 0,
+                recentClusterBuy: wsData.insiderSentiment.bullishRatio > 0.7 && wsData.insiderSentiment.recentTrades >= 3,
+              },
+              institutionalFlow: {
+                netFlow: wsData.hedgeFunds.totalValue > 0 
+                  ? `${(wsData.hedgeFunds.totalValue / 1e9).toFixed(2)}B`
+                  : 'N/A',
+                majorBuyers: wsData.congressional.netBuysSells > 0
+                  ? [`Congress (${wsData.congressional.netBuysSells} net buys)`]
+                  : [],
+                trend: wsData.hedgeFunds.recentActivity,
+              },
+              smartMoney: {
+                score: Math.round(
+                  (wsData.insiderSentiment.bullishRatio * 40) +
+                  (wsData.congressional.netBuysSells > 0 ? 30 : wsData.congressional.netBuysSells < 0 ? -10 : 20) +
+                  (wsData.hedgeFunds.recentActivity === 'BUYING' ? 30 : wsData.hedgeFunds.recentActivity === 'SELLING' ? -10 : 20)
+                ),
+                confidence: wsData.insiderSentiment.recentTrades + wsData.congressional.recentTrades > 5 ? 80 : 50,
+              },
+            }
           }
         }
       } catch (e) {

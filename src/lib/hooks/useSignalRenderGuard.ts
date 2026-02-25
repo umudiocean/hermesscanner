@@ -50,34 +50,43 @@ export function useSignalRenderGuard() {
   const state = useMemo(() => {
     const marketOpen = isUsMarketOpen()
     
-    // Only check SLA breaches if market is OPEN
-    // During market hours, stale data is critical
-    // Outside market hours, stale data is expected
-    const scanBreached = marketOpen && !!health?.sla?.scanBreached
-    const quoteBreached = marketOpen && !!health?.sla?.stocksQuoteBreached
-    
+    // ✅ Market kapalıyken ASLA blokla (eski veri ile çalış)
+    if (!marketOpen) {
+      return {
+        blocked: false,
+        reason: null,
+        scanAgeMin: health?.dataFreshness?.scanAgeMin ?? null,
+        quoteAgeMin: health?.dataFreshness?.stocksQuoteAgeMin ?? null,
+        failClosed: SIGNAL_GUARDRAIL.FAIL_CLOSED,
+        staleWarning: false,
+        marketOpen: false,
+      }
+    }
+
+    // ✅ Market açıkken sadece HARD DOWN durumunda blokla
     const hardDown = health?.status === 'DOWN'
-
-    // Only block signals on hard system DOWN during market hours
-    // Outside market hours, use last available data
-    const blocked = SIGNAL_GUARDRAIL.FAIL_CLOSED && hardDown && marketOpen
     
-    const reason = hardDown && marketOpen
-      ? 'SYSTEM_DOWN'
-      : scanBreached
-        ? 'SCAN_STALE'
-        : quoteBreached
-          ? 'QUOTE_STALE'
-          : null
+    if (SIGNAL_GUARDRAIL.FAIL_CLOSED && hardDown) {
+      return {
+        blocked: true,
+        reason: 'SYSTEM_DOWN',
+        scanAgeMin: health?.dataFreshness?.scanAgeMin ?? null,
+        quoteAgeMin: health?.dataFreshness?.stocksQuoteAgeMin ?? null,
+        failClosed: true,
+        staleWarning: true,
+        marketOpen: true,
+      }
+    }
 
+    // ✅ Her şey OK veya DEGRADED (sinyalleri göster)
     return {
-      blocked,
-      reason,
+      blocked: false,
+      reason: null,
       scanAgeMin: health?.dataFreshness?.scanAgeMin ?? null,
       quoteAgeMin: health?.dataFreshness?.stocksQuoteAgeMin ?? null,
       failClosed: SIGNAL_GUARDRAIL.FAIL_CLOSED,
-      staleWarning: scanBreached || quoteBreached,
-      marketOpen,
+      staleWarning: false,
+      marketOpen: true,
     }
   }, [health])
 
