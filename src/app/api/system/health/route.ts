@@ -99,7 +99,7 @@ function isProviderActive(p: ProviderStatus): boolean {
   return p.lastSuccessAt !== null || p.lastErrorAt !== null
 }
 
-function determineStatus(h: Omit<HealthResponse, 'status'>): 'OK' | 'DEGRADED' | 'DOWN' {
+function determineStatus(h: Omit<HealthResponse, 'status' | 'advisoryStatus'>): 'OK' | 'DEGRADED' | 'DOWN' {
   if (!h.providers.coingecko.ok && (h.dataFreshness.scanAgeMin === null || h.dataFreshness.scanAgeMin > 60)) {
     return 'DOWN'
   }
