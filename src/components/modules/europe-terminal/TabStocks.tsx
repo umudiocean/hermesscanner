@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { TrendingUp, TrendingDown, Search, Filter, Shield, Zap, AlertTriangle, Minus, Info, Star, BarChart3, Crown, Building2, Layers, Store, Bug, Globe } from 'lucide-react'
 import { getWatchlist, toggleWatchlist } from '@/lib/store'
 import { computeSegmentFromMarketCap } from '@/lib/symbols'
 import { EUROPE_EXCHANGES, type EuropeExchangeId } from '@/lib/europe-config'
 import { ScoreMiniBar, PriceFlashCell } from '../../premium-ui'
+import { REFRESH, EUROPE_MARKET } from '@/lib/config/constants'
 
 interface StockRow {
   symbol: string
@@ -143,6 +144,51 @@ export default function TabStocks({ onSelectSymbol, exchangeFilter: controlledEx
       } finally { setLoading(false) }
     }
     load()
+  }, [])
+
+  const stocksRef = useRef(stocks)
+  useEffect(() => { stocksRef.current = stocks }, [stocks])
+
+  useEffect(() => {
+    function isEuMarketOpen(): boolean {
+      try {
+        const now = new Date()
+        const day = Number(new Intl.DateTimeFormat('en-US', { weekday: 'narrow', timeZone: EUROPE_MARKET.TIMEZONE }).format(now).charCodeAt(0))
+        if (day === 83 || day === 70) return false // S(at) or F(ri->Sun check via locale)
+        const cetParts = new Intl.DateTimeFormat('en-US', {
+          hour: 'numeric', minute: 'numeric', hour12: false, timeZone: EUROPE_MARKET.TIMEZONE,
+        }).formatToParts(now)
+        const h = Number(cetParts.find(p => p.type === 'hour')?.value ?? 0)
+        const m = Number(cetParts.find(p => p.type === 'minute')?.value ?? 0)
+        const mins = h * 60 + m
+        return mins >= EUROPE_MARKET.OPEN_MINUTES_CET && mins <= EUROPE_MARKET.CLOSE_MINUTES_CET
+      } catch { return false }
+    }
+
+    const intervalSec = isEuMarketOpen() ? REFRESH.EUROPE_PRICE_OPEN_SEC : REFRESH.EUROPE_PRICE_CLOSED_SEC
+
+    const timer = setInterval(async () => {
+      if (stocksRef.current.length === 0) return
+      try {
+        const symbols = stocksRef.current.map(s => s.symbol)
+        const res = await fetch('/api/quotes/live', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols }),
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        const quotes = data.quotes || {}
+        if (Object.keys(quotes).length === 0) return
+        setStocks(prev => prev.map(s => {
+          const q = quotes[s.symbol]
+          if (!q) return s
+          return { ...s, price: q.price, change: q.change, changePercent: q.changePercent, marketCap: q.marketCap }
+        }))
+      } catch { /* lightweight, fail silently */ }
+    }, intervalSec * 1000)
+
+    return () => clearInterval(timer)
   }, [])
 
   const [watchlistOnly, setWatchlistOnly] = useState(false)

@@ -315,9 +315,17 @@ export default function ModuleNasdaqWatchlist() {
 
       {renderGuard.blocked && (
         <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3">
-          <p className="text-xs font-bold text-red-300">WATCHLIST AI SIGNAL MASKED (FAIL-CLOSED)</p>
+          <p className="text-xs font-bold text-red-300">WATCHLIST AI SIGNAL MASKED (SYSTEM DOWN)</p>
           <p className="text-[10px] text-red-200/80 mt-1">
             Reason: {renderGuard.reason} | ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | QuoteAge: {renderGuard.quoteAgeMin ?? 'n/a'}m
+          </p>
+        </div>
+      )}
+      {!renderGuard.blocked && renderGuard.staleWarning && (
+        <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+          <p className="text-xs font-bold text-amber-300">FRESHNESS WARNING</p>
+          <p className="text-[10px] text-amber-200/80 mt-1">
+            Scan verisi guncel olmayabilir. ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | QuoteAge: {renderGuard.quoteAgeMin ?? 'n/a'}m
           </p>
         </div>
       )}

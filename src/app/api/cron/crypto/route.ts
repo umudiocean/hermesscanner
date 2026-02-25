@@ -16,7 +16,7 @@ import { CoinMarket } from '@/lib/crypto-terminal/coingecko-types'
 export const maxDuration = 120
 
 const CRYPTO_CRON_LOCK_KEY = 'cron:crypto:last_run'
-const MIN_INTERVAL_MS = 50 * 60 * 1000 // 50 min (guard for dup runs within 1h window)
+const MIN_INTERVAL_MS = 3.5 * 60 * 60 * 1000 // 3.5h guard (runs every 4h)
 
 async function shouldRun(): Promise<boolean> {
   try {

@@ -42,7 +42,8 @@ export function useSignalRenderGuard() {
     const quoteBreached = !!health?.sla?.stocksQuoteBreached
     const hardDown = health?.status === 'DOWN'
 
-    const blocked = SIGNAL_GUARDRAIL.FAIL_CLOSED && (hardDown || scanBreached || quoteBreached)
+    // Only block signals on hard system DOWN, not on SLA warnings
+    const blocked = SIGNAL_GUARDRAIL.FAIL_CLOSED && hardDown
     const reason = hardDown
       ? 'SYSTEM_DOWN'
       : scanBreached
@@ -57,6 +58,7 @@ export function useSignalRenderGuard() {
       scanAgeMin: health?.dataFreshness?.scanAgeMin ?? null,
       quoteAgeMin: health?.dataFreshness?.stocksQuoteAgeMin ?? null,
       failClosed: SIGNAL_GUARDRAIL.FAIL_CLOSED,
+      staleWarning: scanBreached || quoteBreached,
     }
   }, [health])
 

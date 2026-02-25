@@ -309,36 +309,75 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
     try {
       const valuation = computeDetailValuation(md)
       const risk = computeDetailRisk(md)
+      const change24h = md?.price_change_percentage_24h ?? 0
+      const changeColor = change24h >= 0 ? 'green' as const : 'red' as const
+
+      const catLabels: Record<string, string> = {
+        marketStructure: 'Market Structure', momentum: 'Momentum', volume: 'Volume',
+        sentiment: 'Sentiment', fundamentals: 'Fundamentals', onchain: 'On-Chain',
+        exchange: 'Exchange', derivatives: 'Derivatives',
+      }
+      const scoreRows = score ? Object.entries(score.categories).map(([k, v]) => ({
+        label: catLabels[k] || k,
+        value: `${Math.round(v as number)}/100`,
+        color: ((v as number) >= 66 ? 'green' : (v as number) >= 33 ? 'amber' : 'red') as 'green' | 'amber' | 'red',
+      })) : []
+
       await downloadHermesReportPdf({
         fileName: `${coinId}-coin-detail-report.pdf`,
-        title: `${detail.name} Coin Detail Report`,
-        subtitle: `${detail.symbol?.toUpperCase() || coinId} - Hermes AI Terminal`,
+        title: `${detail.name} — Crypto Detail Report`,
+        subtitle: `${detail.symbol?.toUpperCase() || coinId} | ${detail.categories?.[0] || 'Cryptocurrency'}`,
+        scoreSummary: score ? {
+          total: score.total,
+          level: CRYPTO_SCORE_LABELS[score.level] || score.level,
+          confidence: Math.round(score.confidence),
+          valuationLabel: valuation,
+        } : undefined,
         sections: [
           {
             title: 'Market Snapshot',
             rows: [
               { label: 'Price', value: formatPrice(price) },
+              { label: '24h Change', value: `${change24h >= 0 ? '+' : ''}${change24h.toFixed(2)}%`, color: changeColor },
               { label: 'Market Cap', value: formatLarge(mcap) },
-              { label: '24h Change', value: md?.price_change_percentage_24h != null ? `${md.price_change_percentage_24h.toFixed(2)}%` : null },
               { label: 'Volume 24h', value: formatLarge(md?.total_volume?.usd ?? 0) },
+              { label: 'Vol/MCap', value: mcap > 0 ? `${((md?.total_volume?.usd ?? 0) / mcap * 100).toFixed(2)}%` : null },
+              { label: 'Market Cap Rank', value: md?.market_cap_rank },
             ],
           },
           {
-            title: 'Hermes AI Summary',
+            title: 'Price Performance',
             rows: [
-              { label: 'Total Score', value: score?.total },
-              { label: 'Signal', value: score ? CRYPTO_SCORE_LABELS[score.level] : null },
-              { label: 'Confidence', value: score?.confidence != null ? `${Math.round(score.confidence)}%` : null },
+              { label: '7d Change', value: md?.price_change_percentage_7d != null ? `${md.price_change_percentage_7d.toFixed(2)}%` : null, color: (md?.price_change_percentage_7d ?? 0) >= 0 ? 'green' : 'red' },
+              { label: '30d Change', value: md?.price_change_percentage_30d != null ? `${md.price_change_percentage_30d.toFixed(2)}%` : null, color: (md?.price_change_percentage_30d ?? 0) >= 0 ? 'green' : 'red' },
+              { label: '1y Change', value: md?.price_change_percentage_1y != null ? `${md.price_change_percentage_1y.toFixed(2)}%` : null, color: (md?.price_change_percentage_1y ?? 0) >= 0 ? 'green' : 'red' },
+              { label: 'ATH', value: md?.ath?.usd != null ? formatPrice(md.ath.usd) : null },
+              { label: 'ATH Change', value: md?.ath_change_percentage?.usd != null ? `${md.ath_change_percentage.usd.toFixed(1)}%` : null, color: 'red' },
+              { label: 'ATL', value: md?.atl?.usd != null ? formatPrice(md.atl.usd) : null },
+            ],
+          },
+          {
+            title: 'Score Breakdown',
+            rows: scoreRows,
+          },
+          {
+            title: 'Supply & Valuation',
+            rows: [
               { label: 'Valuation', value: valuation },
+              { label: 'Risk Score', value: `${risk}/100`, color: risk >= 70 ? 'red' : risk >= 40 ? 'amber' : 'green' },
+              { label: 'FDV', value: formatLarge(md?.fully_diluted_valuation?.usd ?? 0) },
+              { label: 'Circulating', value: md?.circulating_supply != null ? md.circulating_supply.toLocaleString('en-US') : null },
+              { label: 'Max Supply', value: md?.max_supply != null ? md.max_supply.toLocaleString('en-US') : 'Unlimited' },
+              { label: 'Supply Ratio', value: (md?.circulating_supply && md?.max_supply) ? `${(md.circulating_supply / md.max_supply * 100).toFixed(1)}%` : null },
             ],
           },
           {
-            title: 'Risk and Supply',
+            title: 'Community & Development',
             rows: [
-              { label: 'Risk Score', value: `${risk}/100` },
-              { label: 'FDV', value: formatLarge(md?.fully_diluted_valuation?.usd ?? 0) },
-              { label: 'Circulating Supply', value: md?.circulating_supply != null ? md.circulating_supply.toLocaleString('en-US') : null },
-              { label: 'Max Supply', value: md?.max_supply != null ? md.max_supply.toLocaleString('en-US') : 'Unlimited' },
+              { label: 'Twitter Followers', value: detail.community_data?.twitter_followers != null ? detail.community_data.twitter_followers.toLocaleString() : null },
+              { label: 'Reddit Subscribers', value: detail.community_data?.reddit_subscribers != null ? detail.community_data.reddit_subscribers.toLocaleString() : null },
+              { label: 'GitHub Stars', value: detail.developer_data?.stars != null ? detail.developer_data.stars.toLocaleString() : null },
+              { label: 'GitHub Forks', value: detail.developer_data?.forks != null ? detail.developer_data.forks.toLocaleString() : null },
             ],
           },
         ],

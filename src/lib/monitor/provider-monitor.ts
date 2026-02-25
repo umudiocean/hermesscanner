@@ -15,6 +15,7 @@ export type DataKey =
   | 'derivatives'
   | 'scan'
   | 'stocksQuote'
+  | 'europeScan'
   | 'onchain'
 
 export interface ProviderStatus {
@@ -80,13 +81,15 @@ export interface SlaTrend1h {
   }
 }
 
-// HERMES_FIX: SLA_THRESHOLDS_v1 — Data freshness SLA definitions
+// HERMES_FIX: SLA_THRESHOLDS_v2 — Data freshness SLA definitions
+// stocksQuote relaxed from 15 to 120 min (scan refreshes every 60 min during market hours)
 export const SLA_THRESHOLDS_MINUTES: Record<DataKey, number> = {
   cryptoMarket: 30,
   coinsBulk: 60,
   derivatives: 60,
-  scan: 90,
-  stocksQuote: 15,
+  scan: 120,
+  stocksQuote: 120,
+  europeScan: 600,
   onchain: 120,
 }
 
@@ -344,7 +347,7 @@ export const providerMonitor = {
     const freshness = await this.getDataFreshness()
 
     function breached(ageMin: number | null, key: DataKey): boolean {
-      if (ageMin === null) return true
+      if (ageMin === null) return false
       return ageMin > SLA_THRESHOLDS_MINUTES[key]
     }
 

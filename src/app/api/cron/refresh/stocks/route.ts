@@ -1,5 +1,5 @@
-// HERMES_FIX: CRON_REFRESH_STOCKS_v1 — Scheduled stocks data refresh
-// Schedule: every 60 min (Vercel cron, market hours only)
+// HERMES Scanner — NASDAQ Hourly Scan Refresh
+// Schedule: 7x/day during market hours (09:35-15:35 ET, hourly)
 // Purpose: Trigger NASDAQ scan refresh, record freshness for SLA
 
 import { NextRequest, NextResponse } from 'next/server'

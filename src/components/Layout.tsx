@@ -666,8 +666,8 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
 
   useEffect(() => {
     const intervalSec = marketOpen
-      ? REFRESH.PRICE_OPEN_INTERVAL_SEC
-      : REFRESH.PRICE_CLOSED_INTERVAL_SEC
+      ? REFRESH.NASDAQ_PRICE_OPEN_SEC
+      : REFRESH.NASDAQ_PRICE_CLOSED_SEC
 
     const timer = setInterval(() => {
       refreshLiveQuotes()

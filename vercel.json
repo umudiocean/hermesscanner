@@ -1,18 +1,6 @@
 {
   "crons": [
     {
-      "path": "/api/cron",
-      "schedule": "40 13 * * 1-5"
-    },
-    {
-      "path": "/api/cron",
-      "schedule": "10 21 * * 1-5"
-    },
-    {
-      "path": "/api/cron/crypto",
-      "schedule": "0 * * * *"
-    },
-    {
       "path": "/api/cron/auto",
       "schedule": "*/5 * * * *"
     },
@@ -20,13 +8,57 @@
       "path": "/api/cron/health-check",
       "schedule": "*/10 * * * *"
     },
+
     {
-      "path": "/api/cron/refresh/crypto",
-      "schedule": "*/30 * * * *"
+      "path": "/api/cron/refresh/stocks",
+      "schedule": "35 14 * * 1-5"
     },
     {
       "path": "/api/cron/refresh/stocks",
-      "schedule": "0 14-20 * * 1-5"
+      "schedule": "35 15 * * 1-5"
+    },
+    {
+      "path": "/api/cron/refresh/stocks",
+      "schedule": "35 16 * * 1-5"
+    },
+    {
+      "path": "/api/cron/refresh/stocks",
+      "schedule": "35 17 * * 1-5"
+    },
+    {
+      "path": "/api/cron/refresh/stocks",
+      "schedule": "35 18 * * 1-5"
+    },
+    {
+      "path": "/api/cron/refresh/stocks",
+      "schedule": "35 19 * * 1-5"
+    },
+    {
+      "path": "/api/cron/refresh/stocks",
+      "schedule": "35 20 * * 1-5"
+    },
+
+    {
+      "path": "/api/cron/refresh/europe",
+      "schedule": "5 8 * * 1-5"
+    },
+    {
+      "path": "/api/cron/refresh/europe",
+      "schedule": "15 12 * * 1-5"
+    },
+    {
+      "path": "/api/cron/refresh/europe",
+      "schedule": "35 16 * * 1-5"
+    },
+
+    {
+      "path": "/api/cron/refresh/crypto",
+      "schedule": "5 0,4,8,12,16,20 * * *"
+    },
+
+    {
+      "path": "/api/cron/crypto",
+      "schedule": "5 0,4,8,12,16,20 * * *"
     }
   ]
 }

@@ -23,10 +23,28 @@ export const REFRESH = {
   DEFAULT_INTERVAL_MIN: 60,
   /** Trade AI incremental refresh interval while market open (minutes) */
   TRADE_OPEN_INTERVAL_MIN: 60,
-  /** Live price-only refresh interval while market open (seconds) */
-  PRICE_OPEN_INTERVAL_SEC: 300,
-  /** Live price-only refresh interval while market closed (seconds) */
+
+  // ── NASDAQ Live Prices ──
+  /** NASDAQ live price refresh while US market open (seconds) — 1 minute */
+  NASDAQ_PRICE_OPEN_SEC: 60,
+  /** NASDAQ live price refresh while US market closed (seconds) — 30 minutes */
+  NASDAQ_PRICE_CLOSED_SEC: 1800,
+
+  // ── EUROPE Live Prices ──
+  /** Europe live price refresh while EU market open (seconds) — 5 minutes */
+  EUROPE_PRICE_OPEN_SEC: 300,
+  /** Europe live price refresh while EU market closed (seconds) — 30 minutes */
+  EUROPE_PRICE_CLOSED_SEC: 1800,
+
+  // ── CRYPTO Live Prices ──
+  /** Crypto live price refresh 24/7 (seconds) — 10 minutes */
+  CRYPTO_PRICE_INTERVAL_SEC: 600,
+
+  /** @deprecated Use market-specific constants above */
+  PRICE_OPEN_INTERVAL_SEC: 60,
+  /** @deprecated Use market-specific constants above */
   PRICE_CLOSED_INTERVAL_SEC: 1800,
+
   /** 52W scan batch size */
   SCAN_52W_BATCH: 500,
   /** 5D scan batch size */
@@ -35,6 +53,17 @@ export const REFRESH = {
   SCAN_CONCURRENCY: 20,
   /** Delay between rate-limited requests (ms) */
   RATE_LIMIT_DELAY_MS: 30,
+} as const
+
+// ─── Europe Market Hours (CET/CEST) ──────────────────────────────────
+
+export const EUROPE_MARKET = {
+  /** Europe market open: 09:00 CET = 540 minutes from midnight CET */
+  OPEN_MINUTES_CET: 540,
+  /** Europe market close: 17:30 CET = 1050 minutes from midnight CET */
+  CLOSE_MINUTES_CET: 1050,
+  /** Timezone for European exchanges (Frankfurt, Paris, Amsterdam) */
+  TIMEZONE: 'Europe/Berlin',
 } as const
 
 // ─── Cache TTLs (milliseconds) ─────────────────────────────────────

@@ -107,43 +107,84 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: {
     setPdfLoading(true)
     try {
       const p = data.profile
-      const score = data.fmpScore
-      const target = data.priceTarget?.targetConsensus || null
-      const valLabel = score
-        ? (score.categories.valuation >= 65 ? 'UCUZ' : score.categories.valuation <= 25 ? 'PAHALI' : 'NORMAL')
+      const sc = data.fmpScore
+      const km = data.metrics
+      const pt = data.priceTarget
+      const dc = data.dcf
+      const ac = data.analyst
+      const scores = data.scores
+      const ccy = p?.currency || 'EUR'
+
+      const valLabel = sc
+        ? (sc.categories.valuation >= 65 ? 'UCUZ' : sc.categories.valuation <= 25 ? 'PAHALI' : 'NORMAL')
         : '-'
+      const target = pt?.targetConsensus || pt?.targetMedian || null
+      const changePct = p?.changesPercentage ?? 0
+      const changeColor = changePct >= 0 ? 'green' as const : 'red' as const
+
+      const catLabels: Record<string, string> = {
+        valuation: 'Degerleme', health: 'Finansal Saglik', growth: 'Buyume',
+        analyst: 'Analist', quality: 'Kalite', momentum: 'Momentum',
+        sector: 'Sektor', smartMoney: 'Akilli Para',
+      }
+      const scoreRows = sc ? Object.entries(sc.categories).map(([k, v]) => ({
+        label: catLabels[k] || k,
+        value: `${Math.round(v as number)}/100`,
+        color: ((v as number) >= 66 ? 'green' : (v as number) >= 33 ? 'amber' : 'red') as 'green' | 'amber' | 'red',
+      })) : []
 
       await downloadHermesReportPdf({
         fileName: `${symbol}-europe-detail-report.pdf`,
-        title: `${symbol} Europe Stock Detail Report`,
-        subtitle: p?.companyName || 'Hermes AI Terminal',
+        title: `${symbol} — Europe Stock Detail Report`,
+        subtitle: `${p?.companyName || ''} | ${p?.exchangeShortName || ''} | ${p?.sector || ''}`,
+        scoreSummary: sc ? {
+          total: sc.total,
+          level: sc.level,
+          confidence: sc.confidence,
+          valuationLabel: valLabel,
+        } : undefined,
         sections: [
           {
             title: 'Market Snapshot',
             rows: [
-              { label: 'Price', value: p?.price != null ? `${p.price.toFixed(2)} ${p.currency || ''}`.trim() : null },
-              { label: 'Change', value: p?.changesPercentage != null ? `${p.changesPercentage.toFixed(2)}%` : null },
+              { label: 'Price', value: p?.price != null ? `${p.price.toFixed(2)} ${ccy}` : null },
+              { label: 'Change', value: changePct != null ? `${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}%` : null, color: changeColor },
               { label: 'Exchange', value: p?.exchangeShortName },
               { label: 'Sector', value: p?.sector },
-            ],
-          },
-          {
-            title: 'Hermes AI Summary',
-            rows: [
-              { label: 'Total Score', value: score?.total },
-              { label: 'Signal', value: score?.level },
-              { label: 'Confidence', value: score?.confidence != null ? `${score.confidence}%` : null },
-              { label: 'Valuation', value: valLabel },
-            ],
-          },
-          {
-            title: 'Financial Health',
-            rows: [
-              { label: 'Altman Z', value: data.scores?.altmanZScore?.toFixed(2) },
-              { label: 'Piotroski', value: data.scores?.piotroskiScore != null ? `${data.scores.piotroskiScore}/9` : null },
-              { label: 'Target Price', value: target != null ? `${target.toFixed(2)} ${p?.currency || ''}`.trim() : null },
+              { label: 'Industry', value: p?.industry },
               { label: 'Market Cap', value: fmtMcap(p?.mktCap) },
+              { label: '52W Range', value: p?.range },
             ],
+          },
+          {
+            title: 'Key Metrics',
+            rows: [
+              { label: 'P/E (TTM)', value: km?.peRatioTTM?.toFixed(2) },
+              { label: 'P/B (TTM)', value: km?.pbRatioTTM?.toFixed(2) },
+              { label: 'Debt/Equity', value: km?.debtToEquityTTM?.toFixed(2) },
+              { label: 'Current Ratio', value: km?.currentRatioTTM?.toFixed(2) },
+            ],
+          },
+          {
+            title: 'Score Breakdown',
+            rows: scoreRows,
+          },
+          {
+            title: 'Target & Valuation',
+            rows: [
+              { label: 'Analyst Target', value: target != null ? `${target.toFixed(2)} ${ccy}` : null },
+              { label: 'DCF Fair Value', value: dc?.dcf != null ? `${dc.dcf.toFixed(2)} ${ccy}` : null },
+              { label: 'Altman Z', value: scores?.altmanZScore?.toFixed(2) },
+              { label: 'Piotroski', value: scores?.piotroskiScore != null ? `${scores.piotroskiScore}/9` : null },
+            ],
+          },
+          {
+            title: 'Risk Flags',
+            rows: sc?.redFlags?.length ? sc.redFlags.map((f: any) => ({
+              label: f.category,
+              value: f.message,
+              color: f.severity === 'critical' ? 'red' as const : 'amber' as const,
+            })) : [{ label: 'Status', value: 'No risk flags detected', color: 'green' as const }],
           },
         ],
       })

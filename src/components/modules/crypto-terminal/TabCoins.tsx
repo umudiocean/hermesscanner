@@ -8,6 +8,7 @@ import { TrendingUp, TrendingDown, Search, Zap, AlertTriangle, Minus, ChevronLef
 // HERMES_FIX: CLIENT_BUNDLE_WEIGHTS 2026-02-19 — Removed CRYPTO_SCORE_WEIGHTS import (proprietary IP)
 import { CryptoTerminalCoin, CryptoScoreLevel, CryptoScoreBreakdown, CRYPTO_SCORE_LABELS, CRYPTO_CATEGORY_LABELS, CRYPTO_CATEGORY_KEYS } from '@/lib/crypto-terminal/coingecko-types'
 import { getCoinCategories, getCategoryStyle, inferCategoryFromName, CryptoCategory } from '@/lib/crypto-terminal/crypto-categories'
+import { REFRESH } from '@/lib/config/constants'
 
 interface TabCoinsProps {
   onSelectCoin: (id: string) => void
@@ -292,6 +293,23 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
 
     loadPage(serverPage)
     return () => { cancelled = true }
+  }, [serverPage])
+
+  const coinsRef = useRef(coins)
+  useEffect(() => { coinsRef.current = coins }, [coins])
+
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      if (coinsRef.current.length === 0) return
+      try {
+        const res = await fetch(`/api/crypto-terminal/coins?page=${serverPage}`)
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.coins) setCoins(data.coins)
+      } catch { /* lightweight, fail silently */ }
+    }, REFRESH.CRYPTO_PRICE_INTERVAL_SEC * 1000)
+
+    return () => clearInterval(timer)
   }, [serverPage])
 
   // Signal counts for filter cards — computed from ALL loaded coins
