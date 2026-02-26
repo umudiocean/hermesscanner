@@ -11,8 +11,8 @@ import LegalDisclaimerStrip from '../LegalDisclaimerStrip'
 
 // ═══════════════════════════════════════════════════════════════════
 // TRADE AI Module — V15 Pure Z-Score (V377_R6.85_Z55)
-// VWAP 377g | Z-Score LB=55 | Z-Ratio: 6.85 | L30_S90
-// Skor: <=20 STRONG LONG | 21-30 LONG | 31-69 NOTR | 70-89 SHORT | >=90 STRONG SHORT
+// VWAP 377g | Z-Score LB=55 | Z-Ratio: 6.85 | L35_S85
+// Skor: <=22 STRONG LONG | 23-35 LONG | 36-63 NOTR | 64-84 SHORT | >=85 STRONG SHORT
 // ═══════════════════════════════════════════════════════════════════
 
 type SortField = 'score' | 'symbol' | 'price' | 'change' | 'signal' | 'rsi' | 'mfi' | 'marketCap' | 'quality' | 'confidence' | 'valuation' | 'targetPrice' | 'floorPrice' | 'riskReward'

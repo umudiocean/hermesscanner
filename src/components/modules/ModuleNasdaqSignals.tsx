@@ -106,7 +106,7 @@ const COLUMN_TIPS: Record<string, string> = {
   sector: 'Sirketin faaliyet gosterdigi sektor',
   bestSignal: 'BEST SINYAL: Teknik ve temel analiz birlesimi. CONFLUENCE = en guclu, ALPHA = cok guclu, HERMES = guvenilir',
   nTeknik: 'TEKNIK SINYAL: Z-Score + VWAP bazli teknik analiz sonucu. STRONG LONG/SHORT = en guclu, LONG/SHORT = guclu',
-  teknikScore: 'TEKNIK SKOR (0-100): <=20 STRONG LONG, 21-30 LONG, 31-69 NOTR, 70-89 SHORT, >=90 STRONG SHORT',
+  teknikScore: 'TEKNIK SKOR (0-100): <=22 STRONG LONG, 23-35 LONG, 36-63 NOTR, 64-84 SHORT, >=85 STRONG SHORT',
   hAi: 'HERMES AI SINYAL: Temel analiz sonucu. STRONG = cok iyi, GOOD = iyi, NEUTRAL = notr, WEAK = zayif, BAD = kotu',
   aiScore: 'HERMES AI SKOR (0-100): Sirketin temel analiz puani. Percentile bazli hesaplanir.',
   confidence: 'GUVEN: Sinyal guveni (%). Teknik-temel uyum, risk ve squeeze/overval guard etkisine gore hesaplanir.',

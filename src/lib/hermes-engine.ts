@@ -19,7 +19,7 @@ import { OHLCV, HermesConfig, HermesResult, SignalType, TrendContext } from './t
 
 // ═══════════════════════════════════════════════════════════════════
 // V15 TRADE AI — PARAMETRELER (2026-02-20)
-// 15dk Timeframe — V377_R6.85_Z55 L30_S90
+// 15dk Timeframe — V377_R6.85_Z55 L35_S85
 // ═══════════════════════════════════════════════════════════════════
 const BPD = 26  // 15dk: 6.5 saat x 4 bar/saat
 const VWAP_DAYS = 377
@@ -43,6 +43,9 @@ const DEFAULT_CONFIG: HermesConfig = {
 
   // Z-Score: 55 gun x 26 bar/gun = 1,430 bar
   zscore_len_52w: ZSCORE_DAYS * BPD,
+
+  // TANH divisor — Z-Ratio ile ayni (6.85)
+  tanh_div: TANH_DIV,
 }
 
 const DELAY_CONFIG = {
