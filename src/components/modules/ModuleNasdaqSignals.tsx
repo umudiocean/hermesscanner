@@ -865,22 +865,7 @@ export default function ModuleNasdaqSignals() {
         </div>
       )}
 
-      {renderGuard.blocked && (
-        <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3">
-          <p className="text-xs font-bold text-red-300">SIGNAL RENDER BLOCKED (SYSTEM DOWN)</p>
-          <p className="text-[10px] text-red-200/80 mt-1">
-            Reason: {renderGuard.reason} | ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | QuoteAge: {renderGuard.quoteAgeMin ?? 'n/a'}m
-          </p>
-        </div>
-      )}
-      {!renderGuard.blocked && renderGuard.staleWarning && (
-        <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
-          <p className="text-xs font-bold text-amber-300">FRESHNESS WARNING</p>
-          <p className="text-[10px] text-amber-200/80 mt-1">
-            Scan verisi guncel olmayabilir. ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | QuoteAge: {renderGuard.quoteAgeMin ?? 'n/a'}m
-          </p>
-        </div>
-      )}
+
 
       {/* Signal Filter Buttons */}
       <div className="glass-card rounded-xl p-2 sm:p-4 mb-2 sm:mb-4">
@@ -975,7 +960,7 @@ export default function ModuleNasdaqSignals() {
             {canCSV && (
               <button
                 onClick={() => downloadCSV('nasdaq')}
-                disabled={filtered.length === 0 || renderGuard.blocked}
+                disabled={filtered.length === 0}
                 className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-gold-400/10 text-gold-300 border border-gold-400/20 hover:bg-gold-400/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 title="NASDAQ sinyallerini CSV olarak indir"
               >
@@ -1132,178 +1117,7 @@ export default function ModuleNasdaqSignals() {
               </tr>
             </thead>
             <tbody>
-              {renderGuard.blocked ? (
-                // Only show block message during market hours
-                renderGuard.marketOpen ? (
-                  <tr>
-                    <td colSpan={15} className="text-center py-12 space-y-2">
-                      <div className="text-red-300 text-sm font-medium">
-                        Signals temporarily blocked - System health check failed
-                      </div>
-                      <div className="text-white/40 text-xs">
-                        Scan age: {renderGuard.scanAgeMin?.toFixed(0) || 'N/A'} min • System will auto-recover
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  // Market closed - show signals normally (no block)
-                  filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan={15} className="text-center py-12 text-white/40 text-sm">
-                        {counts.all === 0
-                          ? 'Veri bekleniyor... NASDAQ TEKNIK ve Hermes AI taramasi tamamlaninca sinyaller gorunecek.'
-                          : 'Bu filtreye uygun sinyal bulunamadi.'}
-                      </td>
-                    </tr>
-                  ) : (
-                    filtered.map((item, idx) => {
-                      const cfg = SIGNAL_CONFIG[item.signalType]
-                      return (
-                        <tr
-                          key={`${item.symbol}-${item.signalType}`}
-                          className={`
-                            border-b border-gold-400/5 premium-row
-                            hover:bg-gradient-to-r hover:from-gold-400/[0.02] hover:to-transparent
-                            transition-all duration-200 cursor-pointer
-                          `}
-                          onClick={() => window.location.href = `/nasdaq?tab=terminal&symbol=${item.symbol}`}
-                        >
-                          {/* Symbol */}
-                          <td className="px-3 py-2.5">
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  toggleWatchlist(item.symbol)
-                                  setWatchTrigger(t => t + 1)
-                                }}
-                                className="opacity-0 group-hover:opacity-100 hover:scale-110 transition-all"
-                                title={watchlist.has(item.symbol) ? 'Favori' : 'Favorilere ekle'}
-                              >
-                                {watchlist.has(item.symbol) ? (
-                                  <svg className="w-3.5 h-3.5 fill-gold-400" viewBox="0 0 24 24">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                  </svg>
-                                ) : (
-                                  <svg className="w-3.5 h-3.5 stroke-white/40" fill="none" viewBox="0 0 24 24" strokeWidth={2}>
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                  </svg>
-                                )}
-                              </button>
-                              <span className="text-xs font-bold text-white tracking-wide">{item.symbol}</span>
-                            </div>
-                          </td>
-
-                          {/* Best Signal Badge */}
-                          <td className="px-3 py-2.5">
-                            <span className={`
-                              inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide
-                              ${cfg.color} border ${cfg.border}
-                            `}>
-                              <span className={cfg.icon}></span>
-                              {cfg.shortLabel}
-                            </span>
-                          </td>
-
-                          {/* Rest of the row... continue with existing code */}
-                          <td className="px-3 py-2.5 text-center hidden lg:table-cell">
-                            <span className={`text-xs ${
-                              item.teknikSignalType === 'strong_long' ? 'text-hermes-green font-bold' :
-                              item.teknikSignalType === 'long' ? 'text-hermes-green' :
-                              item.teknikSignalType === 'strong_short' ? 'text-red-400 font-bold' :
-                              item.teknikSignalType === 'short' ? 'text-red-400' :
-                              'text-white/40'
-                            }`}>
-                              {item.teknikScore.toFixed(0)}
-                            </span>
-                          </td>
-
-                          {/* AI Signal */}
-                          <td className="px-3 py-2.5 text-center hidden lg:table-cell">
-                            <span className={`text-xs ${
-                              item.aiSignal === 'STRONG' ? 'text-gold-400 font-bold' :
-                              item.aiSignal === 'GOOD' ? 'text-hermes-green font-bold' :
-                              item.aiSignal === 'WEAK' ? 'text-orange-400' :
-                              item.aiSignal === 'BAD' ? 'text-red-400 font-bold' :
-                              'text-white/40'
-                            }`}>
-                              {item.aiScore.toFixed(0)}
-                            </span>
-                          </td>
-
-                          {/* Confidence */}
-                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
-                            <div className="flex items-center justify-center gap-1">
-                              <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full ${item.signalConfidence >= 70 ? 'bg-hermes-green' : item.signalConfidence >= 40 ? 'bg-gold-300' : 'bg-white/20'}`}
-                                  style={{ width: `${item.signalConfidence}%` }}
-                                />
-                              </div>
-                              <span className="text-[10px] text-white/40">{item.signalConfidence}%</span>
-                            </div>
-                          </td>
-
-                          {/* Valuation */}
-                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                              item.valuationLabel === 'COK UCUZ' ? 'bg-hermes-green/20 text-hermes-green' :
-                              item.valuationLabel === 'UCUZ' ? 'bg-hermes-green/10 text-hermes-green/80' :
-                              item.valuationLabel === 'PAHALI' ? 'bg-red-400/10 text-red-400/80' :
-                              item.valuationLabel === 'COK PAHALI' ? 'bg-red-400/20 text-red-400' :
-                              'bg-white/5 text-white/40'
-                            }`}>
-                              {item.valuationLabel}
-                            </span>
-                          </td>
-
-                          {/* Price */}
-                          <td className="px-3 py-2.5 text-right">
-                            <PriceFlashCell price={item.price} />
-                            <div className={`text-[10px] ${item.changePercent >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
-                              {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
-                            </div>
-                          </td>
-
-                          {/* Market Cap */}
-                          <td className="px-3 py-2.5 text-right text-xs text-white/60 hidden xl:table-cell">
-                            {item.marketCap >= 1e9 ? `${(item.marketCap / 1e9).toFixed(1)}B` : `${(item.marketCap / 1e6).toFixed(0)}M`}
-                          </td>
-
-                          {/* Sector */}
-                          <td className="px-3 py-2.5 text-xs text-white/50 hidden 2xl:table-cell truncate max-w-[120px]">
-                            {item.sector || '—'}
-                          </td>
-
-                          {/* Target Price */}
-                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
-                            {item.targetPrice != null ? (
-                              <span className="text-xs font-mono text-hermes-green/80">${item.targetPrice.toFixed(2)}</span>
-                            ) : <span className="text-white/40 text-[10px]">—</span>}
-                          </td>
-
-                          {/* Floor Price */}
-                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
-                            {item.floorPrice != null ? (
-                              <span className="text-xs font-mono text-red-400/80">${item.floorPrice.toFixed(2)}</span>
-                            ) : <span className="text-white/40 text-[10px]">—</span>}
-                          </td>
-
-                          {/* R:R */}
-                          <td className="px-3 py-2.5 text-center hidden xl:table-cell">
-                            {item.riskReward != null ? (
-                              <span className={`text-xs font-mono font-bold ${
-                                item.riskReward >= 2 ? 'text-hermes-green' :
-                                item.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
-                              }`}>{item.riskReward.toFixed(1)}</span>
-                            ) : <span className="text-white/40 text-[10px]">—</span>}
-                          </td>
-                        </tr>
-                      )
-                    })
-                  )
-                )
-              ) : isLoading ? (
+              {isLoading ? (
                 Array.from({ length: 12 }).map((_, i) => <SkeletonRow key={i} />)
               ) : filtered.length === 0 ? (
                 <tr>

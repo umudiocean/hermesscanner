@@ -100,25 +100,18 @@ function isProviderActive(p: ProviderStatus): boolean {
 }
 
 function determineStatus(h: Omit<HealthResponse, 'status' | 'advisoryStatus'>): 'OK' | 'DEGRADED' | 'DOWN' {
-  // CRITICAL: Core trading path is FMP + scan data
-  // CoinGecko is optional for NASDAQ - only required for crypto terminal
-  
-  // If NO data at all (both NASDAQ and crypto), system is DOWN
-  if (h.dataFreshness.scanAgeMin === null && h.dataFreshness.coinsBulkAgeMin === null) {
-    return 'DOWN'
-  }
-
   // If Redis is required but down, critical failure
   if (h.cache.redis.required && !h.cache.redis.ok) return 'DOWN'
 
-  // FMP is core provider for NASDAQ - if down, DEGRADED
+  // FMP is core provider for NASDAQ
+  // If FMP is active and DOWN, system is DEGRADED (not DOWN - we can still show cached data)
   if (!h.providers.fmp.ok && isProviderActive(h.providers.fmp)) return 'DEGRADED'
 
-  // Active non-optional providers having issues -> DEGRADED
-  const activeProviderIssue = (Object.entries(h.providers) as [string, ProviderStatus][]).some(
-    ([name, p]) => !OPTIONAL_PROVIDERS.has(name) && name !== 'coingecko' && isProviderActive(p) && !p.ok
-  )
-  if (activeProviderIssue) return 'DEGRADED'
+  // If we have ANY data source working (quote OR scan), system is not DOWN
+  const hasAnyData = h.dataFreshness.stocksQuoteAgeMin !== null || h.dataFreshness.scanAgeMin !== null || h.dataFreshness.coinsBulkAgeMin !== null
+  
+  // Only DOWN if absolutely no data AND no working providers
+  if (!hasAnyData && !h.providers.fmp.ok && !h.providers.coingecko.ok) return 'DOWN'
 
   // SLA breaches are warnings, not critical failures
   if (h.sla.scanBreached || h.sla.stocksQuoteBreached) return 'DEGRADED'

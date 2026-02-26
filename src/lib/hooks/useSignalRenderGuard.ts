@@ -5,24 +5,10 @@ import { SIGNAL_GUARDRAIL } from '@/lib/config/constants'
 
 interface HealthSnapshot {
   status?: 'OK' | 'DEGRADED' | 'DOWN'
-  sla?: {
-    scanBreached?: boolean
-    stocksQuoteBreached?: boolean
-  }
   dataFreshness?: {
     scanAgeMin?: number | null
     stocksQuoteAgeMin?: number | null
   }
-}
-
-function isUsMarketOpen(): boolean {
-  const now = new Date()
-  const etStr = now.toLocaleString('en-US', { timeZone: 'America/New_York' })
-  const et = new Date(etStr)
-  const day = et.getDay()
-  if (day === 0 || day === 6) return false // Weekend
-  const mins = et.getHours() * 60 + et.getMinutes()
-  return mins >= 570 && mins <= 960 // 09:30 - 16:00 ET
 }
 
 export function useSignalRenderGuard() {
@@ -48,45 +34,17 @@ export function useSignalRenderGuard() {
   }, [])
 
   const state = useMemo(() => {
-    const marketOpen = isUsMarketOpen()
-    
-    // ✅ Market kapalıyken ASLA blokla (eski veri ile çalış)
-    if (!marketOpen) {
-      return {
-        blocked: false,
-        reason: null,
-        scanAgeMin: health?.dataFreshness?.scanAgeMin ?? null,
-        quoteAgeMin: health?.dataFreshness?.stocksQuoteAgeMin ?? null,
-        failClosed: SIGNAL_GUARDRAIL.FAIL_CLOSED,
-        staleWarning: false,
-        marketOpen: false,
-      }
-    }
-
-    // ✅ Market açıkken sadece HARD DOWN durumunda blokla
-    const hardDown = health?.status === 'DOWN'
-    
-    if (SIGNAL_GUARDRAIL.FAIL_CLOSED && hardDown) {
-      return {
-        blocked: true,
-        reason: 'SYSTEM_DOWN',
-        scanAgeMin: health?.dataFreshness?.scanAgeMin ?? null,
-        quoteAgeMin: health?.dataFreshness?.stocksQuoteAgeMin ?? null,
-        failClosed: true,
-        staleWarning: true,
-        marketOpen: true,
-      }
-    }
-
-    // ✅ Her şey OK veya DEGRADED (sinyalleri göster)
+    // NEVER block signals - always show available data
+    // If data is stale, show a warning but don't hide signals
     return {
       blocked: false,
       reason: null,
       scanAgeMin: health?.dataFreshness?.scanAgeMin ?? null,
       quoteAgeMin: health?.dataFreshness?.stocksQuoteAgeMin ?? null,
-      failClosed: SIGNAL_GUARDRAIL.FAIL_CLOSED,
+      failClosed: false,
       staleWarning: false,
       marketOpen: true,
+      systemStatus: health?.status ?? 'OK',
     }
   }, [health])
 
