@@ -718,12 +718,16 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
           }
         }
 
-        // Seans yeni açıldıysa (kapali→açık geçiş) ve sonuç yoksa full scan
+        // Seans yeni acildiysa (kapali->acik gecis) → incremental refresh tetikle
+        // Eski veri varsa bile guncel veri cekmeli
         if (isOpen && !wasMarketOpenRef.current) {
           wasMarketOpenRef.current = true
           if (resultsRef.current.length === 0) {
-            console.log('[AutoRefresh] Market just opened, triggering full scan (52W)')
+            console.log('[AutoRefresh] Market just opened, no data — triggering full scan')
             runScan()
+          } else {
+            console.log('[AutoRefresh] Market just opened, refreshing data from server cache')
+            runIncrementalRefreshRef.current()
           }
         }
 
