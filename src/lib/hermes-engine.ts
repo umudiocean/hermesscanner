@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════
 // HERMES V15 — TRADE AI Engine (Pure Z-Score, 15dk Timeframe)
-// V377_R6.85_Z55 | TANH 6.85 | L30_S90
+// V377_R6.85_Z55 | TANH 6.85 | L35_S85
 // Backtest ile BIREBIR AYNI hesaplama:
 //   15dk OHLCV bar → VWAP + Z-Score + RSI/MFI/ADX (tek timeframe)
 //   Weights: 100/0/0 (Pure Z-Score — RSI/MFI bilgi amacli)
@@ -10,7 +10,7 @@
 //   BPD: 26 (6.5 saat x 4 bar/saat)
 //   VWAP: 377 gun (9,802 bar) | Z-Score: 55 gun (1,430 bar)
 //   TANH_DIV: 6.85 | Z-Ratio: 6.85
-//   LONG_TH: 30 | SHORT_TH: 90
+//   LONG_TH: 35 | SHORT_TH: 85
 //
 // Scanner ve Backtest AYNI veri kaynagi: 15dk bar
 // ═══════════════════════════════════════════════════════════════════
@@ -60,11 +60,11 @@ const ENTRY_FILTERS = {
   MFI_SHORT: 70,
   ADX_MAX: 999,
 
-  LONG_TH: 30,
-  SHORT_TH: 90,
+  LONG_TH: 35,
+  SHORT_TH: 85,
   
-  LONG_CONFIRM_TH: 30,
-  SHORT_CONFIRM_TH: 90,
+  LONG_CONFIRM_TH: 35,
+  SHORT_CONFIRM_TH: 85,
 }
 
 export { ENTRY_FILTERS, DELAY_CONFIG }
@@ -499,13 +499,13 @@ export function calculateHermes(
     }
   }
 
-  if (totalScore <= 20) {
+  if (totalScore <= 22) {
     signal = 'STRONG LONG'
     signalType = 'strong_long'
   } else if (totalScore <= adaptiveLongTh) {
     signal = 'LONG'
     signalType = 'long'
-  } else if (totalScore < (adaptiveShortTh - 20)) {
+  } else if (totalScore <= 63) {
     signal = 'NOTR'
     signalType = 'neutral'
   } else if (totalScore < adaptiveShortTh) {
