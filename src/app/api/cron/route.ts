@@ -4,14 +4,13 @@
 // 3 mod:
 //   1) REDIS_SCAN: Bootstrap tamamlanmissa Redis'teki barlardan skor hesaplar (FMP yok)
 //   2) DELTA: Market aciksa Redis barlari delta gunceller + skor hesaplar
-//   3) FULL_STITCH: Bootstrap yoksa FMP'den tam veri ceker (cok yavas)
+//   3) FULL_STITCH: Bootstrap yoksa FMP'den tam 15dk veri ceker (yavas, rate-limited)
 // force=1 parametresi ile market kapali olsa bile calisir.
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getUniverseTierSymbols, computeSegmentFromMarketCap, UniverseTier } from '@/lib/symbols'
-import { getHistorical15MinDelta, getBatchQuotes } from '@/lib/fmp-client'
-// getHistorical15Min removed — cron no longer does full FMP stitching
+import { getHistorical15Min, getHistorical15MinDelta, getBatchQuotes } from '@/lib/fmp-client'
 import { calculateHermes } from '@/lib/hermes-engine'
 import { saveScanResults, loadLatestScan } from '@/lib/scan-store'
 import { ScanResult, ScanSummary, OHLCV } from '@/lib/types'
@@ -164,7 +163,7 @@ export async function GET(request: NextRequest) {
 
     const quotes = await getBatchQuotes(allSymbols)
     const queue = [...allSymbols]
-    const concurrency = mode === 'REDIS_SCAN' ? 20 : 10
+    const concurrency = mode === 'REDIS_SCAN' ? 20 : mode === 'DELTA' ? 10 : 5
 
     async function processSymbol(symbol: string): Promise<ScanResult | null> {
       try {
@@ -190,8 +189,13 @@ export async function GET(request: NextRequest) {
             return null
           }
         } else {
-          skippedBars++
-          return null
+          // FULL_STITCH: fetch from FMP when Redis is unavailable
+          try {
+            bars = await getHistorical15Min(symbol)
+          } catch {
+            skippedBars++
+            return null
+          }
         }
 
         if (!bars || bars.length < MIN_SCAN_BARS) return null

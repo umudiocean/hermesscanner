@@ -358,20 +358,13 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
         <div className="bg-[#0c0c14] rounded-2xl border border-white/[0.06] p-4">
           <div className="flex items-center gap-2 mb-3">
             <Brain size={14} className="text-violet-400" />
-            <span className="text-xs font-semibold text-white/60 tracking-wider">12 BILESEN DAGILIMI</span>
+            <span className="text-xs font-semibold text-white/60 tracking-wider">BILESEN DAGILIMI</span>
           </div>
           <div className="space-y-0.5">
-            {sorted.map(c => (
+            {sorted.filter(c => c.available).map(c => (
               <ComponentBar key={c.id} name={c.name} value={c.value} weight={c.weight} icon={getComponentIcon(c.id)} available={c.available} />
             ))}
           </div>
-          {sorted.filter(c => !c.available).length > 0 && (
-            <div className="mt-2 pt-2 border-t border-white/[0.04]">
-              <p className="text-[9px] text-white/25">
-                {!pulse.marketOpen ? 'Piyasa kapali — bazi bilesenler son kapanis/proxy veriyle hesaplanir, acilisla birlikte canli guncellenir.' : 'Bazi bilesenlerde kaynak veri eksik olabilir; model kalan aktif bilesenlerle adaptif hesap yapar.'}
-              </p>
-            </div>
-          )}
         </div>
       </div>
 
