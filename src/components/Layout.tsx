@@ -333,17 +333,18 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
 
   // Toggle watchlist item
   const toggleWatchlistItem = useCallback((symbol: string) => {
+    const norm = symbol.toUpperCase()
     setWatchlist(prev => {
-      const newList = prev.includes(symbol) 
-        ? prev.filter(s => s !== symbol)
-        : [...prev, symbol]
+      const newList = prev.includes(norm) 
+        ? prev.filter(s => s !== norm)
+        : [...prev, norm]
       localStorage.setItem('hermes_watchlist', JSON.stringify(newList))
       return newList
     })
   }, [])
 
   const isInWatchlist = useCallback((symbol: string) => {
-    return watchlist.includes(symbol)
+    return watchlist.includes(symbol.toUpperCase())
   }, [watchlist])
 
   // Scan function

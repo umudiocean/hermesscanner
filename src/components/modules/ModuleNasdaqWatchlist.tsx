@@ -104,7 +104,8 @@ export default function ModuleNasdaqWatchlist() {
   const [showSearch, setShowSearch] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const watchlistResults = useMemo(() => {
-    const filtered = results.filter(r => watchlist.includes(r.symbol))
+    const upperWatchlist = watchlist.map(s => s.toUpperCase())
+    const filtered = results.filter(r => upperWatchlist.includes(r.symbol.toUpperCase()))
     return filtered.sort((a, b) => {
       let aVal: number | string = 0, bVal: number | string = 0
       const fmpA = fmpStocksMap.get(a.symbol)

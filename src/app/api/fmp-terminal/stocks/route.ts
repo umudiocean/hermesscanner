@@ -167,7 +167,8 @@ export async function GET(request: NextRequest) {
       const analystEstimateMap = new Map<string, AnalystEstimateData>()
 
       // Parallel fetch: ratios, scores, dcf, analyst, price-targets, growth, key-metrics, sector-perf, earnings-surprises
-      const [ratiosRes, scoresRes, dcfRes, analystRes, targetRes, growthRes, keyMetricsRes, sectorPerfRes, earningsSurprisesRes, analystEstimatesRes] = await Promise.allSettled([
+      // NOTE: analyst-estimates-bulk removed — FMP Stable API returns 400, endpoint not available
+      const [ratiosRes, scoresRes, dcfRes, analystRes, targetRes, growthRes, keyMetricsRes, sectorPerfRes, earningsSurprisesRes] = await Promise.allSettled([
         fmpFetch('/ratios-ttm-bulk'),
         fmpFetch('/scores-bulk'),
         fmpFetch('/dcf-bulk'),
@@ -187,7 +188,6 @@ export async function GET(request: NextRequest) {
           return fmpFetch('/sector-performance-snapshot', { date: d.toISOString().split('T')[0] })
         })(),
         fmpFetch('/earnings-surprises-bulk'),
-        fmpFetch('/analyst-estimates-bulk'),
       ])
 
       // Parse Ratios TTM Bulk
@@ -533,48 +533,9 @@ export async function GET(request: NextRequest) {
         } catch (e) { logger.warn('Earnings surprises parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
       }
 
-      // Parse Analyst Estimates Bulk (EPS revision momentum proxy)
-      if (analystEstimatesRes.status === 'fulfilled' && analystEstimatesRes.value.ok) {
-        try {
-          const text = await analystEstimatesRes.value.text()
-
-          const getNum = (row: Record<string, string | number>, keys: string[]): number => {
-            for (const k of keys) {
-              if (k in row) {
-                const n = safeNum(row[k] as string | number)
-                if (isFinite(n)) return n
-              }
-            }
-            return 0
-          }
-
-          const parseRow = (row: Record<string, string | number>) => {
-            const sym = String(row.symbol || '')
-            if (!sym || !hermesSymbols.has(sym) || analystEstimateMap.has(sym)) return
-
-            const curr = getNum(row, ['estimatedEpsAvg', 'epsAvg', 'estimatedEPSAvg', 'epsEstimateAvg'])
-            const prev30 = getNum(row, ['estimatedEpsAvg30DaysAgo', 'epsAvg30DaysAgo', 'estimatedEPSAvg30DaysAgo'])
-            const prev90 = getNum(row, ['estimatedEpsAvg90DaysAgo', 'epsAvg90DaysAgo', 'estimatedEPSAvg90DaysAgo'])
-            const count = getNum(row, ['numberAnalystsEstimatedEps', 'numberAnalystEstimatedEps', 'analystCount'])
-
-            const rev30 = prev30 !== 0 ? ((curr - prev30) / Math.abs(prev30)) * 100 : 0
-            const rev90 = prev90 !== 0 ? ((curr - prev90) / Math.abs(prev90)) * 100 : 0
-
-            analystEstimateMap.set(sym, {
-              epsRevision30d: Math.max(-100, Math.min(100, rev30)),
-              epsRevision90d: Math.max(-100, Math.min(100, rev90)),
-              estimateCount: Math.max(0, Math.round(count)),
-            })
-          }
-
-          if (isCSV(text)) {
-            for (const row of parseCSV(text) as unknown as Array<Record<string, string | number>>) parseRow(row)
-          } else if (text.startsWith('[')) {
-            for (const row of JSON.parse(text)) parseRow(row)
-          }
-          logger.info(`Analyst estimates bulk: ${analystEstimateMap.size} stocks`, { module: 'fmp-stocks' })
-        } catch (e) { logger.warn('Analyst estimates parse error', { module: 'fmp-stocks', error: e instanceof Error ? e.message : String(e) }) }
-      }
+      // NOTE: analyst-estimates-bulk removed — FMP Stable API does not support this endpoint (returns 400)
+      // EPS revision data (epsRevision30d, epsRevision90d) will be 0 for all stocks
+      // Scoring engine handles this via adaptive weighting
 
       // ═══════════════════════════════════════════════════════════
       // STEP 3: COMPANY SCREENER (missing sectors)

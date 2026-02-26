@@ -51,6 +51,26 @@ export async function fetchVIXValue(): Promise<number | null> {
     logger.warn(`${LOG_TAG} Finnhub VIX fetch failed: ${(e as Error).message}`)
   }
 
+  // Layer 3: FMP batch-quote for ^VIX
+  try {
+    const fmpKey = process.env.FMP_API_KEY
+    if (fmpKey) {
+      const res = await fetch(`https://financialmodelingprep.com/stable/batch-quote?symbols=%5EVIX`, {
+        headers: { 'apikey': fmpKey },
+        signal: AbortSignal.timeout(10000),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data) && data.length > 0 && data[0].price > 0) {
+          logger.info(`${LOG_TAG} VIX from FMP: ${data[0].price}`)
+          return data[0].price
+        }
+      }
+    }
+  } catch (e) {
+    logger.warn(`${LOG_TAG} FMP VIX fetch failed: ${(e as Error).message}`)
+  }
+
   logger.warn(`${LOG_TAG} VIX unavailable from all sources`)
   return null
 }

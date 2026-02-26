@@ -16,30 +16,33 @@ export function getWatchlist(): string[] {
   if (typeof window === 'undefined') return []
   try {
     const data = localStorage.getItem(WATCHLIST_KEY)
-    return data ? JSON.parse(data) : []
+    const list = data ? JSON.parse(data) : []
+    return Array.isArray(list) ? list.map((s: string) => String(s).toUpperCase()) : []
   } catch {
     return []
   }
 }
 
 export function addToWatchlist(symbol: string): string[] {
+  const norm = symbol.toUpperCase()
   const list = getWatchlist()
-  if (!list.includes(symbol)) {
-    list.push(symbol)
+  if (!list.includes(norm)) {
+    list.push(norm)
     localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list))
   }
   return list
 }
 
 export function removeFromWatchlist(symbol: string): string[] {
+  const norm = symbol.toUpperCase()
   let list = getWatchlist()
-  list = list.filter(s => s !== symbol)
+  list = list.filter(s => s !== norm)
   localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list))
   return list
 }
 
 export function isInWatchlist(symbol: string): boolean {
-  return getWatchlist().includes(symbol)
+  return getWatchlist().includes(symbol.toUpperCase())
 }
 
 export function toggleWatchlist(symbol: string): { inWatchlist: boolean; list: string[] } {

@@ -83,6 +83,9 @@ async function computePulseData(): Promise<PulseData> {
     houseTrades,
     vixValue,
     putCallRatio,
+    quiverCongressData,
+    quiverOffExData,
+    insiderAggData,
   ] = await Promise.allSettled([
     fetchStockQuotes(),
     fetchTerminalStocksSnapshot(),
@@ -94,6 +97,9 @@ async function computePulseData(): Promise<PulseData> {
     fetchCongressTradesAll('house'),
     fetchVIXValue(),
     fetchPutCallRatio(),
+    fetchQuiverCongressLive(),
+    fetchQuiverOffExchange(),
+    fetchInsiderAggregateFromFMP(),
   ])
 
   const stocks = getResult<StockQuote[]>(stocksData, [])
@@ -106,10 +112,15 @@ async function computePulseData(): Promise<PulseData> {
   const house = getResult<CongressTrade[]>(houseTrades, [])
   const vix = getResult<number | null>(vixValue, null)
   const pc = getResult<number | null>(putCallRatio, null)
+  const quiverCongress = getResult<CongressTrade[]>(quiverCongressData, [])
+  const offExchangeData = getResult<QuiverOffExchangeRaw[]>(quiverOffExData, [])
+  const insiderStats = getResult<InsiderStat[]>(insiderAggData, [])
 
-  logger.info(`${LOG} Data: ${stocks.length} stocks, terminal=${terminalStocks.length}, ratings=${ratings.length}, earnings=${earnings.length}, VIX=${vix}, P/C=${pc}`)
+  const institutionalDelta = computeInstitutionalDeltaFromDPI(offExchangeData)
 
-  // Enrich quote universe with sector/shortFloat from Hermes AI stocks snapshot.
+  logger.info(`${LOG} Data: ${stocks.length} stocks, terminal=${terminalStocks.length}, ratings=${ratings.length}, earnings=${earnings.length}, VIX=${vix}, P/C=${pc}, quiverCongress=${quiverCongress.length}, offExchange=${offExchangeData.length}, insider=${insiderStats.length}`)
+
+  // Enrich quote universe with sector/shortFloat from Hermes AI stocks snapshot
   const terminalBySymbol = new Map(terminalStocks.map(s => [s.symbol, s]))
   for (const q of stocks) {
     const t = terminalBySymbol.get(q.symbol)
@@ -118,30 +129,13 @@ async function computePulseData(): Promise<PulseData> {
     if (q.shortFloat == null && typeof t.shortFloat === 'number') q.shortFloat = t.shortFloat
   }
 
-  // SmartMoney category proxy -> insider/institutional market sentiment
-  const smartScores = terminalStocks
-    .map(s => s.categories?.smartMoney)
-    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
-  const avgSmartMoney = smartScores.length > 0
-    ? smartScores.reduce((a, b) => a + b, 0) / smartScores.length
-    : 50
-  const smartBullCount = smartScores.filter(v => v >= 60).length
-  const smartBearCount = smartScores.filter(v => v <= 40).length
-  const insiderStats: InsiderStat[] = smartScores.length > 0
-    ? [{
-      symbol: 'MARKET',
-      purchases: smartBullCount,
-      sales: smartBearCount,
-      totalBought: smartBullCount,
-      totalSold: smartBearCount,
-    }]
-    : []
-  const institutionalDelta = Math.max(-1, Math.min(1, (avgSmartMoney - 50) / 50))
-
-  const congressAll: CongressTrade[] = [
-    ...senate.map(t => ({ type: t.type, amount: t.amount })),
-    ...house.map(t => ({ type: t.type, amount: t.amount })),
-  ]
+  // Congressional: prioritize Quiver live data over FMP
+  const congressAll: CongressTrade[] = quiverCongress.length > 0
+    ? quiverCongress
+    : [
+      ...senate.map(t => ({ type: t.type, amount: t.amount })),
+      ...house.map(t => ({ type: t.type, amount: t.amount })),
+    ]
 
   const isMarketOpen = checkMarketOpen()
 
@@ -302,4 +296,123 @@ function checkMarketOpen(): boolean {
   const day = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(now)
   if (day === 'Sat' || day === 'Sun') return false
   return totalMin >= 570 && totalMin <= 960 // 9:30-16:00
+}
+
+// ─── Quiver Live Congress Trades ──────────────────────────────────
+
+interface QuiverCongressRaw {
+  Representative?: string
+  ReportDate?: string
+  TransactionDate?: string
+  Ticker?: string
+  Transaction?: string
+  Range?: string
+  House?: string
+}
+
+async function fetchQuiverCongressLive(): Promise<CongressTrade[]> {
+  const apiKey = process.env.QUIVER_API_KEY
+  if (!apiKey) return []
+  try {
+    const res = await fetch('https://api.quiverquant.com/beta/live/congresstrading', {
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'accept': 'application/json' },
+      signal: AbortSignal.timeout(15000),
+    })
+    if (!res.ok) return []
+    const data: QuiverCongressRaw[] = await res.json()
+    if (!Array.isArray(data)) return []
+    // Last 90 days
+    const cutoff = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10)
+    return data
+      .filter(t => (t.TransactionDate || t.ReportDate || '') >= cutoff)
+      .map(t => ({
+        type: t.Transaction || '',
+        amount: t.Range || '',
+      }))
+  } catch (e) {
+    logger.warn('[Pulse] Quiver congress live failed', { error: (e as Error).message })
+    return []
+  }
+}
+
+// ─── Quiver Off-Exchange (Short Volume / DPI) ──────────────────────
+
+interface QuiverOffExchangeRaw {
+  Ticker?: string
+  Date?: string
+  OTC_Short?: number
+  OTC_Total?: number
+  DPI?: number
+}
+
+async function fetchQuiverOffExchange(): Promise<QuiverOffExchangeRaw[]> {
+  const apiKey = process.env.QUIVER_API_KEY
+  if (!apiKey) return []
+  try {
+    const res = await fetch('https://api.quiverquant.com/beta/live/offexchange', {
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'accept': 'application/json' },
+      signal: AbortSignal.timeout(15000),
+    })
+    if (!res.ok) return []
+    const data: QuiverOffExchangeRaw[] = await res.json()
+    return Array.isArray(data) ? data : []
+  } catch (e) {
+    logger.warn('[Pulse] Quiver off-exchange failed', { error: (e as Error).message })
+    return []
+  }
+}
+
+function computeInstitutionalDeltaFromDPI(data: QuiverOffExchangeRaw[]): number {
+  if (!data || data.length === 0) return 0
+  // DPI (Dark Pool Indicator): OTC_Short / OTC_Total
+  // High DPI (>0.55) = institutional selling pressure (bearish)
+  // Low DPI (<0.45) = institutional buying (bullish)
+  const dpis = data.filter(d => typeof d.DPI === 'number' && d.DPI > 0).map(d => d.DPI!)
+  if (dpis.length === 0) return 0
+  const avgDPI = dpis.reduce((a, b) => a + b, 0) / dpis.length
+  // Invert: DPI 0.55 = -1 (bearish), DPI 0.45 = +1 (bullish), 0.50 = 0
+  return Math.max(-1, Math.min(1, (0.50 - avgDPI) * 20))
+}
+
+// ─── FMP Insider Trading Aggregate ────────────────────────────────
+
+async function fetchInsiderAggregateFromFMP(): Promise<InsiderStat[]> {
+  try {
+    // Use top 20 most liquid stocks for aggregate insider sentiment
+    const topSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'JPM', 'V', 'UNH',
+      'XOM', 'JNJ', 'WMT', 'PG', 'MA', 'HD', 'CVX', 'MRK', 'ABBV', 'PEP']
+    let totalBuys = 0, totalSells = 0
+    const results = await Promise.allSettled(
+      topSymbols.map(async (sym) => {
+        try {
+          const data = await fmpApiFetch<Record<string, unknown>[]>('/insider-trading/statistics', { symbol: sym })
+          if (!Array.isArray(data) || data.length === 0) return null
+          // Aggregate last 12 months of insider trades
+          let buys = 0, sells = 0
+          for (const row of data.slice(0, 4)) {
+            buys += Number(row.totalBought || row.purchases || 0)
+            sells += Number(row.totalSold || row.sales || 0)
+          }
+          return { buys, sells }
+        } catch { return null }
+      })
+    )
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value) {
+        totalBuys += r.value.buys
+        totalSells += r.value.sells
+      }
+    }
+    if (totalBuys + totalSells === 0) return []
+    return [{
+      symbol: 'MARKET',
+      purchases: totalBuys,
+      sales: totalSells,
+      totalBought: totalBuys,
+      totalSold: totalSells,
+    }]
+  } catch (e) {
+    logger.warn('[Pulse] FMP insider aggregate failed', { error: (e as Error).message })
+    return []
+  }
 }
