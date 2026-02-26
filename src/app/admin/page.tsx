@@ -14,7 +14,7 @@ import {
 // Types
 // ═══════════════════════════════════════════════════════════════════
 
-type AdminTab = 'overview' | 'nasdaq' | 'europe' | 'crypto' | 'analytics' | 'system'
+type AdminTab = 'overview' | 'nasdaq' | 'europe' | 'crypto' | 'analytics' | 'system' | 'diagnostics'
 
 interface AnalyticsData {
   analytics: {
@@ -183,6 +183,7 @@ const TABS: { id: AdminTab; label: string; icon: React.ElementType; accent: stri
   { id: 'crypto', label: 'CRYPTO', icon: Bitcoin, accent: '#F59E0B' },
   { id: 'analytics', label: 'Analitik', icon: BarChart3, accent: '#8B5CF6' },
   { id: 'system', label: 'Sistem', icon: Server, accent: '#10B981' },
+  { id: 'diagnostics', label: 'Diagnostics', icon: AlertTriangle, accent: '#EF4444' },
 ]
 
 // ═══════════════════════════════════════════════════════════════════
@@ -580,6 +581,8 @@ export default function AdminDashboard() {
                 onClearCache={clearCache}
               />
             )}
+
+            {activeTab === 'diagnostics' && <DiagnosticsTab />}
           </>
         )}
       </main>
@@ -1543,6 +1546,181 @@ function SystemTab({
           <Sparkline values={cacheOriginTrend} />
         </div>
       </Card>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Diagnostics Tab — Real-time system health monitoring
+// ═══════════════════════════════════════════════════════════════════
+
+interface DiagIssue {
+  severity: 'critical' | 'warning' | 'info'
+  module: string
+  message: string
+  detail?: string
+  timestamp: string
+}
+
+interface DiagModule {
+  status: 'ok' | 'warning' | 'error'
+  lastUpdate: string | null
+  detail: string
+}
+
+function DiagnosticsTab() {
+  const [diagData, setDiagData] = useState<{
+    status: string
+    issueCount: number
+    criticalCount: number
+    warningCount: number
+    issues: DiagIssue[]
+    modules: Record<string, DiagModule>
+    symbolCount: number
+    barCacheCount: number
+    timestamp: string
+  } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [lastRefresh, setLastRefresh] = useState<string>('')
+
+  const loadDiag = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/diagnostics')
+      if (res.ok) {
+        const data = await res.json()
+        setDiagData(data)
+        setLastRefresh(new Date().toLocaleTimeString('tr-TR'))
+      }
+    } catch { /* ignore */ }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    loadDiag()
+    const iv = setInterval(loadDiag, 60_000)
+    return () => clearInterval(iv)
+  }, [loadDiag])
+
+  const statusColor = (s: string) => {
+    if (s === 'ok' || s === 'healthy') return 'text-emerald-400'
+    if (s === 'warning') return 'text-amber-400'
+    return 'text-red-400'
+  }
+
+  const statusBg = (s: string) => {
+    if (s === 'ok' || s === 'healthy') return 'bg-emerald-500/15 border-emerald-500/30'
+    if (s === 'warning') return 'bg-amber-500/15 border-amber-500/30'
+    return 'bg-red-500/15 border-red-500/30'
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+            System Diagnostics
+          </h2>
+          <p className="text-xs text-white/50 mt-1">
+            Her yenilemede tum moduller kontrol edilir. Sorun varsa otomatik bildirilir.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {diagData && (
+            <div className={`px-3 py-1.5 rounded-lg border text-xs font-bold uppercase ${statusBg(diagData.status)} ${statusColor(diagData.status)}`}>
+              {diagData.status === 'healthy' ? 'HEALTHY' : diagData.status === 'warning' ? `${diagData.warningCount} WARNING` : `${diagData.criticalCount} CRITICAL`}
+            </div>
+          )}
+          <button onClick={loadDiag} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all" title="Yenile">
+            <RefreshCw className={`w-4 h-4 text-white/60 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <span className="text-[10px] text-white/40">Son: {lastRefresh}</span>
+        </div>
+      </div>
+
+      {loading && !diagData ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+        </div>
+      ) : diagData ? (
+        <>
+          {diagData.issues.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-white/80">Sorunlar ({diagData.issueCount})</h3>
+              {diagData.issues.map((issue, idx) => (
+                <div key={idx} className={`p-3 rounded-xl border ${
+                  issue.severity === 'critical' ? 'bg-red-500/10 border-red-500/30' :
+                  issue.severity === 'warning' ? 'bg-amber-500/10 border-amber-500/30' :
+                  'bg-blue-500/10 border-blue-500/30'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    <span className="text-sm mt-0.5">{issue.severity === 'critical' ? '●' : issue.severity === 'warning' ? '●' : '●'}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-bold ${issue.severity === 'critical' ? 'text-red-300' : issue.severity === 'warning' ? 'text-amber-300' : 'text-blue-300'}`}>[{issue.module}]</span>
+                        <span className="text-xs text-white/70">{issue.message}</span>
+                      </div>
+                      {issue.detail && (
+                        <p className="text-[10px] text-white/40 mt-1">{issue.detail}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {diagData.issues.length === 0 && (
+            <div className="p-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-center">
+              <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-emerald-300">Tum Sistemler Saglikli</p>
+              <p className="text-[10px] text-white/40 mt-1">Hicbir sorun tespit edilmedi.</p>
+            </div>
+          )}
+
+          <div>
+            <h3 className="text-sm font-semibold text-white/80 mb-3">Modul Durumu</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+              {Object.entries(diagData.modules).map(([name, mod]) => (
+                <div key={name} className="p-3 rounded-xl bg-[#151520] border border-white/8">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-white/80">{name}</span>
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${statusBg(mod.status)} ${statusColor(mod.status)}`}>
+                      {mod.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-white/50">{mod.detail}</p>
+                  {mod.lastUpdate && (
+                    <p className="text-[10px] text-white/30 mt-1">Son: {mod.lastUpdate}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-3 rounded-xl bg-[#151520] border border-white/8 text-center">
+              <div className="text-lg font-bold text-white tabular-nums">{diagData.symbolCount}</div>
+              <div className="text-[10px] text-white/40">Toplam Hisse</div>
+            </div>
+            <div className="p-3 rounded-xl bg-[#151520] border border-white/8 text-center">
+              <div className="text-lg font-bold text-emerald-400 tabular-nums">{diagData.barCacheCount}</div>
+              <div className="text-[10px] text-white/40">Redis Bar Cache</div>
+            </div>
+            <div className="p-3 rounded-xl bg-[#151520] border border-white/8 text-center">
+              <div className={`text-lg font-bold tabular-nums ${diagData.criticalCount > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{diagData.criticalCount}</div>
+              <div className="text-[10px] text-white/40">Kritik Sorun</div>
+            </div>
+            <div className="p-3 rounded-xl bg-[#151520] border border-white/8 text-center">
+              <div className={`text-lg font-bold tabular-nums ${diagData.warningCount > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>{diagData.warningCount}</div>
+              <div className="text-[10px] text-white/40">Uyari</div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="text-center py-10 text-white/40 text-sm">Diagnostics verileri yuklenemedi.</div>
+      )}
     </div>
   )
 }
