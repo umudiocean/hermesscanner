@@ -621,12 +621,12 @@ export interface ComparisonItem {
 // ─── Score Engine Config ───────────────────────────────────────────
 
 export const FMP_SCORE_WEIGHTS = {
-  valuation: 0.22,
+  valuation: 0.25,
   health: 0.20,
   growth: 0.14,
   analyst: 0.11,
-  quality: 0.12,
-  momentum: 0.11,
+  quality: 0.10,
+  momentum: 0.10,
   sector: 0.05,
   smartMoney: 0.05,
 } as const
@@ -963,7 +963,7 @@ export const CATEGORY_LABELS: Record<keyof FMPScoreBreakdown, string> = {
   smartMoney: 'Akilli Para',
 }
 
-// V5 Badge types
+// V6 Badge types
 export type BadgeType =
   | 'KAZANC_GUCLU' | 'KAZANC_ZAYIF'
   | 'BUBBLE_RISKI' | 'SQUEEZE_RISKI'
@@ -971,6 +971,8 @@ export type BadgeType =
   | 'HEDEF_YUKARI' | 'HEDEF_ASAGI'
   | 'GENIS_MOAT' | 'DAR_MOAT'
   | 'VALUE_TRAP'
+  | 'YUKSEK_GUVEN' | 'DUSUK_GUVEN'
+  | 'LONG_YAKLASMA' | 'SHORT_YAKLASMA'
 
 export interface StockBadge {
   type: BadgeType

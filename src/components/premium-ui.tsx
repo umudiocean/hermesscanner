@@ -224,16 +224,15 @@ export function EmptyState({ icon = '💎', title, description, actionLabel, onA
 
 // ─── SignalBadge — premium badge with glow accent ────────────────
 export const SignalBadge = memo(function SignalBadge({ type, label, compact = false }: {
-  type: 'strong_long' | 'long' | 'neutral' | 'short' | 'strong_short'; label: string; compact?: boolean
+  type: string; label: string; compact?: boolean
 }) {
+  const mapped = (type === 'strong_long') ? 'long' : (type === 'strong_short') ? 'short' : type
   const config: Record<string, { bg: string; text: string; glow: string; border: string; dot: string }> = {
-    strong_long: { bg: 'bg-amber-500/15', text: 'text-amber-300', glow: 'badge-glow-gold', border: 'border-l-amber-400/60', dot: 'bg-amber-400' },
     long: { bg: 'bg-hermes-green/15', text: 'text-hermes-green', glow: 'badge-glow-green', border: 'border-l-hermes-green/50', dot: 'bg-hermes-green' },
     neutral: { bg: 'bg-white/[0.05]', text: 'text-slate-400', glow: '', border: 'border-l-white/15', dot: 'bg-slate-500' },
-    short: { bg: 'bg-orange-500/15', text: 'text-orange-400', glow: '', border: 'border-l-orange-400/50', dot: 'bg-orange-400' },
-    strong_short: { bg: 'bg-red-500/15', text: 'text-red-400', glow: 'badge-glow-red', border: 'border-l-red-400/60', dot: 'bg-red-400' },
+    short: { bg: 'bg-red-500/15', text: 'text-red-400', glow: 'badge-glow-red', border: 'border-l-red-400/60', dot: 'bg-red-400' },
   }
-  const c = config[type] || config.neutral
+  const c = config[mapped] || config.neutral
   return (
     <span className={`inline-flex items-center gap-1.5 ${compact ? 'text-[10px] px-2 py-0.5' : 'text-xs px-2.5 py-1'} 
       font-bold rounded-r-lg border-l-[3px] ${c.bg} ${c.text} ${c.glow} ${c.border} transition-all duration-200 tracking-wide`}>

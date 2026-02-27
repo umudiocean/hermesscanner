@@ -18,7 +18,7 @@ import LegalDisclaimerStrip from '../LegalDisclaimerStrip'
 import { CSV_HEADERS, REVISION_TOOLTIPS } from './shared/revision-contract'
 
 type TerminalSignal = 'STRONG' | 'GOOD' | 'NEUTRAL' | 'WEAK' | 'BAD'
-type TradeSignal = 'STRONG LONG' | 'LONG' | 'NOTR' | 'SHORT' | 'STRONG SHORT'
+type TradeSignal = 'LONG' | 'BEKLE' | 'SHORT'
 type AISignal = 'CONFLUENCE BUY' | 'ALPHA LONG' | 'HERMES LONG' | 'HERMES SHORT' | 'ALPHA SHORT' | 'CONFLUENCE SELL' | '-'
 
 type SortField = 'symbol' | 'segment' | 'price' | 'change' | 'score' | 'terminalSignal' | 'tradeSignal' | 'aiSignal' |
@@ -26,26 +26,24 @@ type SortField = 'symbol' | 'segment' | 'price' | 'change' | 'score' | 'terminal
 type SortDir = 'asc' | 'desc'
 
 const TRADE_SIGNAL_LABELS: Record<string, string> = {
-  strong_long: 'STRONG LONG',
   long: 'LONG',
-  neutral: 'NOTR',
+  neutral: 'BEKLE',
   short: 'SHORT',
-  strong_short: 'STRONG SHORT',
+  strong_long: 'LONG',
+  strong_short: 'SHORT',
 }
 
 const TERMINAL_SIGNAL_RANK: Record<string, number> = { 'STRONG': 0, 'GOOD': 1, 'NEUTRAL': 2, 'WEAK': 3, 'BAD': 4 }
-const TRADE_SIGNAL_RANK: Record<string, number> = { 'STRONG LONG': 0, 'LONG': 1, 'NOTR': 2, 'SHORT': 3, 'STRONG SHORT': 4 }
+const TRADE_SIGNAL_RANK: Record<string, number> = { 'LONG': 0, 'BEKLE': 1, 'SHORT': 2 }
 const AI_SIGNAL_RANK: Record<string, number> = {
   'CONFLUENCE BUY': 0, 'ALPHA LONG': 1, 'HERMES LONG': 2, '-': 3,
   'HERMES SHORT': 4, 'ALPHA SHORT': 5, 'CONFLUENCE SELL': 6,
 }
 
 function getTradeSignal(score: number): TradeSignal {
-  if (score <= 20) return 'STRONG LONG'
-  if (score <= 30) return 'LONG'
-  if (score >= 90) return 'STRONG SHORT'
-  if (score >= 70) return 'SHORT'
-  return 'NOTR'
+  if (score <= 34) return 'LONG'
+  if (score >= 92) return 'SHORT'
+  return 'BEKLE'
 }
 
 function matchAISignal(tradeSignalType: string, terminalLevel: string, riskScore?: number): AISignal {
@@ -420,10 +418,8 @@ export default function ModuleNasdaqWatchlist() {
                     </td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                        tradeSignal === 'STRONG LONG' ? 'text-hermes-green bg-hermes-green/15 border-hermes-green/30' :
-                        tradeSignal === 'LONG' ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/20' :
-                        tradeSignal === 'SHORT' ? 'text-red-400 bg-red-500/10 border-red-500/20' :
-                        tradeSignal === 'STRONG SHORT' ? 'text-red-300 bg-red-500/15 border-red-500/30' :
+                        tradeSignal === 'LONG' ? 'text-hermes-green bg-hermes-green/15 border-hermes-green/30' :
+                        tradeSignal === 'SHORT' ? 'text-red-400 bg-red-500/15 border-red-500/30' :
                         'text-white/45 bg-white/[0.03] border-white/[0.06]'
                       }`}>{tradeSignal}</span>
                     </td>

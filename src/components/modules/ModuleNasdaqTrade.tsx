@@ -10,47 +10,43 @@ import SystemFreshnessBadge from '../SystemFreshnessBadge'
 import LegalDisclaimerStrip from '../LegalDisclaimerStrip'
 
 // ═══════════════════════════════════════════════════════════════════
-// TRADE AI Module — V15 Pure Z-Score (V377_R6.85_Z55)
-// VWAP 377g | Z-Score LB=55 | Z-Ratio: 6.85 | L35_S85
-// Skor: <=22 STRONG LONG | 23-35 LONG | 36-63 NOTR | 64-84 SHORT | >=85 STRONG SHORT
+// TRADE AI Module — V16 Pure Z-Score (V377_Z144)
+// VWAP 377g | Z-Score LB=144 | 3 Sinyal (LONG / BEKLE / SHORT)
+// Skor: 0-34 LONG | 35-91 BEKLE | 92-100 SHORT
 // ═══════════════════════════════════════════════════════════════════
 
 type SortField = 'score' | 'symbol' | 'price' | 'change' | 'signal' | 'rsi' | 'mfi' | 'marketCap' | 'quality' | 'confidence' | 'valuation' | 'targetPrice' | 'floorPrice' | 'riskReward'
 type SortDir = 'asc' | 'desc'
-type SignalFilter = 'all' | 'strong_long' | 'long' | 'neutral' | 'short' | 'strong_short'
+type SignalFilter = 'all' | 'long' | 'neutral' | 'short'
 type SegmentFilter = 'ALL' | 'MEGA' | 'LARGE' | 'MID' | 'SMALL' | 'MICRO'
 
 const SEGMENTS = ['MEGA', 'LARGE', 'MID', 'SMALL', 'MICRO'] as const
 
-// Sinyal label'i her zaman signalType'dan turetilir (cache uyumluluk)
 const SIGNAL_LABELS: Record<string, string> = {
-  strong_long: 'STRONG LONG',
   long: 'LONG',
-  neutral: 'NOTR',
+  neutral: 'BEKLE',
   short: 'SHORT',
-  strong_short: 'STRONG SHORT',
+  strong_long: 'LONG',
+  strong_short: 'SHORT',
 }
 
 function getSignalLabel(signalType: string): string {
-  return SIGNAL_LABELS[signalType] || 'NOTR'
+  return SIGNAL_LABELS[signalType] || 'BEKLE'
 }
 
 function getSignalStyle(signalType: string) {
+  const mapped = signalType === 'strong_long' ? 'long' : signalType === 'strong_short' ? 'short' : signalType
   const styles: Record<string, { bg: string; text: string; border: string }> = {
-    strong_long: { bg: 'bg-gold-400/15', text: 'text-gold-300', border: 'border-gold-400/40' },
     long: { bg: 'bg-hermes-green/15', text: 'text-hermes-green', border: 'border-hermes-green/40' },
     neutral: { bg: 'bg-white/[0.06]', text: 'text-white/60', border: 'border-white/10' },
-    short: { bg: 'bg-orange-500/15', text: 'text-orange-400', border: 'border-orange-500/40' },
-    strong_short: { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/40' },
+    short: { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/40' },
   }
-  return styles[signalType] || styles.neutral
+  return styles[mapped] || styles.neutral
 }
 
 function getScoreColor(score: number): string {
-  if (score <= 20) return 'text-gold-300'
-  if (score <= 30) return 'text-hermes-green'
-  if (score < 70) return 'text-white/60'
-  if (score < 90) return 'text-orange-400'
+  if (score <= 34) return 'text-hermes-green'
+  if (score <= 91) return 'text-white/60'
   return 'text-red-400'
 }
 
@@ -163,10 +159,8 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
   return (
     <>
       <tr className={`border-b border-gold-400/5 cursor-pointer premium-row group ${
-        hermes.signalType === 'strong_long' ? 'row-glow-strong-long' :
-        hermes.signalType === 'long' ? 'row-glow-long' :
-        hermes.signalType === 'strong_short' ? 'row-glow-strong-short' :
-        hermes.signalType === 'short' ? 'row-glow-short' : ''
+        (hermes.signalType === 'long' || hermes.signalType === 'strong_long') ? 'row-glow-long' :
+        (hermes.signalType === 'short' || hermes.signalType === 'strong_short') ? 'row-glow-short' : ''
       }`}>
         <td className="px-2 py-3 w-10">
           <button
@@ -192,8 +186,14 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
           <ScoreMiniBar value={hermes.score} maxWidth={56} />
         </td>
         <td className="px-3 py-3" onClick={onToggle}>
-          <div className="flex items-center gap-1.5">
-            <SignalBadge type={hermes.signalType as 'strong_long' | 'long' | 'neutral' | 'short' | 'strong_short'} label={getSignalLabel(hermes.signalType)} />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <SignalBadge type={hermes.signalType as 'long' | 'neutral' | 'short' | 'strong_long' | 'strong_short'} label={getSignalLabel(hermes.signalType)} />
+            {hermes.score >= 35 && hermes.score <= 40 && (
+              <span className="px-1 py-0.5 rounded text-[9px] bg-hermes-green/10 text-hermes-green/80 border border-hermes-green/20" title="Skor LONG bolgelerine yaklastigi">↓L</span>
+            )}
+            {hermes.score >= 87 && hermes.score <= 91 && (
+              <span className="px-1 py-0.5 rounded text-[9px] bg-red-400/10 text-red-400/80 border border-red-400/20" title="Skor SHORT bolgelerine yaklastigi">↑S</span>
+            )}
             {hermes.delay?.waitingForConfirm && (
               <span className="px-1.5 py-0.5 rounded text-[10px] bg-gold-400/15 text-gold-300 border border-gold-400/30">
                 {hermes.delay.barsRemaining} bar
@@ -375,7 +375,12 @@ export default function ModuleNasdaqTrade() {
 
   const filteredResults = useMemo(() => {
     return results
-      .filter(r => signalFilter === 'all' || r.hermes.signalType === signalFilter)
+      .filter(r => {
+        if (signalFilter === 'all') return true
+        if (signalFilter === 'long') return r.hermes.signalType === 'long' || r.hermes.signalType === 'strong_long'
+        if (signalFilter === 'short') return r.hermes.signalType === 'short' || r.hermes.signalType === 'strong_short'
+        return r.hermes.signalType === signalFilter
+      })
       .filter(r => segmentFilter === 'ALL' || r.segment === segmentFilter)
       .filter(r => valuationFilter === 'all' || fmpStocksMap.get(r.symbol)?.valuationLabel === valuationFilter)
       .filter(r => !searchQuery || r.symbol.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -420,15 +425,18 @@ export default function ModuleNasdaqTrade() {
   }
 
   const signalCounts = useMemo(() => ({
-    strong_long: results.filter(r => r.hermes.signalType === 'strong_long').length,
-    long: results.filter(r => r.hermes.signalType === 'long').length,
+    long: results.filter(r => r.hermes.signalType === 'long' || r.hermes.signalType === 'strong_long').length,
     neutral: results.filter(r => r.hermes.signalType === 'neutral').length,
-    short: results.filter(r => r.hermes.signalType === 'short').length,
-    strong_short: results.filter(r => r.hermes.signalType === 'strong_short').length,
+    short: results.filter(r => r.hermes.signalType === 'short' || r.hermes.signalType === 'strong_short').length,
   }), [results])
 
   const getSegmentCount = (seg: SegmentFilter) => {
-    const base = results.filter(r => signalFilter === 'all' || r.hermes.signalType === signalFilter)
+    const base = results.filter(r => {
+      if (signalFilter === 'all') return true
+      if (signalFilter === 'long') return r.hermes.signalType === 'long' || r.hermes.signalType === 'strong_long'
+      if (signalFilter === 'short') return r.hermes.signalType === 'short' || r.hermes.signalType === 'strong_short'
+      return r.hermes.signalType === signalFilter
+    })
     return seg === 'ALL' ? base.length : base.filter(r => r.segment === seg).length
   }
 
@@ -467,11 +475,9 @@ export default function ModuleNasdaqTrade() {
             <span className="text-xs text-gold-400/50 w-16 shrink-0">Sinyal</span>
             <div className="flex flex-wrap items-center gap-1.5">
               <FilterButton active={signalFilter === 'all'} onClick={() => setSignalFilter('all')} count={results.length}>Tumu</FilterButton>
-              <FilterButton active={signalFilter === 'strong_long'} onClick={() => setSignalFilter('strong_long')} variant="yellow" count={signalCounts.strong_long}>Strong Long</FilterButton>
               <FilterButton active={signalFilter === 'long'} onClick={() => setSignalFilter('long')} variant="green" count={signalCounts.long}>Long</FilterButton>
-              <FilterButton active={signalFilter === 'neutral'} onClick={() => setSignalFilter('neutral')} variant="gray" count={signalCounts.neutral}>Notr</FilterButton>
-              <FilterButton active={signalFilter === 'short'} onClick={() => setSignalFilter('short')} variant="orange" count={signalCounts.short}>Short</FilterButton>
-              <FilterButton active={signalFilter === 'strong_short'} onClick={() => setSignalFilter('strong_short')} variant="red" count={signalCounts.strong_short}>Strong Short</FilterButton>
+              <FilterButton active={signalFilter === 'neutral'} onClick={() => setSignalFilter('neutral')} variant="gray" count={signalCounts.neutral}>Bekle</FilterButton>
+              <FilterButton active={signalFilter === 'short'} onClick={() => setSignalFilter('short')} variant="red" count={signalCounts.short}>Short</FilterButton>
             </div>
           </div>
           <div className="hidden lg:block w-px h-8 bg-white/[0.06] shrink-0" />

@@ -1,30 +1,36 @@
 // ═══════════════════════════════════════════════════════════════════
-// HERMES V15 — TRADE AI Engine (Pure Z-Score, 15dk Timeframe)
-// V377_R6.85_Z55 | TANH 6.85 | L35_S85
-// Backtest ile BIREBIR AYNI hesaplama:
-//   15dk OHLCV bar → VWAP + Z-Score + RSI/MFI/ADX (tek timeframe)
-//   Weights: 100/0/0 (Pure Z-Score — RSI/MFI bilgi amacli)
+// HERMES V16 — TRADE AI Engine (Pure Z-Score, 15dk Timeframe)
+// V377_Z144 | 3 Sinyal (LONG / BEKLE / SHORT)
 //
-// V15 PARAMETRELER:
+// PARAMETRELER:
 //   Timeframe: 15 Dakika (FMP'den canli cekilir)
 //   BPD: 26 (6.5 saat x 4 bar/saat)
-//   VWAP: 377 gun (9,802 bar) | Z-Score: 55 gun (1,430 bar)
-//   TANH_DIV: 6.85 | Z-Ratio: 6.85
-//   LONG_TH: 35 | SHORT_TH: 85
+//   VWAP: 377 gun (9,802 bar) — Fibonacci
+//   Z-Score Lookback: 144 gun (3,744 bar) — Fibonacci
+//   LONG esik: Z-Score <= -3.40 (Skor 34 ve alti) — Backtest %94 WR
+//   SHORT esik: Z-Score >= +9.20 (Skor 92 ve ustu) — Backtest %94 WR
+//   Skor: Z-Score → 3 parcali linear mapping (Z=0 → ~63)
+//   tanh YOK — dogrudan parcali linear interpolasyon
 //
-// Scanner ve Backtest AYNI veri kaynagi: 15dk bar
+// 3 SINYAL (Backtest %94 WR ile dogrulanmis):
+//   Skor 0-34  → LONG (yesil)
+//   Skor 35-91 → BEKLE (gri)
+//   Skor 92-100 → SHORT (kirmizi)
 // ═══════════════════════════════════════════════════════════════════
 
 import { OHLCV, HermesConfig, HermesResult, SignalType, TrendContext } from './types'
 
 // ═══════════════════════════════════════════════════════════════════
-// V15 TRADE AI — PARAMETRELER (2026-02-20)
-// 15dk Timeframe — V377_R6.85_Z55 L35_S85
+// V16 TRADE AI — PARAMETRELER (2026-02-27)
+// 15dk Timeframe — V377_Z144 | 3 Sinyal
 // ═══════════════════════════════════════════════════════════════════
 const BPD = 26  // 15dk: 6.5 saat x 4 bar/saat
 const VWAP_DAYS = 377
-const ZSCORE_DAYS = 55
-const TANH_DIV = 6.85
+const ZSCORE_DAYS = 144
+
+// Z-Score esikleri — Backtest ile dogrulanmis (WR %94)
+const Z_LONG_THRESHOLD = -3.40   // bu ve altinda → Skor 0 (LONG bolgesi)
+const Z_SHORT_THRESHOLD = 9.20   // bu ve ustunde → Skor 100 (SHORT bolgesi)
 
 const DEFAULT_CONFIG: HermesConfig = {
   // VWAP: 377 gun x 26 bar/gun = 9,802 bar
@@ -41,20 +47,17 @@ const DEFAULT_CONFIG: HermesConfig = {
   mfi_length: 14,
   adx_length: 14,
 
-  // Z-Score: 55 gun x 26 bar/gun = 1,430 bar
+  // Z-Score: 144 gun x 26 bar/gun = 3,744 bar
   zscore_len_52w: ZSCORE_DAYS * BPD,
-
-  // TANH divisor — Z-Ratio ile ayni (6.85)
-  tanh_div: TANH_DIV,
 }
 
 const DELAY_CONFIG = {
-  DELAY_BARS: 1,          // 1 bar = 15 dakika
-  CONFIRM_SCORE_TH: 90,
+  DELAY_BARS: 1,
+  CONFIRM_SCORE_TH: 92,
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// V15 TRADE AI — GIRIS FILTRELERI
+// V16 TRADE AI — GIRIS FILTRELERI (3 sinyal)
 // ═══════════════════════════════════════════════════════════════════
 const ENTRY_FILTERS = {
   RSI_LONG: 40,
@@ -62,12 +65,8 @@ const ENTRY_FILTERS = {
   MFI_LONG: 50,
   MFI_SHORT: 70,
   ADX_MAX: 999,
-
-  LONG_TH: 35,
-  SHORT_TH: 85,
-  
-  LONG_CONFIRM_TH: 35,
-  SHORT_CONFIRM_TH: 85,
+  LONG_TH: 34,   // Skor 0-34 → LONG (backtest %94 WR)
+  SHORT_TH: 92,  // Skor 92-100 → SHORT (backtest %94 WR)
 }
 
 export { ENTRY_FILTERS, DELAY_CONFIG }
@@ -295,16 +294,44 @@ function calcDmi(high: number[], low: number[], close: number[], period: number)
   return { adx: adxArr }
 }
 
-function tanh(x: number): number {
-  // V7: clamp(-6, 6) overflow fix
-  const cx = Math.max(-6, Math.min(6, x))
-  const e2x = Math.exp(2 * cx)
-  return (e2x - 1) / (e2x + 1)
-}
+/**
+ * Z-Score → Skor (0-100) 3 parcali linear mapping
+ * Backtest ile dogrulanmis (WR %94):
+ *
+ *   Z <= -3.40  → skor 0   (LONG bolgesi)
+ *   Z = -3.40   → skor 34  (LONG esigi)
+ *   Z = 0       → skor 63  (BEKLE ortasi)
+ *   Z = +9.20   → skor 92  (SHORT esigi)
+ *   Z >= +9.20  → skor 100 (SHORT bolgesi)
+ *
+ * 3 parca:
+ *   [−inf, −3.40]  → [0, 34]
+ *   [−3.40, +9.20] → [34, 92]
+ *   [+9.20, +inf]  → [92, 100]
+ */
+function zscoreToScore(zs: number): number {
+  if (isNaN(zs) || !isFinite(zs)) return 63
 
-function zscoreTo100(zs: number, tanhDiv?: number): number {
-  if (isNaN(zs) || !isFinite(zs)) return 50
-  return 50 + 50 * tanh(zs / (tanhDiv || TANH_DIV))
+  // Ana bolge: Z_LONG_THRESHOLD → 34, Z_SHORT_THRESHOLD → 92
+  if (zs >= Z_LONG_THRESHOLD && zs <= Z_SHORT_THRESHOLD) {
+    const range = Z_SHORT_THRESHOLD - Z_LONG_THRESHOLD  // 12.60
+    const ratio = (zs - Z_LONG_THRESHOLD) / range       // 0..1
+    return Math.round(34 + ratio * (92 - 34))            // 34..92
+  }
+
+  // Sol kuyruk: z < -3.40 → skor < 34 (LONG bolgesi)
+  if (zs < Z_LONG_THRESHOLD) {
+    const extentBelow = Z_LONG_THRESHOLD - zs          // pozitif
+    const maxExtent = Math.abs(Z_LONG_THRESHOLD)       // 3.40
+    const ratio = Math.min(extentBelow / maxExtent, 1) // 0..1 (clamp at 1)
+    return Math.round(34 * (1 - ratio))                // 34..0
+  }
+
+  // Sag kuyruk: z > +9.20 → skor > 92 (SHORT bolgesi)
+  const extentAbove = zs - Z_SHORT_THRESHOLD           // pozitif
+  const maxExtent = Math.abs(Z_LONG_THRESHOLD)         // 3.40 (simetrik margin)
+  const ratio = Math.min(extentAbove / maxExtent, 1)   // 0..1 (clamp at 1)
+  return Math.round(92 + ratio * 8)                    // 92..100
 }
 
 // V7: RSI nonlinear strong mapping — uçlarda hassas, ortada yumuşak
@@ -355,7 +382,7 @@ function computeMeanAt(data: number[], period: number, pos: number): number {
 
 function createNeutralResult(reason: string): HermesResult {
   return {
-    score: 50, signal: 'NOTR', signalType: 'neutral',
+    score: 50, signal: 'BEKLE', signalType: 'neutral',
     components: { point52w: 50, pointMfi: 50, pointRsi: 50 },
     multipliers: { atrCarpan: 1, adxCarpan: 1, quality: 1 },
     rawScore: 50,
@@ -433,8 +460,8 @@ export function calculateHermes(
   const upperOuter = zsCenter + 2.0 * zStd
   const lowerOuter = zsCenter - 2.0 * zStd
 
-  // Z-Score → skor (backtest ile birebir)
-  const point52w = hasEnough ? zscoreTo100(zscore, cfg.tanh_div) : 50
+  // Z-Score → skor (linear mapping, tanh yok)
+  const point52w = hasEnough ? zscoreToScore(zscore) : 50
 
   // ═══ GOSTERGELER (15dk bardan — bilgi amacli) ═══
   const rsiArr = calcRsi(close, cfg.rsi_length)
@@ -483,40 +510,19 @@ export function calculateHermes(
                          mfiVal >= ENTRY_FILTERS.MFI_SHORT &&
                          adxVal <= ENTRY_FILTERS.ADX_MAX
 
-  // Configurable thresholds: config > ENTRY_FILTERS > default
-  const longTh = cfg.long_th ?? ENTRY_FILTERS.LONG_TH
-  const shortTh = cfg.short_th ?? ENTRY_FILTERS.SHORT_TH
-  let adaptiveLongTh = longTh
-  let adaptiveShortTh = shortTh
+  // 3 sinyal sistemi (backtest %94 WR): LONG (0-34) / BEKLE (35-91) / SHORT (92-100)
+  const longTh = cfg.long_th ?? ENTRY_FILTERS.LONG_TH   // 34
+  const shortTh = cfg.short_th ?? ENTRY_FILTERS.SHORT_TH // 92
 
-  // Regime-adaptive thresholding:
-  // bullish regime -> allow slightly more long triggers
-  // bearish regime -> allow slightly more short triggers
-  if (trendContext) {
-    if (trend.composite <= 40) {
-      adaptiveLongTh = Math.min(longTh + 4, 45)
-      adaptiveShortTh = Math.min(shortTh + 2, 95)
-    } else if (trend.composite >= 60) {
-      adaptiveLongTh = Math.max(longTh - 4, 20)
-      adaptiveShortTh = Math.max(shortTh - 4, 75)
-    }
-  }
-
-  if (totalScore <= 22) {
-    signal = 'STRONG LONG'
-    signalType = 'strong_long'
-  } else if (totalScore <= adaptiveLongTh) {
+  if (totalScore <= longTh) {
     signal = 'LONG'
     signalType = 'long'
-  } else if (totalScore <= 63) {
-    signal = 'NOTR'
-    signalType = 'neutral'
-  } else if (totalScore < adaptiveShortTh) {
+  } else if (totalScore >= shortTh) {
     signal = 'SHORT'
     signalType = 'short'
   } else {
-    signal = 'STRONG SHORT'
-    signalType = 'strong_short'
+    signal = 'BEKLE'
+    signalType = 'neutral'
   }
 
   // Band Inner temas (bilgi amacli)

@@ -228,3 +228,9 @@ export async function loadLatestScan(): Promise<{
 
   return null
 }
+
+export function clearScanStore(): void {
+  scanResults.clear()
+  scanSummaries.clear()
+  lastFullScan = null
+}

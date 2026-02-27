@@ -11,20 +11,23 @@ import LegalDisclaimerStrip from '../LegalDisclaimerStrip'
 import { CSV_HEADERS, REVISION_TOOLTIPS } from './shared/revision-contract'
 
 // ================================================================
-// AI SIGNALS Module — V5
-// NASDAQ TEKNIK + HERMES AI Terminal + Overvaluation Motor
-// 6 sinyal: CONFLUENCE BUY/SELL, ALPHA LONG/SHORT, HERMES LONG/SHORT
+// AI SIGNALS Module — V6
+// NASDAQ TEKNIK (3 sinyal: LONG/BEKLE/SHORT) + HERMES AI Terminal
+// 8 sinyal: CONFLUENCE BUY/SELL, ALPHA LONG/SHORT, HERMES LONG/SHORT
+//           + IZLE (BEKLE+temel guclu) + UYARI (BEKLE+temel zayif)
 //
-// V5 Yenilikler:
-//   - Overvaluation Score (0-100) short sinyalleri guclendirir
-//   - SQUEEZE GUARD: shortFloat > 20% + yukselis → short engellenir
-//   - CONFLUENCE SELL: Overval HIGH dahil edildi (AI BAD olmasa bile)
-//   - ALPHA SHORT: Overval EXTREME (>=80) dahil edildi
+// V6 Yenilikler:
+//   - 3 sinyal Trade AI entegrasyonu (LONG/BEKLE/SHORT)
+//   - IZLE: BEKLE + Terminal AI STRONG/GOOD — teknik tetiklenmemis ama temel guclu
+//   - UYARI: BEKLE + Terminal AI BAD — temel zayif, alis yapma
+//   - SQUEEZE GUARD: shortFloat > 15% + yukselis → short engellenir
+//   - Value Trap Guard: LONG + Altman Z dusuk + FCF negatif → sinyal engel
 // ================================================================
 
 type BestSignalType =
   | 'confluence_buy' | 'alpha_long' | 'hermes_long' | 'smart_long' | 'signal_long'
   | 'signal_short' | 'smart_short' | 'hermes_short' | 'alpha_short' | 'confluence_sell'
+  | 'izle' | 'uyari'
 
 interface BestSignalItem {
   symbol: string
@@ -90,15 +93,15 @@ interface FmpStock {
   yearLow?: number
   analystEpsRevision30d?: number
   analystEpsRevision90d?: number
+  fcfPerShare?: number
 }
 
-// SADECE 6 SINYAL — Gorselde gorunen final liste
+// 8 SINYAL — V6 final liste (6 aktif + 2 BEKLE-durumu)
 const SIGNAL_ORDER: BestSignalType[] = [
   'confluence_buy', 'alpha_long', 'hermes_long',
+  'izle', 'uyari',
   'hermes_short', 'alpha_short', 'confluence_sell',
 ]
-
-// KALDIRILDI: smart_long, signal_long, signal_short, smart_short
 
 // Sutun tooltip aciklamalari
 const COLUMN_TIPS: Record<string, string> = {
@@ -106,7 +109,7 @@ const COLUMN_TIPS: Record<string, string> = {
   sector: 'Sirketin faaliyet gosterdigi sektor',
   bestSignal: 'BEST SINYAL: Teknik ve temel analiz birlesimi. CONFLUENCE = en guclu, ALPHA = cok guclu, HERMES = guvenilir',
   nTeknik: 'TEKNIK SINYAL: Z-Score + VWAP bazli teknik analiz sonucu. STRONG LONG/SHORT = en guclu, LONG/SHORT = guclu',
-  teknikScore: 'TEKNIK SKOR (0-100): <=22 STRONG LONG, 23-35 LONG, 36-63 NOTR, 64-84 SHORT, >=85 STRONG SHORT',
+  teknikScore: 'TEKNIK SKOR (0-100): 0-34 LONG, 35-91 BEKLE, 92-100 SHORT',
   hAi: 'HERMES AI SINYAL: Temel analiz sonucu. STRONG = cok iyi, GOOD = iyi, NEUTRAL = notr, WEAK = zayif, BAD = kotu',
   aiScore: 'HERMES AI SKOR (0-100): Sirketin temel analiz puani. Percentile bazli hesaplanir.',
   confidence: 'GUVEN: Sinyal guveni (%). Teknik-temel uyum, risk ve squeeze/overval guard etkisine gore hesaplanir.',
@@ -185,7 +188,7 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     label: 'CONFLUENCE BUY',
     shortLabel: 'CONF BUY',
     desc: 'Teknik + Temel + Dusuk Risk',
-    teknikReq: 'STRONG LONG',
+    teknikReq: 'LONG',
     aiReq: 'STRONG',
     bg: 'bg-violet-500/15',
     text: 'text-violet-300',
@@ -200,7 +203,7 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     label: 'ALPHA LONG',
     shortLabel: 'ALPHA L',
     desc: 'Teknik + Temel mukemmel',
-    teknikReq: 'STRONG LONG',
+    teknikReq: 'LONG',
     aiReq: 'STRONG',
     bg: 'bg-gold-400/10',
     text: 'text-gold-300',
@@ -215,7 +218,7 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     label: 'HERMES LONG',
     shortLabel: 'H-LONG',
     desc: 'Teknik guclu + Temel iyi',
-    teknikReq: 'STRONG LONG',
+    teknikReq: 'LONG',
     aiReq: 'GOOD',
     bg: 'bg-hermes-green/10',
     text: 'text-hermes-green',
@@ -290,7 +293,7 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     label: 'HERMES SHORT',
     shortLabel: 'H-SHORT',
     desc: 'Teknik guclu satis + Temel zayif',
-    teknikReq: 'STRONG SHORT',
+    teknikReq: 'SHORT',
     aiReq: 'WEAK',
     bg: 'bg-red-500/10',
     text: 'text-red-400',
@@ -305,7 +308,7 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     label: 'ALPHA SHORT',
     shortLabel: 'ALPHA S',
     desc: 'Teknik + Temel en kotu',
-    teknikReq: 'STRONG SHORT',
+    teknikReq: 'SHORT',
     aiReq: 'BAD',
     bg: 'bg-red-600/15',
     text: 'text-red-500',
@@ -320,7 +323,7 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     label: 'CONFLUENCE SELL',
     shortLabel: 'CONF SELL',
     desc: 'Teknik + Temel + Yuksek Risk',
-    teknikReq: 'STRONG SHORT',
+    teknikReq: 'SHORT',
     aiReq: 'BAD',
     bg: 'bg-fuchsia-600/15',
     text: 'text-fuchsia-400',
@@ -331,11 +334,42 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     icon: '\u{1F52E}',
     color: 'text-fuchsia-400 bg-fuchsia-600/15',
   },
+  izle: {
+    label: 'IZLE',
+    shortLabel: 'IZLE',
+    desc: 'Temel guclu — teknik tetiklenmedi',
+    teknikReq: 'BEKLE',
+    aiReq: 'STRONG/GOOD',
+    bg: 'bg-sky-500/10',
+    text: 'text-sky-400',
+    border: 'border-sky-500/30',
+    glow: 'shadow-sky-500/15',
+    gradient: 'from-sky-500/15 to-blue-500/5',
+    badgeBg: 'bg-sky-500/20',
+    icon: '\u{1F441}',
+    color: 'text-sky-400 bg-sky-500/10',
+  },
+  uyari: {
+    label: 'UYARI',
+    shortLabel: 'UYARI',
+    desc: 'Temel zayif — alis yapma',
+    teknikReq: 'BEKLE',
+    aiReq: 'BAD',
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-400',
+    border: 'border-amber-500/30',
+    glow: 'shadow-amber-500/15',
+    gradient: 'from-amber-500/15 to-orange-500/5',
+    badgeBg: 'bg-amber-500/20',
+    icon: '\u{26A0}',
+    color: 'text-amber-400 bg-amber-500/10',
+  },
 }
 
-// ─── Combination map: teknikSignalType + aiSignal + risk + overval => BestSignalType ───
-// V5: Overvaluation Score ile guclendirilmis short sinyaller
-// SQUEEZE_GUARD: shortFloat > 20% + yukselis → SHORT sinyaller engellenir
+// ─── V6 Combination map ───
+// 3 teknik sinyal (LONG/BEKLE/SHORT) + Terminal AI + Risk + Overval
+// SQUEEZE_GUARD: shortFloat > 15% + yukselis → SHORT engellenir
+// VALUE_TRAP_GUARD: LONG + Altman Z dusuk + FCF negatif → sinyal engellenir
 function matchSignal(
   teknikSignalType: string,
   aiSignal: string,
@@ -344,16 +378,26 @@ function matchSignal(
   overvalLevel?: string,
   shortFloat?: number,
   changePercent?: number,
+  altmanZ?: number,
+  fcfPerShare?: number,
 ): BestSignalType | null {
   const isLong = teknikSignalType === 'strong_long' || teknikSignalType === 'long'
   const isShort = teknikSignalType === 'strong_short' || teknikSignalType === 'short'
+  const isBekle = teknikSignalType === 'neutral'
 
-  // LONG sinyalleri
+  // ── LONG sinyalleri ──
   if (isLong) {
-    if ((aiSignal === 'STRONG' || aiSignal === 'GOOD') && riskScore !== undefined && riskScore <= 35) {
+    // VALUE TRAP GUARD: Altman Z < 1.8 + FCF negatif → celiskili, sinyal verme
+    const isValueTrap = (altmanZ !== undefined && altmanZ > 0 && altmanZ < 1.8) &&
+                        (fcfPerShare !== undefined && fcfPerShare < 0)
+    if (isValueTrap) {
+      if (aiSignal === 'WEAK' || aiSignal === 'BAD') return null
+    }
+
+    if ((aiSignal === 'STRONG' || aiSignal === 'GOOD') && riskScore !== undefined && riskScore <= 35 && !isValueTrap) {
       return 'confluence_buy'
     }
-    if (aiSignal === 'STRONG') {
+    if (aiSignal === 'STRONG' && !isValueTrap) {
       return 'alpha_long'
     }
     if (aiSignal === 'GOOD' || aiSignal === 'NEUTRAL') {
@@ -361,31 +405,36 @@ function matchSignal(
     }
   }
 
-  // SHORT sinyalleri — V5: Overvaluation Score destegi
+  // ── SHORT sinyalleri ──
   if (isShort) {
-    // SQUEEZE GUARD: Yuksek short float + yukselis = short sinyal engelle
-    if ((shortFloat ?? 0) > 20 && (changePercent ?? 0) > 2) {
+    // SQUEEZE GUARD: shortFloat > 15% + yukselis = short engelle
+    if ((shortFloat ?? 0) > 15 && (changePercent ?? 0) > 2) {
       return null
     }
 
     const overval = overvalScore ?? 0
     const hasHighOverval = overval >= 65 || overvalLevel === 'HIGH' || overvalLevel === 'EXTREME'
 
-    // CONFLUENCE SELL: Teknik short + (AI BAD veya OVERVAL HIGH) + Risk yuksek
     if (riskScore !== undefined && riskScore >= 65) {
       if ((aiSignal === 'BAD' || aiSignal === 'WEAK') || hasHighOverval) {
         return 'confluence_sell'
       }
     }
-
-    // ALPHA SHORT: Teknik short + AI BAD veya Overvaluation EXTREME
     if (aiSignal === 'BAD' || (overvalLevel === 'EXTREME' && overval >= 80)) {
       return 'alpha_short'
     }
-
-    // HERMES SHORT: Teknik short + (AI WEAK/NEUTRAL veya Overval HIGH)
     if (aiSignal === 'WEAK' || aiSignal === 'NEUTRAL' || hasHighOverval) {
       return 'hermes_short'
+    }
+  }
+
+  // ── BEKLE durumunda erken uyari sinyalleri ──
+  if (isBekle) {
+    if (aiSignal === 'STRONG' || aiSignal === 'GOOD') {
+      return 'izle'
+    }
+    if (aiSignal === 'BAD') {
+      return 'uyari'
     }
   }
 
@@ -431,15 +480,15 @@ function FilterBtn({ active, onClick, cfg, count }: {
 
 // ─── Teknik Signal Badge ───
 const SIGNAL_LABELS: Record<string, string> = {
-  strong_long: 'STRONG LONG',
   long: 'LONG',
-  neutral: 'NOTR',
+  neutral: 'BEKLE',
   short: 'SHORT',
-  strong_short: 'STRONG SHORT',
+  strong_long: 'LONG',
+  strong_short: 'SHORT',
 }
 
 function getSignalLabel(signalType: string): string {
-  return SIGNAL_LABELS[signalType] || 'NOTR'
+  return SIGNAL_LABELS[signalType] || 'BEKLE'
 }
 
 function TeknikBadge({ signalType }: { signalType: string }) {
@@ -617,8 +666,8 @@ export default function ModuleNasdaqSignals() {
     const cnt: Record<BestSignalType | 'all', number> = {
       all: 0,
       confluence_buy: 0, alpha_long: 0, hermes_long: 0,
+      izle: 0, uyari: 0,
       hermes_short: 0, alpha_short: 0, confluence_sell: 0,
-      // Eski sinyaller icin dummy (TypeScript uyumlulugu)
       smart_long: 0, signal_long: 0, signal_short: 0, smart_short: 0,
     }
 
@@ -644,7 +693,7 @@ export default function ModuleNasdaqSignals() {
       const bestType = matchSignal(
         r.hermes.signalType, fmp.signal, fmp.riskScore,
         fmp.overvalScore, fmp.overvalLevel, fmp.shortFloat,
-        fmp.changePercent,
+        fmp.changePercent, fmp.altmanZ, fmp.fcfPerShare,
       )
       if (!bestType) continue
 
@@ -1180,9 +1229,17 @@ export default function ModuleNasdaqSignals() {
                         <TeknikBadge signalType={item.teknikSignalType} />
                       </td>
 
-                      {/* Teknik Score */}
+                      {/* Teknik Score + Yaklasma */}
                       <td className="px-3 py-2.5 text-center">
-                        <ScoreMiniBar value={100 - item.teknikScore} maxWidth={48} />
+                        <div className="flex items-center justify-center gap-1">
+                          <ScoreMiniBar value={100 - item.teknikScore} maxWidth={48} />
+                          {item.teknikScore >= 35 && item.teknikScore <= 40 && (
+                            <span className="text-[9px] text-hermes-green/70" title="LONG bolgelerine yaklasma">↓L</span>
+                          )}
+                          {item.teknikScore >= 87 && item.teknikScore <= 91 && (
+                            <span className="text-[9px] text-red-400/70" title="SHORT bolgelerine yaklasma">↑S</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* H.AI Signal */}

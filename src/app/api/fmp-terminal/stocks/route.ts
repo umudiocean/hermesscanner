@@ -86,6 +86,7 @@ interface StockRow {
   overvalLevel: string
   yearHigh: number
   yearLow: number
+  fcfPerShare: number
 }
 
 // ─── CSV Parser ────────────────────────────────────────────────────
@@ -790,6 +791,7 @@ export async function GET(request: NextRequest) {
           overvalLevel: fmpScore?.overvaluation?.level ?? 'LOW' as const,
           yearHigh: quote.yearHigh,
           yearLow: quote.yearLow,
+          fcfPerShare: met?.fcfps || 0,
         })
       }
 

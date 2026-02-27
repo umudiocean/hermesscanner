@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { clearAllCaches } from '@/lib/fmp-client'
 import { checkRateLimit, getClientIP, rateLimitResponse } from '@/lib/rate-limiter'
+import { deleteRedisCache } from '@/lib/cache/redis-cache'
+import { clearScanStore } from '@/lib/scan-store'
 import logger from '@/lib/logger'
 
 export const maxDuration = 30
@@ -33,10 +35,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await clearAllCaches()
+    clearScanStore()
+    try { await deleteRedisCache('scan:latest') } catch { /* ignore */ }
     return NextResponse.json({
       success: true,
-      cleared: result,
-      message: `Memory: ${result.memory} entry, Disk: ${result.disk} dosya temizlendi.`,
+      cleared: { ...result, scanStore: true, redisScan: true },
+      message: `Memory: ${result.memory} entry, Disk: ${result.disk} dosya, Scan store + Redis temizlendi.`,
     })
   } catch (error) {
     logger.error('Internal error', { module: 'clear-cache', error: (error as Error).message })

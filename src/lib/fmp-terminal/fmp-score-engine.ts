@@ -12,23 +12,52 @@ import {
 } from './fmp-types'
 
 // ═══════════════════════════════════════════════════════════════════
-// WEIGHTS V5 (8 Category — Sprint 1+2+3 Konsensus)
-// Smart Money = Insider + Institutional + Congressional birlesti
+// WEIGHTS V6 (8 Category — Trade AI 3-sinyal uyumu)
+// Degerleme agirlik artisi (3 sinyal ile daha az trade → kalite onemli)
+// Momentum artisi (teknik BEKLE durumunda yaklasma tespiti icin)
+// Insider azaltildi (bulk veri genellikle notr)
 // ═══════════════════════════════════════════════════════════════════
 
 const WEIGHTS = {
-  valuation: 0.22,
+  valuation: 0.25,
   health: 0.20,
   growth: 0.14,
   analyst: 0.11,
-  quality: 0.12,
-  momentum: 0.11,
+  quality: 0.10,
+  momentum: 0.10,
   sector: 0.05,
   smartMoney: 0.05,
 } as const
 
+// V6: Sektor-spesifik agirlik overrides — 6 AI konsensus karari
+// Sadece yuksek farklilasma gerektiren sektorler override edilir.
+// Diger tum sektorler varsayilan WEIGHTS kullanir.
+type WeightMap = { valuation: number; health: number; growth: number; analyst: number; quality: number; momentum: number; sector: number; smartMoney: number }
+
+const SECTOR_WEIGHT_OVERRIDES: Record<string, Partial<WeightMap>> = {
+  Technology: { valuation: 0.18, growth: 0.20, quality: 0.15, momentum: 0.12 },
+  'Financial Services': { valuation: 0.22, health: 0.25, quality: 0.12, growth: 0.10 },
+  'Real Estate': { valuation: 0.18, health: 0.22, quality: 0.08, momentum: 0.15 },
+  Energy: { valuation: 0.20, health: 0.22, quality: 0.12, momentum: 0.12 },
+  Healthcare: { valuation: 0.20, growth: 0.20, quality: 0.12, health: 0.18 },
+}
+
+function getSectorWeights(sector: string): WeightMap {
+  const override = SECTOR_WEIGHT_OVERRIDES[sector]
+  if (!override) return { ...WEIGHTS }
+  const merged: WeightMap = { ...WEIGHTS, ...override }
+  const sum = Object.values(merged).reduce((a, b) => a + b, 0)
+  if (Math.abs(sum - 1.0) > 0.01) {
+    const factor = 1.0 / sum
+    for (const k of Object.keys(merged) as (keyof WeightMap)[]) {
+      merged[k] = merged[k] * factor
+    }
+  }
+  return merged
+}
+
 // ═══════════════════════════════════════════════════════════════════
-// INPUT DATA TYPES — V5 Extended
+// INPUT DATA TYPES — V6 Extended
 // ═══════════════════════════════════════════════════════════════════
 
 export interface ScoreInputMetrics {
@@ -626,8 +655,8 @@ export function computeBadges(m: ScoreInputMetrics, valuationScore: number, over
     }
   }
 
-  // SQUEEZE RISKI: short > 20% + son 5g yukselis
-  if (m.shortFloat > 20 && m.priceChange1M > 5) {
+  // SQUEEZE RISKI: short > 15% + son 5g yukselis (V6: esik 20%→15%)
+  if (m.shortFloat > 15 && m.priceChange1M > 5) {
     badges.push({ type: 'SQUEEZE_RISKI', label: 'SQUEEZE RISKI', color: 'amber', tooltip: `Short Float ${m.shortFloat.toFixed(1)}% + yukselis trendi` })
   }
 
@@ -718,7 +747,7 @@ export function computeFMPScore(
     smartMoney: Math.round(sm.score),
   }
 
-  interface CatEntry { key: keyof typeof WEIGHTS; score: number; dp: number }
+  interface CatEntry { key: keyof WeightMap; score: number; dp: number }
   const catEntries: CatEntry[] = [
     { key: 'valuation', score: categories.valuation, dp: val.dataPoints },
     { key: 'health', score: categories.health, dp: hlt.dataPoints },
@@ -730,13 +759,16 @@ export function computeFMPScore(
     { key: 'smartMoney', score: categories.smartMoney, dp: sm.dataPoints },
   ]
 
+  // V6: Sektor-spesifik agirliklar
+  const sectorW = getSectorWeights(metrics.sector)
+
   const withData = catEntries.filter(c => c.dp > 0)
-  const totalActiveWeight = withData.reduce((sum, c) => sum + WEIGHTS[c.key], 0)
+  const totalActiveWeight = withData.reduce((sum, c) => sum + sectorW[c.key], 0)
 
   let total: number
   if (totalActiveWeight > 0) {
     const rawTotal = withData.reduce((sum, c) => {
-      const normalizedWeight = WEIGHTS[c.key] / totalActiveWeight
+      const normalizedWeight = sectorW[c.key] / totalActiveWeight
       return sum + c.score * normalizedWeight
     }, 0)
     const dataRatio = withData.length / catEntries.length
@@ -844,6 +876,13 @@ export function computeFMPScore(
       else if (valuationLabel === 'NORMAL') valuationLabel = 'PAHALI'
       else if (valuationLabel === 'PAHALI' && overSignals >= 3 && valS <= 30) valuationLabel = 'COK PAHALI'
     }
+  }
+
+  // Confidence badge: YUKSEK GUVEN / DUSUK GUVEN
+  if (confidence >= 75) {
+    badges.push({ type: 'YUKSEK_GUVEN', label: 'YUKSEK GUVEN', color: 'emerald', tooltip: `Veri kalitesi yuksek (Guven: ${confidence}%)` })
+  } else if (confidence <= 45) {
+    badges.push({ type: 'DUSUK_GUVEN', label: 'DUSUK GUVEN', color: 'amber', tooltip: `Eksik/eski veri — sonuclara dikkatli yaklasim (Guven: ${confidence}%)` })
   }
 
   return {

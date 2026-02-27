@@ -36,14 +36,14 @@ interface MarketData {
 }
 
 const SIGNAL_LABELS: Record<string, string> = {
-  strong_long: 'STRONG LONG',
   long: 'LONG',
-  neutral: 'NOTR',
+  neutral: 'BEKLE',
   short: 'SHORT',
-  strong_short: 'STRONG SHORT',
+  strong_long: 'LONG',
+  strong_short: 'SHORT',
 }
 
-function getSignalLabel(t: string): string { return SIGNAL_LABELS[t] || 'NOTR' }
+function getSignalLabel(t: string): string { return SIGNAL_LABELS[t] || 'BEKLE' }
 
 function formatMcap(mc: number): string {
   if (!mc) return '-'
@@ -184,11 +184,9 @@ function GaugeBar({ value, label, color, subLabel }: {
 function SignalDistBar({ counts, total }: { counts: Record<string, number>; total: number }) {
   if (total === 0) return null
   const segments = [
-    { key: 'strong_long', color: '#B3945B', glow: 'rgba(179,148,91,0.3)', label: 'S.LONG' },
     { key: 'long', color: '#62CBC1', glow: 'rgba(98,203,193,0.3)', label: 'LONG' },
-    { key: 'neutral', color: '#64748b', glow: 'rgba(100,116,139,0.2)', label: 'NOTR' },
-    { key: 'short', color: '#fb923c', glow: 'rgba(251,146,60,0.3)', label: 'SHORT' },
-    { key: 'strong_short', color: '#EF4444', glow: 'rgba(239,68,68,0.3)', label: 'S.SHORT' },
+    { key: 'neutral', color: '#64748b', glow: 'rgba(100,116,139,0.2)', label: 'BEKLE' },
+    { key: 'short', color: '#EF4444', glow: 'rgba(239,68,68,0.3)', label: 'SHORT' },
   ]
   const [hovered, setHovered] = useState<string | null>(null)
   return (
@@ -370,10 +368,8 @@ function TopMovers({ title, items, color, icon }: {
               <span className="text-[10px] text-white/40 w-3 font-mono">{i + 1}</span>
               <span className="text-xs font-bold text-white/80 group-hover:text-white transition-colors">{item.symbol}</span>
               <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold border ${
-                item.signalType === 'strong_long' ? 'bg-gold-400/10 text-gold-300 border-gold-400/20' :
-                item.signalType === 'long' ? 'bg-hermes-green/10 text-hermes-green border-hermes-green/20' :
-                item.signalType === 'short' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
-                item.signalType === 'strong_short' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                (item.signalType === 'long' || item.signalType === 'strong_long') ? 'bg-hermes-green/10 text-hermes-green border-hermes-green/20' :
+                (item.signalType === 'short' || item.signalType === 'strong_short') ? 'bg-red-500/10 text-red-400 border-red-500/20' :
                 'bg-white/[0.04] text-white/40 border-white/[0.06]'
               }`}>{getSignalLabel(item.signalType)}</span>
             </div>
@@ -461,10 +457,11 @@ export default function ModuleHermesIndex() {
 
   const indexStats = useMemo(() => {
     if (results.length === 0) return null
-    const signalCounts: Record<string, number> = { strong_long: 0, long: 0, neutral: 0, short: 0, strong_short: 0 }
+    const signalCounts: Record<string, number> = { long: 0, neutral: 0, short: 0 }
     let totalScore = 0, totalRsi = 0, totalMfi = 0, totalChange = 0, totalMcap = 0
     for (const r of results) {
-      signalCounts[r.hermes.signalType] = (signalCounts[r.hermes.signalType] || 0) + 1
+      const mapped = (r.hermes.signalType === 'strong_long') ? 'long' : (r.hermes.signalType === 'strong_short') ? 'short' : (r.hermes.signalType === 'long' || r.hermes.signalType === 'short' || r.hermes.signalType === 'neutral') ? r.hermes.signalType : 'neutral'
+      signalCounts[mapped] = (signalCounts[mapped] || 0) + 1
       totalScore += r.hermes.score
       totalRsi += r.hermes.indicators.rsi
       totalMfi += r.hermes.indicators.mfi
@@ -476,13 +473,13 @@ export default function ModuleHermesIndex() {
     const avgRsi = totalRsi / n
     const avgMfi = totalMfi / n
     const avgChange = totalChange / n
-    const longs = signalCounts.strong_long + signalCounts.long
-    const shorts = signalCounts.strong_short + signalCounts.short
+    const longs = signalCounts.long
+    const shorts = signalCounts.short
     const neutrals = signalCounts.neutral
     const longPct = (longs / n) * 100
     const shortPct = (shorts / n) * 100
-    const direction = longPct > 60 ? 'STRONG LONG' : longPct > 45 ? 'LONG' : shortPct > 60 ? 'STRONG SHORT' : shortPct > 45 ? 'SHORT' : 'NOTR'
-    const dirColor = direction.includes('LONG') ? 'text-hermes-green' : direction.includes('SHORT') ? 'text-red-400' : 'text-white/60'
+    const direction = longPct > 45 ? 'LONG' : shortPct > 45 ? 'SHORT' : 'BEKLE'
+    const dirColor = direction === 'LONG' ? 'text-hermes-green' : direction === 'SHORT' ? 'text-red-400' : 'text-white/60'
 
     const sectorMap = new Map<string, { scores: number[]; changes: number[]; aiScores: number[] }>()
     const fmpMap = new Map<string, FmpStock>()
@@ -520,8 +517,8 @@ export default function ModuleHermesIndex() {
     const sorted = [...results].filter(r => r.quote?.changePercent !== undefined)
     const topGainers = [...sorted].sort((a, b) => (b.quote?.changePercent || 0) - (a.quote?.changePercent || 0)).slice(0, 5).map(r => ({ symbol: r.symbol, score: r.hermes.score, changePercent: r.quote?.changePercent || 0, price: r.quote?.price || r.hermes.price, signalType: r.hermes.signalType }))
     const topLosers = [...sorted].sort((a, b) => (a.quote?.changePercent || 0) - (b.quote?.changePercent || 0)).slice(0, 5).map(r => ({ symbol: r.symbol, score: r.hermes.score, changePercent: r.quote?.changePercent || 0, price: r.quote?.price || r.hermes.price, signalType: r.hermes.signalType }))
-    const topStrongLongs = [...results].filter(r => r.hermes.signalType === 'strong_long').sort((a, b) => a.hermes.score - b.hermes.score).slice(0, 5).map(r => ({ symbol: r.symbol, score: r.hermes.score, changePercent: r.quote?.changePercent || 0, price: r.quote?.price || r.hermes.price, signalType: r.hermes.signalType }))
-    const topStrongShorts = [...results].filter(r => r.hermes.signalType === 'strong_short').sort((a, b) => b.hermes.score - a.hermes.score).slice(0, 5).map(r => ({ symbol: r.symbol, score: r.hermes.score, changePercent: r.quote?.changePercent || 0, price: r.quote?.price || r.hermes.price, signalType: r.hermes.signalType }))
+    const topStrongLongs = [...results].filter(r => r.hermes.signalType === 'long' || r.hermes.signalType === 'strong_long').sort((a, b) => a.hermes.score - b.hermes.score).slice(0, 5).map(r => ({ symbol: r.symbol, score: r.hermes.score, changePercent: r.quote?.changePercent || 0, price: r.quote?.price || r.hermes.price, signalType: r.hermes.signalType }))
+    const topStrongShorts = [...results].filter(r => r.hermes.signalType === 'short' || r.hermes.signalType === 'strong_short').sort((a, b) => b.hermes.score - a.hermes.score).slice(0, 5).map(r => ({ symbol: r.symbol, score: r.hermes.score, changePercent: r.quote?.changePercent || 0, price: r.quote?.price || r.hermes.price, signalType: r.hermes.signalType }))
 
     const marketPulse = 100 - avgScore
     const tickerItems = sorted.slice(0, 30).map(r => ({ symbol: r.symbol, price: r.quote?.price || r.hermes.price, change: r.quote?.changePercent || 0 }))
