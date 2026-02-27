@@ -7,15 +7,15 @@
 //   BPD: 26 (6.5 saat x 4 bar/saat)
 //   VWAP: 377 gun (9,802 bar) — Fibonacci
 //   Z-Score Lookback: 144 gun (3,744 bar) — Fibonacci
-//   LONG esik: Z-Score <= -3.40 (Skor 34 ve alti) — Backtest %94 WR
-//   SHORT esik: Z-Score >= +9.20 (Skor 92 ve ustu) — Backtest %94 WR
-//   Skor: Z-Score → 3 parcali linear mapping (Z=0 → ~63)
+//   LONG esik: Z-Score <= -3.40 → Skor >= 66 (yuksek = ucuz)
+//   SHORT esik: Z-Score >= +9.20 → Skor <= 8 (dusuk = pahali)
+//   Skor: Z-Score → TERS mapping (Z dusuk → skor yuksek)
 //   tanh YOK — dogrudan parcali linear interpolasyon
 //
-// 3 SINYAL (Backtest %94 WR ile dogrulanmis):
-//   Skor 0-34  → LONG (yesil)
-//   Skor 35-91 → BEKLE (gri)
-//   Skor 92-100 → SHORT (kirmizi)
+// 3 SINYAL (TERS — yuksek skor = alis, dusuk skor = satis):
+//   Skor 66-100 → LONG (yesil, ucuz/oversold)
+//   Skor 9-65   → BEKLE (gri)
+//   Skor 0-8    → SHORT (kirmizi, pahali/overbought)
 // ═══════════════════════════════════════════════════════════════════
 
 import { OHLCV, HermesConfig, HermesResult, SignalType, TrendContext } from './types'
@@ -65,8 +65,8 @@ const ENTRY_FILTERS = {
   MFI_LONG: 50,
   MFI_SHORT: 70,
   ADX_MAX: 999,
-  LONG_TH: 34,   // Skor 0-34 → LONG (backtest %94 WR)
-  SHORT_TH: 92,  // Skor 92-100 → SHORT (backtest %94 WR)
+  LONG_TH: 66,   // Skor 66-100 → LONG (yuksek skor = ucuz/oversold)
+  SHORT_TH: 8,   // Skor 0-8 → SHORT (dusuk skor = pahali/overbought)
 }
 
 export { ENTRY_FILTERS, DELAY_CONFIG }
@@ -295,43 +295,41 @@ function calcDmi(high: number[], low: number[], close: number[], period: number)
 }
 
 /**
- * Z-Score → Skor (0-100) 3 parcali linear mapping
- * Backtest ile dogrulanmis (WR %94):
+ * Z-Score → Skor (0-100) — TERS MAPPING
+ * Dusuk Z-Score (ucuz/oversold) = YUKSEK skor (LONG)
+ * Yuksek Z-Score (pahali/overbought) = DUSUK skor (SHORT)
  *
- *   Z <= -3.40  → skor 0   (LONG bolgesi)
- *   Z = -3.40   → skor 34  (LONG esigi)
- *   Z = 0       → skor 63  (BEKLE ortasi)
- *   Z = +9.20   → skor 92  (SHORT esigi)
- *   Z >= +9.20  → skor 100 (SHORT bolgesi)
+ *   Z <= -3.40  → skor 100  (en guclu LONG)
+ *   Z = -3.40   → skor 66   (LONG esigi)
+ *   Z = 0       → skor 37   (BEKLE ortasi)
+ *   Z = +9.20   → skor 8    (SHORT esigi)
+ *   Z >= +9.20  → skor 0    (en guclu SHORT)
  *
- * 3 parca:
- *   [−inf, −3.40]  → [0, 34]
- *   [−3.40, +9.20] → [34, 92]
- *   [+9.20, +inf]  → [92, 100]
+ * Sinyal esikleri: LONG >= 66, BEKLE 9-65, SHORT <= 8
  */
 function zscoreToScore(zs: number): number {
-  if (isNaN(zs) || !isFinite(zs)) return 63
+  if (isNaN(zs) || !isFinite(zs)) return 37
 
-  // Ana bolge: Z_LONG_THRESHOLD → 34, Z_SHORT_THRESHOLD → 92
+  // Ana bolge: Z_LONG → 66, Z_SHORT → 8
   if (zs >= Z_LONG_THRESHOLD && zs <= Z_SHORT_THRESHOLD) {
     const range = Z_SHORT_THRESHOLD - Z_LONG_THRESHOLD  // 12.60
     const ratio = (zs - Z_LONG_THRESHOLD) / range       // 0..1
-    return Math.round(34 + ratio * (92 - 34))            // 34..92
+    return Math.round(66 - ratio * (66 - 8))             // 66..8
   }
 
-  // Sol kuyruk: z < -3.40 → skor < 34 (LONG bolgesi)
+  // Sol kuyruk: z < -3.40 → skor > 66 (LONG bolgesi)
   if (zs < Z_LONG_THRESHOLD) {
-    const extentBelow = Z_LONG_THRESHOLD - zs          // pozitif
+    const extentBelow = Z_LONG_THRESHOLD - zs
     const maxExtent = Math.abs(Z_LONG_THRESHOLD)       // 3.40
-    const ratio = Math.min(extentBelow / maxExtent, 1) // 0..1 (clamp at 1)
-    return Math.round(34 * (1 - ratio))                // 34..0
+    const ratio = Math.min(extentBelow / maxExtent, 1)
+    return Math.round(66 + ratio * 34)                  // 66..100
   }
 
-  // Sag kuyruk: z > +9.20 → skor > 92 (SHORT bolgesi)
-  const extentAbove = zs - Z_SHORT_THRESHOLD           // pozitif
-  const maxExtent = Math.abs(Z_LONG_THRESHOLD)         // 3.40 (simetrik margin)
-  const ratio = Math.min(extentAbove / maxExtent, 1)   // 0..1 (clamp at 1)
-  return Math.round(92 + ratio * 8)                    // 92..100
+  // Sag kuyruk: z > +9.20 → skor < 8 (SHORT bolgesi)
+  const extentAbove = zs - Z_SHORT_THRESHOLD
+  const maxExtent = Math.abs(Z_LONG_THRESHOLD)         // 3.40
+  const ratio = Math.min(extentAbove / maxExtent, 1)
+  return Math.round(8 * (1 - ratio))                    // 8..0
 }
 
 // V7: RSI nonlinear strong mapping — uçlarda hassas, ortada yumuşak
@@ -413,13 +411,11 @@ export function calculateHermes(
   const n = bars.length
   const last = n - 1
 
-  // Z-Score hesaplamasinin kararli sonuc vermesi icin
-  // en az Z-Score periyodu (1,430 bar = 55 gun) + VWAP warm-up gerekli.
-  // VWAP 377g = 9,802 bar ideal, ama Z-Score dogru calismasi KRITIK.
-  // Minimum: Z-Score periyodu + VWAP periyodunun yarisi (istatistiksel kararlilik)
-  const minBars = cfg.zscore_len_52w + Math.floor(cfg.vwap_52w_len / 2)
+  // VWAP 377 gun = 9,802 bar gerekli. Eksik veri ile skor GUVENILMEZ.
+  // Minimum: tam VWAP periodu (377 gun x BPD) gerekli
+  const minBars = cfg.vwap_52w_len
   if (n < minBars) {
-    return createNeutralResult(`Yetersiz 15dk veri: ${n} bar (min ${minBars})`)
+    return createNeutralResult(`Yetersiz veri: ${n}/${minBars} bar (${Math.round(minBars / BPD)} gun VWAP gerekli)`)
   }
 
   const close = bars.map(b => b.close)
@@ -513,14 +509,15 @@ export function calculateHermes(
                          mfiVal >= ENTRY_FILTERS.MFI_SHORT &&
                          adxVal <= ENTRY_FILTERS.ADX_MAX
 
-  // 3 sinyal sistemi (backtest %94 WR): LONG (0-34) / BEKLE (35-91) / SHORT (92-100)
-  const longTh = cfg.long_th ?? ENTRY_FILTERS.LONG_TH   // 34
-  const shortTh = cfg.short_th ?? ENTRY_FILTERS.SHORT_TH // 92
+  // 3 sinyal sistemi (TERS): LONG (66-100) / BEKLE (9-65) / SHORT (0-8)
+  // Yuksek skor = ucuz = LONG, dusuk skor = pahali = SHORT
+  const longTh = cfg.long_th ?? ENTRY_FILTERS.LONG_TH   // 66
+  const shortTh = cfg.short_th ?? ENTRY_FILTERS.SHORT_TH // 8
 
-  if (totalScore <= longTh) {
+  if (totalScore >= longTh) {
     signal = 'LONG'
     signalType = 'long'
-  } else if (totalScore >= shortTh) {
+  } else if (totalScore <= shortTh) {
     signal = 'SHORT'
     signalType = 'short'
   } else {
