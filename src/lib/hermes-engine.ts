@@ -450,8 +450,11 @@ export function calculateHermes(
   const minZLen = Math.min(cfg.zscore_len_52w, Math.max(10, Math.floor(cfg.zscore_len_52w * 0.5)))
   const zStd = zLen >= minZLen ? computeStdevAt(dev, zLen, last) : 0
   const zMean = zLen >= minZLen ? computeMeanAt(dev, zLen, last) : 0
-  const zRaw = zStd > 0 ? (dev[last] - zMean) / zStd : 0
-  const zscore = (isNaN(zRaw) || !isFinite(zRaw)) ? 0 : zRaw
+  // stdev minimum esik: fiyatin %0.1'inden kucukse Z-Score guvenilmez
+  const minStd = close[last] * 0.001
+  const zRaw = zStd > minStd ? (dev[last] - zMean) / zStd : 0
+  // Z-Score clamp: -10..+10 arasi mantikli, disi istatistiksel anormallik
+  const zscore = (isNaN(zRaw) || !isFinite(zRaw)) ? 0 : Math.max(-10, Math.min(10, zRaw))
 
   // Z-Score bazli bantlar
   const zsCenter = vwap[last] + zMean
