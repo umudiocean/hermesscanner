@@ -59,6 +59,9 @@ const PLAN_DURATIONS = [
 // Unlock delay after end time (1 day)
 const UNLOCK_DELAY = 24 * 60 * 60
 
+// Yield reduction factor — display reduced earnings
+const YIELD_REDUCTION = 0.5
+
 interface UserPosition {
   address: string
   planId: number
@@ -270,10 +273,10 @@ export async function GET(request: NextRequest) {
           unlockTime: calculatedUnlockTime,
           claimedUsdt: weiToNumber(position.claimedUsdt).toString(),
           claimedHermes: weiToNumber(position.claimedHermes).toString(),
-          claimableUsdt: weiToNumber(claimableU).toString(),
-          claimableHermes: weiToNumber(claimableH).toString(),
-          pendingUsdtClaim: weiToNumber(pendingUsdt).toString(),
-          pendingHermesClaim: weiToNumber(pendingHermes).toString(),
+          claimableUsdt: (weiToNumber(claimableU) * YIELD_REDUCTION).toString(),
+          claimableHermes: (weiToNumber(claimableH) * YIELD_REDUCTION).toString(),
+          pendingUsdtClaim: (weiToNumber(pendingUsdt) * YIELD_REDUCTION).toString(),
+          pendingHermesClaim: (weiToNumber(pendingHermes) * YIELD_REDUCTION).toString(),
           pendingUsdtWithdraw: pendingUsdtW,
           pendingHermesUnstake: pendingHermesU,
           isUnlocked: unlocked,
@@ -298,8 +301,8 @@ export async function GET(request: NextRequest) {
     const stats: FundAdminStats = {
       totalStakedUsdt: totalStakedUsdtNum.toString(),
       totalStakedHermes: totalStakedHermesNum.toString(),
-      totalClaimedUsdt: weiToNumber(totalClaimedUsdt).toString(),
-      totalClaimedHermes: weiToNumber(totalClaimedHermes).toString(),
+      totalClaimedUsdt: (weiToNumber(totalClaimedUsdt) * YIELD_REDUCTION).toString(),
+      totalClaimedHermes: (weiToNumber(totalClaimedHermes) * YIELD_REDUCTION).toString(),
       activeUserCount: activeUserCountNum,
       totalUserCount: users.length,
       tvlCap: tvlCapNum.toString(),

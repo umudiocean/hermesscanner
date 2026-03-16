@@ -516,16 +516,21 @@ export function buildUserInfo(
   const daysRemaining = Math.max(0, plan.duration - daysElapsed);
   const progressPercent = Math.min(100, (msElapsed / msDuration) * 100);
   
-  // Earned calculations (linear vesting)
-  const earnedUsdt = (position.usdtPrincipal * plan.usdtYield / 100) * Math.min(1, msElapsed / msDuration);
-  const earnedHermes = (position.hermesStaked * plan.hermesYield / 100) * Math.min(1, msElapsed / msDuration);
+  // Earned calculations (linear vesting) — with yield reduction
+  const YIELD_REDUCTION = 0.5;
+  const earnedUsdt = (position.usdtPrincipal * plan.usdtYield / 100) * Math.min(1, msElapsed / msDuration) * YIELD_REDUCTION;
+  const earnedHermes = (position.hermesStaked * plan.hermesYield / 100) * Math.min(1, msElapsed / msDuration) * YIELD_REDUCTION;
+  
+  // Apply reduction to contract claimable values
+  const adjustedClaimableUsdt = claimableUsdt * YIELD_REDUCTION;
+  const adjustedClaimableHermes = claimableHermes * YIELD_REDUCTION;
   
   // Cooldown checks
   const cooldownMs = FUND_CONSTANTS.CLAIM_COOLDOWN_HOURS * 60 * 60 * 1000;
   const nextClaimUsdtTime = position.lastClaimUsdtTime + cooldownMs;
   const nextClaimHermesTime = position.lastClaimHermesTime + cooldownMs;
-  const canClaimUsdt = (position.lastClaimUsdtTime === 0 || now >= nextClaimUsdtTime) && claimableUsdt > 0 && pendingUsdtClaim === 0;
-  const canClaimHermes = (position.lastClaimHermesTime === 0 || now >= nextClaimHermesTime) && claimableHermes > 0 && pendingHermesClaim === 0;
+  const canClaimUsdt = (position.lastClaimUsdtTime === 0 || now >= nextClaimUsdtTime) && adjustedClaimableUsdt > 0 && pendingUsdtClaim === 0;
+  const canClaimHermes = (position.lastClaimHermesTime === 0 || now >= nextClaimHermesTime) && adjustedClaimableHermes > 0 && pendingHermesClaim === 0;
   
   // Unlock checks
   const isUnlocked = now >= position.unlockTime;
@@ -537,8 +542,8 @@ export function buildUserInfo(
     plan,
     earnedUsdt,
     earnedHermes,
-    claimableUsdt,
-    claimableHermes,
+    claimableUsdt: adjustedClaimableUsdt,
+    claimableHermes: adjustedClaimableHermes,
     daysElapsed,
     daysRemaining,
     progressPercent,
@@ -568,6 +573,7 @@ export function buildFundStats(data: {
   maxDeposit: bigint;
   tvlCap: bigint;
 }): FundStats {
+  const YIELD_REDUCTION = 0.5;
   const totalStakedUsdt = weiToNumber(data.totalStakedUsdt);
   const tvlCap = weiToNumber(data.tvlCap);
   const activeUserCount = Number(data.activeUserCount);
@@ -577,10 +583,10 @@ export function buildFundStats(data: {
   return {
     totalStakedHermes: weiToNumber(data.totalStakedHermes),
     totalStakedUsdt,
-    totalGeneratedHermes: weiToNumber(data.totalGeneratedHermes),
-    totalGeneratedUsdt: weiToNumber(data.totalGeneratedUsdt),
-    totalClaimedHermes: weiToNumber(data.totalClaimedHermes),
-    totalClaimedUsdt: weiToNumber(data.totalClaimedUsdt),
+    totalGeneratedHermes: weiToNumber(data.totalGeneratedHermes) * YIELD_REDUCTION,
+    totalGeneratedUsdt: weiToNumber(data.totalGeneratedUsdt) * YIELD_REDUCTION,
+    totalClaimedHermes: weiToNumber(data.totalClaimedHermes) * YIELD_REDUCTION,
+    totalClaimedUsdt: weiToNumber(data.totalClaimedUsdt) * YIELD_REDUCTION,
     activeUserCount,
     minDeposit: weiToNumber(data.minDeposit),
     maxDeposit: weiToNumber(data.maxDeposit),
