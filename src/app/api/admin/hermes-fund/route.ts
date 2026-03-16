@@ -154,7 +154,8 @@ async function fetchUserAddresses(
 
 export async function GET(request: NextRequest) {
   try {
-    if (!verifyAdminAuth(request)) {
+    const auth = verifyAdminAuth(request)
+    if (!auth.authorized) {
       return NextResponse.json({ success: false, error: 'UNAUTHORIZED' }, { status: 401 })
     }
     

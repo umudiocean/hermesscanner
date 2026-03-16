@@ -960,28 +960,45 @@ function HermesFundContent() {
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
               >
-                {/* Eligibility Check - Sadece cüzdan bağlıyken ve deposit yoksa göster */}
-                {isConnected && (
-                  <EligibilityCheck
-                    showConnectPrompt={false}
-                    onEligibilityChange={(isEligible, hermesBalance, usdtBalance) => {
-                      setEligibility({
-                        hasEnoughHermes: isEligible,
-                        currentHermesBalance: hermesBalance,
-                        requiredHermesStake: FUND_CONSTANTS.HERMES_STAKE_REQUIRED,
-                        deficit: Math.max(0, FUND_CONSTANTS.HERMES_STAKE_REQUIRED - hermesBalance),
-                        hasEnoughUsdt: usdtBalance >= FUND_CONSTANTS.MIN_DEPOSIT_USDT,
-                        currentUsdtBalance: usdtBalance
-                      });
-                    }}
-                  />
-                )}
-                <DepositForm
-                  fundStats={fundStats}
-                  eligibility={eligibility}
-                  hasActiveDeposit={hasActiveDeposit}
-                  onJoin={handleJoin}
-                />
+                {/* ══ STAKING KAPALI BİLDİRİMİ ══ */}
+                <motion.div
+                  className="p-8 rounded-xl text-center"
+                  style={{
+                    backgroundColor: `${FUND_THEME.warning}10`,
+                    border: `2px solid ${FUND_THEME.warning}40`,
+                  }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <motion.div
+                    className="text-5xl mb-4"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    🔒
+                  </motion.div>
+                  <h3 className="text-2xl font-bold mb-3" style={{ color: FUND_THEME.warning }}>
+                    {language === 'tr' ? 'Yeni Yatırımlar Kapatıldı' : 'New Deposits Closed'}
+                  </h3>
+                  <p className="text-sm mb-2" style={{ color: FUND_THEME.textMuted }}>
+                    {language === 'tr'
+                      ? 'Hermes AI Fund şu anda yeni yatırımlara kapalıdır. Mevcut yatırımcılar unstake ve claim işlemlerini yapabilir.'
+                      : 'Hermes AI Fund is currently closed for new deposits. Existing investors can still unstake and claim.'}
+                  </p>
+                  <div className="flex justify-center gap-4 mt-4">
+                    <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: `${FUND_THEME.success}20`, border: `1px solid ${FUND_THEME.success}30` }}>
+                      <span className="text-sm font-semibold" style={{ color: FUND_THEME.success }}>
+                        ✅ {language === 'tr' ? 'Unstake Aktif' : 'Unstake Active'}
+                      </span>
+                    </div>
+                    <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: `${FUND_THEME.success}20`, border: `1px solid ${FUND_THEME.success}30` }}>
+                      <span className="text-sm font-semibold" style={{ color: FUND_THEME.success }}>
+                        ✅ {language === 'tr' ? 'Claim Aktif' : 'Claim Active'}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>

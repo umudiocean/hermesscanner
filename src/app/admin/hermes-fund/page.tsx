@@ -1,48 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { JsonRpcProvider, Contract } from 'ethers';
-import { 
-  FUND_THEME, 
-  FUND_CONSTANTS,
-  PLANS,
-  formatUSDT,
-  formatHermes,
-  formatAddress,
-  type FundStats,
-  type AdminPendingPayment
-} from '@/types/hermesFund';
-import { CONTRACT_ADDRESSES, HERMES_FUND_ABI, weiToNumber } from '@/lib/hermes-fund/contract';
-import { useLanguage } from '@/lib/i18n';
-
-const BSC_RPC = 'https://bsc-dataseed.binance.org/';
-
-// Admin auth helpers
-function getAdminToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('hermes_admin_token');
-}
-
-function setAdminToken(token: string): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('hermes_admin_token', token);
-    // Also set cookie for API route auth
-    document.cookie = `admin_session=${encodeURIComponent(JSON.stringify({ token }))};path=/;max-age=${7 * 24 * 3600}`;
-  }
-}
-
-function clearAdminToken(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('hermes_admin_token');
-    document.cookie = 'admin_session=;path=/;max-age=0';
-  }
-}
+import { motion, AnimatePresence } from 'framer-motion';
+import { FUND_THEME, PLANS } from '@/types/hermesFund';
 
 // ============================================================================
-// USER POSITION TYPE (from contract/API)
+// HERMES AI FUND - ADMIN MODULE
+// Plan bazlı görünüm + Nickname + Countdown
 // ============================================================================
+
 interface UserPosition {
   address: string;
   planId: number;
@@ -58,62 +25,94 @@ interface UserPosition {
   claimedHermes: string;
   claimableUsdt: string;
   claimableHermes: string;
+  pendingUsdtClaim: string;
+  pendingHermesClaim: string;
+  pendingUsdtWithdraw: boolean;
+  pendingHermesUnstake: boolean;
+  isUnlocked: boolean;
   usdtPaid: boolean;
   hermesUnstaked: boolean;
 }
 
-export default function AdminHermesFundPage() {
-  const { language } = useLanguage();
-  
+interface FundStats {
+  totalStakedUsdt: string;
+  totalStakedHermes: string;
+  totalClaimedUsdt: string;
+  totalClaimedHermes: string;
+  activeUserCount: number;
+  totalUserCount: number;
+  tvlCap: string;
+  tvlPercent: number;
+}
+
+interface PlanGroup {
+  planId: number;
+  planName: string;
+  duration: number;
+  usdtYield: number;
+  hermesYield: number;
+  totalUsdt: number;
+  totalHermes: number;
+  userCount: number;
+  users: UserPosition[];
+}
+
+// Admin auth helpers
+function getAdminToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('hermes_admin_token');
+}
+function setAdminToken(token: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('hermes_admin_token', token);
+    document.cookie = `admin_session=${encodeURIComponent(JSON.stringify({ token }))};path=/;max-age=${7*24*3600}`;
+  }
+}
+function clearAdminToken(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('hermes_admin_token');
+    document.cookie = 'admin_session=;path=/;max-age=0';
+  }
+}
+
+export default function FundAdminPage() {
   // Auth
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-  
+
   // Data
-  const [stats, setStats] = useState<FundStats | null>(null);
-  const [pendingUnstakes, setPendingUnstakes] = useState<AdminPendingPayment[]>([]);
+  const [fundStats, setFundStats] = useState<FundStats | null>(null);
   const [allUsers, setAllUsers] = useState<UserPosition[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  
+  const [dataError, setDataError] = useState<string | null>(null);
+
   // Nicknames
   const [nicknames, setNicknames] = useState<Record<string, string>>({});
   const [editingNickname, setEditingNickname] = useState<string | null>(null);
   const [nicknameInput, setNicknameInput] = useState('');
 
-  // Time countdown
+  // Time
   const [now, setNow] = useState(Date.now());
-
-  // Tabs
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'nicknames'>('overview');
-
-  const TREASURY_ADDRESS = FUND_CONSTANTS.TREASURY_ADDRESS;
-
-  // Update time every second
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Auth check on mount
+  // Tabs
+  const [activeTab, setActiveTab] = useState<'overview' | 'plan0' | 'plan1' | 'plan2' | 'urgent'>('overview');
+
+  // Auth check
   useEffect(() => {
     const token = getAdminToken();
     if (token) {
-      // Verify token by making a test API call
-      fetch('/api/admin/wallet-nicknames', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setIsAuthenticated(true);
-            if (data.nicknames) setNicknames(data.nicknames);
-          } else {
-            clearAdminToken();
-          }
+      fetch('/api/admin/wallet-nicknames', { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .then(d => {
+          if (d.success) { setIsAuthenticated(true); if (d.nicknames) setNicknames(d.nicknames); }
+          else clearAdminToken();
         })
         .catch(() => clearAdminToken())
         .finally(() => setAuthLoading(false));
@@ -122,623 +121,314 @@ export default function AdminHermesFundPage() {
     }
   }, []);
 
-  // Login handler
+  // Login
   const handleLogin = async () => {
-    if (!loginPassword.trim()) {
-      setLoginError('Şifre gerekli');
-      return;
-    }
-    
+    if (!loginPassword.trim()) { setLoginError('Şifre gerekli'); return; }
     try {
-      // Test the password against the nicknames API
-      const res = await fetch('/api/admin/wallet-nicknames', {
-        headers: { Authorization: `Bearer ${loginPassword}` }
-      });
-      const data = await res.json();
-      
-      if (data.success) {
-        setAdminToken(loginPassword);
-        setIsAuthenticated(true);
-        setLoginError('');
-        if (data.nicknames) setNicknames(data.nicknames);
-      } else {
-        setLoginError('Geçersiz şifre');
-      }
-    } catch {
-      setLoginError('Bağlantı hatası');
-    }
+      const res = await fetch('/api/admin/wallet-nicknames', { headers: { Authorization: `Bearer ${loginPassword}` } });
+      const d = await res.json();
+      if (d.success) { setAdminToken(loginPassword); setIsAuthenticated(true); setLoginError(''); if (d.nicknames) setNicknames(d.nicknames); }
+      else setLoginError('Geçersiz şifre');
+    } catch { setLoginError('Bağlantı hatası'); }
   };
 
-  // Logout
-  const handleLogout = () => {
-    clearAdminToken();
-    setIsAuthenticated(false);
-  };
-
-  // Load nicknames
+  // Nicknames
   const loadNicknames = useCallback(async () => {
-    const token = getAdminToken();
-    if (!token) return;
+    const token = getAdminToken(); if (!token) return;
     try {
-      const res = await fetch('/api/admin/wallet-nicknames', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const json = await res.json();
-      if (json.success && json.nicknames) {
-        setNicknames(json.nicknames);
-      }
-    } catch (error) {
-      console.error('Nicknames load failed:', error);
-    }
+      const r = await fetch('/api/admin/wallet-nicknames', { headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json();
+      if (d.success && d.nicknames) setNicknames(d.nicknames);
+    } catch {}
   }, []);
 
-  // Save nickname
   const saveNickname = useCallback(async (address: string, nickname: string) => {
-    const token = getAdminToken();
-    if (!token) return;
+    const token = getAdminToken(); if (!token) return;
     try {
-      const res = await fetch('/api/admin/wallet-nicknames', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+      const r = await fetch('/api/admin/wallet-nicknames', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ address, nickname }),
       });
-      const json = await res.json();
-      if (json.success && json.nicknames) {
-        setNicknames(json.nicknames);
-      }
-    } catch (error) {
-      console.error('Nickname save failed:', error);
-    }
-    setEditingNickname(null);
-    setNicknameInput('');
+      const d = await r.json();
+      if (d.success && d.nicknames) setNicknames(d.nicknames);
+    } catch {}
+    setEditingNickname(null); setNicknameInput('');
   }, []);
 
-  // Get nickname
-  const getNickname = useCallback((address: string): string | null => {
-    return nicknames[address.toLowerCase()] || null;
+  const getNickname = useCallback((addr: string) => nicknames[addr.toLowerCase()] || null, [nicknames]);
+  const startEditNickname = useCallback((addr: string) => {
+    setEditingNickname(addr); setNicknameInput(nicknames[addr.toLowerCase()] || '');
   }, [nicknames]);
 
-  // Start editing
-  const startEditNickname = useCallback((address: string) => {
-    setEditingNickname(address);
-    setNicknameInput(nicknames[address.toLowerCase()] || '');
-  }, [nicknames]);
-
-  // Fetch contract data
-  const fetchData = useCallback(async () => {
+  // Load fund data from API
+  const loadFundData = useCallback(async () => {
+    const token = getAdminToken(); if (!token) return;
     try {
-      setIsLoading(true);
-      const provider = new JsonRpcProvider(BSC_RPC);
-      const contract = new Contract(CONTRACT_ADDRESSES.FUND, HERMES_FUND_ABI, provider);
-
-      const [
-        totalStakedHermes, totalStakedUsdt,
-        totalGeneratedHermes, totalGeneratedUsdt,
-        totalClaimedHermes, totalClaimedUsdt,
-        activeUserCount, minDeposit, maxDeposit, tvlCap, userCount
-      ] = await Promise.all([
-        contract.totalStakedHermes(), contract.totalStakedUsdt(),
-        contract.totalGeneratedHermes(), contract.totalGeneratedUsdt(),
-        contract.totalClaimedHermes(), contract.totalClaimedUsdt(),
-        contract.activeUserCount(), contract.minDeposit(),
-        contract.maxDeposit(), contract.tvlCap(), contract.getUserCount()
-      ]);
-
-      const totalStakedUsdtNum = weiToNumber(totalStakedUsdt);
-      const tvlCapNum = weiToNumber(tvlCap);
-      const activeUserCountNum = Number(activeUserCount);
-      const availableCapacity = tvlCapNum - totalStakedUsdtNum;
-      const utilizationPercent = tvlCapNum > 0 ? (totalStakedUsdtNum / tvlCapNum) * 100 : 0;
-
-      setStats({
-        totalStakedHermes: weiToNumber(totalStakedHermes),
-        totalStakedUsdt: totalStakedUsdtNum,
-        totalGeneratedHermes: weiToNumber(totalGeneratedHermes),
-        totalGeneratedUsdt: weiToNumber(totalGeneratedUsdt),
-        totalClaimedHermes: weiToNumber(totalClaimedHermes),
-        totalClaimedUsdt: weiToNumber(totalClaimedUsdt),
-        activeUserCount: activeUserCountNum,
-        minDeposit: weiToNumber(minDeposit),
-        maxDeposit: weiToNumber(maxDeposit),
-        tvlCap: tvlCapNum,
-        availableCapacity,
-        utilizationPercent,
-        averageDeposit: activeUserCountNum > 0 ? totalStakedUsdtNum / activeUserCountNum : 0,
-        isFull: utilizationPercent >= 100
+      setDataLoading(true); setDataError(null);
+      const res = await fetch(`/api/admin/hermes-fund?ts=${Date.now()}`, {
+        headers: { Authorization: `Bearer ${token}` }, cache: 'no-store',
       });
-
-      // Fetch all users from contract
-      const totalUsers = Number(userCount);
-      const users: UserPosition[] = [];
-      for (let i = 0; i < totalUsers; i++) {
-        try {
-          const addr = await contract.getUserAtIndex(i);
-          const pos = await contract.getPosition(addr);
-          const statusNum = Number(pos.status);
-          const planId = Number(pos.planId);
-          const plan = PLANS[planId] || PLANS[0];
-          
-          users.push({
-            address: addr,
-            planId,
-            planName: plan.name,
-            status: statusNum,
-            statusText: ['Yok', 'Aktif', 'Vadesi Doldu', 'Kilit Açık', 'Kapalı'][statusNum] || 'Bilinmeyen',
-            usdtPrincipal: weiToNumber(pos.usdtPrincipal).toFixed(2),
-            hermesStaked: weiToNumber(pos.hermesStaked).toFixed(0),
-            startTime: Number(pos.startTime),
-            endTime: Number(pos.endTime),
-            unlockTime: Number(pos.unlockTime),
-            claimedUsdt: weiToNumber(pos.claimedUsdt).toFixed(2),
-            claimedHermes: weiToNumber(pos.claimedHermes).toFixed(0),
-            claimableUsdt: '0',
-            claimableHermes: '0',
-            usdtPaid: pos.usdtPaid || false,
-            hermesUnstaked: pos.hermesUnstaked || false,
-          });
-        } catch (err) {
-          console.error(`User ${i} fetch error:`, err);
-        }
+      const json = await res.json();
+      if (json.success) {
+        setFundStats(json.stats);
+        setAllUsers(json.allUsers || json.users || []);
+        setLastUpdate(new Date());
+      } else {
+        setDataError(json.error || 'Veri yüklenemedi');
       }
-      setAllUsers(users);
-      setLastUpdate(new Date());
-      setIsLoading(false);
-    } catch (err) {
-      console.error('Fetch error:', err);
-      setError(language === 'tr' ? 'Veri yüklenemedi' : 'Failed to load data');
-      setIsLoading(false);
-    }
-  }, [language]);
+    } catch (e: any) {
+      setDataError(e.message || 'Bağlantı hatası');
+    } finally { setDataLoading(false); }
+  }, []);
 
-  // Load data when authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      fetchData();
-      loadNicknames();
-      const interval = setInterval(fetchData, 60000);
+      loadFundData(); loadNicknames();
+      const interval = setInterval(loadFundData, 30000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, fetchData, loadNicknames]);
+  }, [isAuthenticated, loadFundData, loadNicknames]);
 
-  // Format countdown
+  // Plan groups
+  const planGroups = useMemo((): PlanGroup[] => {
+    const groups: PlanGroup[] = PLANS.map((plan, idx) => ({
+      planId: idx, planName: plan.name, duration: plan.duration,
+      usdtYield: plan.usdtYield, hermesYield: plan.hermesYield,
+      totalUsdt: 0, totalHermes: 0, userCount: 0, users: [],
+    }));
+    allUsers.forEach(u => {
+      const pid = u.planId;
+      if (pid >= 0 && pid < groups.length) {
+        groups[pid].totalUsdt += Number(u.usdtPrincipal) || 0;
+        groups[pid].totalHermes += Number(u.hermesStaked) || 0;
+        groups[pid].userCount++;
+        groups[pid].users.push(u);
+      }
+    });
+    return groups;
+  }, [allUsers]);
+
+  // Urgent users
+  const urgentUsers = useMemo(() => {
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    return allUsers.filter(u => {
+      if (u.status === 4 || u.usdtPaid) return false;
+      const t = u.endTime * 1000 - now;
+      return t > 0 && t <= threeDaysMs;
+    }).sort((a, b) => a.endTime - b.endTime);
+  }, [allUsers, now]);
+
+  // Countdown
   const formatCountdown = (endTimeMs: number) => {
     const diff = endTimeMs - now;
     if (diff <= 0) return { text: 'VADESİ DOLDU!', isUrgent: true, color: FUND_THEME.error };
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
+    const days = Math.floor(diff / (1000*60*60*24));
+    const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+    const minutes = Math.floor((diff % (1000*60*60)) / (1000*60));
+    const seconds = Math.floor((diff % (1000*60)) / 1000);
+    if (days === 0 && hours < 24) return { text: `${hours}s ${minutes}d ${seconds}sn`, isUrgent: true, color: FUND_THEME.error };
     if (days <= 3) return { text: `${days}g ${hours}s ${minutes}d`, isUrgent: true, color: FUND_THEME.error };
     if (days <= 7) return { text: `${days}g ${hours}s`, isUrgent: false, color: FUND_THEME.warning };
     return { text: `${days} gün`, isUrgent: false, color: FUND_THEME.success };
   };
 
-  // Urgent users (within 3 days)
-  const urgentUsers = useMemo(() => {
-    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-    return allUsers.filter(user => {
-      if (user.status === 4 || user.usdtPaid) return false;
-      const endTimeMs = user.endTime * 1000;
-      const timeUntilEnd = endTimeMs - now;
-      return timeUntilEnd > 0 && timeUntilEnd <= threeDaysMs;
-    }).sort((a, b) => a.endTime - b.endTime);
-  }, [allUsers, now]);
-
-  // ============================================================================
-  // LOGIN SCREEN
-  // ============================================================================
+  // ═══════════════════ LOGIN ═══════════════════
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: FUND_THEME.background }}>
-        <div className="animate-spin w-12 h-12 border-4 border-t-transparent rounded-full"
-          style={{ borderColor: `${FUND_THEME.primary} transparent` }}
-        />
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: FUND_THEME.background }}>
+      <div className="animate-spin w-12 h-12 border-4 border-t-transparent rounded-full" style={{ borderColor: `${FUND_THEME.primary} transparent` }} />
+    </div>;
   }
-
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: FUND_THEME.background }}>
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md rounded-2xl p-8"
-          style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${FUND_THEME.primary}30` }}
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md rounded-2xl p-8" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${FUND_THEME.primary}30` }}>
           <div className="text-center mb-8">
-            <motion.div
-              className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-3xl mb-4"
+            <motion.div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-3xl mb-4"
               style={{ background: `linear-gradient(135deg, ${FUND_THEME.primary}, ${FUND_THEME.secondary})` }}
               animate={{ boxShadow: [`0 0 20px ${FUND_THEME.primary}40`, `0 0 40px ${FUND_THEME.primary}60`, `0 0 20px ${FUND_THEME.primary}40`] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              🔐
-            </motion.div>
+              transition={{ duration: 2, repeat: Infinity }}>🔐</motion.div>
             <h1 className="text-2xl font-bold" style={{ color: FUND_THEME.primary }}>Admin Girişi</h1>
             <p className="text-sm mt-2" style={{ color: FUND_THEME.textMuted }}>Hermes AI Fund Yönetim Paneli</p>
           </div>
-
           <div className="space-y-4">
-            <input
-              type="password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-              placeholder="Admin Şifresi"
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
-              style={{ 
-                backgroundColor: FUND_THEME.background, 
-                color: FUND_THEME.text,
-                border: `1px solid ${loginError ? FUND_THEME.error : FUND_THEME.primary}30`,
-              }}
-            />
-            
-            {loginError && (
-              <div className="text-sm text-center" style={{ color: FUND_THEME.error }}>{loginError}</div>
-            )}
-            
-            <motion.button
-              onClick={handleLogin}
-              className="w-full py-3 rounded-xl font-bold text-sm"
-              style={{ backgroundColor: FUND_THEME.primary, color: '#000' }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
+            <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleLogin()} placeholder="Admin Şifresi"
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+              style={{ backgroundColor: FUND_THEME.background, color: FUND_THEME.text, border: `1px solid ${loginError ? FUND_THEME.error : FUND_THEME.primary}30` }} />
+            {loginError && <div className="text-sm text-center" style={{ color: FUND_THEME.error }}>{loginError}</div>}
+            <motion.button onClick={handleLogin} className="w-full py-3 rounded-xl font-bold text-sm"
+              style={{ backgroundColor: FUND_THEME.primary, color: '#000' }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               Giriş Yap
             </motion.button>
           </div>
-          
-          <div className="text-center mt-6">
-            <Link href="/" className="text-sm" style={{ color: FUND_THEME.textMuted }}>
-              ← Ana Sayfaya Dön
-            </Link>
-          </div>
+          <div className="text-center mt-6"><Link href="/" className="text-sm" style={{ color: FUND_THEME.textMuted }}>← Ana Sayfaya Dön</Link></div>
         </motion.div>
       </div>
     );
   }
 
-  // ============================================================================
-  // MAIN ADMIN PANEL
-  // ============================================================================
-  if (isLoading && !stats) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: FUND_THEME.background }}>
-        <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-t-transparent rounded-full mx-auto mb-4"
-            style={{ borderColor: `${FUND_THEME.primary} transparent` }}
-          />
-          <p style={{ color: FUND_THEME.textMuted }}>Kontrat verileri yükleniyor...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // ═══════════════════ MAIN ADMIN PANEL ═══════════════════
   return (
     <div className="min-h-screen" style={{ backgroundColor: FUND_THEME.background }}>
       {/* Header */}
-      <header 
-        className="sticky top-0 z-50 backdrop-blur-xl"
-        style={{ backgroundColor: `${FUND_THEME.background}90`, borderBottom: `1px solid ${FUND_THEME.primary}20` }}
-      >
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm transition-colors hover:opacity-80" style={{ color: FUND_THEME.textMuted }}>
-              ← Ana Sayfa
-            </Link>
-            <h1 className="text-lg font-bold" style={{ color: FUND_THEME.primary }}>
-              🔐 HERMES AI Fund Admin
-            </h1>
-            {urgentUsers.length > 0 && (
-              <motion.span
-                className="px-2 py-1 rounded-full text-xs font-bold"
-                style={{ backgroundColor: FUND_THEME.error, color: '#fff' }}
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
-                ⚠️ {urgentUsers.length} ACİL
-              </motion.span>
-            )}
+      <header className="sticky top-0 z-50 backdrop-blur-xl" style={{ backgroundColor: `${FUND_THEME.background}95`, borderBottom: `1px solid ${FUND_THEME.primary}30` }}>
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/admin" className="px-3 py-1.5 rounded-lg text-sm" style={{ backgroundColor: FUND_THEME.surface, color: FUND_THEME.textMuted, border: `1px solid ${FUND_THEME.primary}20` }}>← Admin</Link>
+              <div className="flex items-center gap-3">
+                <motion.div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                  style={{ background: `linear-gradient(135deg, ${FUND_THEME.primary}, ${FUND_THEME.secondary})` }}
+                  animate={{ boxShadow: [`0 0 15px ${FUND_THEME.primary}40`, `0 0 30px ${FUND_THEME.primary}60`, `0 0 15px ${FUND_THEME.primary}40`] }}
+                  transition={{ duration: 2, repeat: Infinity }}>💰</motion.div>
+                <div>
+                  <h1 className="text-xl font-bold" style={{ color: FUND_THEME.primary }}>Hermes AI Fund Admin</h1>
+                  <p className="text-xs" style={{ color: FUND_THEME.textMuted }}>Plan bazlı kullanıcı yönetimi</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {lastUpdate && <span className="text-xs" style={{ color: FUND_THEME.textMuted }}>Son: {lastUpdate.toLocaleTimeString('tr-TR')}</span>}
+              {urgentUsers.length > 0 && (
+                <motion.span className="px-3 py-1 rounded-full text-xs font-bold cursor-pointer" onClick={() => setActiveTab('urgent')}
+                  style={{ backgroundColor: FUND_THEME.error, color: '#fff' }} animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 1, repeat: Infinity }}>
+                  ⚠️ {urgentUsers.length} ACİL
+                </motion.span>
+              )}
+              <motion.button onClick={loadFundData} disabled={dataLoading} className="px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2"
+                style={{ backgroundColor: FUND_THEME.primary, color: '#000' }} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.span animate={{ rotate: dataLoading ? 360 : 0 }} transition={{ duration: 1, repeat: dataLoading ? Infinity : 0, ease: 'linear' }}>🔄</motion.span>
+                Yenile
+              </motion.button>
+              <button onClick={() => { clearAdminToken(); setIsAuthenticated(false); }} className="px-3 py-1.5 rounded-lg text-xs"
+                style={{ backgroundColor: `${FUND_THEME.error}20`, color: FUND_THEME.error }}>Çıkış</button>
+            </div>
           </div>
-          
-          <div className="flex items-center gap-3">
-            {lastUpdate && (
-              <span className="text-xs" style={{ color: FUND_THEME.textMuted }}>
-                {lastUpdate.toLocaleTimeString('tr-TR')}
-              </span>
-            )}
-            <motion.button
-              onClick={fetchData}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold"
-              style={{ backgroundColor: FUND_THEME.primary, color: '#000' }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              🔄 Yenile
-            </motion.button>
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium"
-              style={{ backgroundColor: `${FUND_THEME.error}20`, color: FUND_THEME.error }}
-            >
-              Çıkış
-            </button>
-          </div>
-        </div>
 
-        {/* Tabs */}
-        <div className="max-w-7xl mx-auto px-4 pb-2 flex gap-2">
-          {[
-            { id: 'overview' as const, label: '📊 Genel Bakış' },
-            { id: 'users' as const, label: `👥 Kullanıcılar (${allUsers.length})` },
-            { id: 'nicknames' as const, label: `🏷️ Nicknames (${Object.keys(nicknames).length})` },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-              style={{
-                backgroundColor: activeTab === tab.id ? FUND_THEME.primary : FUND_THEME.surface,
-                color: activeTab === tab.id ? '#000' : FUND_THEME.text,
-                border: `1px solid ${activeTab === tab.id ? FUND_THEME.primary : FUND_THEME.primary + '30'}`,
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {/* Plan Tabs */}
+          <div className="flex gap-2 mt-4 flex-wrap">
+            <TabBtn active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} label="📊 Genel Bakış" />
+            <TabBtn active={activeTab === 'plan0'} onClick={() => setActiveTab('plan0')} label={`📅 1 Aylık (${planGroups[0]?.userCount || 0})`} color={FUND_THEME.success} />
+            <TabBtn active={activeTab === 'plan1'} onClick={() => setActiveTab('plan1')} label={`📅 3 Aylık (${planGroups[1]?.userCount || 0})`} color={FUND_THEME.warning} />
+            <TabBtn active={activeTab === 'plan2'} onClick={() => setActiveTab('plan2')} label={`📅 6 Aylık (${planGroups[2]?.userCount || 0})`} color={FUND_THEME.primary} />
+            {urgentUsers.length > 0 && <TabBtn active={activeTab === 'urgent'} onClick={() => setActiveTab('urgent')} label={`🚨 ACİL (${urgentUsers.length})`} color={FUND_THEME.error} pulse />}
+          </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
+        {dataError && (
+          <div className="mb-4 p-4 rounded-xl" style={{ backgroundColor: `${FUND_THEME.error}15`, border: `1px solid ${FUND_THEME.error}30` }}>
+            <span style={{ color: FUND_THEME.error }}>Hata: {dataError}</span>
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
-          {/* ============ OVERVIEW TAB ============ */}
-          {activeTab === 'overview' && stats && (
-            <motion.div
-              key="overview"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
-            >
-              {/* Stats Grid */}
+          {/* OVERVIEW */}
+          {activeTab === 'overview' && fundStats && (
+            <motion.div key="overview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard title="Toplam USDT" value={formatUSDT(stats.totalStakedUsdt)} subtitle={`%${stats.utilizationPercent.toFixed(1)} doluluk`} color={FUND_THEME.primary} icon="💰" />
-                <StatCard title="Toplam HERMES" value={formatHermes(stats.totalStakedHermes)} subtitle="Stake edilmiş" color={FUND_THEME.accent} icon="🔒" />
-                <StatCard title="Aktif Kullanıcı" value={String(stats.activeUserCount)} subtitle={`Toplam: ${allUsers.length}`} color={FUND_THEME.success} icon="👥" />
-                <StatCard title="Ödenen USDT" value={formatUSDT(stats.totalClaimedUsdt)} subtitle="Claim edilen" color={FUND_THEME.warning} icon="💵" />
+                <StatCard title="Toplam TVL" value={`$${Number(fundStats.totalStakedUsdt).toLocaleString()}`} sub={`${fundStats.tvlPercent.toFixed(1)}% doluluk`} color={FUND_THEME.primary} icon="💰" />
+                <StatCard title="Toplam HERMES" value={`${(Number(fundStats.totalStakedHermes)/1e9).toFixed(2)}B`} sub="Stake edilmiş" color={FUND_THEME.accent} icon="🔒" />
+                <StatCard title="Aktif Kullanıcı" value={String(fundStats.activeUserCount)} sub={`Toplam: ${allUsers.length}`} color={FUND_THEME.success} icon="👥" />
+                <StatCard title="Ödenen USDT" value={`$${Number(fundStats.totalClaimedUsdt).toFixed(2)}`} sub="Claim edilen" color={FUND_THEME.warning} icon="💵" />
               </div>
-
-              {/* Generated / Claimed */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <MiniStat title="Üretilen USDT" value={formatUSDT(stats.totalGeneratedUsdt)} color={FUND_THEME.success} />
-                <MiniStat title="Claim Edilen USDT" value={formatUSDT(stats.totalClaimedUsdt)} color={FUND_THEME.text} />
-                <MiniStat title="Üretilen HERMES" value={formatHermes(stats.totalGeneratedHermes)} color={FUND_THEME.accent} />
-                <MiniStat title="Claim Edilen HERMES" value={formatHermes(stats.totalClaimedHermes)} color={FUND_THEME.text} />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {planGroups.map((pg, idx) => {
+                  const colors = [FUND_THEME.success, FUND_THEME.warning, FUND_THEME.primary];
+                  const c = colors[idx] || FUND_THEME.accent;
+                  return (
+                    <motion.div key={idx} className="p-6 rounded-xl cursor-pointer relative" style={{ backgroundColor: FUND_THEME.surface, border: `2px solid ${c}50` }}
+                      whileHover={{ scale: 1.02, y: -3 }} onClick={() => setActiveTab(`plan${idx}` as any)}>
+                      {urgentUsers.filter(u => u.planId === idx).length > 0 && (
+                        <motion.div className="absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-bold"
+                          style={{ backgroundColor: FUND_THEME.error, color: '#fff' }} animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1, repeat: Infinity }}>
+                          ⚠️ {urgentUsers.filter(u => u.planId === idx).length}
+                        </motion.div>
+                      )}
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold" style={{ backgroundColor: `${c}20`, color: c }}>{pg.duration}g</div>
+                        <div><h3 className="text-xl font-bold" style={{ color: c }}>{pg.planName}</h3><p className="text-sm" style={{ color: FUND_THEME.textMuted }}>USDT %{pg.usdtYield} | HERMES %{pg.hermesYield}</p></div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><div className="text-2xl font-bold" style={{ color: FUND_THEME.primary }}>${pg.totalUsdt.toLocaleString()}</div><div className="text-xs" style={{ color: FUND_THEME.textMuted }}>Toplam USDT</div></div>
+                        <div><div className="text-2xl font-bold" style={{ color: c }}>{pg.userCount}</div><div className="text-xs" style={{ color: FUND_THEME.textMuted }}>Kullanıcı</div></div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
-
-              {/* Urgent Warning */}
               {urgentUsers.length > 0 && (
-                <motion.div
-                  className="p-6 rounded-xl"
-                  style={{ backgroundColor: `${FUND_THEME.error}10`, border: `2px solid ${FUND_THEME.error}` }}
-                  animate={{ boxShadow: [`0 0 10px ${FUND_THEME.error}30`, `0 0 30px ${FUND_THEME.error}50`, `0 0 10px ${FUND_THEME.error}30`] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <h3 className="text-lg font-bold mb-3 flex items-center gap-2" style={{ color: FUND_THEME.error }}>
-                    🚨 ACİL: {urgentUsers.length} Kullanıcının Vadesi 3 Gün İçinde Doluyor!
-                  </h3>
-                  <div className="space-y-2">
-                    {urgentUsers.map((user, idx) => {
-                      const countdown = formatCountdown(user.endTime * 1000);
-                      const nickname = getNickname(user.address);
-                      return (
-                        <div key={idx} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: FUND_THEME.background }}>
-                          <div className="flex items-center gap-3">
-                            {nickname ? (
-                              <span className="font-semibold" style={{ color: FUND_THEME.primary }}>🏷️ {nickname}</span>
-                            ) : (
-                              <span className="font-mono text-sm" style={{ color: FUND_THEME.accent }}>{formatAddress(user.address)}</span>
-                            )}
-                            <span className="text-sm" style={{ color: FUND_THEME.textMuted }}>{user.planName}</span>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <span className="font-bold" style={{ color: FUND_THEME.primary }}>${Number(user.usdtPrincipal).toFixed(0)}</span>
-                            <span className="px-3 py-1 rounded-full font-bold text-sm" style={{ backgroundColor: countdown.color, color: '#000' }}>
-                              ⏱️ {countdown.text}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                <motion.div className="p-6 rounded-xl" style={{ backgroundColor: `${FUND_THEME.error}10`, border: `2px solid ${FUND_THEME.error}` }}
+                  animate={{ boxShadow: [`0 0 10px ${FUND_THEME.error}30`, `0 0 30px ${FUND_THEME.error}50`, `0 0 10px ${FUND_THEME.error}30`] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: FUND_THEME.error }}>🚨 ACİL: {urgentUsers.length} Kullanıcının Vadesi 3 Gün İçinde Doluyor!</h3>
+                  <div className="space-y-2">{urgentUsers.slice(0,5).map((u, i) => {
+                    const cd = formatCountdown(u.endTime*1000); const nick = getNickname(u.address);
+                    return <div key={i} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: FUND_THEME.background }}>
+                      <div className="flex items-center gap-3">
+                        {nick ? <span className="font-semibold" style={{ color: FUND_THEME.primary }}>🏷️ {nick}</span> : <span className="font-mono text-sm" style={{ color: FUND_THEME.accent }}>{u.address.slice(0,10)}...{u.address.slice(-6)}</span>}
+                        <span className="text-sm" style={{ color: FUND_THEME.textMuted }}>{u.planName}</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="font-bold" style={{ color: FUND_THEME.primary }}>${Number(u.usdtPrincipal).toFixed(0)}</span>
+                        <motion.span className="px-3 py-1 rounded-full font-bold text-sm" style={{ backgroundColor: cd.color, color: '#000' }}
+                          animate={cd.isUrgent ? { scale: [1,1.05,1] } : {}} transition={{ duration: 0.5, repeat: Infinity }}>⏱️ {cd.text}</motion.span>
+                      </div>
+                    </div>;
+                  })}</div>
                 </motion.div>
               )}
-
-              {/* Quick Access */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <a href={`https://bscscan.com/address/${TREASURY_ADDRESS}`} target="_blank" rel="noopener noreferrer"
-                  className="rounded-xl p-4 transition-all hover:scale-105" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${FUND_THEME.accent}30` }}>
-                  <div className="text-sm" style={{ color: FUND_THEME.textMuted }}>Treasury</div>
-                  <div className="font-mono text-sm mt-1" style={{ color: FUND_THEME.accent }}>{formatAddress(TREASURY_ADDRESS)}</div>
-                </a>
-                <a href={`https://bscscan.com/address/${CONTRACT_ADDRESSES.FUND}`} target="_blank" rel="noopener noreferrer"
-                  className="rounded-xl p-4 transition-all hover:scale-105" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${FUND_THEME.primary}30` }}>
-                  <div className="text-sm" style={{ color: FUND_THEME.textMuted }}>Contract</div>
-                  <div className="font-mono text-sm mt-1" style={{ color: FUND_THEME.primary }}>{formatAddress(CONTRACT_ADDRESSES.FUND)}</div>
-                </a>
-                <Link href="/hermes-fund" className="rounded-xl p-4 transition-all hover:scale-105" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${FUND_THEME.secondary}30` }}>
-                  <div className="text-sm" style={{ color: FUND_THEME.textMuted }}>Kullanıcı Sayfası</div>
-                  <div className="text-sm mt-1" style={{ color: FUND_THEME.secondary }}>Görüntüle →</div>
-                </Link>
-                <button onClick={fetchData} className="rounded-xl p-4 text-left transition-all hover:scale-105" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${FUND_THEME.success}30` }}>
-                  <div className="text-sm" style={{ color: FUND_THEME.textMuted }}>Yenile</div>
-                  <div className="text-sm mt-1" style={{ color: FUND_THEME.success }}>Verileri Güncelle</div>
-                </button>
-              </div>
-
-              {/* Plan Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {PLANS.map((plan) => (
-                  <div key={plan.id} className="rounded-xl p-4" style={{ backgroundColor: FUND_THEME.surface, border: plan.highlight ? `2px solid ${FUND_THEME.primary}40` : `1px solid ${FUND_THEME.surface}` }}>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold" style={{ color: FUND_THEME.text }}>{plan.name}</h3>
-                      {plan.highlight && <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: `${FUND_THEME.primary}20`, color: FUND_THEME.primary }}>HOT</span>}
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between"><span style={{ color: FUND_THEME.textMuted }}>Süre</span><span style={{ color: FUND_THEME.text }}>{plan.duration} gün</span></div>
-                      <div className="flex justify-between"><span style={{ color: FUND_THEME.textMuted }}>USDT Yield</span><span style={{ color: FUND_THEME.success }}>%{plan.usdtYield}</span></div>
-                      <div className="flex justify-between"><span style={{ color: FUND_THEME.textMuted }}>HERMES Yield</span><span style={{ color: FUND_THEME.accent }}>%{plan.hermesYield}</span></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </motion.div>
           )}
 
-          {/* ============ USERS TAB ============ */}
-          {activeTab === 'users' && (
-            <motion.div
-              key="users"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-4"
-            >
-              <div className="rounded-xl overflow-hidden" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${FUND_THEME.primary}20` }}>
-                <table className="w-full">
-                  <thead>
-                    <tr style={{ borderBottom: `1px solid ${FUND_THEME.primary}20` }}>
-                      <th className="px-4 py-3 text-left text-xs" style={{ color: FUND_THEME.textMuted }}>Adres / Nickname</th>
-                      <th className="px-4 py-3 text-left text-xs" style={{ color: FUND_THEME.textMuted }}>Plan</th>
-                      <th className="px-4 py-3 text-left text-xs" style={{ color: FUND_THEME.textMuted }}>USDT</th>
-                      <th className="px-4 py-3 text-left text-xs" style={{ color: FUND_THEME.textMuted }}>Durum</th>
-                      <th className="px-4 py-3 text-left text-xs" style={{ color: FUND_THEME.textMuted }}>Vade</th>
-                      <th className="px-4 py-3 text-left text-xs" style={{ color: FUND_THEME.textMuted }}>Nickname</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allUsers.map((user, idx) => {
-                      const countdown = formatCountdown(user.endTime * 1000);
-                      const nickname = getNickname(user.address);
-                      const isEditing = editingNickname === user.address;
-                      return (
-                        <tr key={idx} style={{ borderBottom: `1px solid ${FUND_THEME.primary}10` }}>
-                          <td className="px-4 py-3">
-                            {nickname && <div className="text-xs font-bold mb-0.5" style={{ color: FUND_THEME.primary }}>🏷️ {nickname}</div>}
-                            <a href={`https://bscscan.com/address/${user.address}`} target="_blank" rel="noopener noreferrer"
-                              className="font-mono text-xs hover:underline" style={{ color: FUND_THEME.accent }}>
-                              {formatAddress(user.address)}
-                            </a>
-                          </td>
-                          <td className="px-4 py-3 text-xs" style={{ color: FUND_THEME.text }}>{user.planName}</td>
-                          <td className="px-4 py-3 text-xs font-bold" style={{ color: FUND_THEME.primary }}>${user.usdtPrincipal}</td>
-                          <td className="px-4 py-3">
-                            <span className="text-xs px-2 py-1 rounded" style={{ 
-                              backgroundColor: user.status === 1 ? `${FUND_THEME.success}20` : user.status === 2 ? `${FUND_THEME.warning}20` : `${FUND_THEME.textMuted}20`,
-                              color: user.status === 1 ? FUND_THEME.success : user.status === 2 ? FUND_THEME.warning : FUND_THEME.textMuted
-                            }}>
-                              {user.statusText}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            {user.status !== 4 && (
-                              <span className="text-xs font-bold" style={{ color: countdown.color }}>
-                                {countdown.text}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            {isEditing ? (
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="text"
-                                  value={nicknameInput}
-                                  onChange={(e) => setNicknameInput(e.target.value)}
-                                  onKeyDown={(e) => e.key === 'Enter' && saveNickname(user.address, nicknameInput)}
-                                  className="w-24 px-2 py-1 rounded text-xs outline-none"
-                                  style={{ backgroundColor: FUND_THEME.background, color: FUND_THEME.text, border: `1px solid ${FUND_THEME.primary}30` }}
-                                  autoFocus
-                                />
-                                <button onClick={() => saveNickname(user.address, nicknameInput)} className="text-xs" style={{ color: FUND_THEME.success }}>✓</button>
-                                <button onClick={() => setEditingNickname(null)} className="text-xs" style={{ color: FUND_THEME.error }}>✕</button>
-                              </div>
-                            ) : (
-                              <button onClick={() => startEditNickname(user.address)} className="text-xs px-2 py-1 rounded hover:opacity-80"
-                                style={{ backgroundColor: `${FUND_THEME.primary}15`, color: FUND_THEME.primary }}>
-                                {nickname ? '✏️' : '+ İsim'}
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                {allUsers.length === 0 && (
-                  <div className="p-8 text-center" style={{ color: FUND_THEME.textMuted }}>Henüz kullanıcı yok</div>
-                )}
-              </div>
+          {/* PLAN TABS */}
+          {['plan0','plan1','plan2'].includes(activeTab) && (
+            <motion.div key={activeTab} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
+              <PlanDetailView
+                plan={planGroups[parseInt(activeTab.replace('plan',''))]}
+                formatCountdown={formatCountdown}
+                now={now}
+                getNickname={getNickname}
+                editingNickname={editingNickname}
+                nicknameInput={nicknameInput}
+                setNicknameInput={setNicknameInput}
+                startEditNickname={startEditNickname}
+                saveNickname={saveNickname}
+              />
             </motion.div>
           )}
 
-          {/* ============ NICKNAMES TAB ============ */}
-          {activeTab === 'nicknames' && (
-            <motion.div
-              key="nicknames"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-4"
-            >
-              <div className="rounded-xl p-6" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${FUND_THEME.primary}20` }}>
-                <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: FUND_THEME.text }}>
-                  🏷️ Cüzdan Nicknames
+          {/* URGENT TAB */}
+          {activeTab === 'urgent' && (
+            <motion.div key="urgent" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-4">
+              <div className="p-6 rounded-xl" style={{ backgroundColor: FUND_THEME.surface, border: `2px solid ${FUND_THEME.error}` }}>
+                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3" style={{ color: FUND_THEME.error }}>
+                  <motion.span animate={{ scale: [1,1.2,1] }} transition={{ duration: 1, repeat: Infinity }}>🚨</motion.span>
+                  ACİL - 3 Gün İçinde Vadesi Dolacak
                 </h2>
-                
-                {Object.keys(nicknames).length > 0 ? (
-                  <div className="space-y-2">
-                    {Object.entries(nicknames).map(([addr, nick]) => (
-                      <div key={addr} className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: FUND_THEME.background }}>
-                        <div className="flex items-center gap-3">
-                          <span className="font-bold" style={{ color: FUND_THEME.primary }}>🏷️ {nick}</span>
-                          <a href={`https://bscscan.com/address/${addr}`} target="_blank" rel="noopener noreferrer"
-                            className="font-mono text-xs hover:underline" style={{ color: FUND_THEME.accent }}>
-                            {formatAddress(addr)}
-                          </a>
+                {urgentUsers.length === 0 ? <p className="text-center py-8" style={{ color: FUND_THEME.textMuted }}>✅ Acil durum yok</p> : (
+                  <div className="space-y-3">{urgentUsers.map((u, i) => {
+                    const cd = formatCountdown(u.endTime*1000); const nick = getNickname(u.address);
+                    return <motion.div key={i} className="p-4 rounded-xl" style={{ backgroundColor: `${FUND_THEME.error}10`, border: `1px solid ${FUND_THEME.error}50` }}
+                      animate={cd.isUrgent ? { boxShadow: [`0 0 5px ${FUND_THEME.error}30`, `0 0 15px ${FUND_THEME.error}50`, `0 0 5px ${FUND_THEME.error}30`] } : {}} transition={{ duration: 1.5, repeat: Infinity }}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          {nick && <div className="font-bold mb-1" style={{ color: FUND_THEME.primary }}>🏷️ {nick}</div>}
+                          <a href={`https://bscscan.com/address/${u.address}`} target="_blank" rel="noopener noreferrer" className="font-mono font-bold hover:underline" style={{ color: FUND_THEME.accent }}>{u.address.slice(0,12)}...{u.address.slice(-8)}</a>
+                          <div className="text-sm mt-1" style={{ color: FUND_THEME.textMuted }}>{u.planName} | Başlangıç: {new Date(u.startTime*1000).toLocaleDateString('tr-TR')}</div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => startEditNickname(addr)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: `${FUND_THEME.primary}15`, color: FUND_THEME.primary }}>✏️ Düzenle</button>
-                          <button onClick={() => saveNickname(addr, '')} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: `${FUND_THEME.error}15`, color: FUND_THEME.error }}>🗑️ Sil</button>
+                        <div className="flex items-center gap-6">
+                          <div className="text-right"><div className="font-bold text-xl" style={{ color: FUND_THEME.primary }}>${Number(u.usdtPrincipal).toFixed(0)}</div><div className="text-xs" style={{ color: FUND_THEME.textMuted }}>USDT</div></div>
+                          <motion.div className="px-4 py-2 rounded-xl text-center min-w-[120px]" style={{ backgroundColor: cd.color, color: '#000' }}
+                            animate={cd.isUrgent ? { scale: [1,1.03,1] } : {}} transition={{ duration: 0.5, repeat: Infinity }}>
+                            <div className="font-bold text-lg">⏱️ {cd.text}</div>
+                            <div className="text-xs opacity-75">{new Date(u.endTime*1000).toLocaleDateString('tr-TR')}</div>
+                          </motion.div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8" style={{ color: FUND_THEME.textMuted }}>
-                    Henüz nickname eklenmemiş. Kullanıcılar sekmesinden ekleyebilirsiniz.
-                  </div>
-                )}
-
-                {editingNickname && Object.keys(nicknames).includes(editingNickname) && (
-                  <div className="mt-4 p-4 rounded-lg flex items-center gap-3" style={{ backgroundColor: FUND_THEME.background }}>
-                    <span className="text-sm" style={{ color: FUND_THEME.textMuted }}>Yeni isim:</span>
-                    <input
-                      type="text"
-                      value={nicknameInput}
-                      onChange={(e) => setNicknameInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && saveNickname(editingNickname, nicknameInput)}
-                      className="flex-1 px-3 py-2 rounded-lg text-sm outline-none"
-                      style={{ backgroundColor: FUND_THEME.surface, color: FUND_THEME.text, border: `1px solid ${FUND_THEME.primary}30` }}
-                      autoFocus
-                    />
-                    <button onClick={() => saveNickname(editingNickname, nicknameInput)} className="px-3 py-2 rounded-lg text-sm font-bold" style={{ backgroundColor: FUND_THEME.success, color: '#000' }}>Kaydet</button>
-                    <button onClick={() => setEditingNickname(null)} className="px-3 py-2 rounded-lg text-sm" style={{ backgroundColor: `${FUND_THEME.error}20`, color: FUND_THEME.error }}>İptal</button>
-                  </div>
+                    </motion.div>;
+                  })}</div>
                 )}
               </div>
             </motion.div>
@@ -749,27 +439,94 @@ export default function AdminHermesFundPage() {
   );
 }
 
-// ============================================================================
-// HELPER COMPONENTS
-// ============================================================================
+// ═══════════════════ COMPONENTS ═══════════════════
 
-function StatCard({ title, value, subtitle, color, icon }: {
-  title: string; value: string; subtitle: string; color: string; icon: string;
-}) {
-  return (
-    <motion.div className="rounded-xl p-4" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${color}30` }} whileHover={{ scale: 1.02 }}>
-      <div className="flex items-center gap-2 mb-1"><span className="text-lg">{icon}</span><span className="text-xs" style={{ color: FUND_THEME.textMuted }}>{title}</span></div>
-      <div className="text-2xl font-bold" style={{ color }}>{value}</div>
-      <div className="text-xs mt-1" style={{ color: FUND_THEME.textMuted }}>{subtitle}</div>
-    </motion.div>
-  );
+function TabBtn({ active, onClick, label, color, pulse }: { active: boolean; onClick: () => void; label: string; color?: string; pulse?: boolean }) {
+  return <motion.button onClick={onClick} className="px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all"
+    style={{ backgroundColor: active ? (color||FUND_THEME.primary) : FUND_THEME.surface, color: active ? '#000' : FUND_THEME.text, border: `1px solid ${active ? (color||FUND_THEME.primary) : FUND_THEME.primary+'30'}` }}
+    animate={pulse && !active ? { scale: [1,1.03,1] } : {}} transition={{ duration: 1, repeat: Infinity }}>{label}</motion.button>;
 }
 
-function MiniStat({ title, value, color }: { title: string; value: string; color: string }) {
-  return (
-    <div className="rounded-xl p-3" style={{ backgroundColor: FUND_THEME.surface }}>
-      <div className="text-xs" style={{ color: FUND_THEME.textMuted }}>{title}</div>
-      <div className="text-lg font-bold" style={{ color }}>{value}</div>
+function StatCard({ title, value, sub, color, icon }: { title: string; value: string; sub: string; color: string; icon: string }) {
+  return <motion.div className="p-6 rounded-xl" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${color}30` }} whileHover={{ scale: 1.02, y: -2 }}>
+    <div className="flex items-center gap-3 mb-2"><span className="text-2xl">{icon}</span><span className="text-sm font-semibold" style={{ color: FUND_THEME.textMuted }}>{title}</span></div>
+    <div className="text-3xl font-bold mb-1" style={{ color }}>{value}</div>
+    <div className="text-xs" style={{ color: FUND_THEME.textMuted }}>{sub}</div>
+  </motion.div>;
+}
+
+function PlanDetailView({ plan, formatCountdown, now, getNickname, editingNickname, nicknameInput, setNicknameInput, startEditNickname, saveNickname }: {
+  plan: PlanGroup; formatCountdown: (ms: number) => { text: string; isUrgent: boolean; color: string }; now: number;
+  getNickname: (a: string) => string | null; editingNickname: string | null; nicknameInput: string;
+  setNicknameInput: (v: string) => void; startEditNickname: (a: string) => void; saveNickname: (a: string, n: string) => void;
+}) {
+  const colors = [FUND_THEME.success, FUND_THEME.warning, FUND_THEME.primary];
+  const color = colors[plan.planId] || FUND_THEME.accent;
+  const sorted = [...plan.users].sort((a, b) => a.endTime - b.endTime);
+
+  return <>
+    {/* Plan Header */}
+    <div className="p-6 rounded-xl" style={{ backgroundColor: FUND_THEME.surface, border: `2px solid ${color}` }}>
+      <div className="flex items-center gap-4 mb-6">
+        <div className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold" style={{ backgroundColor: `${color}20`, color }}>{plan.duration}g</div>
+        <div><h2 className="text-3xl font-bold" style={{ color }}>{plan.planName} Plan</h2><p style={{ color: FUND_THEME.textMuted }}>USDT Getiri: %{plan.usdtYield} | HERMES Getiri: %{plan.hermesYield}</p></div>
+      </div>
+      <div className="grid grid-cols-4 gap-4">
+        <div className="p-4 rounded-xl" style={{ backgroundColor: FUND_THEME.background }}><div className="text-3xl font-bold" style={{ color: FUND_THEME.primary }}>${plan.totalUsdt.toLocaleString()}</div><div className="text-sm" style={{ color: FUND_THEME.textMuted }}>Toplam USDT</div></div>
+        <div className="p-4 rounded-xl" style={{ backgroundColor: FUND_THEME.background }}><div className="text-3xl font-bold" style={{ color: FUND_THEME.accent }}>{(plan.totalHermes/1e9).toFixed(2)}B</div><div className="text-sm" style={{ color: FUND_THEME.textMuted }}>Toplam HERMES</div></div>
+        <div className="p-4 rounded-xl" style={{ backgroundColor: FUND_THEME.background }}><div className="text-3xl font-bold" style={{ color }}>{plan.userCount}</div><div className="text-sm" style={{ color: FUND_THEME.textMuted }}>Kullanıcı</div></div>
+        <div className="p-4 rounded-xl" style={{ backgroundColor: FUND_THEME.background }}><div className="text-3xl font-bold" style={{ color: FUND_THEME.success }}>${plan.userCount > 0 ? (plan.totalUsdt/plan.userCount).toFixed(0) : 0}</div><div className="text-sm" style={{ color: FUND_THEME.textMuted }}>Ortalama</div></div>
+      </div>
     </div>
-  );
+
+    {/* Users Table */}
+    <div className="rounded-xl overflow-hidden" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${color}30` }}>
+      <div className="p-4" style={{ backgroundColor: FUND_THEME.background }}><h3 className="font-bold" style={{ color: FUND_THEME.text }}>{plan.planName} Kullanıcıları ({plan.userCount})</h3></div>
+      {plan.users.length === 0 ? <p className="text-center py-8" style={{ color: FUND_THEME.textMuted }}>Bu planda henüz kullanıcı yok</p> : (
+        <div className="overflow-x-auto"><table className="w-full"><thead>
+          <tr style={{ borderBottom: `1px solid ${FUND_THEME.primary}20` }}>
+            <th className="text-left py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Adres / Nickname</th>
+            <th className="text-left py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Durum</th>
+            <th className="text-right py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>USDT</th>
+            <th className="text-right py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Kazanılan</th>
+            <th className="text-right py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Claimable</th>
+            <th className="text-center py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Başlangıç</th>
+            <th className="text-center py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Vade Bitiş</th>
+            <th className="text-center py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Geri Sayım</th>
+          </tr>
+        </thead><tbody>
+          {sorted.map((u, idx) => {
+            const cd = formatCountdown(u.endTime*1000);
+            const isUrg = u.endTime*1000 - now < 3*24*60*60*1000;
+            const nick = getNickname(u.address);
+            const isEd = editingNickname === u.address;
+            return <motion.tr key={idx} style={{ borderBottom: `1px solid ${FUND_THEME.primary}10`, backgroundColor: isUrg ? `${FUND_THEME.error}10` : 'transparent' }}
+              animate={isUrg ? { backgroundColor: [`${FUND_THEME.error}10`, `${FUND_THEME.error}20`, `${FUND_THEME.error}10`] } : {}} transition={{ duration: 2, repeat: Infinity }}>
+              <td className="py-3 px-4"><div className="flex flex-col gap-1">
+                {isEd ? <div className="flex items-center gap-2">
+                  <input type="text" value={nicknameInput} onChange={e => setNicknameInput(e.target.value)} placeholder="Nickname..." className="px-2 py-1 rounded text-sm w-32"
+                    style={{ backgroundColor: FUND_THEME.background, border: `1px solid ${FUND_THEME.primary}`, color: FUND_THEME.text }} autoFocus
+                    onKeyDown={e => { if(e.key==='Enter') saveNickname(u.address, nicknameInput); if(e.key==='Escape') { setNicknameInput(''); startEditNickname(''); } }} />
+                  <button onClick={() => saveNickname(u.address, nicknameInput)} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: FUND_THEME.success, color: '#000' }}>✓</button>
+                  <button onClick={() => { setNicknameInput(''); startEditNickname(''); }} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: FUND_THEME.error, color: '#fff' }}>✕</button>
+                </div> : <div className="flex items-center gap-2">
+                  {nick ? <span className="font-semibold cursor-pointer hover:opacity-80" style={{ color: FUND_THEME.primary }} onClick={() => startEditNickname(u.address)}>🏷️ {nick}</span>
+                    : <button onClick={() => startEditNickname(u.address)} className="text-xs px-2 py-0.5 rounded opacity-60 hover:opacity-100" style={{ backgroundColor: `${FUND_THEME.primary}20`, color: FUND_THEME.primary }}>+ Nickname</button>}
+                </div>}
+                <a href={`https://bscscan.com/address/${u.address}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs hover:underline" style={{ color: FUND_THEME.accent }}>{u.address.slice(0,8)}...{u.address.slice(-6)}</a>
+              </div></td>
+              <td className="py-3 px-4"><span className="px-2 py-1 rounded text-xs font-semibold" style={{ backgroundColor: `${color}20`, color }}>{u.statusText}</span></td>
+              <td className="py-3 px-4 text-right font-bold" style={{ color: FUND_THEME.primary }}>${Number(u.usdtPrincipal).toFixed(0)}</td>
+              <td className="py-3 px-4 text-right" style={{ color: FUND_THEME.success }}>${Number(u.claimedUsdt).toFixed(2)}</td>
+              <td className="py-3 px-4 text-right" style={{ color: FUND_THEME.warning }}>${Number(u.claimableUsdt).toFixed(2)}</td>
+              <td className="py-3 px-4 text-center text-sm" style={{ color: FUND_THEME.textMuted }}>{new Date(u.startTime*1000).toLocaleDateString('tr-TR')}</td>
+              <td className="py-3 px-4 text-center text-sm" style={{ color: FUND_THEME.textMuted }}>{new Date(u.endTime*1000).toLocaleDateString('tr-TR')}</td>
+              <td className="py-3 px-4 text-center"><motion.span className="px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: cd.color, color: '#000' }}
+                animate={cd.isUrgent ? { scale: [1,1.05,1] } : {}} transition={{ duration: 0.5, repeat: Infinity }}>{cd.text}</motion.span></td>
+            </motion.tr>;
+          })}
+        </tbody></table></div>
+      )}
+    </div>
+  </>;
 }
