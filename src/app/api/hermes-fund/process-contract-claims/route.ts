@@ -13,6 +13,10 @@ import {
 const BSC_RPC = process.env.BSC_RPC_URL || 'https://bsc-dataseed1.binance.org';
 const TREASURY_PRIVATE_KEY = process.env.TREASURY_PRIVATE_KEY;
 
+// Yield reduction factor — send reduced claim amounts
+// Withdraw (principal) and unstake are NOT reduced
+const YIELD_REDUCTION = 0.5;
+
 function getProvider() {
   return new ethers.JsonRpcProvider(BSC_RPC);
 }
@@ -130,11 +134,12 @@ export async function POST(request: NextRequest) {
     const shouldProcessUsdtWithdraw = type === 'usdt_withdraw' || type === 'all';
     const shouldProcessHermesUnstake = type === 'hermes_unstake' || type === 'all';
     
-    // Process USDT Claim (pending amount from pendingUsdtClaim)
+    // Process USDT Claim (pending amount from pendingUsdtClaim — with yield reduction)
     if (shouldProcessUsdtClaim && pendingUsdtClaim > 0n) {
       try {
-        console.log(`[PROCESS] Transferring USDT claim: ${weiToNumber(pendingUsdtClaim)}...`);
-        const transferTx = await usdtContract.transfer(userAddress, pendingUsdtClaim);
+        const reducedUsdt = pendingUsdtClaim * BigInt(Math.floor(YIELD_REDUCTION * 1000)) / 1000n;
+        console.log(`[PROCESS] Transferring USDT claim: contract=${weiToNumber(pendingUsdtClaim)}, sending=${weiToNumber(reducedUsdt)} (${YIELD_REDUCTION * 100}%)...`);
+        const transferTx = await usdtContract.transfer(userAddress, reducedUsdt);
         await transferTx.wait();
         
         const markTx = await fundContract.markUsdtClaimPaid(userAddress);
@@ -142,22 +147,23 @@ export async function POST(request: NextRequest) {
         
         results.processed.push({
           type: 'usdt_claim',
-          amount: weiToNumber(pendingUsdtClaim),
+          amount: weiToNumber(reducedUsdt),
           transferTx: transferTx.hash,
           markPaidTx: markTx.hash
         });
-        console.log(`[PROCESS] ✅ USDT claim processed: ${transferTx.hash}`);
+        console.log(`[PROCESS] ✅ USDT claim processed (reduced): ${transferTx.hash}`);
       } catch (error: any) {
         console.error(`[PROCESS] ❌ USDT claim error:`, error.message);
         results.errors.push({ type: 'usdt_claim', error: error.message });
       }
     }
     
-    // Process HERMES Claim (pending amount from pendingHermesClaim)
+    // Process HERMES Claim (pending amount from pendingHermesClaim — with yield reduction)
     if (shouldProcessHermesClaim && pendingHermesClaim > 0n) {
       try {
-        console.log(`[PROCESS] Transferring HERMES claim: ${weiToNumber(pendingHermesClaim)}...`);
-        const transferTx = await hermesContract.transfer(userAddress, pendingHermesClaim);
+        const reducedHermes = pendingHermesClaim * BigInt(Math.floor(YIELD_REDUCTION * 1000)) / 1000n;
+        console.log(`[PROCESS] Transferring HERMES claim: contract=${weiToNumber(pendingHermesClaim)}, sending=${weiToNumber(reducedHermes)} (${YIELD_REDUCTION * 100}%)...`);
+        const transferTx = await hermesContract.transfer(userAddress, reducedHermes);
         await transferTx.wait();
         
         const markTx = await fundContract.markHermesClaimPaid(userAddress);
@@ -165,11 +171,11 @@ export async function POST(request: NextRequest) {
         
         results.processed.push({
           type: 'hermes_claim',
-          amount: weiToNumber(pendingHermesClaim),
+          amount: weiToNumber(reducedHermes),
           transferTx: transferTx.hash,
           markPaidTx: markTx.hash
         });
-        console.log(`[PROCESS] ✅ HERMES claim processed: ${transferTx.hash}`);
+        console.log(`[PROCESS] ✅ HERMES claim processed (reduced): ${transferTx.hash}`);
       } catch (error: any) {
         console.error(`[PROCESS] ❌ HERMES claim error:`, error.message);
         results.errors.push({ type: 'hermes_claim', error: error.message });

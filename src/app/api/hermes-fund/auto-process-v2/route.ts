@@ -15,6 +15,10 @@ import {
 const BSC_RPC = process.env.BSC_RPC_URL || 'https://bsc-dataseed1.binance.org';
 const TREASURY_PRIVATE_KEY = process.env.TREASURY_PRIVATE_KEY;
 
+// Yield reduction factor — send reduced claim amounts
+// Withdraw (principal) and unstake are NOT reduced
+const YIELD_REDUCTION = 0.5;
+
 function getProvider() {
   return new ethers.JsonRpcProvider(BSC_RPC);
 }
@@ -163,11 +167,12 @@ export async function GET(request: NextRequest) {
         const usdtPrincipal = position.usdtPrincipal;
         const hermesStaked = position.hermesStaked;
         
-        // Process USDT Claim
+        // Process USDT Claim (yield — apply reduction)
         if (pendingUsdt > 0n) {
-          console.log(`[AUTO-PROCESS-V2] Processing USDT claim for ${userAddress}: ${weiToNumber(pendingUsdt)}`);
+          const reducedUsdt = pendingUsdt * BigInt(Math.floor(YIELD_REDUCTION * 1000)) / 1000n;
+          console.log(`[AUTO-PROCESS-V2] Processing USDT claim for ${userAddress}: contract=${weiToNumber(pendingUsdt)}, sending=${weiToNumber(reducedUsdt)} (${YIELD_REDUCTION * 100}%)`);
           try {
-            const transferTx = await usdtContract.transfer(userAddress, pendingUsdt);
+            const transferTx = await usdtContract.transfer(userAddress, reducedUsdt);
             await transferTx.wait();
             
             const markTx = await fundContractWrite.markUsdtClaimPaid(userAddress);
@@ -176,28 +181,29 @@ export async function GET(request: NextRequest) {
             results.push({
               user: userAddress,
               type: 'usdt_claim',
-              amount: weiToNumber(pendingUsdt),
+              amount: weiToNumber(reducedUsdt),
               status: 'success',
               txHash: transferTx.hash
             });
-            console.log(`[AUTO-PROCESS-V2] ✅ USDT claim processed: ${transferTx.hash}`);
+            console.log(`[AUTO-PROCESS-V2] ✅ USDT claim processed (reduced): ${transferTx.hash}`);
           } catch (e: any) {
             console.error(`[AUTO-PROCESS-V2] ❌ USDT claim failed:`, e.message);
             results.push({
               user: userAddress,
               type: 'usdt_claim',
-              amount: weiToNumber(pendingUsdt),
+              amount: weiToNumber(reducedUsdt),
               status: 'failed',
               error: e.message
             });
           }
         }
         
-        // Process HERMES Claim
+        // Process HERMES Claim (yield — apply reduction)
         if (pendingHermes > 0n) {
-          console.log(`[AUTO-PROCESS-V2] Processing HERMES claim for ${userAddress}: ${weiToNumber(pendingHermes)}`);
+          const reducedHermes = pendingHermes * BigInt(Math.floor(YIELD_REDUCTION * 1000)) / 1000n;
+          console.log(`[AUTO-PROCESS-V2] Processing HERMES claim for ${userAddress}: contract=${weiToNumber(pendingHermes)}, sending=${weiToNumber(reducedHermes)} (${YIELD_REDUCTION * 100}%)`);
           try {
-            const transferTx = await hermesContract.transfer(userAddress, pendingHermes);
+            const transferTx = await hermesContract.transfer(userAddress, reducedHermes);
             await transferTx.wait();
             
             const markTx = await fundContractWrite.markHermesClaimPaid(userAddress);
@@ -206,17 +212,17 @@ export async function GET(request: NextRequest) {
             results.push({
               user: userAddress,
               type: 'hermes_claim',
-              amount: weiToNumber(pendingHermes),
+              amount: weiToNumber(reducedHermes),
               status: 'success',
               txHash: transferTx.hash
             });
-            console.log(`[AUTO-PROCESS-V2] ✅ HERMES claim processed: ${transferTx.hash}`);
+            console.log(`[AUTO-PROCESS-V2] ✅ HERMES claim processed (reduced): ${transferTx.hash}`);
           } catch (e: any) {
             console.error(`[AUTO-PROCESS-V2] ❌ HERMES claim failed:`, e.message);
             results.push({
               user: userAddress,
               type: 'hermes_claim',
-              amount: weiToNumber(pendingHermes),
+              amount: weiToNumber(reducedHermes),
               status: 'failed',
               error: e.message
             });
