@@ -5,7 +5,7 @@
 // default strategy params, and data source.
 // ═══════════════════════════════════════════════════════════════════
 
-export type MarketId = 'nasdaq' | 'crypto' | 'europe' | 'bist100' | 'forex'
+export type MarketId = 'nasdaq' | 'crypto' | 'europe' | 'bist100' | 'forex' | 'fund'
 
 export interface MarketSession {
   openMinutes: number   // Minutes from midnight (local tz)
@@ -230,6 +230,20 @@ const ALL_MARKETS: Record<MarketId, MarketConfig> = {
   europe: EUROPE_CONFIG,
   bist100: BIST_CONFIG,
   forex: FOREX_CONFIG,
+  fund: {
+    id: 'fund',
+    label: 'Hermes AI Fund',
+    shortLabel: 'FUND',
+    timezone: 'UTC',
+    currency: 'USDT',
+    session: { openMinutes: 0, closeMinutes: 1440, is24h: true },
+    holidays2026: [],
+    strategy: { vwapDays: 0, zscoreDays: 0, tanhDiv: 0, tp: 0, sl: 0, longThreshold: 0, shortThreshold: 0, bpd: 0 },
+    timeframe: '1h',
+    dataSource: 'coingecko',
+    scanBatch: 0,
+    concurrency: 0,
+  },
 }
 
 export function getMarketConfig(id: MarketId): MarketConfig {

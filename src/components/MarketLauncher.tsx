@@ -8,7 +8,7 @@ import Image from 'next/image'
 // Projector spotlight follows mouse, illuminating cards
 // ═══════════════════════════════════════════════════════════════════
 
-export type MarketId = 'nasdaq' | 'crypto' | 'europe' | 'bist100' | 'forex'
+export type MarketId = 'nasdaq' | 'crypto' | 'europe' | 'bist100' | 'forex' | 'fund'
 
 interface MarketConfig {
   id: MarketId

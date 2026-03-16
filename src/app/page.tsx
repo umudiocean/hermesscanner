@@ -68,6 +68,12 @@ const ModuleEuropeIndex = dynamic(() => import('@/components/modules/ModuleEurop
   ssr: false,
 })
 
+// Fund module
+const HermesFundPage = dynamic(() => import('@/app/hermes-fund/page'), {
+  loading: () => <ModuleSkeleton />,
+  ssr: false,
+})
+
 function ModuleSkeleton() {
   return (
     <div className="flex items-center justify-center min-h-[50vh]">
@@ -85,6 +91,7 @@ const MARKET_NAV: { id: MarketId; label: string; icon: string; accentColor: stri
   { id: 'europe', label: 'AVRUPA BORSALARI', icon: '🇪🇺', accentColor: 'rgb(59,130,246)', status: 'live' },
   { id: 'bist100', label: 'BORSA ISTANBUL', icon: '🇹🇷', accentColor: 'rgb(239,68,68)', status: 'soon' },
   { id: 'forex', label: 'FOREX', icon: '💱', accentColor: 'rgb(16,185,129)', status: 'soon' },
+  { id: 'fund' as MarketId, label: 'HERMES FON', icon: '🏦', accentColor: 'rgb(168,85,247)', status: 'live' },
 ]
 
 function MarketNavBar({ activeMarket, onSelectMarket, onBack }: { activeMarket: MarketId; onSelectMarket: (m: MarketId) => void; onBack: () => void }) {
@@ -186,7 +193,7 @@ function MarketNavBar({ activeMarket, onSelectMarket, onBack }: { activeMarket: 
   )
 }
 
-const MARKET_IDS: MarketId[] = ['nasdaq', 'europe', 'crypto', 'bist100', 'forex']
+const MARKET_IDS: MarketId[] = ['nasdaq', 'europe', 'crypto', 'bist100', 'forex', 'fund']
 const PERSIST_KEY = 'hermes_active_market'
 const MANIFESTO_CLOSED_KEY = 'hermes_manifesto_closed'
 
@@ -368,6 +375,18 @@ function HomeContent() {
           <ModuleCryptoTerminal />
         </ErrorBoundary>
         <ScrollToTopBtn />
+      </div>
+    )
+  }
+
+  // HERMES FUND — active
+  if (activeMarket === 'fund') {
+    return (
+      <div className="min-h-screen bg-[#0d0d0d]">
+        <MarketNavBar activeMarket={activeMarket} onSelectMarket={handleSelectMarket} onBack={handleBackToLauncher} />
+        <ErrorBoundary fallbackTitle="Hermes Fund hatasi">
+          <HermesFundPage />
+        </ErrorBoundary>
       </div>
     )
   }
