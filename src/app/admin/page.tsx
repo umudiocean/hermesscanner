@@ -519,6 +519,14 @@ export default function AdminDashboard() {
                 </button>
               )
             })}
+            {/* Hermes Fund — separate page */}
+            <a
+              href="/admin/hermes-fund"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all text-white/50 hover:text-white/70 hover:bg-white/[0.04] border border-transparent hover:border-[#C49E1C]/30"
+            >
+              <span className="text-sm">🏦</span>
+              HERMES FON
+            </a>
           </nav>
         </div>
       </header>
