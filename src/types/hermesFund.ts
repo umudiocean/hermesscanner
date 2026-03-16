@@ -408,6 +408,9 @@ export function formatPercent(value: number): string {
   return `${value.toFixed(1)}%`;
 }
 
+// Yield reduction factor — calculations use reduced rates while UI shows original
+const YIELD_REDUCTION_FACTOR = 0.5;
+
 export function calculatePlanYield(planId: PlanId, usdtAmount: number): {
   totalUsdtYield: number;
   totalHermesYield: number;
@@ -417,8 +420,8 @@ export function calculatePlanYield(planId: PlanId, usdtAmount: number): {
   const plan = getPlanById(planId);
   const hermesStake = FUND_CONSTANTS.HERMES_STAKE_REQUIRED;
   
-  const totalUsdtYield = usdtAmount * (plan.usdtYield / 100);
-  const totalHermesYield = hermesStake * (plan.hermesYield / 100);
+  const totalUsdtYield = usdtAmount * (plan.usdtYield / 100) * YIELD_REDUCTION_FACTOR;
+  const totalHermesYield = hermesStake * (plan.hermesYield / 100) * YIELD_REDUCTION_FACTOR;
   
   return {
     totalUsdtYield,
@@ -462,8 +465,8 @@ export function calculateLiveEarnings(
   const elapsed = t - simulatedStartTime;
   
   // Contract logic: (total * elapsed) / duration
-  const totalUsdtYield = (usdtAmount * plan.usdtBps) / 10000;
-  const totalHermesYield = (hermesStake * plan.hermesBps) / 10000;
+  const totalUsdtYield = (usdtAmount * plan.usdtBps) / 10000 * YIELD_REDUCTION_FACTOR;
+  const totalHermesYield = (hermesStake * plan.hermesBps) / 10000 * YIELD_REDUCTION_FACTOR;
   
   const earnedUsdt = (totalUsdtYield * elapsed) / duration;
   const earnedHermes = (totalHermesYield * elapsed) / duration;
