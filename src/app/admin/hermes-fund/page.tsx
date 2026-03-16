@@ -462,7 +462,48 @@ function PlanDetailView({ plan, formatCountdown, now, getNickname, editingNickna
 }) {
   const colors = [FUND_THEME.success, FUND_THEME.warning, FUND_THEME.primary];
   const color = colors[plan.planId] || FUND_THEME.accent;
-  const sorted = [...plan.users].sort((a, b) => a.endTime - b.endTime);
+
+  // Sortable columns
+  type SortKey = 'nickname' | 'status' | 'usdt' | 'claimed' | 'claimable' | 'start' | 'end';
+  const [sortKey, setSortKey] = useState<SortKey>('end');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+
+  const sortIndicator = (key: SortKey) => sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
+
+  const sorted = useMemo(() => {
+    const arr = [...plan.users];
+    arr.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case 'nickname': {
+          const na = getNickname(a.address) || a.address;
+          const nb = getNickname(b.address) || b.address;
+          cmp = na.localeCompare(nb);
+          break;
+        }
+        case 'status': cmp = a.status - b.status; break;
+        case 'usdt': cmp = Number(a.usdtPrincipal) - Number(b.usdtPrincipal); break;
+        case 'claimed': cmp = Number(a.claimedUsdt) - Number(b.claimedUsdt); break;
+        case 'claimable': cmp = Number(a.claimableUsdt) - Number(b.claimableUsdt); break;
+        case 'start': cmp = a.startTime - b.startTime; break;
+        case 'end': cmp = a.endTime - b.endTime; break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return arr;
+  }, [plan.users, sortKey, sortDir, getNickname]);
+
+  const thStyle = (key: SortKey, align: string) => ({
+    color: sortKey === key ? FUND_THEME.primary : FUND_THEME.textMuted,
+    cursor: 'pointer' as const,
+    userSelect: 'none' as const,
+    textAlign: align as any,
+  });
 
   return <>
     {/* Plan Header */}
@@ -485,14 +526,14 @@ function PlanDetailView({ plan, formatCountdown, now, getNickname, editingNickna
       {plan.users.length === 0 ? <p className="text-center py-8" style={{ color: FUND_THEME.textMuted }}>Bu planda henüz kullanıcı yok</p> : (
         <div className="overflow-x-auto"><table className="w-full"><thead>
           <tr style={{ borderBottom: `1px solid ${FUND_THEME.primary}20` }}>
-            <th className="text-left py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Adres / Nickname</th>
-            <th className="text-left py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Durum</th>
-            <th className="text-right py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>USDT</th>
-            <th className="text-right py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Kazanılan</th>
-            <th className="text-right py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Claimable</th>
-            <th className="text-center py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Başlangıç</th>
-            <th className="text-center py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Vade Bitiş</th>
-            <th className="text-center py-3 px-4 text-sm" style={{ color: FUND_THEME.textMuted }}>Geri Sayım</th>
+            <th className="py-3 px-4 text-sm font-semibold hover:opacity-80 transition-opacity" style={thStyle('nickname','left')} onClick={() => toggleSort('nickname')}>Adres / Nickname{sortIndicator('nickname')}</th>
+            <th className="py-3 px-4 text-sm font-semibold hover:opacity-80 transition-opacity" style={thStyle('status','left')} onClick={() => toggleSort('status')}>Durum{sortIndicator('status')}</th>
+            <th className="py-3 px-4 text-sm font-semibold hover:opacity-80 transition-opacity" style={thStyle('usdt','right')} onClick={() => toggleSort('usdt')}>USDT{sortIndicator('usdt')}</th>
+            <th className="py-3 px-4 text-sm font-semibold hover:opacity-80 transition-opacity" style={thStyle('claimed','right')} onClick={() => toggleSort('claimed')}>Kazanılan{sortIndicator('claimed')}</th>
+            <th className="py-3 px-4 text-sm font-semibold hover:opacity-80 transition-opacity" style={thStyle('claimable','right')} onClick={() => toggleSort('claimable')}>Claimable{sortIndicator('claimable')}</th>
+            <th className="py-3 px-4 text-sm font-semibold hover:opacity-80 transition-opacity" style={thStyle('start','center')} onClick={() => toggleSort('start')}>Başlangıç{sortIndicator('start')}</th>
+            <th className="py-3 px-4 text-sm font-semibold hover:opacity-80 transition-opacity" style={thStyle('end','center')} onClick={() => toggleSort('end')}>Vade Bitiş{sortIndicator('end')}</th>
+            <th className="py-3 px-4 text-sm font-semibold hover:opacity-80 transition-opacity" style={thStyle('end','center')} onClick={() => toggleSort('end')}>Geri Sayım{sortIndicator('end')}</th>
           </tr>
         </thead><tbody>
           {sorted.map((u, idx) => {
