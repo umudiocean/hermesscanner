@@ -58,7 +58,7 @@ export default function TabTreasury() {
 
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[30vh] text-center">
-      <p className="text-sm text-red-400 mb-2">{error}</p>
+      <p className="text-sm text-danger-400 mb-2">{error}</p>
       <button onClick={() => window.location.reload()} className="px-4 py-2 rounded-xl bg-surface-3 text-text-secondary text-xs hover:bg-surface-3 transition-all">Yenile</button>
     </div>
   )
@@ -69,15 +69,15 @@ export default function TabTreasury() {
     <div className="space-y-2 sm:space-y-4 animate-fade-in">
       {/* Asset Toggle */}
       <div className="flex items-center gap-2">
-        <Wallet size={16} className="text-amber-400" />
+        <Wallet size={16} className="text-gold-400" />
         <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Kurumsal Kripto Holdingleri</h3>
         <div className="flex items-center gap-1 ml-auto">
           <button onClick={() => setActiveAsset('btc')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 border ${activeAsset === 'btc' ? 'bg-gradient-to-r from-amber-500/15 to-amber-600/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-text-tertiary border-stroke-subtle hover:text-amber-300/80 hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'}`}>
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 border ${activeAsset === 'btc' ? 'bg-gradient-to-r from-amber-500/15 to-amber-600/8 text-gold-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-text-tertiary border-stroke-subtle hover:text-gold-300/80 hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'}`}>
             Bitcoin
           </button>
           <button onClick={() => setActiveAsset('eth')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 border ${activeAsset === 'eth' ? 'bg-gradient-to-r from-blue-500/15 to-blue-600/8 text-blue-300 border-blue-500/35 shadow-sm shadow-blue-500/10 scale-[1.02]' : 'text-text-tertiary border-stroke-subtle hover:text-blue-300/80 hover:border-blue-500/20 hover:shadow-sm hover:shadow-blue-500/5'}`}>
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 border ${activeAsset === 'eth' ? 'bg-gradient-to-r from-blue-500/15 to-blue-600/8 text-info-400 border-blue-500/35 shadow-sm shadow-blue-500/10 scale-[1.02]' : 'text-text-tertiary border-stroke-subtle hover:text-info-400/80 hover:border-info-400/30 hover:shadow-sm hover:shadow-blue-500/5'}`}>
             Ethereum
           </button>
         </div>
@@ -119,7 +119,7 @@ export default function TabTreasury() {
                 <div className="flex items-center justify-between text-[10px]">
                   <span className="text-text-tertiary">{c.total_holdings?.toLocaleString()} {activeAsset.toUpperCase()}</span>
                   <span className="text-text-tertiary">{formatLarge(c.total_current_value_usd)}</span>
-                  <span className={`font-medium ${c.total_current_value_usd >= c.total_entry_value_usd ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <span className={`font-medium ${c.total_current_value_usd >= c.total_entry_value_usd ? 'text-success-400' : 'text-danger-400'}`}>
                     {c.total_entry_value_usd > 0 ? `${(((c.total_current_value_usd / c.total_entry_value_usd) - 1) * 100).toFixed(0)}%` : '-'}
                   </span>
                 </div>
@@ -154,7 +154,7 @@ export default function TabTreasury() {
                       <td className="px-2 py-2 text-right text-xs text-text-secondary tabular-nums">{c.total_holdings?.toLocaleString()}</td>
                       <td className="px-2 py-2 text-right text-xs text-text-tertiary tabular-nums">{formatLarge(c.total_entry_value_usd)}</td>
                       <td className="px-2 py-2 text-right text-xs text-white font-medium tabular-nums">{formatLarge(c.total_current_value_usd)}</td>
-                      <td className={`px-2 py-2 text-right text-xs font-medium tabular-nums ${pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <td className={`px-2 py-2 text-right text-xs font-medium tabular-nums ${pnl >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                         {pnl >= 0 ? '+' : ''}{pnl.toFixed(0)}%
                       </td>
                       <td className="px-2 py-2 text-right text-xs text-text-tertiary tabular-nums">{c.percentage_of_total_supply?.toFixed(3)}%</td>

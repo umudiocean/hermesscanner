@@ -21,18 +21,18 @@ export default function RedFlags({ flags, compact = false }: RedFlagsProps) {
   return (
     <div className="space-y-1.5">
       {critical.length > 0 && (
-        <div className={`${compact ? 'px-3 py-1.5' : 'px-4 py-2.5'} rounded-lg bg-red-500/10 border border-red-500/20`}>
+        <div className={`${compact ? 'px-3 py-1.5' : 'px-4 py-2.5'} rounded-lg bg-danger-400/10 border border-danger-400/30`}>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-red-400 text-sm">⚠</span>
-            <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">
+            <span className="text-danger-400 text-sm">⚠</span>
+            <span className="text-[10px] font-bold text-danger-400 uppercase tracking-wider">
               Kritik Uyarı
             </span>
           </div>
           <div className="space-y-1">
             {critical.map((flag, i) => (
               <div key={i} className="flex items-start gap-2">
-                <span className="text-red-400/60 text-[10px] mt-0.5">●</span>
-                <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-red-300/90`}>
+                <span className="text-danger-400/60 text-[10px] mt-0.5">●</span>
+                <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-danger-300/90`}>
                   {flag.message}
                 </span>
               </div>
@@ -44,15 +44,15 @@ export default function RedFlags({ flags, compact = false }: RedFlagsProps) {
       {warnings.length > 0 && (
         <div className={`${compact ? 'px-3 py-1.5' : 'px-4 py-2.5'} rounded-lg bg-orange-500/10 border border-orange-500/20`}>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-orange-400 text-sm">⚡</span>
-            <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">
+            <span className="text-warning-400 text-sm">⚡</span>
+            <span className="text-[10px] font-bold text-warning-400 uppercase tracking-wider">
               Dikkat
             </span>
           </div>
           <div className="space-y-1">
             {warnings.map((flag, i) => (
               <div key={i} className="flex items-start gap-2">
-                <span className="text-orange-400/60 text-[10px] mt-0.5">●</span>
+                <span className="text-warning-400/60 text-[10px] mt-0.5">●</span>
                 <span className={`${compact ? 'text-[10px]' : 'text-xs'} text-orange-300/90`}>
                   {flag.message}
                 </span>
@@ -75,7 +75,7 @@ export function RedFlagBadge({ flags }: { flags: RedFlag[] }) {
 
   if (critical > 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-500/15 text-red-400 border border-red-500/20">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-danger-400/15 text-danger-400 border border-danger-400/30">
         ⚠ {critical}
       </span>
     )
@@ -83,7 +83,7 @@ export function RedFlagBadge({ flags }: { flags: RedFlag[] }) {
 
   if (warnings > 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-orange-500/15 text-orange-400 border border-orange-500/20">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-warning-400/15 text-warning-400 border border-orange-500/20">
         ⚡ {warnings}
       </span>
     )

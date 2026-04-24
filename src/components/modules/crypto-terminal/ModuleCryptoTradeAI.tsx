@@ -71,11 +71,11 @@ const VALUATION_RANK: Record<ValuationTag, number> = { 'COK UCUZ': 0, 'UCUZ': 1,
 const TOTAL_PAGES = 4
 
 const SIGNAL_CONFIG = {
-  strong_long: { label: 'STRONG LONG', color: 'text-amber-400', bg: 'bg-amber-500/15 border-amber-500/30', icon: <TrendingUp size={12} /> },
-  long: { label: 'LONG', color: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/30', icon: <ArrowUpRight size={12} /> },
-  neutral: { label: 'NOTR', color: 'text-slate-300', bg: 'bg-white/5 border-stroke', icon: null },
-  short: { label: 'SHORT', color: 'text-orange-400', bg: 'bg-orange-500/15 border-orange-500/30', icon: <ArrowDownRight size={12} /> },
-  strong_short: { label: 'STRONG SHORT', color: 'text-red-400', bg: 'bg-red-500/15 border-red-500/30', icon: <TrendingDown size={12} /> },
+  strong_long: { label: 'STRONG LONG', color: 'text-gold-400', bg: 'bg-gold-500/15 border-stroke-gold-strong', icon: <TrendingUp size={12} /> },
+  long: { label: 'LONG', color: 'text-success-400', bg: 'bg-success-400/15 border-success-400/30', icon: <ArrowUpRight size={12} /> },
+  neutral: { label: 'NOTR', color: 'text-text-secondary', bg: 'bg-white/5 border-stroke', icon: null },
+  short: { label: 'SHORT', color: 'text-warning-400', bg: 'bg-warning-400/15 border-warning-400/30', icon: <ArrowDownRight size={12} /> },
+  strong_short: { label: 'STRONG SHORT', color: 'text-danger-400', bg: 'bg-danger-400/15 border-danger-400/30', icon: <TrendingDown size={12} /> },
 }
 
 const TP_PCT = 1.5, SL_PCT = 8.0
@@ -273,7 +273,7 @@ export default function ModuleCryptoTradeAI() {
             </button>
           )}
           <button onClick={() => loadScan(true)} disabled={loading}
-            className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold hover:from-amber-500/25 hover:to-orange-500/15 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/15 hover:scale-[1.03] transition-all duration-300 disabled:opacity-50">
+            className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-stroke-gold-strong text-gold-300 text-xs font-bold hover:from-amber-500/25 hover:to-orange-500/15 hover:border-stroke-gold-strong hover:shadow-lg hover:shadow-amber-500/15 hover:scale-[1.03] transition-all duration-300 disabled:opacity-50">
             <RefreshCw size={13} className={`${loading ? 'animate-spin' : 'group-hover:rotate-180'} transition-transform duration-500`} />
             {loading ? `Taraniyor... ${items.length}` : 'Tara'}
           </button>
@@ -284,25 +284,25 @@ export default function ModuleCryptoTradeAI() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 mb-4">
         {([
           { key: 'strong_long' as const, label: 'S. LONG',
-            active: 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-amber-500/40 shadow-lg shadow-amber-500/20 scale-[1.03]',
-            idle: 'bg-gradient-to-br from-amber-500/8 to-transparent border-amber-500/15 hover:border-amber-500/30 hover:shadow-md hover:shadow-amber-500/20 hover:scale-[1.02]',
-            textActive: 'text-amber-300', textIdle: 'text-amber-400', subActive: 'text-amber-400', subIdle: 'text-amber-500' },
+            active: 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-stroke-gold-strong shadow-lg shadow-amber-500/20 scale-[1.03]',
+            idle: 'bg-gradient-to-br from-amber-500/8 to-transparent border-amber-500/15 hover:border-stroke-gold-strong hover:shadow-md hover:shadow-amber-500/20 hover:scale-[1.02]',
+            textActive: 'text-gold-300', textIdle: 'text-gold-400', subActive: 'text-gold-400', subIdle: 'text-gold-500' },
           { key: 'long' as const, label: 'LONG',
-            active: 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-emerald-500/40 shadow-lg shadow-emerald-500/20 scale-[1.03]',
-            idle: 'bg-gradient-to-br from-emerald-500/8 to-transparent border-emerald-500/15 hover:border-emerald-500/30 hover:shadow-md hover:shadow-emerald-500/20 hover:scale-[1.02]',
-            textActive: 'text-emerald-300', textIdle: 'text-emerald-400', subActive: 'text-emerald-400', subIdle: 'text-emerald-500' },
+            active: 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-success-400/40 shadow-lg shadow-emerald-500/20 scale-[1.03]',
+            idle: 'bg-gradient-to-br from-emerald-500/8 to-transparent border-emerald-500/15 hover:border-success-400/30 hover:shadow-md hover:shadow-emerald-500/20 hover:scale-[1.02]',
+            textActive: 'text-success-300', textIdle: 'text-success-400', subActive: 'text-success-400', subIdle: 'text-success-500' },
           { key: 'neutral' as const, label: 'NOTR',
             active: 'bg-gradient-to-br from-slate-500/20 to-slate-600/10 border-slate-500/40 shadow-lg shadow-slate-500/15 scale-[1.03]',
             idle: 'bg-gradient-to-br from-slate-500/8 to-transparent border-slate-500/15 hover:border-slate-500/30 hover:shadow-md hover:shadow-slate-500/15 hover:scale-[1.02]',
-            textActive: 'text-slate-300', textIdle: 'text-slate-400', subActive: 'text-slate-400', subIdle: 'text-slate-500' },
+            textActive: 'text-text-secondary', textIdle: 'text-text-tertiary', subActive: 'text-text-tertiary', subIdle: 'text-text-tertiary' },
           { key: 'short' as const, label: 'SHORT',
             active: 'bg-gradient-to-br from-orange-500/20 to-orange-600/10 border-orange-500/40 shadow-lg shadow-orange-500/20 scale-[1.03]',
-            idle: 'bg-gradient-to-br from-orange-500/8 to-transparent border-orange-500/15 hover:border-orange-500/30 hover:shadow-md hover:shadow-orange-500/20 hover:scale-[1.02]',
-            textActive: 'text-orange-300', textIdle: 'text-orange-400', subActive: 'text-orange-400', subIdle: 'text-orange-500' },
+            idle: 'bg-gradient-to-br from-orange-500/8 to-transparent border-orange-500/15 hover:border-warning-400/30 hover:shadow-md hover:shadow-orange-500/20 hover:scale-[1.02]',
+            textActive: 'text-orange-300', textIdle: 'text-warning-400', subActive: 'text-warning-400', subIdle: 'text-warning-500' },
           { key: 'strong_short' as const, label: 'S. SHORT',
-            active: 'bg-gradient-to-br from-red-500/20 to-red-600/10 border-red-500/40 shadow-lg shadow-red-500/20 scale-[1.03]',
-            idle: 'bg-gradient-to-br from-red-500/8 to-transparent border-red-500/15 hover:border-red-500/30 hover:shadow-md hover:shadow-red-500/20 hover:scale-[1.02]',
-            textActive: 'text-red-300', textIdle: 'text-red-400', subActive: 'text-red-400', subIdle: 'text-red-500' },
+            active: 'bg-gradient-to-br from-red-500/20 to-red-600/10 border-danger-400/40 shadow-lg shadow-red-500/20 scale-[1.03]',
+            idle: 'bg-gradient-to-br from-red-500/8 to-transparent border-red-500/15 hover:border-danger-400/30 hover:shadow-md hover:shadow-red-500/20 hover:scale-[1.02]',
+            textActive: 'text-danger-300', textIdle: 'text-danger-400', subActive: 'text-danger-400', subIdle: 'text-danger-400' },
         ]).map(({ key, label, active, idle, textActive, textIdle, subActive, subIdle }) => (
           <button
             key={key}
@@ -360,8 +360,8 @@ export default function ModuleCryptoTradeAI() {
                 return (
                   <tr key={s.id} className={`hover:bg-surface-2 transition-colors cursor-pointer ${expanded ? 'bg-white/[0.015]' : ''}`} onClick={() => setExpandedRow(expanded ? null : s.id)}>
                     <td className="px-2 py-2" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => toggleWatchlist(s.id)} className="text-text-tertiary hover:text-amber-400 transition-colors">
-                        <Star size={12} fill={watchlist.has(s.id) ? '#f59e0b' : 'none'} className={watchlist.has(s.id) ? 'text-amber-400' : ''} />
+                      <button onClick={() => toggleWatchlist(s.id)} className="text-text-tertiary hover:text-gold-400 transition-colors">
+                        <Star size={12} fill={watchlist.has(s.id) ? '#f59e0b' : 'none'} className={watchlist.has(s.id) ? 'text-gold-400' : ''} />
                       </button>
                     </td>
                     <td className="px-3 py-2">
@@ -374,7 +374,7 @@ export default function ModuleCryptoTradeAI() {
                       </div>
                     </td>
                     <td className="px-3 py-2 text-right font-medium text-white">{formatPrice(s.current_price)}</td>
-                    <td className={`px-3 py-2 text-right font-medium ${s.price_change_24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <td className={`px-3 py-2 text-right font-medium ${s.price_change_24h >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                       {s.price_change_24h >= 0 ? '+' : ''}{s.price_change_24h.toFixed(2)}%
                     </td>
                     <td className="px-3 py-2 text-center">
@@ -383,29 +383,29 @@ export default function ModuleCryptoTradeAI() {
                       </span>
                     </td>
                     <td className="px-3 py-2 text-right font-bold text-white">{ai.score}</td>
-                    <td className={`px-3 py-2 text-right font-mono text-[10px] ${ai.zscore < -1 ? 'text-emerald-400' : ai.zscore > 1 ? 'text-red-400' : 'text-text-tertiary'}`}>
+                    <td className={`px-3 py-2 text-right font-mono text-[10px] ${ai.zscore < -1 ? 'text-success-400' : ai.zscore > 1 ? 'text-danger-400' : 'text-text-tertiary'}`}>
                       {ai.zscore > 0 ? '+' : ''}{ai.zscore.toFixed(2)}
                     </td>
                     <td className="px-3 py-2 text-center">
-                      <span className={`text-[10px] font-bold tabular-nums ${conf >= 70 ? 'text-amber-400' : conf >= 50 ? 'text-text-secondary' : 'text-text-tertiary'}`}>{conf}%</span>
+                      <span className={`text-[10px] font-bold tabular-nums ${conf >= 70 ? 'text-gold-400' : conf >= 50 ? 'text-text-secondary' : 'text-text-tertiary'}`}>{conf}%</span>
                     </td>
                     <td className="px-3 py-2 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                        val === 'COK UCUZ' ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' :
-                        val === 'UCUZ' ? 'text-emerald-400 bg-emerald-500/8 border-emerald-500/15' :
-                        val === 'PAHALI' ? 'text-orange-400 bg-orange-500/8 border-orange-500/15' :
-                        val === 'COK PAHALI' ? 'text-red-400 bg-red-500/8 border-red-500/15' :
+                        val === 'COK UCUZ' ? 'text-success-300 bg-success-400/10 border-success-400/30' :
+                        val === 'UCUZ' ? 'text-success-400 bg-success-400/8 border-emerald-500/15' :
+                        val === 'PAHALI' ? 'text-warning-400 bg-orange-500/8 border-orange-500/15' :
+                        val === 'COK PAHALI' ? 'text-danger-400 bg-danger-400/8 border-red-500/15' :
                         'text-text-tertiary bg-surface-2 border-stroke-subtle'
                       }`}>{val}</span>
                     </td>
-                    <td className={`px-3 py-2 text-right text-[10px] hidden lg:table-cell ${ai.vwapDistPct < -3 ? 'text-emerald-400' : ai.vwapDistPct > 3 ? 'text-red-400' : 'text-text-tertiary'}`}>
+                    <td className={`px-3 py-2 text-right text-[10px] hidden lg:table-cell ${ai.vwapDistPct < -3 ? 'text-success-400' : ai.vwapDistPct > 3 ? 'text-danger-400' : 'text-text-tertiary'}`}>
                       {ai.vwapDistPct > 0 ? '+' : ''}{ai.vwapDistPct.toFixed(1)}%
                     </td>
                     {/* Hedef (upperInner band) */}
                     <td className="px-3 py-2 text-right hidden xl:table-cell">
                       {ai.bands.upperInner > 0 ? (
                         <div className="flex flex-col items-end">
-                          <span className={`font-mono text-[10px] font-semibold ${ai.bands.upperInner > s.current_price ? 'text-emerald-400' : 'text-red-400'}`}>
+                          <span className={`font-mono text-[10px] font-semibold ${ai.bands.upperInner > s.current_price ? 'text-success-400' : 'text-danger-400'}`}>
                             {formatPrice(ai.bands.upperInner)}
                           </span>
                           <span className="text-[8px] text-text-tertiary">{s.current_price > 0 ? `${((ai.bands.upperInner - s.current_price) / s.current_price * 100) >= 0 ? '+' : ''}${((ai.bands.upperInner - s.current_price) / s.current_price * 100).toFixed(1)}%` : ''}</span>
@@ -416,7 +416,7 @@ export default function ModuleCryptoTradeAI() {
                     <td className="px-3 py-2 text-right hidden xl:table-cell">
                       {ai.bands.lowerInner > 0 ? (
                         <div className="flex flex-col items-end">
-                          <span className="font-mono text-[10px] text-red-400/70">{formatPrice(ai.bands.lowerInner)}</span>
+                          <span className="font-mono text-[10px] text-danger-400/70">{formatPrice(ai.bands.lowerInner)}</span>
                           <span className="text-[8px] text-text-tertiary">{s.current_price > 0 ? `${((ai.bands.lowerInner - s.current_price) / s.current_price * 100).toFixed(1)}%` : ''}</span>
                         </div>
                       ) : <span className="text-text-quaternary">{'\u2014'}</span>}
@@ -428,7 +428,7 @@ export default function ModuleCryptoTradeAI() {
                         const downside = ai.bands.lowerInner > 0 ? s.current_price - ai.bands.lowerInner : 0
                         const rr = downside > 0 ? upside / downside : 0
                         if (rr <= 0) return <span className="text-text-quaternary">{'\u2014'}</span>
-                        return <span className={`font-mono text-[10px] font-bold ${rr >= 2 ? 'text-emerald-400' : rr >= 1 ? 'text-amber-400' : 'text-red-400'}`}>{rr.toFixed(1)}</span>
+                        return <span className={`font-mono text-[10px] font-bold ${rr >= 2 ? 'text-success-400' : rr >= 1 ? 'text-gold-400' : 'text-danger-400'}`}>{rr.toFixed(1)}</span>
                       })()}
                     </td>
                     <td className="px-3 py-2 text-right text-[10px] text-text-quaternary hidden md:table-cell">{formatMcap(s.market_cap)}</td>
@@ -437,7 +437,7 @@ export default function ModuleCryptoTradeAI() {
                         <button
                           onClick={() => trackSignal(s.id, s.symbol, ai.signal, s.current_price, tp, sl)}
                           title="Sinyali takip et"
-                          className="text-text-tertiary hover:text-amber-400 transition-colors"
+                          className="text-text-tertiary hover:text-gold-400 transition-colors"
                         >
                           <Crosshair size={12} />
                         </button>
@@ -463,17 +463,17 @@ export default function ModuleCryptoTradeAI() {
               </div>
               <div>
                 <div className="text-text-quaternary uppercase mb-0.5">Z-Score</div>
-                <div className={`font-mono ${ai.zscore < -1 ? 'text-emerald-400' : ai.zscore > 1 ? 'text-red-400' : 'text-text-secondary'}`}>
+                <div className={`font-mono ${ai.zscore < -1 ? 'text-success-400' : ai.zscore > 1 ? 'text-danger-400' : 'text-text-secondary'}`}>
                   {ai.zscore > 0 ? '+' : ''}{ai.zscore.toFixed(3)}
                 </div>
               </div>
               <div>
                 <div className="text-text-quaternary uppercase mb-0.5">Ust Bant (+1σ)</div>
-                <div className="text-red-400/60 font-mono">{formatPrice(ai.bands.upperInner)}</div>
+                <div className="text-danger-400/60 font-mono">{formatPrice(ai.bands.upperInner)}</div>
               </div>
               <div>
                 <div className="text-text-quaternary uppercase mb-0.5">Alt Bant (-1σ)</div>
-                <div className="text-emerald-400/60 font-mono">{formatPrice(ai.bands.lowerInner)}</div>
+                <div className="text-success-400/60 font-mono">{formatPrice(ai.bands.lowerInner)}</div>
               </div>
               <div>
                 <div className="text-text-quaternary uppercase mb-0.5">StdDev</div>

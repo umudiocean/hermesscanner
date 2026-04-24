@@ -195,11 +195,11 @@ function calculateHealthScore(coin: any): { score: number; level: WatchlistCoin[
 }
 
 const HEALTH_COLORS = {
-  EXCELLENT: 'text-emerald-400',
-  GOOD: 'text-emerald-300',
-  FAIR: 'text-amber-400',
-  POOR: 'text-orange-400',
-  CRITICAL: 'text-red-400',
+  EXCELLENT: 'text-success-400',
+  GOOD: 'text-success-300',
+  FAIR: 'text-gold-400',
+  POOR: 'text-warning-400',
+  CRITICAL: 'text-danger-400',
 }
 
 interface SearchResult {
@@ -281,7 +281,7 @@ export default function ModuleCryptoWatchlist() {
       <th
         onClick={() => handleSort(field)}
         className={`py-2 px-2 text-[10px] font-bold uppercase tracking-wider cursor-pointer select-none transition-colors text-${align}
-          ${active ? 'text-amber-400' : 'text-text-tertiary hover:text-text-secondary'}`}
+          ${active ? 'text-gold-400' : 'text-text-tertiary hover:text-text-secondary'}`}
       >
         <span className="inline-flex items-center gap-0.5">
           {children}
@@ -502,7 +502,7 @@ export default function ModuleCryptoWatchlist() {
           <div ref={searchRef} className="relative">
             <button
               onClick={() => setShowSearch(!showSearch)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-amber-500/30 text-amber-300 hover:from-amber-500/25 hover:border-amber-500/40 transition-all"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-stroke-gold-strong text-gold-300 hover:from-amber-500/25 hover:border-stroke-gold-strong transition-all"
             >
               <Plus size={12} className="inline mr-1" />Coin Ekle
             </button>
@@ -546,7 +546,7 @@ export default function ModuleCryptoWatchlist() {
                           <span className="text-[10px] text-text-quaternary ml-1.5 truncate">{r.name}</span>
                         </div>
                         {alreadyAdded
-                          ? <Star size={11} className="text-amber-400 flex-shrink-0" fill="#f59e0b" />
+                          ? <Star size={11} className="text-gold-400 flex-shrink-0" fill="#f59e0b" />
                           : <Plus size={11} className="text-text-tertiary flex-shrink-0" />
                         }
                       </button>
@@ -562,7 +562,7 @@ export default function ModuleCryptoWatchlist() {
             </button>
           )}
           <button onClick={loadCoins} disabled={loading}
-            className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold hover:from-amber-500/25 hover:to-orange-500/15 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/15 hover:scale-[1.03] transition-all duration-300">
+            className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-stroke-gold-strong text-gold-300 text-xs font-bold hover:from-amber-500/25 hover:to-orange-500/15 hover:border-stroke-gold-strong hover:shadow-lg hover:shadow-amber-500/15 hover:scale-[1.03] transition-all duration-300">
             <RefreshCw size={13} className={`${loading ? 'animate-spin' : 'group-hover:rotate-180'} transition-transform duration-500`} />
             Yenile
           </button>
@@ -616,9 +616,9 @@ export default function ModuleCryptoWatchlist() {
                 const cats = getCoinCategories(coin.id)
                 const tags = cats.length > 0 ? cats : inferCategoryFromName(coin.name, coin.symbol)
                 return (
-                  <tr key={coin.id} className="border-b border-white/[0.03] hover:bg-amber-500/[0.03] transition-colors group">
+                  <tr key={coin.id} className="border-b border-white/[0.03] hover:bg-gold-500/[0.03] transition-colors group">
                     <td className="px-2 py-2.5">
-                      <button onClick={() => removeFromWatchlist(coin.id)} className="text-text-quaternary hover:text-red-400 p-0.5 transition-colors">
+                      <button onClick={() => removeFromWatchlist(coin.id)} className="text-text-quaternary hover:text-danger-400 p-0.5 transition-colors">
                         <Trash2 size={12} />
                       </button>
                     </td>
@@ -642,37 +642,37 @@ export default function ModuleCryptoWatchlist() {
                       </div>
                     </td>
                     <td className="px-2 py-2.5 text-right text-[11px] text-white font-semibold tabular-nums">{formatPrice(coin.current_price)}</td>
-                    <td className={`px-2 py-2.5 text-right text-[11px] font-medium tabular-nums ${coin.price_change_percentage_24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <td className={`px-2 py-2.5 text-right text-[11px] font-medium tabular-nums ${coin.price_change_percentage_24h >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                       {coin.price_change_percentage_24h >= 0 ? '+' : ''}{coin.price_change_percentage_24h.toFixed(2)}%
                     </td>
                     {/* Terminal AI Signal */}
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                        coin.terminalSignal === 'STRONG' ? 'text-amber-300 bg-amber-500/15 border border-amber-500/30' :
-                        coin.terminalSignal === 'GOOD' ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/25' :
-                        coin.terminalSignal === 'WEAK' ? 'text-orange-400 bg-orange-500/10 border border-orange-500/25' :
-                        coin.terminalSignal === 'BAD' ? 'text-red-400 bg-red-500/10 border border-red-500/25' :
+                        coin.terminalSignal === 'STRONG' ? 'text-gold-300 bg-gold-500/15 border border-stroke-gold-strong' :
+                        coin.terminalSignal === 'GOOD' ? 'text-success-400 bg-success-400/10 border border-success-400/30' :
+                        coin.terminalSignal === 'WEAK' ? 'text-warning-400 bg-orange-500/10 border border-orange-500/25' :
+                        coin.terminalSignal === 'BAD' ? 'text-danger-400 bg-danger-400/10 border border-danger-400/30' :
                         'text-text-tertiary bg-surface-2 border border-stroke-subtle'
                       }`}>{coin.terminalSignal}</span>
                     </td>
                     {/* Trade AI Signal */}
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                        coin.tradeSignal === 'STRONG LONG' ? 'text-emerald-300 bg-emerald-500/15 border border-emerald-500/30' :
-                        coin.tradeSignal === 'LONG' ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' :
-                        coin.tradeSignal === 'SHORT' ? 'text-red-400 bg-red-500/10 border border-red-500/20' :
-                        coin.tradeSignal === 'STRONG SHORT' ? 'text-red-300 bg-red-500/15 border border-red-500/30' :
+                        coin.tradeSignal === 'STRONG LONG' ? 'text-success-300 bg-success-400/15 border border-success-400/30' :
+                        coin.tradeSignal === 'LONG' ? 'text-success-400 bg-success-400/10 border border-success-400/30' :
+                        coin.tradeSignal === 'SHORT' ? 'text-danger-400 bg-danger-400/10 border border-danger-400/30' :
+                        coin.tradeSignal === 'STRONG SHORT' ? 'text-danger-300 bg-danger-400/15 border border-danger-400/30' :
                         'text-text-tertiary bg-surface-2 border border-stroke-subtle'
                       }`}>{coin.tradeSignal}</span>
                     </td>
                     {/* AI Signal (Cross) */}
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                        coin.aiSignal === 'CONFLUENCE BUY' ? 'text-violet-300 bg-violet-500/15 border border-violet-500/30' :
-                        coin.aiSignal === 'ALPHA LONG' ? 'text-amber-300 bg-amber-500/15 border border-amber-500/30' :
-                        coin.aiSignal === 'HERMES LONG' ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/25' :
-                        coin.aiSignal === 'HERMES SHORT' ? 'text-red-400 bg-red-500/10 border border-red-500/25' :
-                        coin.aiSignal === 'ALPHA SHORT' ? 'text-red-500 bg-red-600/15 border border-red-600/30' :
+                        coin.aiSignal === 'CONFLUENCE BUY' ? 'text-info-400 bg-info-400/15 border border-info-400/30' :
+                        coin.aiSignal === 'ALPHA LONG' ? 'text-gold-300 bg-gold-500/15 border border-stroke-gold-strong' :
+                        coin.aiSignal === 'HERMES LONG' ? 'text-success-400 bg-success-400/10 border border-success-400/30' :
+                        coin.aiSignal === 'HERMES SHORT' ? 'text-danger-400 bg-danger-400/10 border border-danger-400/30' :
+                        coin.aiSignal === 'ALPHA SHORT' ? 'text-danger-400 bg-red-600/15 border border-red-600/30' :
                         coin.aiSignal === 'CONFLUENCE SELL' ? 'text-fuchsia-400 bg-fuchsia-600/15 border border-fuchsia-600/30' :
                         'text-text-tertiary bg-transparent'
                       }`}>{coin.aiSignal}</span>
@@ -683,10 +683,10 @@ export default function ModuleCryptoWatchlist() {
                         <div className="w-10 h-1.5 rounded-full bg-white/5 overflow-hidden">
                           <div
                             className={`h-full rounded-full ${
-                              coin.healthScore >= 75 ? 'bg-emerald-500' :
-                              coin.healthScore >= 60 ? 'bg-emerald-400' :
-                              coin.healthScore >= 45 ? 'bg-amber-400' :
-                              coin.healthScore >= 30 ? 'bg-orange-400' : 'bg-red-400'
+                              coin.healthScore >= 75 ? 'bg-success-400' :
+                              coin.healthScore >= 60 ? 'bg-success-400' :
+                              coin.healthScore >= 45 ? 'bg-gold-400' :
+                              coin.healthScore >= 30 ? 'bg-warning-400' : 'bg-danger-400'
                             }`}
                             style={{ width: `${coin.healthScore}%` }}
                           />
@@ -694,36 +694,36 @@ export default function ModuleCryptoWatchlist() {
                       </div>
                     </td>
                     <td className="px-2 py-2.5 text-center">
-                      <span className={`text-[10px] font-semibold tabular-nums ${coin.confidence >= 70 ? 'text-amber-400' : coin.confidence >= 50 ? 'text-text-secondary' : 'text-text-quaternary'}`}>
+                      <span className={`text-[10px] font-semibold tabular-nums ${coin.confidence >= 70 ? 'text-gold-400' : coin.confidence >= 50 ? 'text-text-secondary' : 'text-text-quaternary'}`}>
                         %{Math.round(coin.confidence)}
                       </span>
                     </td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                        coin.valuation === 'COK UCUZ' ? 'text-emerald-300 bg-emerald-500/15' :
-                        coin.valuation === 'UCUZ' ? 'text-emerald-400 bg-emerald-500/10' :
-                        coin.valuation === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
-                        coin.valuation === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
+                        coin.valuation === 'COK UCUZ' ? 'text-success-300 bg-success-400/15' :
+                        coin.valuation === 'UCUZ' ? 'text-success-400 bg-success-400/10' :
+                        coin.valuation === 'PAHALI' ? 'text-warning-400 bg-orange-500/10' :
+                        coin.valuation === 'COK PAHALI' ? 'text-danger-400 bg-danger-400/10' :
                         'text-text-tertiary bg-surface-3'
                       }`}>{coin.valuation}</span>
                     </td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[10px] font-bold tabular-nums ${
-                        coin.riskScore >= 70 ? 'text-red-400' :
-                        coin.riskScore >= 50 ? 'text-orange-400' :
-                        coin.riskScore >= 30 ? 'text-text-secondary' : 'text-emerald-400'
+                        coin.riskScore >= 70 ? 'text-danger-400' :
+                        coin.riskScore >= 50 ? 'text-warning-400' :
+                        coin.riskScore >= 30 ? 'text-text-secondary' : 'text-success-400'
                       }`}>{coin.riskScore}</span>
                     </td>
                     <td className="px-2 py-2.5 text-right hidden xl:table-cell">
                       {coin.priceTarget ? (
-                        <span className={`text-[10px] font-mono font-semibold ${(coin.priceTarget.targetPct ?? 0) >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+                        <span className={`text-[10px] font-mono font-semibold ${(coin.priceTarget.targetPct ?? 0) >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                           ${coin.priceTarget.targetPrice < 1 ? coin.priceTarget.targetPrice.toPrecision(4) : coin.priceTarget.targetPrice.toFixed(2)}
                         </span>
                       ) : <span className="text-[10px] text-text-quaternary">—</span>}
                     </td>
                     <td className="px-2 py-2.5 text-right hidden xl:table-cell">
                       {coin.priceTarget ? (
-                        <span className="text-[10px] font-mono text-red-400/80">
+                        <span className="text-[10px] font-mono text-danger-400/80">
                           ${coin.priceTarget.floorPrice < 1 ? coin.priceTarget.floorPrice.toPrecision(4) : coin.priceTarget.floorPrice.toFixed(2)}
                         </span>
                       ) : <span className="text-[10px] text-text-quaternary">—</span>}
@@ -732,7 +732,7 @@ export default function ModuleCryptoWatchlist() {
                       {coin.priceTarget ? (
                         <span className={`text-[10px] font-mono font-bold ${
                           coin.priceTarget.riskReward >= 2 ? 'text-success-400' :
-                          coin.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+                          coin.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-danger-400'
                         }`}>{coin.priceTarget.riskReward.toFixed(1)}</span>
                       ) : <span className="text-[10px] text-text-quaternary">—</span>}
                     </td>
@@ -740,11 +740,11 @@ export default function ModuleCryptoWatchlist() {
                     <td className="px-2 py-2.5 text-center">
                       {coin.anomalies.length > 0 ? (
                         <div className="flex items-center justify-center gap-1" title={coin.anomalies.join(' | ')}>
-                          <AlertTriangle size={11} className="text-red-400/60" />
-                          <span className="text-[9px] text-red-400/70">{coin.anomalies.length}</span>
+                          <AlertTriangle size={11} className="text-danger-400/60" />
+                          <span className="text-[9px] text-danger-400/70">{coin.anomalies.length}</span>
                         </div>
                       ) : (
-                        <Shield size={11} className="text-emerald-400/30 mx-auto" />
+                        <Shield size={11} className="text-success-400/30 mx-auto" />
                       )}
                     </td>
                   </tr>

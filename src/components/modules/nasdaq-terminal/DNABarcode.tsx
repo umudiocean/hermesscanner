@@ -32,8 +32,8 @@ export default function DNABarcode({ categories, compact = false }: DNABarcodePr
           level === 'STRONG' ? 'bg-yellow-400' :
           level === 'GOOD' ? 'bg-success-400' :
           level === 'NEUTRAL' ? 'bg-slate-400' :
-          level === 'WEAK' ? 'bg-orange-400' :
-          'bg-red-400'
+          level === 'WEAK' ? 'bg-warning-400' :
+          'bg-danger-400'
 
         // Bar glow
         const barGlow =
@@ -89,8 +89,8 @@ export function DNABarcodeMini({ categories }: { categories: FMPScoreBreakdown }
           level === 'STRONG' ? 'bg-yellow-400' :
           level === 'GOOD' ? 'bg-success-400' :
           level === 'NEUTRAL' ? 'bg-slate-500' :
-          level === 'WEAK' ? 'bg-orange-400' :
-          'bg-red-400'
+          level === 'WEAK' ? 'bg-warning-400' :
+          'bg-danger-400'
 
         return (
           <div

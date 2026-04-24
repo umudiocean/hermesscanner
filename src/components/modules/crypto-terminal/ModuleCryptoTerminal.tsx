@@ -35,7 +35,7 @@ function TabSkeleton() {
   return (
     <div className="flex items-center justify-center min-h-[40vh]">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />
         <span className="text-xs text-text-quaternary">Yukleniyor...</span>
       </div>
     </div>
@@ -132,9 +132,9 @@ export default function ModuleCryptoTerminal() {
             disabled={!mod.active}
             className={`group flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 border
               ${activeModule === mod.id
-                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/12 text-amber-300 border-amber-500/40 shadow-lg shadow-amber-500/15 scale-[1.02]'
+                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/12 text-gold-300 border-stroke-gold-strong shadow-lg shadow-amber-500/15 scale-[1.02]'
                 : mod.active
-                  ? 'text-text-tertiary hover:text-amber-300 hover:bg-gradient-to-r hover:from-amber-500/10 hover:to-orange-500/5 border-stroke-subtle hover:border-amber-500/25 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.01]'
+                  ? 'text-text-tertiary hover:text-gold-300 hover:bg-gradient-to-r hover:from-amber-500/10 hover:to-orange-500/5 border-stroke-subtle hover:border-amber-500/25 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.01]'
                   : 'text-text-quaternary border-transparent cursor-not-allowed'
               }`}
           >
@@ -142,9 +142,9 @@ export default function ModuleCryptoTerminal() {
             <span className="hidden sm:inline">{mod.label}</span>
             <span className="sm:hidden">{mod.shortLabel}</span>
             {(mod.id === 'signals' || mod.id === 'index') && (
-              <span className="relative ml-1 text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/15 text-amber-300/90 border border-amber-400/30 font-bold tracking-wider animate-pulse group/premium cursor-default">
+              <span className="relative ml-1 text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/15 text-gold-300/90 border border-stroke-gold-strong font-bold tracking-wider animate-pulse group/premium cursor-default">
                 PREMIUM
-                <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] px-2 py-1 rounded-lg bg-surface-2/95 text-amber-300/80 border border-amber-400/20 opacity-0 group-hover/premium:opacity-100 transition-opacity duration-300 pointer-events-none backdrop-blur-sm shadow-lg z-50">
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] px-2 py-1 rounded-lg bg-surface-2/95 text-gold-300/80 border border-stroke-gold opacity-0 group-hover/premium:opacity-100 transition-opacity duration-300 pointer-events-none backdrop-blur-sm shadow-lg z-50">
                   Ileride Hermes Coin holder&apos;larina ozel
                 </span>
               </span>
@@ -155,7 +155,7 @@ export default function ModuleCryptoTerminal() {
         {/* Signal Performance Tracker Button */}
         <button
           onClick={() => setShowPerfTracker(true)}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 border text-text-tertiary hover:text-amber-300 hover:bg-gradient-to-r hover:from-amber-500/10 hover:to-orange-500/5 border-stroke-subtle hover:border-amber-500/25 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.01] ml-auto"
+          className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 border text-text-tertiary hover:text-gold-300 hover:bg-gradient-to-r hover:from-amber-500/10 hover:to-orange-500/5 border-stroke-subtle hover:border-amber-500/25 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.01] ml-auto"
         >
           <span className="group-hover:scale-110 transition-transform duration-200"><Activity size={14} /></span>
           <span className="hidden sm:inline">PERFORMANS</span>
@@ -223,9 +223,9 @@ function TerminalContent({
             </h2>
             <p className="text-[10px] sm:text-[11px] text-text-tertiary hidden sm:block">CoinGecko Analyst | Canli Kripto Analiz</p>
           </div>
-          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-400/8 border border-amber-400/15 ml-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-[11px] text-amber-300 font-medium tracking-wider">24/7 CANLI</span>
+          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold-400/8 border border-amber-400/15 ml-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />
+            <span className="text-[11px] text-gold-300 font-medium tracking-wider">24/7 CANLI</span>
           </div>
         </div>
 
@@ -248,7 +248,7 @@ function TerminalContent({
             onClick={() => setActiveTab(tab.id)}
             className={`group flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 border
               ${activeTab === tab.id
-                ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-md shadow-amber-500/10 scale-[1.02]'
+                ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-gold-300 border-amber-500/35 shadow-md shadow-amber-500/10 scale-[1.02]'
                 : 'text-text-tertiary hover:text-amber-200/80 hover:bg-gradient-to-r hover:from-amber-500/8 hover:to-transparent border-stroke-subtle hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
               }`}
             title={tab.desc}
@@ -267,7 +267,7 @@ function TerminalContent({
             onClick={() => setActiveTab(tab.id)}
             className={`group flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap transition-all duration-300 border
               ${activeTab === tab.id
-                ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10'
+                ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-gold-300 border-amber-500/35 shadow-sm shadow-amber-500/10'
                 : 'text-text-tertiary hover:text-amber-200/80 border-transparent hover:border-amber-500/20'
               }`}
           >
@@ -414,7 +414,7 @@ function CoinSearchAutocomplete({
   return (
     <div ref={containerRef} className="relative">
       <div className="relative group">
-        <Search size={14} className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-text-quaternary group-focus-within:text-amber-400 transition-colors z-10" />
+        <Search size={14} className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-text-quaternary group-focus-within:text-gold-400 transition-colors z-10" />
         <input
           ref={inputRef}
           type="text"
@@ -424,7 +424,7 @@ function CoinSearchAutocomplete({
           onKeyDown={handleKeyDown}
           placeholder="Coin, token veya contract ara..."
           className="w-48 sm:w-64 lg:w-80 pl-8 sm:pl-9 pr-8 py-1.5 sm:py-2 text-xs sm:text-sm bg-surface-3 border border-white/8 rounded-lg sm:rounded-xl
-                     text-white placeholder-white/25 focus:outline-none focus:border-amber-500/30 transition-all font-mono"
+                     text-white placeholder-white/25 focus:outline-none focus:border-stroke-gold-strong transition-all font-mono"
         />
         {value && (
           <button
@@ -436,7 +436,7 @@ function CoinSearchAutocomplete({
         )}
         {loading && (
           <div className="absolute right-7 top-1/2 -translate-y-1/2 z-10">
-            <div className="w-3.5 h-3.5 border border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+            <div className="w-3.5 h-3.5 border border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />
           </div>
         )}
       </div>
@@ -453,7 +453,7 @@ function CoinSearchAutocomplete({
               onClick={() => handleSelect(coin.id)}
               onMouseEnter={() => setSelectedIdx(idx)}
               className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors
-                ${idx === selectedIdx ? 'bg-amber-500/10' : 'hover:bg-surface-3'}
+                ${idx === selectedIdx ? 'bg-gold-500/10' : 'hover:bg-surface-3'}
                 ${idx < results.length - 1 ? 'border-b border-white/[0.02]' : ''}`}
             >
               <div className="flex-1 min-w-0">
@@ -463,14 +463,14 @@ function CoinSearchAutocomplete({
                 </div>
                 {coin.matchedContract ? (
                   <div className="flex items-center gap-1 mt-0.5">
-                    <span className="text-[8px] px-1 py-px rounded bg-violet-500/20 text-violet-300 border border-violet-500/20 font-medium uppercase">{coin.matchedContract.chain}</span>
+                    <span className="text-[8px] px-1 py-px rounded bg-info-400/20 text-info-400 border border-info-400/30 font-medium uppercase">{coin.matchedContract.chain}</span>
                     <span className="text-[9px] text-text-tertiary truncate font-mono">{coin.matchedContract.address.slice(0, 8)}...{coin.matchedContract.address.slice(-6)}</span>
                   </div>
                 ) : (
                   <span className="text-[9px] text-text-quaternary truncate block">{coin.id}</span>
                 )}
               </div>
-              <span className="text-[10px] text-amber-400/50 shrink-0">→</span>
+              <span className="text-[10px] text-gold-400/50 shrink-0">→</span>
             </button>
           ))}
         </div>
@@ -489,10 +489,10 @@ function CoinSearchAutocomplete({
 function ComingSoonModule({ moduleId }: { moduleId: CryptoModule }) {
   const config: Record<CryptoModule, { name: string; desc: string; icon: React.ReactNode }> = {
     terminal: { name: 'Terminal', desc: '', icon: <Brain size={32} /> },
-    trade: { name: 'CRYPTO TRADE AI', desc: 'Kripto piyasalarinda mean-reversion Z-Score stratejisi ile orta vadeli trade sinyalleri. VWAP, Z-Score ve momentum bazli puanlama ile en uygun giris/cikis noktalarini belirler.', icon: <Target size={32} className="text-amber-400" /> },
-    signals: { name: 'CRYPTO AI SIGNALS', desc: 'Teknik analiz + HERMES AI Skor capraz sinyal sistemi. Terminal puanlamasi ile teknik sinyallerin kesisstigi en guclu firsatlari gosterir.', icon: <Radio size={32} className="text-violet-400" /> },
-    watchlist: { name: 'CRYPTO WATCHLIST', desc: 'Izleme listenizdeki coinlerin canli takibi. Favori coinlerinizi yildiz butonu ile ekleyin, fiyat ve sinyal degisimlerini anlik izleyin.', icon: <Star size={32} className="text-amber-400" /> },
-    index: { name: 'HERMES AI CRYPTO INDEX', desc: 'Kripto piyasasinin kalbi. Fear & Greed, hakimiyet, trendler ve sinyaller tek bir ekranda.', icon: <Zap size={32} className="text-amber-400" /> },
+    trade: { name: 'CRYPTO TRADE AI', desc: 'Kripto piyasalarinda mean-reversion Z-Score stratejisi ile orta vadeli trade sinyalleri. VWAP, Z-Score ve momentum bazli puanlama ile en uygun giris/cikis noktalarini belirler.', icon: <Target size={32} className="text-gold-400" /> },
+    signals: { name: 'CRYPTO AI SIGNALS', desc: 'Teknik analiz + HERMES AI Skor capraz sinyal sistemi. Terminal puanlamasi ile teknik sinyallerin kesisstigi en guclu firsatlari gosterir.', icon: <Radio size={32} className="text-info-400" /> },
+    watchlist: { name: 'CRYPTO WATCHLIST', desc: 'Izleme listenizdeki coinlerin canli takibi. Favori coinlerinizi yildiz butonu ile ekleyin, fiyat ve sinyal degisimlerini anlik izleyin.', icon: <Star size={32} className="text-gold-400" /> },
+    index: { name: 'HERMES AI CRYPTO INDEX', desc: 'Kripto piyasasinin kalbi. Fear & Greed, hakimiyet, trendler ve sinyaller tek bir ekranda.', icon: <Zap size={32} className="text-gold-400" /> },
   }
 
   const c = config[moduleId]
@@ -504,9 +504,9 @@ function ComingSoonModule({ moduleId }: { moduleId: CryptoModule }) {
       </div>
       <h2 className="text-2xl font-black text-text-primary mb-2">{c.name}</h2>
       <p className="text-sm text-text-tertiary max-w-md mb-6 leading-relaxed">{c.desc}</p>
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
-        <Lock size={14} className="text-amber-400" />
-        <span className="text-xs font-bold text-amber-300 tracking-wider">COMING SOON</span>
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gold-500/10 border border-amber-500/20">
+        <Lock size={14} className="text-gold-400" />
+        <span className="text-xs font-bold text-gold-300 tracking-wider">COMING SOON</span>
       </div>
     </div>
   )

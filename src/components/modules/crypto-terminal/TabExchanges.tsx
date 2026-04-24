@@ -13,10 +13,10 @@ interface CryptoExchange {
 }
 
 function TrustBadge({ score }: { score: number }) {
-  if (score >= 9) return <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-gradient-to-r from-emerald-500/15 to-emerald-600/8 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-500/10">{score}/10</span>
-  if (score >= 7) return <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-gradient-to-r from-amber-500/15 to-amber-600/8 text-amber-400 border border-amber-500/30 shadow-sm shadow-amber-500/10">{score}/10</span>
-  if (score >= 5) return <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-gradient-to-r from-orange-500/15 to-orange-600/8 text-orange-400 border border-orange-500/30 shadow-sm shadow-orange-500/10">{score}/10</span>
-  return <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-gradient-to-r from-red-500/15 to-red-600/8 text-red-400 border border-red-500/30 shadow-sm shadow-red-500/10">{score}/10</span>
+  if (score >= 9) return <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-gradient-to-r from-emerald-500/15 to-emerald-600/8 text-success-400 border border-success-400/30 shadow-sm shadow-emerald-500/10">{score}/10</span>
+  if (score >= 7) return <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-gradient-to-r from-amber-500/15 to-amber-600/8 text-gold-400 border border-stroke-gold-strong shadow-sm shadow-amber-500/10">{score}/10</span>
+  if (score >= 5) return <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-gradient-to-r from-orange-500/15 to-orange-600/8 text-warning-400 border border-warning-400/30 shadow-sm shadow-orange-500/10">{score}/10</span>
+  return <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-gradient-to-r from-red-500/15 to-red-600/8 text-danger-400 border border-danger-400/30 shadow-sm shadow-red-500/10">{score}/10</span>
 }
 
 export default function TabExchanges() {
@@ -57,8 +57,8 @@ export default function TabExchanges() {
 
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[30vh] text-center">
-      <AlertTriangle size={32} className="text-red-400/50 mb-3" />
-      <p className="text-sm text-red-400">{error}</p>
+      <AlertTriangle size={32} className="text-danger-400/50 mb-3" />
+      <p className="text-sm text-danger-400">{error}</p>
       <button onClick={() => window.location.reload()} className="mt-3 px-4 py-2 rounded-xl bg-surface-3 text-text-secondary text-xs hover:bg-surface-3 transition-all">Yenile</button>
     </div>
   )
@@ -67,14 +67,14 @@ export default function TabExchanges() {
     <div className="space-y-2 sm:space-y-3 animate-fade-in">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Wallet size={16} className="text-amber-400" />
+          <Wallet size={16} className="text-gold-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Kripto Borsalari</h3>
           <span className="text-[10px] text-text-tertiary">{filtered.length}</span>
         </div>
         <div className="relative w-full sm:w-auto">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-quaternary" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Borsa ara..."
-            className="w-full sm:w-48 pl-8 pr-3 py-1.5 text-xs bg-surface-3 border border-white/8 rounded-xl text-white placeholder-white/25 focus:outline-none focus:border-amber-500/30 focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300" />
+            className="w-full sm:w-48 pl-8 pr-3 py-1.5 text-xs bg-surface-3 border border-white/8 rounded-xl text-white placeholder-white/25 focus:outline-none focus:border-stroke-gold-strong focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300" />
         </div>
       </div>
 
@@ -116,7 +116,7 @@ export default function TabExchanges() {
           </thead>
           <tbody>
             {filtered.slice(0, 50).map(ex => (
-              <tr key={ex.id} className="border-b border-white/[0.03] hover:bg-amber-500/[0.03] transition-colors">
+              <tr key={ex.id} className="border-b border-white/[0.03] hover:bg-gold-500/[0.03] transition-colors">
                 <td className="px-2 py-2 text-xs text-text-tertiary">{ex.trust_score_rank}</td>
                 <td className="px-2 py-2">
                   <div className="flex items-center gap-2">

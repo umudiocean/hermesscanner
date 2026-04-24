@@ -124,7 +124,7 @@ export function FearGreedBar({ value, label }: { value: number; label?: string }
   const barLabel = label || (
     clamped <= 20 ? 'ASIRI KORKU' : clamped <= 40 ? 'KORKU' : clamped <= 60 ? 'NOTR' : clamped <= 80 ? 'ACGOZLULUK' : 'ASIRI ACGOZLULUK'
   )
-  const barColor = clamped <= 25 ? 'text-red-400' : clamped <= 45 ? 'text-orange-400' : clamped <= 55 ? 'text-slate-300' : clamped <= 75 ? 'text-success-400' : 'text-success-400'
+  const barColor = clamped <= 25 ? 'text-danger-400' : clamped <= 45 ? 'text-warning-400' : clamped <= 55 ? 'text-text-secondary' : clamped <= 75 ? 'text-success-400' : 'text-success-400'
 
   return (
     <div>
@@ -132,8 +132,8 @@ export function FearGreedBar({ value, label }: { value: number; label?: string }
         <div className="flex items-center gap-2">
           <span className={`text-xl font-black tabular-nums ${barColor}`}>{Math.round(value)}</span>
           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-            clamped <= 25 ? 'text-red-400 bg-red-500/15' : clamped <= 45 ? 'text-orange-400 bg-orange-500/15' :
-            clamped <= 55 ? 'text-slate-300 bg-surface-3' : clamped <= 75 ? 'text-success-400 bg-success-400/15' :
+            clamped <= 25 ? 'text-danger-400 bg-danger-400/15' : clamped <= 45 ? 'text-warning-400 bg-warning-400/15' :
+            clamped <= 55 ? 'text-text-secondary bg-surface-3' : clamped <= 75 ? 'text-success-400 bg-success-400/15' :
             'text-success-400 bg-success-400/20'
           }`}>{barLabel}</span>
         </div>
@@ -229,8 +229,8 @@ export const SignalBadge = memo(function SignalBadge({ type, label, compact = fa
   const mapped = (type === 'strong_long') ? 'long' : (type === 'strong_short') ? 'short' : type
   const config: Record<string, { bg: string; text: string; glow: string; border: string; dot: string }> = {
     long: { bg: 'bg-success-400/15', text: 'text-success-400', glow: 'badge-glow-green', border: 'border-l-success-400/50', dot: 'bg-success-400' },
-    neutral: { bg: 'bg-surface-3', text: 'text-slate-400', glow: '', border: 'border-l-white/15', dot: 'bg-slate-500' },
-    short: { bg: 'bg-red-500/15', text: 'text-red-400', glow: 'badge-glow-red', border: 'border-l-red-400/60', dot: 'bg-red-400' },
+    neutral: { bg: 'bg-surface-3', text: 'text-text-tertiary', glow: '', border: 'border-l-white/15', dot: 'bg-slate-500' },
+    short: { bg: 'bg-danger-400/15', text: 'text-danger-400', glow: 'badge-glow-red', border: 'border-l-red-400/60', dot: 'bg-danger-400' },
   }
   const c = config[mapped] || config.neutral
   return (
@@ -246,7 +246,7 @@ export const SignalBadge = memo(function SignalBadge({ type, label, compact = fa
 export const ScoreMiniBar = memo(function ScoreMiniBar({ value, maxWidth = 48 }: { value: number; maxWidth?: number }) {
   const clamped = Math.max(0, Math.min(100, value))
   const color = clamped >= 75 ? '#B3945B' : clamped >= 60 ? '#62cbc1' : clamped >= 40 ? '#94a3b8' : clamped >= 25 ? '#fb923c' : '#ef4444'
-  const textColor = clamped >= 75 ? 'text-amber-400' : clamped >= 60 ? 'text-success-400' : clamped >= 40 ? 'text-text-secondary' : clamped >= 25 ? 'text-orange-400' : 'text-red-400'
+  const textColor = clamped >= 75 ? 'text-gold-400' : clamped >= 60 ? 'text-success-400' : clamped >= 40 ? 'text-text-secondary' : clamped >= 25 ? 'text-warning-400' : 'text-danger-400'
   return (
     <div className="flex items-center gap-1.5">
       <div className="h-2 bg-surface-3 rounded-full overflow-hidden" style={{ width: maxWidth }}>
@@ -302,7 +302,7 @@ export const TargetFloorBar = memo(function TargetFloorBar({
   const clamped = Math.max(0, Math.min(100, pos))
   return (
     <div className="flex items-center gap-1 w-20">
-      <span className="text-[9px] text-red-400/50 tabular-nums">{floor.toFixed(0)}</span>
+      <span className="text-[9px] text-danger-400/50 tabular-nums">{floor.toFixed(0)}</span>
       <div className="flex-1 h-1.5 bg-surface-3 rounded-full relative overflow-hidden">
         <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-500/40 via-white/10 to-success-400/40 rounded-full w-full" />
         <div className="absolute top-0 h-full w-1 bg-white rounded-full shadow-[0_0_4px_rgba(255,255,255,0.5)]"

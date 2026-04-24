@@ -205,9 +205,9 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
   ]
 
   const TYPE_STYLES: Record<EventType, { bg: string; border: string; text: string; label: string; dot: string }> = {
-    earnings: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', label: 'KAZANC', dot: 'bg-amber-400' },
+    earnings: { bg: 'bg-gold-500/10', border: 'border-amber-500/20', text: 'text-gold-400', label: 'KAZANC', dot: 'bg-gold-400' },
     dividends: { bg: 'bg-success-400/10', border: 'border-success-400/20', text: 'text-success-400', label: 'TEMETTU', dot: 'bg-success-400' },
-    splits: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400', label: 'SPLIT', dot: 'bg-blue-400' },
+    splits: { bg: 'bg-info-400/10', border: 'border-info-400/30', text: 'text-info-400', label: 'SPLIT', dot: 'bg-info-400' },
     ipos: { bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400', label: 'IPO', dot: 'bg-rose-400' },
   }
 
@@ -288,7 +288,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                   day.isToday
                     ? 'bg-gold-400/15 border border-stroke-gold-strong shadow-sm shadow-gold-400/10'
                     : isSelected
-                      ? 'bg-violet-500/15 border border-violet-500/30'
+                      ? 'bg-info-400/15 border border-info-400/30'
                       : day.isWeekend
                         ? 'bg-white/[0.01] border border-transparent opacity-40'
                         : hasEvents
@@ -298,7 +298,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                 <span className={`text-[8px] font-medium ${day.isToday ? 'text-gold-400' : 'text-text-quaternary'}`}>
                   {dayNames[dt.getDay()]}
                 </span>
-                <span className={`text-xs font-bold ${day.isToday ? 'text-gold-300' : isSelected ? 'text-violet-300' : 'text-text-secondary'}`}>
+                <span className={`text-xs font-bold ${day.isToday ? 'text-gold-300' : isSelected ? 'text-info-400' : 'text-text-secondary'}`}>
                   {dt.getDate()}
                 </span>
                 {hasEvents && (
@@ -365,7 +365,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
         </div>
         {selectedDate && (
           <button onClick={() => setSelectedDate(null)}
-            className="text-[10px] text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2 py-1 rounded-lg hover:bg-violet-500/20 transition-all">
+            className="text-[10px] text-info-400 bg-info-400/10 border border-info-400/30 px-2 py-1 rounded-lg hover:bg-info-400/20 transition-all">
             {formatDate(selectedDate)} &times;
           </button>
         )}
@@ -436,7 +436,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   {group.events.filter(e => e.type === 'earnings').length > 0 && (
-                    <span className="text-[8px] text-amber-400/60 bg-amber-500/8 px-1.5 py-0.5 rounded">
+                    <span className="text-[8px] text-gold-400/60 bg-gold-500/8 px-1.5 py-0.5 rounded">
                       {group.events.filter(e => e.type === 'earnings').length} Kazanc
                     </span>
                   )}
@@ -457,7 +457,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                       className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 cursor-pointer transition-all duration-200 group/row ${
                         ev.isMega
                           ? 'hover:bg-gold-400/[0.04] bg-gold-400/[0.01]'
-                          : 'hover:bg-violet-500/[0.04]'
+                          : 'hover:bg-info-400/[0.04]'
                       } ${dl.isPast ? 'opacity-60' : ''}`}>
 
                       {/* Type Badge */}
@@ -490,7 +490,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                             {hasBeat && (
                               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
                                 beat === 'beat' ? 'bg-success-400/15 text-success-400 border border-success-400/20'
-                                  : beat === 'miss' ? 'bg-red-500/15 text-red-400 border border-red-500/20'
+                                  : beat === 'miss' ? 'bg-danger-400/15 text-danger-400 border border-danger-400/30'
                                     : 'bg-surface-3 text-text-tertiary border border-stroke-subtle'
                               }`}>
                                 {beat === 'beat' ? 'BEKLENTI USTU' : beat === 'miss' ? 'BEKLENTI ALTI' : 'PARALEL'}
@@ -507,11 +507,11 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                           </div>
                         ) : ev.type === 'splits' ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] text-blue-400 font-semibold">{ev.numerator}:{ev.denominator}</span>
+                            <span className="text-[11px] text-info-400 font-semibold">{ev.numerator}:{ev.denominator}</span>
                             <span className={`text-[9px] px-1.5 py-0.5 rounded ${
                               (ev.numerator || 0) > (ev.denominator || 0)
                                 ? 'bg-success-400/10 text-success-400'
-                                : 'bg-red-500/10 text-red-400'
+                                : 'bg-danger-400/10 text-danger-400'
                             }`}>
                               {ev.sub}
                             </span>
@@ -529,7 +529,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                       <div className="shrink-0 text-right">
                         {ev.type === 'earnings' && ev.time && (
                           <span className={`text-[9px] font-medium px-2 py-0.5 rounded-md ${
-                            ev.time === 'bmo' ? 'bg-amber-500/10 text-amber-400/70' : ev.time === 'amc' ? 'bg-violet-500/10 text-violet-400/70' : 'bg-surface-2 text-text-tertiary'
+                            ev.time === 'bmo' ? 'bg-gold-500/10 text-gold-400/70' : ev.time === 'amc' ? 'bg-info-400/10 text-info-400/70' : 'bg-surface-2 text-text-tertiary'
                           }`}>
                             {ev.time === 'bmo' ? 'BMO' : ev.time === 'amc' ? 'AMC' : 'GIC'}
                           </span>

@@ -99,7 +99,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             <div className="text-[11px] text-text-tertiary font-medium mb-1">ABD GDP</div>
             <div className="text-base sm:text-lg font-bold text-white">{latestGdp ? fmtBig(latestGdp.value * 1e9) : '--'}</div>
             {gdpGrowth && (
-              <span className={`text-xs ${Number(gdpGrowth) >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+              <span className={`text-xs ${Number(gdpGrowth) >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                 {Number(gdpGrowth) >= 0 ? '+' : ''}{gdpGrowth}% QoQ
               </span>
             )}
@@ -108,7 +108,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             <div className="text-[11px] text-text-tertiary font-medium mb-1">TUKETICI GUVENI</div>
             <div className="text-base sm:text-lg font-bold text-white">{latestSentiment ? latestSentiment.value.toFixed(1) : '--'}</div>
             {sentimentChange && (
-              <span className={`text-xs ${Number(sentimentChange) >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+              <span className={`text-xs ${Number(sentimentChange) >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                 {Number(sentimentChange) >= 0 ? '+' : ''}{sentimentChange}
               </span>
             )}
@@ -116,9 +116,9 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
           <div className="bg-surface-2 rounded-xl p-3 border border-stroke-subtle">
             <div className="text-[11px] text-text-tertiary font-medium mb-1">ENDEKS UYELERI</div>
             <div className="text-sm font-bold text-white">
-              <span className="text-violet-400">SP500</span> {data.indexConstituents.sp500} |
-              <span className="text-blue-400 ml-1">NDX</span> {data.indexConstituents.nasdaq} |
-              <span className="text-amber-400 ml-1">DOW</span> {data.indexConstituents.dowjones}
+              <span className="text-info-400">SP500</span> {data.indexConstituents.sp500} |
+              <span className="text-info-400 ml-1">NDX</span> {data.indexConstituents.nasdaq} |
+              <span className="text-gold-400 ml-1">DOW</span> {data.indexConstituents.dowjones}
             </div>
           </div>
           <div className="bg-surface-2 rounded-xl p-3 border border-stroke-subtle">
@@ -181,7 +181,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
                   const h = s.value > 0 ? ((s.value - minVal) / range) * 85 + 15 : 5
                   return (
                     <div key={i} className="flex-1 flex flex-col justify-end group/bar" title={`${s.date}: ${s.value.toFixed(1)}${s.name ? ` (${s.name})` : ''}`}>
-                      <div className="bg-blue-500/40 rounded-t-sm group-hover/bar:bg-blue-500/70 transition-all duration-200 relative" style={{ height: `${h}%` }}>
+                      <div className="bg-info-400/40 rounded-t-sm group-hover/bar:bg-info-400/70 transition-all duration-200 relative" style={{ height: `${h}%` }}>
                         <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] text-white/0 group-hover/bar:text-text-secondary whitespace-nowrap transition-all">{s.value.toFixed(1)}</span>
                       </div>
                     </div>
@@ -217,7 +217,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
                       <span className="text-[10px] text-text-quaternary">{new Date(n.publishedDate).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <ExternalLink size={12} className="text-text-quaternary group-hover:text-violet-400 shrink-0 mt-1" />
+                  <ExternalLink size={12} className="text-text-quaternary group-hover:text-info-400 shrink-0 mt-1" />
                 </div>
               </a>
             ))}
@@ -252,8 +252,8 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
                       <td className="py-1.5 px-2 text-xs text-text-secondary">{b.sector}</td>
                       <td className="py-1.5 px-2 text-right font-bold text-white">{b.ESGScore.toFixed(1)}</td>
                       <td className="py-1.5 px-2 text-right text-success-400/70">{b.environmentalScore.toFixed(1)}</td>
-                      <td className="py-1.5 px-2 text-right text-blue-400/70">{b.socialScore.toFixed(1)}</td>
-                      <td className="py-1.5 px-2 text-right text-violet-400/70">{b.governanceScore.toFixed(1)}</td>
+                      <td className="py-1.5 px-2 text-right text-info-400/70">{b.socialScore.toFixed(1)}</td>
+                      <td className="py-1.5 px-2 text-right text-info-400/70">{b.governanceScore.toFixed(1)}</td>
                     </tr>
                   ))}
               </tbody>
@@ -262,8 +262,8 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
         </div>
       )}
 
-      <div className="flex items-start gap-2 px-2 sm:px-4 py-3 bg-violet-500/[0.05] rounded-xl border border-violet-500/10">
-        <Info size={14} className="text-violet-400/50 mt-0.5 shrink-0" />
+      <div className="flex items-start gap-2 px-2 sm:px-4 py-3 bg-info-400/[0.05] rounded-xl border border-violet-500/10">
+        <Info size={14} className="text-info-400/50 mt-0.5 shrink-0" />
         <p className="text-[12px] text-text-tertiary leading-relaxed">
           ABD GDP, tuketici guveni, piyasa haberleri, S&amp;P 500/NASDAQ 100/Dow Jones endeks uyelikleri
           ve sektor bazli ESG karsilastirmasi canli olarak cekilir.

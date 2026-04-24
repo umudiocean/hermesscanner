@@ -45,8 +45,8 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center p-8">
-          <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-            <AlertTriangle size={32} className="text-red-400" />
+          <div className="w-16 h-16 rounded-2xl bg-danger-400/10 border border-danger-400/30 flex items-center justify-center">
+            <AlertTriangle size={32} className="text-danger-400" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white mb-1">
@@ -56,7 +56,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               Bu modulde beklenmeyen bir hata olustu. Sayfayi yenileyebilir veya asagidaki butona tiklayabilirsiniz.
             </p>
             {this.state.error && (
-              <p className="text-xs text-red-400/60 mt-2 font-mono max-w-lg break-all">
+              <p className="text-xs text-danger-400/60 mt-2 font-mono max-w-lg break-all">
                 {this.state.error.message}
               </p>
             )}

@@ -68,8 +68,8 @@ function getScoreColor(score: number): string {
   if (score <= 20) return 'text-gold-300'
   if (score <= 30) return 'text-success-400'
   if (score < 70) return 'text-text-secondary'
-  if (score < 90) return 'text-orange-400'
-  return 'text-red-400'
+  if (score < 90) return 'text-warning-400'
+  return 'text-danger-400'
 }
 
 function formatMarketCap(mc: number): string {
@@ -258,7 +258,7 @@ export default function ModuleNasdaqWatchlist() {
           <div ref={searchRef} className="relative">
             <button
               onClick={() => setShowSearch(!showSearch)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-amber-500/30 text-amber-300 hover:from-amber-500/25 hover:border-amber-500/40 transition-all"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-stroke-gold-strong text-gold-300 hover:from-amber-500/25 hover:border-stroke-gold-strong transition-all"
             >
               <Plus size={12} className="inline mr-1" />Hisse Ekle
             </button>
@@ -293,7 +293,7 @@ export default function ModuleNasdaqWatchlist() {
                         }`}
                       >
                         <span className="font-mono font-bold text-white">{sym}</span>
-                        {added ? <Star size={11} className="text-amber-400" fill="#f59e0b" /> : <Plus size={11} className="text-text-tertiary" />}
+                        {added ? <Star size={11} className="text-gold-400" fill="#f59e0b" /> : <Plus size={11} className="text-text-tertiary" />}
                       </button>
                     )
                   })}
@@ -314,8 +314,8 @@ export default function ModuleNasdaqWatchlist() {
 
       {/* Only show warning during market hours if blocked */}
       {renderGuard.blocked && renderGuard.marketOpen && (
-        <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3">
-          <p className="text-xs font-bold text-red-300">SYSTEM DOWN (MARKET HOURS)</p>
+        <div className="mb-3 rounded-xl border border-danger-400/30 bg-danger-400/10 p-3">
+          <p className="text-xs font-bold text-danger-300">SYSTEM DOWN (MARKET HOURS)</p>
           <p className="text-[10px] text-red-200/80 mt-1">
             ScanAge: {renderGuard.scanAgeMin ?? 'n/a'}m | System will auto-recover
           </p>
@@ -389,9 +389,9 @@ export default function ModuleNasdaqWatchlist() {
                 const changePercent = result.quote?.changePercent || 0
 
                 return (
-                  <tr key={result.symbol} className="border-b border-white/[0.03] hover:bg-amber-500/[0.03] transition-colors group">
+                  <tr key={result.symbol} className="border-b border-white/[0.03] hover:bg-gold-500/[0.03] transition-colors group">
                     <td className="px-2 py-2.5">
-                      <button onClick={() => toggleWatchlistItem(result.symbol)} className="text-text-quaternary hover:text-red-400 p-0.5 transition-colors" title="Listeden cikar">
+                      <button onClick={() => toggleWatchlistItem(result.symbol)} className="text-text-quaternary hover:text-danger-400 p-0.5 transition-colors" title="Listeden cikar">
                         <Trash2 size={12} />
                       </button>
                     </td>
@@ -404,32 +404,32 @@ export default function ModuleNasdaqWatchlist() {
                     <td className="px-2 py-2.5 text-right">
                       <PriceFlashCell price={result.quote?.price || result.hermes.price} className="text-[11px] font-semibold text-white" />
                     </td>
-                    <td className={`px-2 py-2.5 text-right text-[11px] font-medium tabular-nums ${changePercent >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+                    <td className={`px-2 py-2.5 text-right text-[11px] font-medium tabular-nums ${changePercent >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                       {changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%
                     </td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                        terminalSignal === 'STRONG' ? 'text-amber-300 bg-amber-500/15 border-amber-500/30' :
+                        terminalSignal === 'STRONG' ? 'text-gold-300 bg-gold-500/15 border-stroke-gold-strong' :
                         terminalSignal === 'GOOD' ? 'text-success-400 bg-success-400/10 border-success-400/25' :
-                        terminalSignal === 'WEAK' ? 'text-orange-400 bg-orange-500/10 border-orange-500/25' :
-                        terminalSignal === 'BAD' ? 'text-red-400 bg-red-500/10 border-red-500/25' :
+                        terminalSignal === 'WEAK' ? 'text-warning-400 bg-orange-500/10 border-orange-500/25' :
+                        terminalSignal === 'BAD' ? 'text-danger-400 bg-danger-400/10 border-danger-400/30' :
                         'text-text-tertiary bg-surface-2 border-stroke-subtle'
                       }`}>{terminalSignal}</span>
                     </td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
                         tradeSignal === 'LONG' ? 'text-success-400 bg-success-400/15 border-success-400/30' :
-                        tradeSignal === 'SHORT' ? 'text-red-400 bg-red-500/15 border-red-500/30' :
+                        tradeSignal === 'SHORT' ? 'text-danger-400 bg-danger-400/15 border-danger-400/30' :
                         'text-text-tertiary bg-surface-2 border-stroke-subtle'
                       }`}>{tradeSignal}</span>
                     </td>
                     <td className="px-2 py-2.5 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                        aiSignal === 'CONFLUENCE BUY' ? 'text-violet-300 bg-violet-500/15 border-violet-500/30' :
-                        aiSignal === 'ALPHA LONG' ? 'text-amber-300 bg-amber-500/15 border-amber-500/30' :
+                        aiSignal === 'CONFLUENCE BUY' ? 'text-info-400 bg-info-400/15 border-info-400/30' :
+                        aiSignal === 'ALPHA LONG' ? 'text-gold-300 bg-gold-500/15 border-stroke-gold-strong' :
                         aiSignal === 'HERMES LONG' ? 'text-success-400 bg-success-400/10 border-success-400/25' :
-                        aiSignal === 'HERMES SHORT' ? 'text-red-400 bg-red-500/10 border-red-500/25' :
-                        aiSignal === 'ALPHA SHORT' ? 'text-red-500 bg-red-600/15 border-red-600/30' :
+                        aiSignal === 'HERMES SHORT' ? 'text-danger-400 bg-danger-400/10 border-danger-400/30' :
+                        aiSignal === 'ALPHA SHORT' ? 'text-danger-400 bg-red-600/15 border-red-600/30' :
                         aiSignal === 'CONFLUENCE SELL' ? 'text-fuchsia-400 bg-fuchsia-600/15 border-fuchsia-600/30' :
                         'text-text-tertiary bg-transparent border-transparent'
                       }`}>{aiSignal}</span>
@@ -441,7 +441,7 @@ export default function ModuleNasdaqWatchlist() {
                       </div>
                     </td>
                     <td className="px-2 py-2.5 text-center">
-                      <span className={`text-[10px] font-semibold tabular-nums ${(fmp?.confidence || 0) >= 70 ? 'text-amber-400' : (fmp?.confidence || 0) >= 50 ? 'text-text-secondary' : 'text-text-quaternary'}`}>
+                      <span className={`text-[10px] font-semibold tabular-nums ${(fmp?.confidence || 0) >= 70 ? 'text-gold-400' : (fmp?.confidence || 0) >= 50 ? 'text-text-secondary' : 'text-text-quaternary'}`}>
                         {fmp?.confidence ? `%${Math.round(fmp.confidence)}` : '—'}
                       </span>
                     </td>
@@ -449,7 +449,7 @@ export default function ModuleNasdaqWatchlist() {
                       {(() => {
                         const v = (fmp as { analystEpsRevision30d?: number } | undefined)?.analystEpsRevision30d || 0
                         return (
-                          <span className={`text-[10px] tabular-nums ${v > 0 ? 'text-success-400/80' : v < 0 ? 'text-red-400/80' : 'text-text-quaternary'}`}>
+                          <span className={`text-[10px] tabular-nums ${v > 0 ? 'text-success-400/80' : v < 0 ? 'text-danger-400/80' : 'text-text-quaternary'}`}>
                             {v !== 0 ? `${v > 0 ? '+' : ''}${v.toFixed(1)}%` : '—'}
                           </span>
                         )
@@ -459,7 +459,7 @@ export default function ModuleNasdaqWatchlist() {
                       {(() => {
                         const v = (fmp as { analystEpsRevision90d?: number } | undefined)?.analystEpsRevision90d || 0
                         return (
-                          <span className={`text-[10px] tabular-nums ${v > 0 ? 'text-success-400/70' : v < 0 ? 'text-red-400/70' : 'text-text-quaternary'}`}>
+                          <span className={`text-[10px] tabular-nums ${v > 0 ? 'text-success-400/70' : v < 0 ? 'text-danger-400/70' : 'text-text-quaternary'}`}>
                             {v !== 0 ? `${v > 0 ? '+' : ''}${v.toFixed(1)}%` : '—'}
                           </span>
                         )
@@ -469,18 +469,18 @@ export default function ModuleNasdaqWatchlist() {
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
                         fmp?.valuationLabel === 'COK UCUZ' ? 'text-success-400 bg-success-400/15' :
                         fmp?.valuationLabel === 'UCUZ' ? 'text-success-400 bg-success-400/10' :
-                        fmp?.valuationLabel === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
-                        fmp?.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
+                        fmp?.valuationLabel === 'PAHALI' ? 'text-warning-400 bg-orange-500/10' :
+                        fmp?.valuationLabel === 'COK PAHALI' ? 'text-danger-400 bg-danger-400/10' :
                         'text-text-tertiary bg-surface-3'
                       }`}>{fmp?.valuationLabel || '—'}</span>
                     </td>
                     <td className="px-2 py-2.5 text-right">
-                      <span className={`text-[11px] font-mono ${result.hermes.indicators.rsi >= 70 ? 'text-red-400' : result.hermes.indicators.rsi <= 30 ? 'text-success-400' : 'text-text-secondary'}`}>
+                      <span className={`text-[11px] font-mono ${result.hermes.indicators.rsi >= 70 ? 'text-danger-400' : result.hermes.indicators.rsi <= 30 ? 'text-success-400' : 'text-text-secondary'}`}>
                         {Math.round(result.hermes.indicators.rsi)}
                       </span>
                     </td>
                     <td className="px-2 py-2.5 text-right">
-                      <span className={`text-[11px] font-mono ${result.hermes.indicators.mfi >= 80 ? 'text-red-400' : result.hermes.indicators.mfi <= 20 ? 'text-success-400' : 'text-text-secondary'}`}>
+                      <span className={`text-[11px] font-mono ${result.hermes.indicators.mfi >= 80 ? 'text-danger-400' : result.hermes.indicators.mfi <= 20 ? 'text-success-400' : 'text-text-secondary'}`}>
                         {Math.round(result.hermes.indicators.mfi)}
                       </span>
                     </td>
@@ -490,7 +490,7 @@ export default function ModuleNasdaqWatchlist() {
                     </td>
                     <td className="px-2 py-2.5 text-right text-[11px] font-mono text-text-secondary">{result.hermes.zscores.zscore52w.toFixed(2)}</td>
                     <td className="px-2 py-2.5 text-center">
-                      <span className={`text-[10px] ${result.hermes.multipliers.quality > 0.9 ? 'text-success-400' : result.hermes.multipliers.quality < 0.7 ? 'text-red-400' : 'text-gold-300'}`}>
+                      <span className={`text-[10px] ${result.hermes.multipliers.quality > 0.9 ? 'text-success-400' : result.hermes.multipliers.quality < 0.7 ? 'text-danger-400' : 'text-gold-300'}`}>
                         {result.hermes.multipliers.quality.toFixed(2)}
                       </span>
                     </td>
@@ -506,19 +506,19 @@ export default function ModuleNasdaqWatchlist() {
                         <>
                           <td className="px-2 py-2.5 text-right hidden xl:table-cell">
                             {tgt > 0 ? (
-                              <span className={`text-[11px] font-mono font-semibold ${tgtPct >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+                              <span className={`text-[11px] font-mono font-semibold ${tgtPct >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                                 ${tgt.toFixed(2)}
                               </span>
                             ) : <span className="text-text-tertiary text-[10px]">{'\u2014'}</span>}
                           </td>
                           <td className="px-2 py-2.5 text-right hidden xl:table-cell">
                             {flr > 0 ? (
-                              <span className="text-[11px] font-mono text-red-400/80">${flr.toFixed(2)}</span>
+                              <span className="text-[11px] font-mono text-danger-400/80">${flr.toFixed(2)}</span>
                             ) : <span className="text-text-tertiary text-[10px]">{'\u2014'}</span>}
                           </td>
                           <td className="px-2 py-2.5 text-center hidden xl:table-cell">
                             {rr > 0 ? (
-                              <span className={`text-[11px] font-mono font-bold ${rr >= 2 ? 'text-success-400' : rr >= 1 ? 'text-gold-300' : 'text-red-400'}`}>
+                              <span className={`text-[11px] font-mono font-bold ${rr >= 2 ? 'text-success-400' : rr >= 1 ? 'text-gold-300' : 'text-danger-400'}`}>
                                 {rr.toFixed(1)}
                               </span>
                             ) : <span className="text-text-tertiary text-[10px]">{'\u2014'}</span>}

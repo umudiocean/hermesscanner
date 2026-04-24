@@ -127,7 +127,7 @@ function DirectionBadge({ direction, dirColor }: { direction: string; dirColor: 
     <div className="animate-scale-pop text-center">
       <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 backdrop-blur-sm transition-all duration-500 ${
         isLong ? 'border-success-400/30 bg-success-400/[0.06] shadow-lg shadow-success-400/10' :
-        isShort ? 'border-red-500/30 bg-red-500/[0.06] shadow-lg shadow-red-500/10' :
+        isShort ? 'border-danger-400/30 bg-danger-400/[0.06] shadow-lg shadow-red-500/10' :
         'border-stroke bg-surface-2'
       }`}>
         <span className={`text-2xl ${isLong ? 'animate-bounce' : isShort ? 'animate-bounce' : ''}`}>
@@ -233,7 +233,7 @@ function SignalDistBar({ counts, total }: { counts: Record<string, number>; tota
 
 // ─── Sector Heatmap — glassmorphism cards + scan line ───
 function HermesIndexCard({ idx, compact = false }: { idx: { name: string; icon: string; tier: string; count: number; avg: number; strong: number; good: number; neutral: number; weak: number; bad: number; label: string; color: string }; compact?: boolean }) {
-  const tierBorder = idx.tier === 'official' ? 'border-violet-500/10 hover:border-violet-500/30' :
+  const tierBorder = idx.tier === 'official' ? 'border-violet-500/10 hover:border-info-400/30' :
     idx.tier === 'cap' ? 'border-blue-500/8 hover:border-blue-500/25' :
     'border-amber-500/8 hover:border-amber-500/25'
   return (
@@ -261,19 +261,19 @@ function HermesIndexCard({ idx, compact = false }: { idx: { name: string; icon: 
           <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${idx.avg}%`, background: `linear-gradient(90deg, ${idx.color}50, ${idx.color})` }} />
         </div>
         <div className="flex h-2 rounded-full overflow-hidden gap-px mb-1">
-          {idx.strong > 0 && <div className="bg-amber-400 rounded-sm" style={{ flex: idx.strong }} />}
-          {idx.good > 0 && <div className="bg-emerald-400 rounded-sm" style={{ flex: idx.good }} />}
+          {idx.strong > 0 && <div className="bg-gold-400 rounded-sm" style={{ flex: idx.strong }} />}
+          {idx.good > 0 && <div className="bg-success-400 rounded-sm" style={{ flex: idx.good }} />}
           {idx.neutral > 0 && <div className="bg-slate-500/80 rounded-sm" style={{ flex: idx.neutral }} />}
-          {idx.weak > 0 && <div className="bg-orange-400 rounded-sm" style={{ flex: idx.weak }} />}
-          {idx.bad > 0 && <div className="bg-red-400 rounded-sm" style={{ flex: idx.bad }} />}
+          {idx.weak > 0 && <div className="bg-warning-400 rounded-sm" style={{ flex: idx.weak }} />}
+          {idx.bad > 0 && <div className="bg-danger-400 rounded-sm" style={{ flex: idx.bad }} />}
         </div>
         {!compact && (
           <div className="flex flex-wrap justify-between text-[7px] text-text-quaternary">
-            <span className="text-amber-400">{idx.strong}</span>
-            <span className="text-emerald-400">{idx.good}</span>
-            <span className="text-slate-400">{idx.neutral}</span>
-            <span className="text-orange-400">{idx.weak}</span>
-            <span className="text-red-400">{idx.bad}</span>
+            <span className="text-gold-400">{idx.strong}</span>
+            <span className="text-success-400">{idx.good}</span>
+            <span className="text-text-tertiary">{idx.neutral}</span>
+            <span className="text-warning-400">{idx.weak}</span>
+            <span className="text-danger-400">{idx.bad}</span>
           </div>
         )}
       </div>
@@ -304,7 +304,7 @@ function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; a
         const textColor = s.avgScore <= 20 ? 'text-gold-300' :
           s.avgScore <= 30 ? 'text-success-400' :
           s.avgScore < 70 ? 'text-text-secondary' :
-          s.avgScore < 90 ? 'text-orange-400' : 'text-red-400'
+          s.avgScore < 90 ? 'text-warning-400' : 'text-danger-400'
         return (
           <div key={s.sector} className={`group relative rounded-xl border p-3 ${borderClass} bg-surface-2 backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] cursor-default overflow-hidden`}
             style={{ animationDelay: `${i * 40}ms` }}>
@@ -319,7 +319,7 @@ function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; a
               </div>
               <div className="flex items-end justify-between mt-2">
                 <span className={`text-lg font-black tabular-nums ${textColor}`}>{s.avgScore.toFixed(0)}</span>
-                <span className={`text-[11px] tabular-nums font-bold ${s.avgChange >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+                <span className={`text-[11px] tabular-nums font-bold ${s.avgChange >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                   {s.avgChange >= 0 ? '+' : ''}{s.avgChange.toFixed(2)}%
                 </span>
               </div>
@@ -369,7 +369,7 @@ function TopMovers({ title, items, color, icon }: {
               <span className="text-xs font-bold text-text-primary group-hover:text-white transition-colors">{item.symbol}</span>
               <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold border ${
                 (item.signalType === 'long' || item.signalType === 'strong_long') ? 'bg-success-400/10 text-success-400 border-success-400/20' :
-                (item.signalType === 'short' || item.signalType === 'strong_short') ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                (item.signalType === 'short' || item.signalType === 'strong_short') ? 'bg-danger-400/10 text-danger-400 border-danger-400/30' :
                 'bg-surface-3 text-text-tertiary border-stroke-subtle'
               }`}>{getSignalLabel(item.signalType)}</span>
             </div>
@@ -406,7 +406,7 @@ function TickerTape({ items }: { items: Array<{ symbol: string; price: number; c
           <span key={`${item.symbol}-${i}`} className="flex items-center gap-1.5 text-[10px]">
             <span className="font-bold text-text-secondary">{item.symbol}</span>
             <span className="text-text-tertiary tabular-nums font-mono">${item.price.toFixed(2)}</span>
-            <span className={`font-semibold tabular-nums ${item.change >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+            <span className={`font-semibold tabular-nums ${item.change >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
               {item.change >= 0 ? '▲' : '▼'}{Math.abs(item.change).toFixed(2)}%
             </span>
           </span>
@@ -479,7 +479,7 @@ export default function ModuleHermesIndex() {
     const longPct = (longs / n) * 100
     const shortPct = (shorts / n) * 100
     const direction = longPct > 45 ? 'LONG' : shortPct > 45 ? 'SHORT' : 'BEKLE'
-    const dirColor = direction === 'LONG' ? 'text-success-400' : direction === 'SHORT' ? 'text-red-400' : 'text-text-secondary'
+    const dirColor = direction === 'LONG' ? 'text-success-400' : direction === 'SHORT' ? 'text-danger-400' : 'text-text-secondary'
 
     const sectorMap = new Map<string, { scores: number[]; changes: number[]; aiScores: number[] }>()
     const fmpMap = new Map<string, FmpStock>()
@@ -706,20 +706,20 @@ export default function ModuleHermesIndex() {
           <div className="text-[10px] text-text-quaternary text-center mt-2 mb-3">
             Long: <span className="text-success-400 font-bold">{indexStats.longPct.toFixed(1)}%</span>
             {' | '}Notr: <span className="text-text-tertiary font-bold">{((indexStats.neutrals / indexStats.n) * 100).toFixed(1)}%</span>
-            {' | '}Short: <span className="text-red-400 font-bold">{indexStats.shortPct.toFixed(1)}%</span>
+            {' | '}Short: <span className="text-danger-400 font-bold">{indexStats.shortPct.toFixed(1)}%</span>
           </div>
           <div className="space-y-2.5">
-            <GaugeBar value={indexStats.avgScore} label="Ort. Teknik Skor" color={indexStats.avgScore <= 40 ? 'text-success-400' : indexStats.avgScore <= 60 ? 'text-text-secondary' : 'text-red-400'} subLabel="0=Alis baskisi, 100=Satis baskisi" />
-            <GaugeBar value={indexStats.avgAiScore} label="Ort. HERMES AI Skor" color={indexStats.avgAiScore >= 60 ? 'text-success-400' : indexStats.avgAiScore >= 40 ? 'text-text-secondary' : 'text-red-400'} subLabel="0=Kotu, 100=Mukemmel" />
+            <GaugeBar value={indexStats.avgScore} label="Ort. Teknik Skor" color={indexStats.avgScore <= 40 ? 'text-success-400' : indexStats.avgScore <= 60 ? 'text-text-secondary' : 'text-danger-400'} subLabel="0=Alis baskisi, 100=Satis baskisi" />
+            <GaugeBar value={indexStats.avgAiScore} label="Ort. HERMES AI Skor" color={indexStats.avgAiScore >= 60 ? 'text-success-400' : indexStats.avgAiScore >= 40 ? 'text-text-secondary' : 'text-danger-400'} subLabel="0=Kotu, 100=Mukemmel" />
           </div>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-2 stagger-4">
-          <StatCard title="Ort. Degisim" value={`${indexStats.avgChange >= 0 ? '+' : ''}${indexStats.avgChange.toFixed(2)}%`} icon="📈" color={indexStats.avgChange >= 0 ? 'text-success-400' : 'text-red-400'} />
-          <StatCard title="Ort. Risk" value={indexStats.avgRisk.toFixed(0)} icon="🛡️" color={indexStats.avgRisk <= 40 ? 'text-success-400' : indexStats.avgRisk <= 60 ? 'text-gold-300' : 'text-red-400'} sub={indexStats.avgRisk <= 40 ? 'Dusuk Risk' : indexStats.avgRisk <= 60 ? 'Orta Risk' : 'Yuksek Risk'} />
-          <StatCard title="Ort. RSI" value={indexStats.avgRsi.toFixed(1)} icon="📊" color={indexStats.avgRsi < 40 ? 'text-success-400' : indexStats.avgRsi > 60 ? 'text-red-400' : 'text-text-secondary'} sub={indexStats.avgRsi < 30 ? 'Asiri Satim' : indexStats.avgRsi > 70 ? 'Asiri Alim' : 'Normal'} />
-          <StatCard title="Ort. MFI" value={indexStats.avgMfi.toFixed(1)} icon="💰" color={indexStats.avgMfi < 40 ? 'text-success-400' : indexStats.avgMfi > 60 ? 'text-red-400' : 'text-text-secondary'} sub={indexStats.avgMfi < 20 ? 'Para Girisi' : indexStats.avgMfi > 80 ? 'Para Cikisi' : 'Dengeli'} />
+          <StatCard title="Ort. Degisim" value={`${indexStats.avgChange >= 0 ? '+' : ''}${indexStats.avgChange.toFixed(2)}%`} icon="📈" color={indexStats.avgChange >= 0 ? 'text-success-400' : 'text-danger-400'} />
+          <StatCard title="Ort. Risk" value={indexStats.avgRisk.toFixed(0)} icon="🛡️" color={indexStats.avgRisk <= 40 ? 'text-success-400' : indexStats.avgRisk <= 60 ? 'text-gold-300' : 'text-danger-400'} sub={indexStats.avgRisk <= 40 ? 'Dusuk Risk' : indexStats.avgRisk <= 60 ? 'Orta Risk' : 'Yuksek Risk'} />
+          <StatCard title="Ort. RSI" value={indexStats.avgRsi.toFixed(1)} icon="📊" color={indexStats.avgRsi < 40 ? 'text-success-400' : indexStats.avgRsi > 60 ? 'text-danger-400' : 'text-text-secondary'} sub={indexStats.avgRsi < 30 ? 'Asiri Satim' : indexStats.avgRsi > 70 ? 'Asiri Alim' : 'Normal'} />
+          <StatCard title="Ort. MFI" value={indexStats.avgMfi.toFixed(1)} icon="💰" color={indexStats.avgMfi < 40 ? 'text-success-400' : indexStats.avgMfi > 60 ? 'text-danger-400' : 'text-text-secondary'} sub={indexStats.avgMfi < 20 ? 'Para Girisi' : indexStats.avgMfi > 80 ? 'Para Cikisi' : 'Dengeli'} />
         </div>
       </div>
 
@@ -733,7 +733,7 @@ export default function ModuleHermesIndex() {
           <div className="flex items-center gap-3 text-[10px]">
             <span className="text-success-400 font-bold">{indexStats.longs} Long</span>
             <span className="text-text-tertiary">|</span>
-            <span className="text-red-400 font-bold">{indexStats.shorts} Short</span>
+            <span className="text-danger-400 font-bold">{indexStats.shorts} Short</span>
           </div>
         </div>
         <SignalDistBar counts={indexStats.signalCounts} total={indexStats.n} />
@@ -746,7 +746,7 @@ export default function ModuleHermesIndex() {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm">💓</span>
             <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Wall Street Nabzi</span>
-            {pulseData && <span className={`ml-auto text-[8px] px-1.5 py-0.5 rounded-full font-bold border ${pulseData.marketOpen ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-text-quaternary border-stroke-subtle'}`}>{pulseData.marketOpen ? 'CANLI' : 'KAPALI'}</span>}
+            {pulseData && <span className={`ml-auto text-[8px] px-1.5 py-0.5 rounded-full font-bold border ${pulseData.marketOpen ? 'bg-success-400/10 text-success-400 border-success-400/30' : 'bg-white/5 text-text-quaternary border-stroke-subtle'}`}>{pulseData.marketOpen ? 'CANLI' : 'KAPALI'}</span>}
           </div>
           {pulseData ? (
             <div className="flex flex-col items-center">
@@ -759,18 +759,18 @@ export default function ModuleHermesIndex() {
                     className="transition-all duration-1000" />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className={`text-2xl font-black tabular-nums ${pulseData.composite >= 60 ? 'text-success-400' : pulseData.composite <= 40 ? 'text-red-400' : 'text-text-secondary'}`}>
+                  <span className={`text-2xl font-black tabular-nums ${pulseData.composite >= 60 ? 'text-success-400' : pulseData.composite <= 40 ? 'text-danger-400' : 'text-text-secondary'}`}>
                     <AnimatedNumber value={pulseData.composite} decimals={0} />
                   </span>
                 </div>
               </div>
-              <span className={`text-xs font-bold ${pulseData.composite >= 60 ? 'text-success-400' : pulseData.composite <= 40 ? 'text-red-400' : 'text-text-tertiary'}`}>{pulseData.levelLabel}</span>
+              <span className={`text-xs font-bold ${pulseData.composite >= 60 ? 'text-success-400' : pulseData.composite <= 40 ? 'text-danger-400' : 'text-text-tertiary'}`}>{pulseData.levelLabel}</span>
               <div className="mt-2 w-full space-y-0.5">
                 {(pulseData.components || []).filter(c => c.available).slice(0, 5).map(c => (
                   <div key={c.id} className="flex items-center gap-1.5">
                     <span className="text-[8px] text-text-quaternary w-20 truncate">{c.name}</span>
                     <div className="flex-1 h-1 rounded-full bg-surface-3 overflow-hidden">
-                      <div className={`h-full rounded-full ${c.value >= 60 ? 'bg-emerald-500' : c.value >= 40 ? 'bg-slate-500' : 'bg-red-500'}`} style={{ width: `${c.value}%` }} />
+                      <div className={`h-full rounded-full ${c.value >= 60 ? 'bg-success-400' : c.value >= 40 ? 'bg-slate-500' : 'bg-danger-400'}`} style={{ width: `${c.value}%` }} />
                     </div>
                     <span className="text-[8px] text-text-tertiary font-mono w-5">{c.value.toFixed(0)}</span>
                   </div>
@@ -806,7 +806,7 @@ export default function ModuleHermesIndex() {
             const totalSig = signals.length || 1
             const pct = Math.round((posCount / totalSig) * 100)
             const bias = pct >= 65 ? 'POZITIF BEKLENTI' : pct <= 35 ? 'NEGATIF BEKLENTI' : 'NOTR BEKLENTI'
-            const biasColor = pct >= 65 ? 'text-success-400' : pct <= 35 ? 'text-red-400' : 'text-text-tertiary'
+            const biasColor = pct >= 65 ? 'text-success-400' : pct <= 35 ? 'text-danger-400' : 'text-text-tertiary'
             return (
               <div>
                 <div className="flex flex-col items-center mb-3">
@@ -817,7 +817,7 @@ export default function ModuleHermesIndex() {
                 <div className="space-y-1.5">
                   {signals.map((s, i) => (
                     <div key={i} className="flex items-center gap-2 text-[10px]">
-                      <span className={s.positive ? 'text-success-400' : 'text-red-400'}>{s.positive ? '▲' : '▼'}</span>
+                      <span className={s.positive ? 'text-success-400' : 'text-danger-400'}>{s.positive ? '▲' : '▼'}</span>
                       <span className="text-text-tertiary">{s.label}</span>
                     </div>
                   ))}
@@ -898,15 +898,15 @@ export default function ModuleHermesIndex() {
                 <div className="h-full bg-success-400/40 transition-all duration-1000 relative" style={{ width: `${breadthPct}%` }}>
                   <div className="absolute inset-0 opacity-40" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)', backgroundSize: '200% 100%', animation: 'bar-sweep 2.5s linear infinite' }} />
                 </div>
-                <div className="h-full bg-red-500/40 flex-1 transition-all duration-1000" />
+                <div className="h-full bg-danger-400/40 flex-1 transition-all duration-1000" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="text-[10px] font-bold text-text-secondary tabular-nums">{breadthPct.toFixed(0)}% / {(100 - breadthPct).toFixed(0)}%</span>
                 </div>
               </div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-black text-red-400 tabular-nums"><AnimatedNumber value={breadthDown} decimals={0} /></div>
-              <span className="text-[9px] text-red-400/50">Dusen</span>
+              <div className="text-lg font-black text-danger-400 tabular-nums"><AnimatedNumber value={breadthDown} decimals={0} /></div>
+              <span className="text-[9px] text-danger-400/50">Dusen</span>
             </div>
           </div>
           <div className="text-[9px] text-text-quaternary text-center">
@@ -933,7 +933,7 @@ export default function ModuleHermesIndex() {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-xl font-black tabular-nums ${aiConsensus >= 50 ? 'text-success-400' : aiConsensus >= 30 ? 'text-gold-300' : 'text-red-400'}`}>
+                <span className={`text-xl font-black tabular-nums ${aiConsensus >= 50 ? 'text-success-400' : aiConsensus >= 30 ? 'text-gold-300' : 'text-danger-400'}`}>
                   <AnimatedNumber value={aiConsensus} decimals={0} suffix="%" />
                 </span>
               </div>
@@ -952,7 +952,7 @@ export default function ModuleHermesIndex() {
       {/* ═══ AI TERMINAL OVERVIEW ═══ */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2 mb-2 sm:mb-4 stagger-6">
         <StatCard title="AI STRONG" value={indexStats.aiStrongCount} icon="⭐" color="text-gold-300" sub="Temel analiz guclu" />
-        <StatCard title="AI BAD" value={indexStats.aiBadCount} icon="⚠️" color="text-red-400" sub="Temel analiz kotu" />
+        <StatCard title="AI BAD" value={indexStats.aiBadCount} icon="⚠️" color="text-danger-400" sub="Temel analiz kotu" />
         <StatCard title="Toplam Mcap" value={formatMcap(indexStats.totalMcap)} icon="🏦" color="text-text-secondary" sub="Tum hisseler" />
         <div className="group relative bg-[#141414] rounded-xl border border-stroke-gold p-3.5 hover:border-stroke-gold transition-all duration-300 overflow-hidden">
           <div className="relative z-10">
@@ -983,7 +983,7 @@ export default function ModuleHermesIndex() {
               <>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-px flex-1 bg-gradient-to-r from-violet-500/25 to-transparent" />
-                  <span className="text-[9px] text-violet-400 font-bold uppercase tracking-wider">Resmi Endeksler</span>
+                  <span className="text-[9px] text-info-400 font-bold uppercase tracking-wider">Resmi Endeksler</span>
                   <div className="h-px flex-1 bg-gradient-to-l from-violet-500/25 to-transparent" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
@@ -997,7 +997,7 @@ export default function ModuleHermesIndex() {
               <>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-px flex-1 bg-gradient-to-r from-blue-500/25 to-transparent" />
-                  <span className="text-[9px] text-blue-400 font-bold uppercase tracking-wider">Market Cap Segmentleri</span>
+                  <span className="text-[9px] text-info-400 font-bold uppercase tracking-wider">Market Cap Segmentleri</span>
                   <div className="h-px flex-1 bg-gradient-to-l from-blue-500/25 to-transparent" />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
@@ -1011,7 +1011,7 @@ export default function ModuleHermesIndex() {
               <>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="h-px flex-1 bg-gradient-to-r from-amber-500/25 to-transparent" />
-                  <span className="text-[9px] text-amber-400 font-bold uppercase tracking-wider">Sektor Endeksleri</span>
+                  <span className="text-[9px] text-gold-400 font-bold uppercase tracking-wider">Sektor Endeksleri</span>
                   <div className="h-px flex-1 bg-gradient-to-l from-amber-500/25 to-transparent" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -1038,14 +1038,14 @@ export default function ModuleHermesIndex() {
         <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-4 hover:border-success-400/20 transition-all duration-500 gold-border-glow">
           <TopMovers title="En Cok Yukselenler" items={indexStats.topGainers} color="text-success-400" icon="🟢" />
         </div>
-        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-4 hover:border-red-500/20 transition-all duration-500 gold-border-glow">
-          <TopMovers title="En Cok Dusenler" items={indexStats.topLosers} color="text-red-400" icon="🔴" />
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-4 hover:border-danger-400/30 transition-all duration-500 gold-border-glow">
+          <TopMovers title="En Cok Dusenler" items={indexStats.topLosers} color="text-danger-400" icon="🔴" />
         </div>
         <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow">
           <TopMovers title="En Guclu LONG" items={indexStats.topStrongLongs} color="text-gold-300" icon="🏆" />
         </div>
         <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-4 hover:border-orange-500/20 transition-all duration-500 gold-border-glow">
-          <TopMovers title="En Guclu SHORT" items={indexStats.topStrongShorts} color="text-orange-400" icon="⚡" />
+          <TopMovers title="En Guclu SHORT" items={indexStats.topStrongShorts} color="text-warning-400" icon="⚡" />
         </div>
       </div>
 
@@ -1063,7 +1063,7 @@ export default function ModuleHermesIndex() {
               Terminal AI: <span className="text-text-tertiary font-semibold">{fmpStocks.length}</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-violet-400/50" />
+              <span className="w-1.5 h-1.5 rounded-full bg-info-400/50" />
               Sektorler: <span className="text-text-tertiary font-semibold">{indexStats.sectorStats.length}</span>
             </span>
           </div>

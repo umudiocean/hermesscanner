@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
           </div>
 
           {error && (
-            <p className="text-red-400 text-xs">{error}</p>
+            <p className="text-danger-400 text-xs">{error}</p>
           )}
 
           <button

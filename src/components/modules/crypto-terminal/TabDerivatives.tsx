@@ -46,7 +46,7 @@ export default function TabDerivatives() {
 
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[30vh] text-center">
-      <p className="text-sm text-red-400 mb-2">{error}</p>
+      <p className="text-sm text-danger-400 mb-2">{error}</p>
       <button onClick={() => window.location.reload()} className="px-4 py-2 rounded-xl bg-surface-3 text-text-secondary text-xs hover:bg-surface-3 transition-all">Yenile</button>
     </div>
   )
@@ -59,9 +59,9 @@ export default function TabDerivatives() {
           <span className="text-[10px] text-text-tertiary uppercase">Toplam OI (BTC)</span>
           <div className="text-base font-bold text-white tabular-nums mt-0.5">{totalOI.toLocaleString()}</div>
         </div>
-        <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 hover:border-emerald-500/20 hover:shadow-md hover:shadow-emerald-500/5 transition-all duration-300">
+        <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 hover:border-success-400/30 hover:shadow-md hover:shadow-emerald-500/5 transition-all duration-300">
           <span className="text-[10px] text-text-tertiary uppercase">Ort. Funding Rate</span>
-          <div className={`text-base font-bold tabular-nums mt-0.5 ${avgFunding >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+          <div className={`text-base font-bold tabular-nums mt-0.5 ${avgFunding >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
             {(avgFunding * 100).toFixed(4)}%
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function TabDerivatives() {
       {/* Funding Rate Heatmap */}
       <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <Activity size={16} className="text-amber-400" />
+          <Activity size={16} className="text-gold-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Funding Rate Haritasi</h3>
           <span className="text-[9px] text-text-tertiary ml-auto">Yesil = Short baskisi | Kirmizi = Long baskisi</span>
         </div>
@@ -87,16 +87,16 @@ export default function TabDerivatives() {
             const rate = entry.avgRate * 100
             const absRate = Math.abs(rate)
             const bgColor = rate >= 0.01
-              ? 'bg-red-500'
+              ? 'bg-danger-400'
               : rate >= 0.005
-                ? 'bg-red-500/60'
+                ? 'bg-danger-400/60'
                 : rate >= 0
-                  ? 'bg-red-500/30'
+                  ? 'bg-danger-400/30'
                   : rate >= -0.005
-                    ? 'bg-emerald-500/30'
+                    ? 'bg-success-400/30'
                     : rate >= -0.01
-                      ? 'bg-emerald-500/60'
-                      : 'bg-emerald-500'
+                      ? 'bg-success-400/60'
+                      : 'bg-success-400'
             const intensity = Math.min(1, absRate / 0.03)
             return (
               <div

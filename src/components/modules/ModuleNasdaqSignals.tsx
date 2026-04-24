@@ -190,14 +190,14 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     desc: 'Teknik + Temel + Dusuk Risk',
     teknikReq: 'LONG',
     aiReq: 'STRONG',
-    bg: 'bg-violet-500/15',
-    text: 'text-violet-300',
+    bg: 'bg-info-400/15',
+    text: 'text-info-400',
     border: 'border-violet-500/40',
     glow: 'shadow-violet-500/30',
     gradient: 'from-violet-500/25 to-indigo-500/10',
-    badgeBg: 'bg-violet-500/25',
+    badgeBg: 'bg-info-400/25',
     icon: '\u{1F48E}',
-    color: 'text-violet-300 bg-violet-500/15',
+    color: 'text-info-400 bg-info-400/15',
   },
   alpha_long: {
     label: 'ALPHA LONG',
@@ -266,13 +266,13 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     teknikReq: 'SHORT',
     aiReq: 'WEAK',
     bg: 'bg-orange-500/10',
-    text: 'text-orange-400',
-    border: 'border-orange-500/30',
+    text: 'text-warning-400',
+    border: 'border-warning-400/30',
     glow: 'shadow-orange-500/20',
     gradient: 'from-orange-500/20 to-amber-500/5',
     badgeBg: 'bg-orange-500/20',
     icon: '\u{26A0}\u{FE0F}',
-    color: 'text-orange-400 bg-orange-500/10',
+    color: 'text-warning-400 bg-orange-500/10',
   },
   smart_short: {
     label: 'SMART SHORT',
@@ -295,14 +295,14 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     desc: 'Teknik guclu satis + Temel zayif',
     teknikReq: 'SHORT',
     aiReq: 'WEAK',
-    bg: 'bg-red-500/10',
-    text: 'text-red-400',
-    border: 'border-red-500/30',
+    bg: 'bg-danger-400/10',
+    text: 'text-danger-400',
+    border: 'border-danger-400/30',
     glow: 'shadow-red-500/20',
     gradient: 'from-red-500/20 to-red-600/5',
-    badgeBg: 'bg-red-500/20',
+    badgeBg: 'bg-danger-400/20',
     icon: '\u{1F534}',
-    color: 'text-red-400 bg-red-500/10',
+    color: 'text-danger-400 bg-danger-400/10',
   },
   alpha_short: {
     label: 'ALPHA SHORT',
@@ -311,13 +311,13 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     teknikReq: 'SHORT',
     aiReq: 'BAD',
     bg: 'bg-red-600/15',
-    text: 'text-red-500',
+    text: 'text-danger-400',
     border: 'border-red-600/40',
     glow: 'shadow-red-600/30',
     gradient: 'from-red-600/25 to-rose-600/10',
     badgeBg: 'bg-red-600/25',
     icon: '\u{1F480}',
-    color: 'text-red-500 bg-red-600/15',
+    color: 'text-danger-400 bg-red-600/15',
   },
   confluence_sell: {
     label: 'CONFLUENCE SELL',
@@ -355,14 +355,14 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     desc: 'Temel zayif — alis yapma',
     teknikReq: 'BEKLE',
     aiReq: 'BAD',
-    bg: 'bg-amber-500/10',
-    text: 'text-amber-400',
-    border: 'border-amber-500/30',
+    bg: 'bg-gold-500/10',
+    text: 'text-gold-400',
+    border: 'border-stroke-gold-strong',
     glow: 'shadow-amber-500/15',
     gradient: 'from-amber-500/15 to-orange-500/5',
-    badgeBg: 'bg-amber-500/20',
+    badgeBg: 'bg-gold-500/20',
     icon: '\u{26A0}',
-    color: 'text-amber-400 bg-amber-500/10',
+    color: 'text-gold-400 bg-gold-500/10',
   },
 }
 
@@ -496,8 +496,8 @@ function TeknikBadge({ signalType }: { signalType: string }) {
     strong_long: 'text-gold-300 bg-gold-400/15 border-stroke-gold-strong',
     long: 'text-success-400 bg-success-400/15 border-success-400/30',
     neutral: 'text-text-tertiary bg-surface-3 border-stroke',
-    short: 'text-orange-400 bg-orange-500/15 border-orange-500/30',
-    strong_short: 'text-red-400 bg-red-500/15 border-red-500/30',
+    short: 'text-warning-400 bg-warning-400/15 border-warning-400/30',
+    strong_short: 'text-danger-400 bg-danger-400/15 border-danger-400/30',
   }
   return (
     <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full border ${colors[signalType] || colors['neutral']}`}>
@@ -512,8 +512,8 @@ function AiBadge({ signal, score }: { signal: string; score: number }) {
     'STRONG': 'text-gold-300 bg-gold-400/15 border-stroke-gold-strong',
     'GOOD': 'text-success-400 bg-success-400/15 border-success-400/30',
     'NEUTRAL': 'text-text-tertiary bg-surface-3 border-stroke',
-    'WEAK': 'text-orange-400 bg-orange-500/15 border-orange-500/30',
-    'BAD': 'text-red-400 bg-red-500/15 border-red-500/30',
+    'WEAK': 'text-warning-400 bg-warning-400/15 border-warning-400/30',
+    'BAD': 'text-danger-400 bg-danger-400/15 border-danger-400/30',
   }
   const labels: Record<string, string> = {
     'STRONG': 'Guclu',
@@ -882,15 +882,15 @@ export default function ModuleNasdaqSignals() {
       {(signalsPaused || marketRegime === 'RISK_OFF' || marketRegime === 'CRISIS') && (
         <div className={`mb-3 rounded-xl border p-3 flex items-center gap-3 ${
           marketRegime === 'CRISIS'
-            ? 'bg-red-500/10 border-red-500/30'
+            ? 'bg-danger-400/10 border-danger-400/30'
             : marketRegime === 'RISK_OFF'
               ? 'bg-orange-500/10 border-orange-500/25'
-              : 'bg-amber-500/8 border-amber-500/20'
+              : 'bg-gold-500/8 border-amber-500/20'
         }`}>
           <span className="text-xl shrink-0">{marketRegime === 'CRISIS' ? '\u{1F6A8}' : '\u{26A0}\u{FE0F}'}</span>
           <div className="flex-1 min-w-0">
             <p className={`text-xs font-bold ${
-              marketRegime === 'CRISIS' ? 'text-red-400' : 'text-orange-400'
+              marketRegime === 'CRISIS' ? 'text-danger-400' : 'text-warning-400'
             }`}>
               {signalsPaused ? 'SIGNALS PAUSED' : `${marketRegime.replace('_', ' ')} REGIME`}
               {vixValue !== null && <span className="ml-2 font-normal opacity-70">VIX: {vixValue.toFixed(1)}</span>}
@@ -957,7 +957,7 @@ export default function ModuleNasdaqSignals() {
             onClick={() => setRevisionFilter('down')}
             className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
               revisionFilter === 'down'
-                ? 'bg-red-500/12 text-red-400 border-red-500/30'
+                ? 'bg-danger-400/12 text-danger-400 border-danger-400/30'
                 : 'bg-surface-3/50 text-text-tertiary border-stroke-gold hover:bg-surface-3/80'
             }`}
           >
@@ -1000,7 +1000,7 @@ export default function ModuleNasdaqSignals() {
           <div className="ml-auto flex items-center gap-2">
             {conflictCount > 0 && (
               <span
-                className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-amber-500/10 border border-amber-500/25 text-amber-300"
+                className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-gold-500/10 border border-amber-500/25 text-gold-300"
                 title="Teknik ve HERMES AI yonu celisen senaryo adedi. Bu satirlar 6-sinyal kontrati nedeniyle listede yer almaz."
               >
                 Conflict {conflictCount}
@@ -1026,9 +1026,9 @@ export default function ModuleNasdaqSignals() {
 
       {/* Trade AI verisi yok - once tara */}
       {!loading52w && results52w.length === 0 && (
-        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-4">
-          <p className="text-amber-400 text-sm font-semibold">Trade AI verisi henuz yuklenmedi</p>
-          <p className="text-amber-400/70 text-xs mt-1">
+        <div className="bg-gold-500/10 border border-stroke-gold-strong rounded-xl p-4 mb-4">
+          <p className="text-gold-400 text-sm font-semibold">Trade AI verisi henuz yuklenmedi</p>
+          <p className="text-gold-400/70 text-xs mt-1">
             AI SIGNALS, Trade AI ve Terminal AI verilerini birlestirir. Lutfen once TRADE AI modulune gidip Tara butonuna basin veya sayfa yuklenene kadar bekleyin.
           </p>
         </div>
@@ -1036,20 +1036,20 @@ export default function ModuleNasdaqSignals() {
 
       {/* FMP (Terminal AI) yukleniyor */}
       {results52w.length > 0 && loadingFmp && !fmpError && (
-        <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3 mb-4 flex items-center gap-3">
+        <div className="bg-info-400/10 border border-info-400/30 rounded-xl p-3 mb-4 flex items-center gap-3">
           <div className="w-5 h-5 border-2 border-violet-400/40 border-t-violet-400 rounded-full animate-spin shrink-0" />
-          <p className="text-violet-300 text-sm">FMP (Terminal AI) verisi yukleniyor...</p>
+          <p className="text-info-400 text-sm">FMP (Terminal AI) verisi yukleniyor...</p>
         </div>
       )}
 
       {/* FMP Hata - Yeniden Dene */}
       {fmpError && results52w.length > 0 && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
-          <p className="text-red-400 text-sm font-semibold">FMP (Terminal AI) verisi alinamadi</p>
-          <p className="text-red-400/60 text-xs mt-1">{fmpError}</p>
+        <div className="bg-danger-400/10 border border-danger-400/30 rounded-xl p-4 mb-4">
+          <p className="text-danger-400 text-sm font-semibold">FMP (Terminal AI) verisi alinamadi</p>
+          <p className="text-danger-400/60 text-xs mt-1">{fmpError}</p>
           <button
             onClick={() => setFmpRetryCount(c => c + 1)}
-            className="mt-2 px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/30 transition-colors"
+            className="mt-2 px-3 py-1.5 rounded-lg bg-danger-400/20 text-danger-400 text-xs font-medium hover:bg-danger-400/30 transition-colors"
           >
             Yeniden Dene
           </button>
@@ -1199,8 +1199,8 @@ export default function ModuleNasdaqSignals() {
                             onClick={(e) => handleToggleWatchlist(e, item.symbol)}
                             className={`shrink-0 p-0.5 rounded transition-all duration-200 ${
                               watchlist.has(item.symbol)
-                                ? 'text-amber-400 hover:text-amber-300'
-                                : 'text-text-quaternary hover:text-amber-400/60'
+                                ? 'text-gold-400 hover:text-gold-300'
+                                : 'text-text-quaternary hover:text-gold-400/60'
                             }`}
                             title={watchlist.has(item.symbol) ? 'Watchlist\'ten cikar' : 'Watchlist\'e ekle'}
                           >
@@ -1237,7 +1237,7 @@ export default function ModuleNasdaqSignals() {
                             <span className="text-[9px] text-success-400/70" title="LONG bolgelerine yaklasma">↓L</span>
                           )}
                           {item.teknikScore >= 87 && item.teknikScore <= 91 && (
-                            <span className="text-[9px] text-red-400/70" title="SHORT bolgelerine yaklasma">↑S</span>
+                            <span className="text-[9px] text-danger-400/70" title="SHORT bolgelerine yaklasma">↑S</span>
                           )}
                         </div>
                       </td>
@@ -1256,16 +1256,16 @@ export default function ModuleNasdaqSignals() {
                       <td className="px-3 py-2.5 text-center">
                         <div className="flex flex-col items-center leading-tight">
                           <span className={`text-[11px] tabular-nums font-medium ${
-                            item.signalConfidence >= 70 ? 'text-success-400/70' : item.signalConfidence >= 50 ? 'text-amber-400/70' : 'text-text-quaternary'
+                            item.signalConfidence >= 70 ? 'text-success-400/70' : item.signalConfidence >= 50 ? 'text-gold-400/70' : 'text-text-quaternary'
                           }`}>{item.signalConfidence > 0 ? `${item.signalConfidence}%` : '—'}</span>
                           <span className={`text-[9px] tabular-nums ${
                             (item.analystEpsRevision30d || 0) > 0 ? 'text-success-400/80' :
-                            (item.analystEpsRevision30d || 0) < 0 ? 'text-red-400/80' : 'text-text-quaternary'
+                            (item.analystEpsRevision30d || 0) < 0 ? 'text-danger-400/80' : 'text-text-quaternary'
                           }`}>
                             R30 {(item.analystEpsRevision30d || 0) !== 0 ? `${(item.analystEpsRevision30d || 0) > 0 ? '+' : ''}${(item.analystEpsRevision30d || 0).toFixed(1)}%` : '—'}
                           </span>
                           {item.earningsDays !== null && Math.abs(item.earningsDays) <= 7 && (
-                            <span className="text-[9px] text-red-300/80 font-semibold">
+                            <span className="text-[9px] text-danger-300/80 font-semibold">
                               E{item.earningsDays >= 0 ? '+' : ''}{item.earningsDays}d
                             </span>
                           )}
@@ -1278,9 +1278,9 @@ export default function ModuleNasdaqSignals() {
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${
                             item.valuationLabel === 'COK UCUZ' ? 'text-success-400 bg-success-400/15' :
                             item.valuationLabel === 'UCUZ' ? 'text-success-400 bg-success-400/10' :
-                            item.valuationLabel === 'NORMAL' ? 'text-slate-300 bg-surface-3' :
-                            item.valuationLabel === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
-                            item.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
+                            item.valuationLabel === 'NORMAL' ? 'text-text-secondary bg-surface-3' :
+                            item.valuationLabel === 'PAHALI' ? 'text-warning-400 bg-orange-500/10' :
+                            item.valuationLabel === 'COK PAHALI' ? 'text-danger-400 bg-danger-400/10' :
                             'text-text-quaternary bg-surface-2'
                           }`}>{item.valuationLabel}</span>
                         ) : <span className="text-text-tertiary text-[10px]">—</span>}
@@ -1293,7 +1293,7 @@ export default function ModuleNasdaqSignals() {
 
                       {/* Change % */}
                       <td className="px-3 py-2.5 text-right">
-                        <span className={`text-xs font-semibold tabular-nums ${item.changePercent >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+                        <span className={`text-xs font-semibold tabular-nums ${item.changePercent >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                           {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
                         </span>
                       </td>
@@ -1307,7 +1307,7 @@ export default function ModuleNasdaqSignals() {
                       <td className="px-3 py-2.5 text-right hidden xl:table-cell">
                         {item.targetPrice != null ? (
                           <span className={`text-xs font-mono font-semibold ${
-                            item.targetPrice > item.price ? 'text-success-400' : 'text-red-400'
+                            item.targetPrice > item.price ? 'text-success-400' : 'text-danger-400'
                           }`}>${item.targetPrice.toFixed(2)}</span>
                         ) : <span className="text-text-tertiary text-[10px]">—</span>}
                       </td>
@@ -1315,7 +1315,7 @@ export default function ModuleNasdaqSignals() {
                       {/* Floor Price */}
                       <td className="px-3 py-2.5 text-right hidden xl:table-cell">
                         {item.floorPrice != null ? (
-                          <span className="text-xs font-mono text-red-400/80">${item.floorPrice.toFixed(2)}</span>
+                          <span className="text-xs font-mono text-danger-400/80">${item.floorPrice.toFixed(2)}</span>
                         ) : <span className="text-text-tertiary text-[10px]">—</span>}
                       </td>
 
@@ -1324,7 +1324,7 @@ export default function ModuleNasdaqSignals() {
                         {item.riskReward != null ? (
                           <span className={`text-xs font-mono font-bold ${
                             item.riskReward >= 2 ? 'text-success-400' :
-                            item.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+                            item.riskReward >= 1 ? 'text-gold-300' : 'text-danger-400'
                           }`}>{item.riskReward.toFixed(1)}</span>
                         ) : <span className="text-text-tertiary text-[10px]">—</span>}
                       </td>

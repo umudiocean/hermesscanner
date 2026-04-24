@@ -164,7 +164,7 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
       {/* Coin Selector */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Eye size={16} className="text-amber-400" />
+          <Eye size={16} className="text-gold-400" />
           <h3 className="text-sm font-bold text-white">WHALE TRACKER</h3>
         </div>
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
@@ -174,14 +174,14 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
               onClick={() => setSelectedCoin(coin)}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap ${
                 selectedCoin.id === coin.id
-                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                  ? 'bg-gold-500/15 text-gold-300 border border-stroke-gold-strong'
                   : 'text-text-tertiary hover:text-text-secondary border border-transparent'
               }`}
             >
               {coin.symbol}
             </button>
           ))}
-          <button onClick={loadData} className="ml-2 p-1.5 rounded-xl text-text-tertiary hover:text-amber-400 hover:bg-amber-500/10 hover:shadow-sm hover:shadow-amber-500/10 transition-all duration-300">
+          <button onClick={loadData} className="ml-2 p-1.5 rounded-xl text-text-tertiary hover:text-gold-400 hover:bg-gold-500/10 hover:shadow-sm hover:shadow-amber-500/10 transition-all duration-300">
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
@@ -189,7 +189,7 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
 
       {loading && (
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />
         </div>
       )}
 
@@ -206,7 +206,7 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
             </div>
             <div className="text-right">
               <div className="text-sm font-bold text-white tabular-nums">{formatPrice(whaleData.price)}</div>
-              <span className={`text-xs tabular-nums ${whaleData.change24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-xs tabular-nums ${whaleData.change24h >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                 {whaleData.change24h >= 0 ? '+' : ''}{whaleData.change24h.toFixed(2)}%
               </span>
             </div>
@@ -214,13 +214,13 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
 
           {/* Flow Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-            <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 hover:border-emerald-500/20 hover:shadow-md hover:shadow-emerald-500/5 transition-all duration-300">
+            <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 hover:border-success-400/30 hover:shadow-md hover:shadow-emerald-500/5 transition-all duration-300">
               <div className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Net Akis Tahmini</div>
-              <div className={`text-base sm:text-lg font-bold ${whaleData.netFlow >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <div className={`text-base sm:text-lg font-bold ${whaleData.netFlow >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                 {whaleData.netFlow >= 0 ? '+' : ''}{formatUSD(Math.abs(whaleData.netFlow))}
               </div>
               <div className="flex items-center gap-1 mt-1">
-                {whaleData.netFlow >= 0 ? <ArrowUpRight size={10} className="text-emerald-400" /> : <ArrowDownRight size={10} className="text-red-400" />}
+                {whaleData.netFlow >= 0 ? <ArrowUpRight size={10} className="text-success-400" /> : <ArrowDownRight size={10} className="text-danger-400" />}
                 <span className="text-[9px] text-text-tertiary">Momentum bazli</span>
               </div>
             </div>
@@ -256,8 +256,8 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
             <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] text-emerald-400 font-medium">Alis {buyPercent.toFixed(0)}%</span>
-                  <span className="text-[10px] text-red-400 font-medium">Satis {(100 - buyPercent).toFixed(0)}%</span>
+                  <span className="text-[10px] text-success-400 font-medium">Alis {buyPercent.toFixed(0)}%</span>
+                  <span className="text-[10px] text-danger-400 font-medium">Satis {(100 - buyPercent).toFixed(0)}%</span>
                 </div>
                 <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden flex">
                   <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-l-full transition-all duration-700" style={{ width: `${buyPercent}%` }} />
@@ -267,14 +267,14 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
             </div>
             <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs">
               <div className="flex items-center gap-2">
-                <TrendingUp size={12} className="text-emerald-400" />
+                <TrendingUp size={12} className="text-success-400" />
                 <span className="text-text-tertiary">Alis Baskisi:</span>
-                <span className="text-emerald-400 font-bold">{formatUSD(whaleData.buyPressureProxy)}</span>
+                <span className="text-success-400 font-bold">{formatUSD(whaleData.buyPressureProxy)}</span>
               </div>
               <div className="flex items-center gap-2">
-                <TrendingDown size={12} className="text-red-400" />
+                <TrendingDown size={12} className="text-danger-400" />
                 <span className="text-text-tertiary">Satis Baskisi:</span>
-                <span className="text-red-400 font-bold">{formatUSD(whaleData.sellPressureProxy)}</span>
+                <span className="text-danger-400 font-bold">{formatUSD(whaleData.sellPressureProxy)}</span>
               </div>
             </div>
           </div>
@@ -283,7 +283,7 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
           <div className="bg-surface-3 rounded-2xl border border-stroke-subtle overflow-hidden">
             <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-b border-stroke-subtle">
               <div className="flex items-center gap-2">
-                <BarChart3 size={14} className="text-amber-400/60" />
+                <BarChart3 size={14} className="text-gold-400/60" />
                 <span className="text-xs font-bold text-text-secondary">BORSA HACIM DAGILIMI — {whaleData.symbol}</span>
               </div>
               <span className="text-[9px] text-text-tertiary">Top {whaleData.topExchangeVolume.length} borsa</span>
@@ -300,7 +300,7 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
                   <div key={idx} className="flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2 sm:py-2.5 hover:bg-surface-2 transition-colors">
                     <span className="text-[10px] text-text-tertiary w-5 text-right tabular-nums">{idx + 1}</span>
                     <div className="flex items-center gap-2 w-32 min-w-[100px]">
-                      <div className={`w-2 h-2 rounded-full ${ex.trustScore === 'green' ? 'bg-emerald-400' : ex.trustScore === 'yellow' ? 'bg-amber-400' : 'bg-white/20'}`} />
+                      <div className={`w-2 h-2 rounded-full ${ex.trustScore === 'green' ? 'bg-success-400' : ex.trustScore === 'yellow' ? 'bg-gold-400' : 'bg-white/20'}`} />
                       <span className="text-xs text-text-secondary font-medium truncate">{ex.name}</span>
                     </div>
                     <div className="flex-1">

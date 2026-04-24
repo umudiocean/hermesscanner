@@ -73,11 +73,11 @@ export function getCryptoScoreLevel(score: number): CryptoScoreLevel {
 
 export function getCryptoScoreColor(level: CryptoScoreLevel): string {
   switch (level) {
-    case 'STRONG': return 'text-amber-400'
-    case 'GOOD': return 'text-emerald-400'
-    case 'NEUTRAL': return 'text-slate-300'
-    case 'WEAK': return 'text-orange-400'
-    case 'BAD': return 'text-red-400'
+    case 'STRONG': return 'text-gold-400'
+    case 'GOOD': return 'text-success-400'
+    case 'NEUTRAL': return 'text-text-secondary'
+    case 'WEAK': return 'text-warning-400'
+    case 'BAD': return 'text-danger-400'
   }
 }
 

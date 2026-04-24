@@ -69,8 +69,8 @@ function RadialGauge({ value, size = 220 }: { value: number; size?: number }) {
 // ─── Component Bar ────────────────────────────────────────────────
 
 function ComponentBar({ name, value, weight, icon, available }: { name: string; value: number; weight: number; icon: React.ReactNode; available: boolean }) {
-  const color = !available ? 'bg-white/10' : value >= 70 ? 'bg-emerald-500' : value >= 50 ? 'bg-gold-400' : value >= 30 ? 'bg-orange-400' : 'bg-red-500'
-  const textColor = !available ? 'text-text-quaternary' : value >= 70 ? 'text-emerald-400' : value >= 50 ? 'text-gold-300' : value >= 30 ? 'text-orange-400' : 'text-red-400'
+  const color = !available ? 'bg-white/10' : value >= 70 ? 'bg-success-400' : value >= 50 ? 'bg-gold-400' : value >= 30 ? 'bg-warning-400' : 'bg-danger-400'
+  const textColor = !available ? 'text-text-quaternary' : value >= 70 ? 'text-success-400' : value >= 50 ? 'text-gold-300' : value >= 30 ? 'text-warning-400' : 'text-danger-400'
 
   return (
     <div className={`flex items-center gap-2 py-1 ${!available ? 'opacity-40' : ''}`}>
@@ -98,25 +98,25 @@ function BreadthPanel({ data }: { data: PulseData }) {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <MiniMetric label="Yukselen" value={`${b.advancing ?? 0}`} sub={`${advPct}%`} color="text-emerald-400" />
-      <MiniMetric label="Dusen" value={`${b.declining ?? 0}`} sub={`${decPct}%`} color="text-red-400" />
+      <MiniMetric label="Yukselen" value={`${b.advancing ?? 0}`} sub={`${advPct}%`} color="text-success-400" />
+      <MiniMetric label="Dusen" value={`${b.declining ?? 0}`} sub={`${decPct}%`} color="text-danger-400" />
       <MiniMetric label="52H Zirve" value={`${b.newHighs ?? 0}`} sub={`yakin`} color="text-gold-300" />
-      <MiniMetric label="52H Dip" value={`${b.newLows ?? 0}`} sub={`yakin`} color="text-red-400" />
-      <MiniMetric label="A/D Orani" value={adRatio.toFixed(2)} sub="" color={adRatio > 1 ? 'text-emerald-400' : 'text-red-400'} />
-      <MiniMetric label="Orta Nokta Ustu" value={`${midPct}%`} sub={`${b.aboveMidpoint ?? 0} hisse`} color={(b.aboveMidpointPct ?? 0) > 0.5 ? 'text-emerald-400' : 'text-red-400'} />
+      <MiniMetric label="52H Dip" value={`${b.newLows ?? 0}`} sub={`yakin`} color="text-danger-400" />
+      <MiniMetric label="A/D Orani" value={adRatio.toFixed(2)} sub="" color={adRatio > 1 ? 'text-success-400' : 'text-danger-400'} />
+      <MiniMetric label="Orta Nokta Ustu" value={`${midPct}%`} sub={`${b.aboveMidpoint ?? 0} hisse`} color={(b.aboveMidpointPct ?? 0) > 0.5 ? 'text-success-400' : 'text-danger-400'} />
       <MiniMetric label="Toplam" value={`${b.total}`} sub="hisse" color="text-text-secondary" />
       <MiniMetric label="Degismez" value={`${b.unchanged ?? 0}`} sub="" color="text-text-tertiary" />
 
       {/* Stacked bar */}
       <div className="col-span-2 lg:col-span-4 mt-1">
         <div className="h-4 rounded-full overflow-hidden flex bg-surface-3">
-          <div className="bg-emerald-500/80 transition-all duration-500" style={{ width: `${advPct}%` }} />
+          <div className="bg-success-400/80 transition-all duration-500" style={{ width: `${advPct}%` }} />
           <div className="bg-white/10 transition-all duration-500" style={{ width: `${b.total > 0 ? ((b.unchanged / b.total) * 100) : 0}%` }} />
-          <div className="bg-red-500/80 transition-all duration-500" style={{ width: `${decPct}%` }} />
+          <div className="bg-danger-400/80 transition-all duration-500" style={{ width: `${decPct}%` }} />
         </div>
         <div className="flex justify-between mt-1 text-[9px]">
-          <span className="text-emerald-400">Yukselen {advPct}%</span>
-          <span className="text-red-400">Dusen {decPct}%</span>
+          <span className="text-success-400">Yukselen {advPct}%</span>
+          <span className="text-danger-400">Dusen {decPct}%</span>
         </div>
       </div>
     </div>
@@ -132,12 +132,12 @@ function SmartMoneyPanel({ data }: { data: PulseData }) {
   const cRatio = sm.congressRatio ?? 50
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-      <MiniMetric label="Insider Alis" value={`${sm.insiderNetBuys ?? 0}`} sub="islem" color="text-emerald-400" />
-      <MiniMetric label="Insider Satis" value={`${sm.insiderNetSells ?? 0}`} sub="islem" color="text-red-400" />
-      <MiniMetric label="Insider Oran" value={`${iRatio.toFixed(0)}%`} sub="alis" color={iRatio > 50 ? 'text-emerald-400' : 'text-red-400'} />
-      <MiniMetric label="Kongre Alis" value={`${sm.congressBuys ?? 0}`} sub="" color="text-emerald-400" />
-      <MiniMetric label="Kongre Satis" value={`${sm.congressSells ?? 0}`} sub="" color="text-red-400" />
-      <MiniMetric label="Kongre Oran" value={`${cRatio.toFixed(0)}%`} sub="alis" color={cRatio > 50 ? 'text-emerald-400' : 'text-red-400'} />
+      <MiniMetric label="Insider Alis" value={`${sm.insiderNetBuys ?? 0}`} sub="islem" color="text-success-400" />
+      <MiniMetric label="Insider Satis" value={`${sm.insiderNetSells ?? 0}`} sub="islem" color="text-danger-400" />
+      <MiniMetric label="Insider Oran" value={`${iRatio.toFixed(0)}%`} sub="alis" color={iRatio > 50 ? 'text-success-400' : 'text-danger-400'} />
+      <MiniMetric label="Kongre Alis" value={`${sm.congressBuys ?? 0}`} sub="" color="text-success-400" />
+      <MiniMetric label="Kongre Satis" value={`${sm.congressSells ?? 0}`} sub="" color="text-danger-400" />
+      <MiniMetric label="Kongre Oran" value={`${cRatio.toFixed(0)}%`} sub="alis" color={cRatio > 50 ? 'text-success-400' : 'text-danger-400'} />
     </div>
   )
 }
@@ -151,10 +151,10 @@ function EarningsPanel({ data }: { data: PulseData }) {
   const avgSurp = e.avgSurprise ?? 0
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <MiniMetric label="Beat" value={`${e.beatCount ?? 0}`} sub={`${beatRate.toFixed(0)}%`} color="text-emerald-400" />
-      <MiniMetric label="Miss" value={`${e.missCount ?? 0}`} sub="" color="text-red-400" />
-      <MiniMetric label="Ort. Surpriz" value={`${avgSurp > 0 ? '+' : ''}${avgSurp.toFixed(1)}%`} sub="" color={avgSurp > 0 ? 'text-emerald-400' : 'text-red-400'} />
-      <MiniMetric label="Trend" value={e.trend === 'improving' ? 'Iyilesiyor' : e.trend === 'declining' ? 'Kotulesyor' : 'Sabit'} sub="" color={e.trend === 'improving' ? 'text-emerald-400' : e.trend === 'declining' ? 'text-red-400' : 'text-text-tertiary'} />
+      <MiniMetric label="Beat" value={`${e.beatCount ?? 0}`} sub={`${beatRate.toFixed(0)}%`} color="text-success-400" />
+      <MiniMetric label="Miss" value={`${e.missCount ?? 0}`} sub="" color="text-danger-400" />
+      <MiniMetric label="Ort. Surpriz" value={`${avgSurp > 0 ? '+' : ''}${avgSurp.toFixed(1)}%`} sub="" color={avgSurp > 0 ? 'text-success-400' : 'text-danger-400'} />
+      <MiniMetric label="Trend" value={e.trend === 'improving' ? 'Iyilesiyor' : e.trend === 'declining' ? 'Kotulesyor' : 'Sabit'} sub="" color={e.trend === 'improving' ? 'text-success-400' : e.trend === 'declining' ? 'text-danger-400' : 'text-text-tertiary'} />
     </div>
   )
 }
@@ -181,11 +181,11 @@ function SqueezePanel({ data, onSelectSymbol }: { data: PulseData; onSelectSymbo
           {list.slice(0, 15).map(s => (
             <tr key={s.symbol} className="border-b border-white/[0.03] hover:bg-surface-2 cursor-pointer" onClick={() => onSelectSymbol?.(s.symbol)}>
               <td className="py-1.5 px-1 font-mono text-gold-300">{s.symbol}</td>
-              <td className="py-1.5 px-1 text-right text-orange-400">{(s.shortFloat ?? 0).toFixed(1)}%</td>
-              <td className={`py-1.5 px-1 text-right ${(s.dayChange ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'}`}>{(s.dayChange ?? 0) > 0 ? '+' : ''}{(s.dayChange ?? 0).toFixed(2)}%</td>
+              <td className="py-1.5 px-1 text-right text-warning-400">{(s.shortFloat ?? 0).toFixed(1)}%</td>
+              <td className={`py-1.5 px-1 text-right ${(s.dayChange ?? 0) > 0 ? 'text-success-400' : 'text-danger-400'}`}>{(s.dayChange ?? 0) > 0 ? '+' : ''}{(s.dayChange ?? 0).toFixed(2)}%</td>
               <td className={`py-1.5 px-1 text-right ${(s.volumeSpike ?? 0) > 2 ? 'text-gold-300' : 'text-text-tertiary'}`}>{(s.volumeSpike ?? 0).toFixed(1)}x</td>
               <td className="py-1.5 px-1 text-right">
-                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${s.squeezeScore >= 60 ? 'bg-red-500/20 text-red-300' : s.squeezeScore >= 40 ? 'bg-orange-500/15 text-orange-300' : 'bg-white/5 text-text-tertiary'}`}>
+                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${s.squeezeScore >= 60 ? 'bg-danger-400/20 text-danger-300' : s.squeezeScore >= 40 ? 'bg-warning-400/15 text-orange-300' : 'bg-white/5 text-text-tertiary'}`}>
                   {s.squeezeScore}
                 </span>
               </td>
@@ -231,10 +231,10 @@ function ComponentHealthPanel({ data }: { data: PulseData }) {
     const status = !c.available ? 'BEKLEME' : fallback ? 'PROXY' : 'AKTIF'
     const statusColor =
       status === 'AKTIF'
-        ? 'text-emerald-400'
+        ? 'text-success-400'
         : status === 'PROXY'
-          ? 'text-amber-300'
-          : 'text-slate-400'
+          ? 'text-gold-300'
+          : 'text-text-tertiary'
     return { ...c, status, statusColor }
   })
 
@@ -327,7 +327,7 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
   const availableCount = useMemo(() => pulse?.components.filter(c => c.available).length || 0, [pulse])
 
   if (loading) return <PulseLoadingSkeleton />
-  if (error) return <div className="text-center py-12 text-red-400/60"><AlertTriangle className="mx-auto mb-2" size={24} /><p className="text-sm">Pulse yuklenemedi: {error}</p><button onClick={fetchPulse} className="mt-3 px-4 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-xs font-medium hover:from-violet-500 hover:to-blue-500 transition-all">Tekrar Dene</button></div>
+  if (error) return <div className="text-center py-12 text-danger-400/60"><AlertTriangle className="mx-auto mb-2" size={24} /><p className="text-sm">Pulse yuklenemedi: {error}</p><button onClick={fetchPulse} className="mt-3 px-4 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-xs font-medium hover:from-violet-500 hover:to-blue-500 transition-all">Tekrar Dene</button></div>
   if (!pulse) return null
 
   const safeComposite = typeof pulse.composite === 'number' && !isNaN(pulse.composite) ? pulse.composite : 50
@@ -347,17 +347,17 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             <span>{availableCount}/12 bilesen aktif</span>
             <span>•</span>
             <span>{lastUpdate}</span>
-            {!pulse.marketOpen && <><span>•</span><span className="text-orange-400/60">Kapali — son kapanis verileri</span></>}
+            {!pulse.marketOpen && <><span>•</span><span className="text-warning-400/60">Kapali — son kapanis verileri</span></>}
             <button onClick={fetchPulse} className="text-text-quaternary hover:text-text-tertiary transition-colors ml-1"><RefreshCw size={10} /></button>
           </div>
-          {pulse.marketOpen && <span className="mt-1 text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">MARKET OPEN</span>}
+          {pulse.marketOpen && <span className="mt-1 text-[9px] px-2 py-0.5 rounded-full bg-success-400/10 text-success-400 border border-success-400/30">MARKET OPEN</span>}
           {!pulse.marketOpen && <span className="mt-1 text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-text-quaternary border border-stroke-subtle">MARKET CLOSED</span>}
         </div>
 
         {/* Component Breakdown */}
         <div className="bg-surface-1 rounded-2xl border border-stroke-subtle p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Brain size={14} className="text-violet-400" />
+            <Brain size={14} className="text-info-400" />
             <span className="text-xs font-semibold text-text-secondary tracking-wider">BILESEN DAGILIMI</span>
           </div>
           <div className="space-y-0.5">
@@ -418,15 +418,15 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
   const regime = fc.regime || 'NORMAL'
   const isGolden = fc.isGoldenSignal
 
-  const biasColor = fc.bias === 'POZITIF' ? 'text-emerald-400' : fc.bias === 'NEGATIF' ? 'text-red-400' : 'text-text-tertiary'
+  const biasColor = fc.bias === 'POZITIF' ? 'text-success-400' : fc.bias === 'NEGATIF' ? 'text-danger-400' : 'text-text-tertiary'
 
   const vixComp = data.components.find(c => c.id === 'vix')
   const vixRaw = vixComp?.rawValue
 
   const regimeConfig: Record<string, { label: string; color: string; bg: string; desc: string }> = {
-    EXTREME: { label: 'EXTREME VOL', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', desc: 'Yuksek volatilite — mean reversion agirligi arttirildi' },
-    HIGH_VOL: { label: 'HIGH VOL', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20', desc: 'Yukari volatilite — makro agirligi yukseldi' },
-    LOW_VOL: { label: 'LOW VOL', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', desc: 'Dusuk volatilite — momentum agirligi arttirildi' },
+    EXTREME: { label: 'EXTREME VOL', color: 'text-danger-400', bg: 'bg-danger-400/10 border-danger-400/30', desc: 'Yuksek volatilite — mean reversion agirligi arttirildi' },
+    HIGH_VOL: { label: 'HIGH VOL', color: 'text-warning-400', bg: 'bg-orange-500/10 border-orange-500/20', desc: 'Yukari volatilite — makro agirligi yukseldi' },
+    LOW_VOL: { label: 'LOW VOL', color: 'text-info-400', bg: 'bg-info-400/10 border-info-400/30', desc: 'Dusuk volatilite — momentum agirligi arttirildi' },
     NORMAL: { label: 'NORMAL', color: 'text-text-tertiary', bg: 'bg-surface-2 border-stroke-subtle', desc: 'Standart piyasa kosullari — dengeli agirliklar' },
   }
   const rc = regimeConfig[regime]
@@ -449,7 +449,7 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
         </div>
 
         {/* Forecast Summary */}
-        <div className={`rounded-xl border p-3 ${isGolden ? 'bg-gold-400/[0.06] border-stroke-gold-strong signal-fire-gold' : composite >= 65 ? 'bg-emerald-500/[0.04] border-emerald-500/20' : composite <= 35 ? 'bg-red-500/[0.04] border-red-500/20' : 'bg-surface-2 border-stroke-subtle'}`}>
+        <div className={`rounded-xl border p-3 ${isGolden ? 'bg-gold-400/[0.06] border-stroke-gold-strong signal-fire-gold' : composite >= 65 ? 'bg-success-400/[0.04] border-success-400/30' : composite <= 35 ? 'bg-danger-400/[0.04] border-danger-400/30' : 'bg-surface-2 border-stroke-subtle'}`}>
           <div className="flex items-center gap-2 mb-1">
             <Zap size={12} className="text-gold-300" />
             <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">ONGORU</span>
@@ -460,7 +460,7 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
           <div className="flex items-center gap-3">
             <div className={`text-2xl font-black tabular-nums ${biasColor}`}>{fc.bias}</div>
             <div>
-              <div className="text-[10px] text-text-tertiary">Composite: {composite}/100 {fc.boostApplied !== 0 && <span className={fc.boostApplied > 0 ? 'text-emerald-400' : 'text-red-400'}>(+{fc.boostApplied})</span>}</div>
+              <div className="text-[10px] text-text-tertiary">Composite: {composite}/100 {fc.boostApplied !== 0 && <span className={fc.boostApplied > 0 ? 'text-success-400' : 'text-danger-400'}>(+{fc.boostApplied})</span>}</div>
               <div className="text-[9px] text-text-quaternary">{specials.length} ozel sinyal | Guven: %{fc.confidence}</div>
             </div>
           </div>
@@ -485,17 +485,17 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
               <div
                 key={i}
                 className={`badge-enter flex items-start gap-2 rounded-lg border px-3 py-2 ${
-                  s.type === 'bullish' ? 'bg-emerald-500/[0.06] border-emerald-500/20' :
-                  s.type === 'bearish' ? 'bg-red-500/[0.06] border-red-500/20' :
+                  s.type === 'bullish' ? 'bg-success-400/[0.06] border-success-400/30' :
+                  s.type === 'bearish' ? 'bg-danger-400/[0.06] border-danger-400/30' :
                   'bg-surface-2 border-stroke-subtle'
                 }`}
                 style={{ animationDelay: `${i * 80}ms` }}
               >
-                <span className={`shrink-0 mt-0.5 ${s.type === 'bullish' ? 'text-emerald-400' : s.type === 'bearish' ? 'text-red-400' : 'text-blue-400'}`}>
+                <span className={`shrink-0 mt-0.5 ${s.type === 'bullish' ? 'text-success-400' : s.type === 'bearish' ? 'text-danger-400' : 'text-info-400'}`}>
                   {s.type === 'bullish' ? <ArrowUpRight size={12} /> : s.type === 'bearish' ? <ArrowDownRight size={12} /> : <Activity size={12} />}
                 </span>
                 <div className="min-w-0">
-                  <span className={`text-[11px] font-bold ${s.type === 'bullish' ? 'text-emerald-400' : s.type === 'bearish' ? 'text-red-400' : 'text-blue-400'}`}>{s.label}</span>
+                  <span className={`text-[11px] font-bold ${s.type === 'bullish' ? 'text-success-400' : s.type === 'bearish' ? 'text-danger-400' : 'text-info-400'}`}>{s.label}</span>
                   <div className="text-[9px] text-text-quaternary mt-0.5">{s.description}</div>
                 </div>
               </div>
@@ -517,11 +517,11 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
           </div>
           <div>
             <div className="text-[9px] text-text-quaternary">Golden 1G</div>
-            <div className="text-[11px] font-bold text-emerald-400 tabular-nums">%68.8</div>
+            <div className="text-[11px] font-bold text-success-400 tabular-nums">%68.8</div>
           </div>
           <div>
             <div className="text-[9px] text-text-quaternary">Golden 3G</div>
-            <div className="text-[11px] font-bold text-emerald-400 tabular-nums">%81.2</div>
+            <div className="text-[11px] font-bold text-success-400 tabular-nums">%81.2</div>
           </div>
         </div>
       </div>
@@ -534,10 +534,10 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
 function QuickStat({ label, value, good, icon }: { label: string; value: string; good: boolean; icon: React.ReactNode }) {
   return (
     <div className="bg-surface-1 rounded-xl border border-stroke-subtle p-3 flex items-center gap-3">
-      <span className={good ? 'text-emerald-400' : 'text-red-400'}>{icon}</span>
+      <span className={good ? 'text-success-400' : 'text-danger-400'}>{icon}</span>
       <div>
         <div className="text-[9px] text-text-quaternary uppercase tracking-wider">{label}</div>
-        <div className={`text-sm font-bold tabular-nums ${good ? 'text-emerald-400' : 'text-red-400'}`}>{value}</div>
+        <div className={`text-sm font-bold tabular-nums ${good ? 'text-success-400' : 'text-danger-400'}`}>{value}</div>
       </div>
     </div>
   )

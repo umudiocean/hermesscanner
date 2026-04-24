@@ -187,7 +187,7 @@ function FinancialTable<T extends { date: string }>({
               const val = item[row.key] as unknown as number
               return (
                 <td key={ci} className="text-right px-2 sm:px-3 py-1.5 sm:py-2 text-xs tabular-nums">
-                  <span className={val < 0 ? 'text-red-400' : 'text-text-secondary'}>
+                  <span className={val < 0 ? 'text-danger-400' : 'text-text-secondary'}>
                     {formatNumber(val)}
                   </span>
                 </td>

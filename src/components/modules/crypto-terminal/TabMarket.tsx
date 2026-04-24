@@ -52,7 +52,7 @@ function TrendIndicator({ label, value, change }: { label: string; value: string
       <div className="flex items-center gap-2">
         <span className="text-xs font-bold text-white tabular-nums">{value}</span>
         {change != null && (
-          <span className={`text-[10px] font-medium tabular-nums ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+          <span className={`text-[10px] font-medium tabular-nums ${isUp ? 'text-success-400' : 'text-danger-400'}`}>
             {isUp ? '+' : ''}{change.toFixed(2)}%
           </span>
         )}
@@ -109,10 +109,10 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
 
   // Main trend determination
   let mainTrend: 'YUKSELIS' | 'NOTR' | 'DUSUS' = 'NOTR'
-  let trendColor = 'text-slate-300'
+  let trendColor = 'text-text-secondary'
   let trendBg = 'bg-surface-3 border-stroke'
-  if (mcapChange > 2) { mainTrend = 'YUKSELIS'; trendColor = 'text-emerald-400'; trendBg = 'bg-emerald-500/10 border-emerald-500/25' }
-  else if (mcapChange < -2) { mainTrend = 'DUSUS'; trendColor = 'text-red-400'; trendBg = 'bg-red-500/10 border-red-500/25' }
+  if (mcapChange > 2) { mainTrend = 'YUKSELIS'; trendColor = 'text-success-400'; trendBg = 'bg-success-400/10 border-success-400/30' }
+  else if (mcapChange < -2) { mainTrend = 'DUSUS'; trendColor = 'text-danger-400'; trendBg = 'bg-danger-400/10 border-danger-400/30' }
 
   return (
     <div className="space-y-2 sm:space-y-4 animate-fade-in">
@@ -134,7 +134,7 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
           </div>
           <div className="text-right">
             <div className="text-lg sm:text-xl font-black text-white tabular-nums">{formatLargeNum(totalMcap)}</div>
-            <span className={`text-xs font-medium tabular-nums ${mcapChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <span className={`text-xs font-medium tabular-nums ${mcapChange >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
               {mcapChange >= 0 ? '+' : ''}{mcapChange.toFixed(2)}%
             </span>
           </div>
@@ -146,23 +146,23 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
         <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300 shadow-xl shadow-black/20 hover:border-stroke hover:shadow-2xl transition-all duration-300">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <div className="flex items-center gap-2">
-              <Activity size={16} className="text-amber-400" />
+              <Activity size={16} className="text-gold-400" />
               <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Crypto Fear & Greed</h3>
             </div>
             <div className="flex items-center gap-2">
               <span className={`text-xl sm:text-2xl font-black tabular-nums ${
-                fg.index <= 20 ? 'text-red-500' :
-                fg.index <= 40 ? 'text-orange-400' :
-                fg.index <= 60 ? 'text-slate-300' :
-                fg.index <= 80 ? 'text-emerald-400' :
-                'text-emerald-300'
+                fg.index <= 20 ? 'text-danger-400' :
+                fg.index <= 40 ? 'text-warning-400' :
+                fg.index <= 60 ? 'text-text-secondary' :
+                fg.index <= 80 ? 'text-success-400' :
+                'text-success-300'
               }`}>{fg.index}</span>
               <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                fg.index <= 20 ? 'text-red-400 bg-red-500/15' :
-                fg.index <= 40 ? 'text-orange-400 bg-orange-500/15' :
-                fg.index <= 60 ? 'text-slate-300 bg-surface-3' :
-                fg.index <= 80 ? 'text-emerald-400 bg-emerald-500/15' :
-                'text-emerald-300 bg-emerald-500/20'
+                fg.index <= 20 ? 'text-danger-400 bg-danger-400/15' :
+                fg.index <= 40 ? 'text-warning-400 bg-warning-400/15' :
+                fg.index <= 60 ? 'text-text-secondary bg-surface-3' :
+                fg.index <= 80 ? 'text-success-400 bg-success-400/15' :
+                'text-success-300 bg-success-400/20'
               }`}>{fg.label}</span>
             </div>
           </div>
@@ -171,8 +171,8 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
               style={{ left: `${Math.max(1, Math.min(99, fg.index))}%` }} />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-[9px] text-red-400/50">Asiri Korku</span>
-            <span className="text-[9px] text-emerald-400/50">Asiri Acgozluluk</span>
+            <span className="text-[9px] text-danger-400/50">Asiri Korku</span>
+            <span className="text-[9px] text-success-400/50">Asiri Acgozluluk</span>
           </div>
           {/* F&G Components */}
           {fg.components && (
@@ -189,7 +189,7 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
                     <div className="text-[9px] text-text-quaternary mb-1">{labels[key] || key}</div>
                     <div className="flex items-center gap-1.5">
                       <div className="flex-1 h-1.5 bg-surface-3 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${v >= 60 ? 'bg-emerald-500' : v >= 40 ? 'bg-slate-400' : 'bg-red-500'}`}
+                        <div className={`h-full rounded-full ${v >= 60 ? 'bg-success-400' : v >= 40 ? 'bg-slate-400' : 'bg-danger-400'}`}
                           style={{ width: `${v}%` }} />
                       </div>
                       <span className="text-[10px] text-text-secondary tabular-nums w-6 text-right">{Math.round(v)}</span>
@@ -207,11 +207,11 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
                 <span className="text-[9px] text-text-tertiary uppercase tracking-wider font-bold">Alternative.me F&G (Bagimsiz)</span>
                 <div className="flex items-center gap-2">
                   <span className={`text-sm font-black tabular-nums ${
-                    data.alternativeFG.current <= 25 ? 'text-red-500' :
-                    data.alternativeFG.current <= 45 ? 'text-orange-400' :
-                    data.alternativeFG.current <= 55 ? 'text-slate-300' :
-                    data.alternativeFG.current <= 75 ? 'text-emerald-400' :
-                    'text-emerald-300'
+                    data.alternativeFG.current <= 25 ? 'text-danger-400' :
+                    data.alternativeFG.current <= 45 ? 'text-warning-400' :
+                    data.alternativeFG.current <= 55 ? 'text-text-secondary' :
+                    data.alternativeFG.current <= 75 ? 'text-success-400' :
+                    'text-success-300'
                   }`}>{data.alternativeFG.current}</span>
                   <span className="text-[10px] text-text-secondary">{data.alternativeFG.label}</span>
                 </div>
@@ -252,17 +252,17 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
       {/* Dominance Section */}
       <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
         <div className="flex items-center gap-2 mb-2 sm:mb-4">
-          <BarChart3 size={16} className="text-amber-400" />
+          <BarChart3 size={16} className="text-gold-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Hakimiyet & Piyasa Yapisi</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
           {/* Left: Dominance bars */}
           <div className="space-y-3">
-            <DominanceBar label="BTC" value={btcDom} color="bg-amber-500" />
-            <DominanceBar label="ETH" value={ethDom} color="bg-blue-500" />
-            <DominanceBar label="USDT" value={usdtDom} color="bg-emerald-500" />
-            <DominanceBar label="USDC" value={usdcDom} color="bg-blue-400" />
-            <DominanceBar label="Altcoin" value={altExStableDom > 0 ? altExStableDom : 0} color="bg-violet-500" />
+            <DominanceBar label="BTC" value={btcDom} color="bg-gold-500" />
+            <DominanceBar label="ETH" value={ethDom} color="bg-info-400" />
+            <DominanceBar label="USDT" value={usdtDom} color="bg-success-400" />
+            <DominanceBar label="USDC" value={usdcDom} color="bg-info-400" />
+            <DominanceBar label="Altcoin" value={altExStableDom > 0 ? altExStableDom : 0} color="bg-info-400" />
           </div>
           {/* Right: Market Structure Summary */}
           <div className="space-y-1">
@@ -279,9 +279,9 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
       {/* DeFi Stats */}
       {data.globalDefi && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
-          <StatCard label="DeFi Piyasa Deg." value={formatLargeNum(parseFloat(data.globalDefi.defi_market_cap || '0'))} icon={<Zap size={14} className="text-violet-400" />} />
-          <StatCard label="DeFi Hakimiyeti" value={`${parseFloat(data.globalDefi.defi_dominance || '0').toFixed(2)}%`} icon={<Zap size={14} className="text-violet-400" />} />
-          <StatCard label="DeFi 24s Hacim" value={formatLargeNum(parseFloat(data.globalDefi.trading_volume_24h || '0'))} icon={<Zap size={14} className="text-violet-400" />} />
+          <StatCard label="DeFi Piyasa Deg." value={formatLargeNum(parseFloat(data.globalDefi.defi_market_cap || '0'))} icon={<Zap size={14} className="text-info-400" />} />
+          <StatCard label="DeFi Hakimiyeti" value={`${parseFloat(data.globalDefi.defi_dominance || '0').toFixed(2)}%`} icon={<Zap size={14} className="text-info-400" />} />
+          <StatCard label="DeFi 24s Hacim" value={formatLargeNum(parseFloat(data.globalDefi.trading_volume_24h || '0'))} icon={<Zap size={14} className="text-info-400" />} />
         </div>
       )}
 
@@ -289,7 +289,7 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
       {data.trending?.coins && data.trending.coins.length > 0 && (
         <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
-            <Flame size={16} className="text-orange-400" />
+            <Flame size={16} className="text-warning-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Trend Coinler</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -309,7 +309,7 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
                 </div>
                 {item.data?.price_change_percentage_24h?.usd != null && (
                   <span className={`text-[11px] font-medium tabular-nums ${
-                    item.data.price_change_percentage_24h.usd >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    item.data.price_change_percentage_24h.usd >= 0 ? 'text-success-400' : 'text-danger-400'
                   }`}>
                     {item.data.price_change_percentage_24h.usd >= 0 ? '+' : ''}
                     {item.data.price_change_percentage_24h.usd.toFixed(1)}%
@@ -323,8 +323,8 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
 
       {/* Top Gainers & Losers */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
-        <MoverList title="En Cok Yukselenler" icon={<ArrowUpRight size={14} className="text-emerald-400" />} coins={data.topGainers?.slice(0, 10) ?? []} onSelectCoin={onSelectCoin} isGainer />
-        <MoverList title="En Cok Dusenler" icon={<ArrowDownRight size={14} className="text-red-400" />} coins={data.topLosers?.slice(0, 10) ?? []} onSelectCoin={onSelectCoin} isGainer={false} />
+        <MoverList title="En Cok Yukselenler" icon={<ArrowUpRight size={14} className="text-success-400" />} coins={data.topGainers?.slice(0, 10) ?? []} onSelectCoin={onSelectCoin} isGainer />
+        <MoverList title="En Cok Dusenler" icon={<ArrowDownRight size={14} className="text-danger-400" />} coins={data.topLosers?.slice(0, 10) ?? []} onSelectCoin={onSelectCoin} isGainer={false} />
       </div>
     </div>
   )
@@ -340,7 +340,7 @@ function StatCard({ label, value, icon, change }: { label: string; value: string
       <div className="flex items-center gap-2">
         <div className="text-base sm:text-lg font-bold text-white tabular-nums">{value}</div>
         {change != null && (
-          <span className={`text-[10px] font-medium ${change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+          <span className={`text-[10px] font-medium ${change >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
             {change >= 0 ? '+' : ''}{change.toFixed(2)}%
           </span>
         )}
@@ -372,7 +372,7 @@ function MoverList({ title, icon, coins, onSelectCoin, isGainer }: {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-text-tertiary tabular-nums">{formatPrice(coin.current_price)}</span>
-              <span className={`text-xs font-medium tabular-nums ${isGainer ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-xs font-medium tabular-nums ${isGainer ? 'text-success-400' : 'text-danger-400'}`}>
                 {(coin.price_change_percentage_24h ?? 0) >= 0 ? '+' : ''}
                 {(coin.price_change_percentage_24h ?? 0).toFixed(2)}%
               </span>

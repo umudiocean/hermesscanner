@@ -36,13 +36,13 @@ function calculateCorrelation(a: number[], b: number[]): number {
 }
 
 function getCorrelationColor(r: number): string {
-  if (r > 0.7) return 'bg-emerald-500'
-  if (r > 0.4) return 'bg-emerald-500/60'
-  if (r > 0.1) return 'bg-emerald-500/30'
+  if (r > 0.7) return 'bg-success-400'
+  if (r > 0.4) return 'bg-success-400/60'
+  if (r > 0.1) return 'bg-success-400/30'
   if (r > -0.1) return 'bg-white/5'
-  if (r > -0.4) return 'bg-red-500/30'
-  if (r > -0.7) return 'bg-red-500/60'
-  return 'bg-red-500'
+  if (r > -0.4) return 'bg-danger-400/30'
+  if (r > -0.7) return 'bg-danger-400/60'
+  return 'bg-danger-400'
 }
 
 function getCorrelationText(r: number): string {
@@ -109,7 +109,7 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
     <div className="space-y-2 sm:space-y-3 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Grid3X3 size={16} className="text-amber-400" />
+          <Grid3X3 size={16} className="text-gold-400" />
           <h3 className="text-sm font-bold text-white">KORELASYON MATRISI</h3>
           <span className="text-[10px] text-text-tertiary">7 gunluk fiyat korelasyonu</span>
         </div>
@@ -119,7 +119,7 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
               key={n}
               onClick={() => setCount(n)}
               className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all duration-300 border ${
-                count === n ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-text-tertiary hover:text-amber-200/80 border-stroke-subtle hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
+                count === n ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-gold-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-text-tertiary hover:text-amber-200/80 border-stroke-subtle hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
               }`}
             >
               Top {n}
@@ -130,16 +130,16 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
 
       {/* Legend */}
       <div className="flex items-center gap-1 sm:gap-2 justify-center text-[9px]">
-        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-red-500" /><span className="text-text-tertiary">-1.0</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-red-500/40" /><span className="text-text-tertiary">-0.5</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-danger-400" /><span className="text-text-tertiary">-1.0</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-danger-400/40" /><span className="text-text-tertiary">-0.5</span></div>
         <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-white/10" /><span className="text-text-tertiary">0</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-emerald-500/40" /><span className="text-text-tertiary">+0.5</span></div>
-        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-emerald-500" /><span className="text-text-tertiary">+1.0</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-success-400/40" /><span className="text-text-tertiary">+0.5</span></div>
+        <div className="flex items-center gap-1"><div className="w-3 h-2 rounded-sm bg-success-400" /><span className="text-text-tertiary">+1.0</span></div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -159,7 +159,7 @@ export default function TabCorrelation({ onSelectCoin }: TabCorrelationProps) {
                 {displayCoins.map((row, i) => (
                   <tr key={row.id}>
                     <td className="text-[9px] text-text-tertiary font-medium pr-2 text-right whitespace-nowrap">
-                      <button onClick={() => onSelectCoin(row.id)} className="hover:text-amber-400 transition-colors">
+                      <button onClick={() => onSelectCoin(row.id)} className="hover:text-gold-400 transition-colors">
                         {row.symbol}
                       </button>
                     </td>

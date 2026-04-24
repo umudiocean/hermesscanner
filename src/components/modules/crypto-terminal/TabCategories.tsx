@@ -61,7 +61,7 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
     <div className="space-y-2 sm:space-y-3 animate-fade-in">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <PieChart size={16} className="text-violet-400" />
+          <PieChart size={16} className="text-info-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Kripto Kategorileri</h3>
           <span className="text-[10px] text-text-tertiary">{filtered.length}</span>
         </div>
@@ -72,7 +72,7 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Ara..."
-            className="w-40 pl-8 pr-3 py-1.5 text-xs bg-surface-3 border border-white/8 rounded-xl text-white placeholder-white/25 focus:outline-none focus:border-amber-500/30 focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300"
+            className="w-40 pl-8 pr-3 py-1.5 text-xs bg-surface-3 border border-white/8 rounded-xl text-white placeholder-white/25 focus:outline-none focus:border-stroke-gold-strong focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300"
           />
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
                   <h4 className="text-sm font-bold text-white">{cat.name}</h4>
                   <span className="text-[10px] text-text-quaternary">{formatLarge(cat.market_cap)} Piyasa Deg.</span>
                 </div>
-                <span className={`text-xs font-medium tabular-nums ${isPos ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className={`text-xs font-medium tabular-nums ${isPos ? 'text-success-400' : 'text-danger-400'}`}>
                   {isPos ? '+' : ''}{(cat.market_cap_change_24h ?? 0).toFixed(2)}%
                 </span>
               </div>

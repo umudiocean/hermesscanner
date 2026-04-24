@@ -141,7 +141,7 @@ function MiniBar({ items, max }: { items: { label: string; value: number }[]; ma
 }
 
 function StatusDot({ ok }: { ok: boolean }) {
-  return <div className={`w-2 h-2 rounded-full ${ok ? 'bg-emerald-400' : 'bg-red-400'}`} />
+  return <div className={`w-2 h-2 rounded-full ${ok ? 'bg-success-400' : 'bg-danger-400'}`} />
 }
 
 function Sparkline({ values }: { values: number[] }) {
@@ -489,7 +489,7 @@ export default function AdminDashboard() {
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-danger-400/10 hover:bg-danger-400/20 border border-danger-400/30 text-danger-400 text-xs transition-all"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Cikis
@@ -621,19 +621,19 @@ function MarketCard({
           </div>
         </div>
         {stockCount > 0 ? (
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-            <CheckCircle className="w-3 h-3 text-emerald-400" />
-            <span className="text-[10px] font-medium text-emerald-400">AKTIF</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-success-400/15 border border-success-400/30">
+            <CheckCircle className="w-3 h-3 text-success-400" />
+            <span className="text-[10px] font-medium text-success-400">AKTIF</span>
           </div>
         ) : isLoading ? (
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500/15 border border-amber-500/30">
-            <Loader2 className="w-3 h-3 text-amber-400 animate-spin" />
-            <span className="text-[10px] font-medium text-amber-400">YUKLENIYOR</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gold-500/15 border border-stroke-gold-strong">
+            <Loader2 className="w-3 h-3 text-gold-400 animate-spin" />
+            <span className="text-[10px] font-medium text-gold-400">YUKLENIYOR</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-500/15 border border-red-500/30">
-            <XCircle className="w-3 h-3 text-red-400" />
-            <span className="text-[10px] font-medium text-red-400">HATA</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-danger-400/15 border border-danger-400/30">
+            <XCircle className="w-3 h-3 text-danger-400" />
+            <span className="text-[10px] font-medium text-danger-400">HATA</span>
           </div>
         )}
       </div>
@@ -655,9 +655,9 @@ function MarketCard({
       </div>
 
       {error && (
-        <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20 mb-4">
-          <AlertTriangle className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />
-          <span className="text-[10px] text-red-400">{error}</span>
+        <div className="flex items-start gap-2 p-2 rounded-lg bg-danger-400/10 border border-danger-400/30 mb-4">
+          <AlertTriangle className="w-3.5 h-3.5 text-danger-400 mt-0.5 flex-shrink-0" />
+          <span className="text-[10px] text-danger-400">{error}</span>
         </div>
       )}
 
@@ -810,24 +810,24 @@ function OverviewTab({
         <div className="bg-surface-3 rounded-2xl border border-white/8 p-4">
           <div className="flex flex-wrap gap-2">
             <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
-              slaScanBreached ? 'text-red-300 bg-red-500/15 border-red-500/35' : 'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+              slaScanBreached ? 'text-danger-300 bg-danger-400/15 border-red-500/35' : 'text-success-300 bg-success-400/12 border-success-400/30'
             }`}>
               SLA Scan {slaScanBreached ? 'BREACH' : 'OK'}
             </span>
             <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
-              slaQuoteBreached ? 'text-red-300 bg-red-500/15 border-red-500/35' : 'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+              slaQuoteBreached ? 'text-danger-300 bg-danger-400/15 border-red-500/35' : 'text-success-300 bg-success-400/12 border-success-400/30'
             }`}>
               SLA Quote {slaQuoteBreached ? 'BREACH' : 'OK'}
             </span>
             <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
-              isOriginCritical ? 'text-red-300 bg-red-500/15 border-red-500/35' :
-              isOriginWarn ? 'text-amber-300 bg-amber-500/15 border-amber-500/35' :
-              'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+              isOriginCritical ? 'text-danger-300 bg-danger-400/15 border-red-500/35' :
+              isOriginWarn ? 'text-gold-300 bg-gold-500/15 border-amber-500/35' :
+              'text-success-300 bg-success-400/12 border-success-400/30'
             }`}>
               Origin Ratio {originPct}%
             </span>
             <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
-              watchdogFail ? 'text-amber-300 bg-amber-500/15 border-amber-500/35' : 'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+              watchdogFail ? 'text-gold-300 bg-gold-500/15 border-amber-500/35' : 'text-success-300 bg-success-400/12 border-success-400/30'
             }`}>
               SelfHeal Fail1h {(ops?.watchdog?.selfHealFail1h || 0)}
             </span>
@@ -851,11 +851,11 @@ function OverviewTab({
               <div className="flex justify-between"><span className="text-text-secondary">Memory</span><span className="text-text-primary tabular-nums">{tier?.memory || 0}</span></div>
               <div className="flex justify-between"><span className="text-text-secondary">Redis</span><span className="text-text-primary tabular-nums">{tier?.redis || 0}</span></div>
               <div className="flex justify-between"><span className="text-text-secondary">Disk</span><span className="text-text-primary tabular-nums">{tier?.disk || 0}</span></div>
-              <div className="flex justify-between"><span className="text-red-300/80">Origin</span><span className="text-red-300 tabular-nums">{tier?.origin || 0}</span></div>
+              <div className="flex justify-between"><span className="text-danger-300/80">Origin</span><span className="text-danger-300 tabular-nums">{tier?.origin || 0}</span></div>
             </div>
             <div className="mt-3 pt-2 border-t border-stroke-subtle flex justify-between">
               <span className="text-[10px] text-text-tertiary">Cache hit rate</span>
-              <span className="text-[10px] text-emerald-300 tabular-nums">{hitPct}%</span>
+              <span className="text-[10px] text-success-300 tabular-nums">{hitPct}%</span>
             </div>
           </div>
           <div className="bg-surface-3 rounded-2xl border border-white/8 p-4">
@@ -911,9 +911,9 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
             } />
           </div>
           {status.error && (
-            <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />
-              <span className="text-[10px] text-red-400">{status.error}</span>
+            <div className="flex items-start gap-2 p-2 rounded-lg bg-danger-400/10 border border-danger-400/30">
+              <AlertTriangle className="w-3.5 h-3.5 text-danger-400 mt-0.5 flex-shrink-0" />
+              <span className="text-[10px] text-danger-400">{status.error}</span>
             </div>
           )}
           <div className="mt-3 space-y-1.5 text-[10px] text-text-tertiary">
@@ -936,9 +936,9 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
         <Card title="Trade AI Bootstrap" icon={Database}>
           <div className="space-y-3">
             {!bootstrap.redisAvailable && (
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30">
-                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                <div className="text-[11px] text-amber-300">
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-gold-500/15 border border-stroke-gold-strong">
+                <AlertTriangle className="w-4 h-4 text-gold-400 flex-shrink-0 mt-0.5" />
+                <div className="text-[11px] text-gold-300">
                   <strong>Redis gerekli.</strong> Trade AI icin Upstash Redis veya Vercel KV gerekir.
                   Vercel Dashboard &gt; Storage &gt; KV ekleyin veya upstash.com ile Redis olusturun.
                   <code className="block mt-1.5 text-[10px] text-text-secondary">UPSTASH_REDIS_REST_URL</code>
@@ -978,7 +978,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
               </div>
             )}
             {bootstrap.error && (
-              <p className="text-[10px] text-red-400 bg-red-500/10 rounded-lg px-2 py-1">{bootstrap.error}</p>
+              <p className="text-[10px] text-danger-400 bg-danger-400/10 rounded-lg px-2 py-1">{bootstrap.error}</p>
             )}
             {(bootstrap.status === 'not_started' || bootstrap.status === 'unknown' || bootstrap.status === 'partial') && (
               <button
@@ -1001,7 +1001,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
         <Card title="Trade AI Sembol Senkronizasyonu" icon={Activity}>
           <div className="space-y-3">
             {!bootstrap.redisAvailable && symbolsSync && symbolsSync.tradeReadyCount === 0 && (
-              <p className="text-[10px] text-amber-400/90">
+              <p className="text-[10px] text-gold-400/90">
                 Trade-ready 0: Redis yoksa tarama sonuclari kaydedilmez. Redis ekleyip Bootstrap calistirin.
               </p>
             )}
@@ -1025,7 +1025,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
                       a.click()
                       URL.revokeObjectURL(a.href)
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-success-400/10 hover:bg-success-400/20 border border-success-400/30 text-success-400 text-xs transition-all"
                   >
                     <Download className="w-3.5 h-3.5" />
                     trade_ready.json
@@ -1080,7 +1080,7 @@ function EuropeTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
         <button
           onClick={onRefresh}
           disabled={status.refreshing}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500/20 to-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-medium transition-all hover:from-blue-500/30 hover:to-blue-500/20"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500/20 to-blue-500/10 border border-info-400/30 text-info-400 text-xs font-medium transition-all hover:from-blue-500/30 hover:to-blue-500/20"
         >
           {status.refreshing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           {status.refreshing ? 'Yenileniyor...' : 'Tum Avrupa Verilerini Yenile'}
@@ -1097,9 +1097,9 @@ function EuropeTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
             } />
           </div>
           {status.error && (
-            <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />
-              <span className="text-[10px] text-red-400">{status.error}</span>
+            <div className="flex items-start gap-2 p-2 rounded-lg bg-danger-400/10 border border-danger-400/30">
+              <AlertTriangle className="w-3.5 h-3.5 text-danger-400 mt-0.5 flex-shrink-0" />
+              <span className="text-[10px] text-danger-400">{status.error}</span>
             </div>
           )}
           <div className="mt-3 space-y-1.5 text-[10px] text-text-tertiary">
@@ -1122,7 +1122,7 @@ function EuropeTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
         <Card title="Veri Akisi" icon={Activity}>
           <div className="space-y-2 text-[10px]">
             <p className="text-text-tertiary leading-relaxed">
-              Avrupa hisseleri <span className="text-blue-400 font-medium">FMP company-screener</span> API&apos;sinden
+              Avrupa hisseleri <span className="text-info-400 font-medium">FMP company-screener</span> API&apos;sinden
               dinamik olarak cekilir. Her borsa icin en yuksek piyasa degerine sahip 1000 hisse secilir.
             </p>
             <div className="border-t border-white/5 pt-2 mt-2">
@@ -1136,7 +1136,7 @@ function EuropeTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
                   'Target Engine → Hedef/Dip fiyat hesabi',
                 ].map(step => (
                   <div key={step} className="flex items-start gap-1.5">
-                    <ChevronRight className="w-3 h-3 text-blue-400/60 mt-0.5 flex-shrink-0" />
+                    <ChevronRight className="w-3 h-3 text-info-400/60 mt-0.5 flex-shrink-0" />
                     <span className="text-text-tertiary">{step}</span>
                   </div>
                 ))}
@@ -1181,7 +1181,7 @@ function CryptoTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
         <button
           onClick={onRefresh}
           disabled={status.refreshing}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-medium transition-all hover:from-amber-500/30 hover:to-amber-500/20"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-500/10 border border-stroke-gold-strong text-gold-400 text-xs font-medium transition-all hover:from-amber-500/30 hover:to-amber-500/20"
         >
           {status.refreshing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           {status.refreshing ? 'Yenileniyor...' : 'Tum Crypto Verilerini Yenile'}
@@ -1198,9 +1198,9 @@ function CryptoTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
             } />
           </div>
           {status.error && (
-            <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-              <AlertTriangle className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />
-              <span className="text-[10px] text-red-400">{status.error}</span>
+            <div className="flex items-start gap-2 p-2 rounded-lg bg-danger-400/10 border border-danger-400/30">
+              <AlertTriangle className="w-3.5 h-3.5 text-danger-400 mt-0.5 flex-shrink-0" />
+              <span className="text-[10px] text-danger-400">{status.error}</span>
             </div>
           )}
           <div className="mt-3 space-y-1.5 text-[10px] text-text-tertiary">
@@ -1239,7 +1239,7 @@ function CryptoTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
               <div key={m.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {m.ok ? (
-                    <CheckCircle className="w-3 h-3 text-emerald-400" />
+                    <CheckCircle className="w-3 h-3 text-success-400" />
                   ) : (
                     <div className="w-3 h-3 rounded-full border border-stroke-strong" />
                   )}
@@ -1255,7 +1255,7 @@ function CryptoTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
         <Card title="Veri Kaynaklari" icon={Database}>
           <div className="space-y-2 text-[10px]">
             <p className="text-text-tertiary leading-relaxed">
-              CoinGecko Analyst Plan API ile <span className="text-amber-400 font-medium">18,919+</span> kripto varligin
+              CoinGecko Analyst Plan API ile <span className="text-gold-400 font-medium">18,919+</span> kripto varligin
               analizi yapilir. 26+ endpoint aktif.
             </p>
             <div className="border-t border-white/5 pt-2 mt-2 space-y-1.5">
@@ -1454,7 +1454,7 @@ function SystemTab({
                 <span className="text-xs text-text-secondary">{label}</span>
                 <button onClick={() => onToggleFlag(key)} disabled={flagLoading === key} className="transition-all">
                   {enabled ? (
-                    <ToggleRight className="w-6 h-6 text-emerald-400" />
+                    <ToggleRight className="w-6 h-6 text-success-400" />
                   ) : (
                     <ToggleLeft className="w-6 h-6 text-text-tertiary" />
                   )}
@@ -1470,21 +1470,21 @@ function SystemTab({
         <div className="space-y-2">
           <button
             onClick={() => onClearCache('fmp')}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-xs transition-all"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-gold-500/10 hover:bg-gold-500/20 border border-amber-500/20 text-gold-400 text-xs transition-all"
           >
             <Trash2 className="w-3.5 h-3.5" />
             FMP Cache Temizle
           </button>
           <button
             onClick={() => onClearCache('crypto')}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-xs transition-all"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-gold-500/10 hover:bg-gold-500/20 border border-amber-500/20 text-gold-400 text-xs transition-all"
           >
             <Trash2 className="w-3.5 h-3.5" />
             Crypto Cache Temizle
           </button>
           <button
             onClick={() => onClearCache('all')}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs transition-all"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-danger-400/10 hover:bg-danger-400/20 border border-danger-400/30 text-danger-400 text-xs transition-all"
           >
             <Trash2 className="w-3.5 h-3.5" />
             Tum Cache Temizle
@@ -1509,20 +1509,20 @@ function SystemTab({
         <div className="mt-4 pt-3 border-t border-white/5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] text-text-tertiary uppercase tracking-wider">Cache Tier Hit 1h</span>
-            <span className="text-[10px] text-emerald-300 tabular-nums">{hitPct}% hit</span>
+            <span className="text-[10px] text-success-300 tabular-nums">{hitPct}% hit</span>
           </div>
           <div className="grid grid-cols-4 gap-2 text-center mb-2">
             <div><div className="text-[11px] text-text-primary tabular-nums">{tier?.memory || 0}</div><div className="text-[9px] text-text-tertiary">Mem</div></div>
             <div><div className="text-[11px] text-text-primary tabular-nums">{tier?.redis || 0}</div><div className="text-[9px] text-text-tertiary">Redis</div></div>
             <div><div className="text-[11px] text-text-primary tabular-nums">{tier?.disk || 0}</div><div className="text-[9px] text-text-tertiary">Disk</div></div>
-            <div><div className="text-[11px] text-red-300 tabular-nums">{tier?.origin || 0}</div><div className="text-[9px] text-text-tertiary">Origin</div></div>
+            <div><div className="text-[11px] text-danger-300 tabular-nums">{tier?.origin || 0}</div><div className="text-[9px] text-text-tertiary">Origin</div></div>
           </div>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[10px] text-text-tertiary">Origin ratio</span>
             <span className={`text-[10px] font-semibold tabular-nums px-2 py-0.5 rounded-full border ${
-              originState === 'critical' ? 'text-red-300 bg-red-500/15 border-red-500/35' :
-              originState === 'warn' ? 'text-amber-300 bg-amber-500/15 border-amber-500/35' :
-              'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
+              originState === 'critical' ? 'text-danger-300 bg-danger-400/15 border-red-500/35' :
+              originState === 'warn' ? 'text-gold-300 bg-gold-500/15 border-amber-500/35' :
+              'text-success-300 bg-success-400/12 border-success-400/30'
             }`}>
               {originPct}% {originState === 'critical' ? 'CRITICAL' : originState === 'warn' ? 'WARN' : 'OK'}
             </span>
@@ -1590,15 +1590,15 @@ function DiagnosticsTab() {
   }, [loadDiag])
 
   const statusColor = (s: string) => {
-    if (s === 'ok' || s === 'healthy') return 'text-emerald-400'
-    if (s === 'warning') return 'text-amber-400'
-    return 'text-red-400'
+    if (s === 'ok' || s === 'healthy') return 'text-success-400'
+    if (s === 'warning') return 'text-gold-400'
+    return 'text-danger-400'
   }
 
   const statusBg = (s: string) => {
-    if (s === 'ok' || s === 'healthy') return 'bg-emerald-500/15 border-emerald-500/30'
-    if (s === 'warning') return 'bg-amber-500/15 border-amber-500/30'
-    return 'bg-red-500/15 border-red-500/30'
+    if (s === 'ok' || s === 'healthy') return 'bg-success-400/15 border-success-400/30'
+    if (s === 'warning') return 'bg-gold-500/15 border-stroke-gold-strong'
+    return 'bg-danger-400/15 border-danger-400/30'
   }
 
   return (
@@ -1606,7 +1606,7 @@ function DiagnosticsTab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-400" />
+            <AlertTriangle className="w-5 h-5 text-danger-400" />
             System Diagnostics
           </h2>
           <p className="text-xs text-text-tertiary mt-1">
@@ -1637,15 +1637,15 @@ function DiagnosticsTab() {
               <h3 className="text-sm font-semibold text-text-primary">Sorunlar ({diagData.issueCount})</h3>
               {diagData.issues.map((issue, idx) => (
                 <div key={idx} className={`p-3 rounded-xl border ${
-                  issue.severity === 'critical' ? 'bg-red-500/10 border-red-500/30' :
-                  issue.severity === 'warning' ? 'bg-amber-500/10 border-amber-500/30' :
-                  'bg-blue-500/10 border-blue-500/30'
+                  issue.severity === 'critical' ? 'bg-danger-400/10 border-danger-400/30' :
+                  issue.severity === 'warning' ? 'bg-gold-500/10 border-stroke-gold-strong' :
+                  'bg-info-400/10 border-info-400/30'
                 }`}>
                   <div className="flex items-start gap-2">
                     <span className="text-sm mt-0.5">{issue.severity === 'critical' ? '●' : issue.severity === 'warning' ? '●' : '●'}</span>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs font-bold ${issue.severity === 'critical' ? 'text-red-300' : issue.severity === 'warning' ? 'text-amber-300' : 'text-blue-300'}`}>[{issue.module}]</span>
+                        <span className={`text-xs font-bold ${issue.severity === 'critical' ? 'text-danger-300' : issue.severity === 'warning' ? 'text-gold-300' : 'text-info-400'}`}>[{issue.module}]</span>
                         <span className="text-xs text-text-secondary">{issue.message}</span>
                       </div>
                       {issue.detail && (
@@ -1659,9 +1659,9 @@ function DiagnosticsTab() {
           )}
 
           {diagData.issues.length === 0 && (
-            <div className="p-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-center">
-              <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-emerald-300">Tum Sistemler Saglikli</p>
+            <div className="p-6 rounded-xl border border-success-400/30 bg-success-400/10 text-center">
+              <CheckCircle className="w-8 h-8 text-success-400 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-success-300">Tum Sistemler Saglikli</p>
               <p className="text-[10px] text-text-tertiary mt-1">Hicbir sorun tespit edilmedi.</p>
             </div>
           )}
@@ -1692,15 +1692,15 @@ function DiagnosticsTab() {
               <div className="text-[10px] text-text-tertiary">Toplam Hisse</div>
             </div>
             <div className="p-3 rounded-xl bg-surface-3 border border-white/8 text-center">
-              <div className="text-lg font-bold text-emerald-400 tabular-nums">{diagData.barCacheCount}</div>
+              <div className="text-lg font-bold text-success-400 tabular-nums">{diagData.barCacheCount}</div>
               <div className="text-[10px] text-text-tertiary">Redis Bar Cache</div>
             </div>
             <div className="p-3 rounded-xl bg-surface-3 border border-white/8 text-center">
-              <div className={`text-lg font-bold tabular-nums ${diagData.criticalCount > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{diagData.criticalCount}</div>
+              <div className={`text-lg font-bold tabular-nums ${diagData.criticalCount > 0 ? 'text-danger-400' : 'text-success-400'}`}>{diagData.criticalCount}</div>
               <div className="text-[10px] text-text-tertiary">Kritik Sorun</div>
             </div>
             <div className="p-3 rounded-xl bg-surface-3 border border-white/8 text-center">
-              <div className={`text-lg font-bold tabular-nums ${diagData.warningCount > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>{diagData.warningCount}</div>
+              <div className={`text-lg font-bold tabular-nums ${diagData.warningCount > 0 ? 'text-gold-400' : 'text-success-400'}`}>{diagData.warningCount}</div>
               <div className="text-[10px] text-text-tertiary">Uyari</div>
             </div>
           </div>

@@ -202,7 +202,7 @@ export default function TabCompare({ symbols, onRemoveSymbol, onSelectSymbol }: 
             <span className="text-xs font-medium text-white">{s}</span>
             <button
               onClick={() => onRemoveSymbol(s)}
-              className="text-text-tertiary hover:text-red-400 transition-colors text-xs ml-1"
+              className="text-text-tertiary hover:text-danger-400 transition-colors text-xs ml-1"
             >
               ✕
             </button>
@@ -229,7 +229,7 @@ export default function TabCompare({ symbols, onRemoveSymbol, onSelectSymbol }: 
             ) : !item.data ? (
               <div className="h-40 flex flex-col items-center justify-center">
                 <span className="text-sm text-text-tertiary">{item.symbol}</span>
-                <span className="text-[10px] text-red-400/50 mt-1">Veri yuklenemedi</span>
+                <span className="text-[10px] text-danger-400/50 mt-1">Veri yuklenemedi</span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2 sm:gap-3">
@@ -279,7 +279,7 @@ export default function TabCompare({ symbols, onRemoveSymbol, onSelectSymbol }: 
               <CompareRow label="Piotroski" values={items.map(i => i.data?.scores?.piotroskiScore)} format="score" />
 
               <tr className="border-b border-white/5">
-                <td colSpan={items.length + 1} className="px-2 sm:px-4 py-2 text-[10px] text-violet-400/60 uppercase tracking-wider font-medium bg-white/[0.01]">
+                <td colSpan={items.length + 1} className="px-2 sm:px-4 py-2 text-[10px] text-info-400/60 uppercase tracking-wider font-medium bg-white/[0.01]">
                   HERMES AI Skor Kategorileri
                 </td>
               </tr>
@@ -334,7 +334,7 @@ function CompareRow({
         let color = 'text-text-secondary'
         if (colorize && v != null && isFinite(v)) {
           if (format === 'percent' || format === 'roePercent') {
-            color = v >= 0 ? 'text-success-400' : 'text-red-400'
+            color = v >= 0 ? 'text-success-400' : 'text-danger-400'
           } else if (format === 'score') {
             const level = getScoreLevel(v)
             color = getScoreColor(level)

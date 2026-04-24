@@ -105,7 +105,7 @@ export default function ScoreGauge({ score, size = 'lg', showLabel = true, anima
             {displayValue}
           </span>
           {score?.gated && (
-            <span className="text-[8px] text-red-400 font-medium">GATE</span>
+            <span className="text-[8px] text-danger-400 font-medium">GATE</span>
           )}
         </div>
       </div>
@@ -116,15 +116,15 @@ export default function ScoreGauge({ score, size = 'lg', showLabel = true, anima
           level === 'STRONG' ? 'bg-yellow-500/15 border-yellow-500/30' :
           level === 'GOOD' ? 'bg-success-400/15 border-success-400/30' :
           level === 'NEUTRAL' ? 'bg-slate-500/15 border-slate-500/30' :
-          level === 'WEAK' ? 'bg-orange-500/15 border-orange-500/30' :
-          'bg-red-500/15 border-red-500/30'
+          level === 'WEAK' ? 'bg-warning-400/15 border-warning-400/30' :
+          'bg-danger-400/15 border-danger-400/30'
         }`}>
           <div className={`w-1.5 h-1.5 rounded-full ${
             level === 'STRONG' ? 'bg-yellow-400' :
             level === 'GOOD' ? 'bg-success-400' :
             level === 'NEUTRAL' ? 'bg-slate-400' :
-            level === 'WEAK' ? 'bg-orange-400' :
-            'bg-red-400'
+            level === 'WEAK' ? 'bg-warning-400' :
+            'bg-danger-400'
           }`} />
           <span className={`${d.labelSize} font-semibold tracking-wider ${colorClass}`}>
             {SCORE_LABELS[level]}

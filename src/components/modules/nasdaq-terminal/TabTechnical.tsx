@@ -57,11 +57,11 @@ function SignalBadge({ type, label }: { type: string, label: string }) {
   const styles: Record<string, string> = {
     'STRONG_UP': 'text-success-400 bg-success-400/15 border-success-400/30',
     'UP': 'text-success-400 bg-success-400/10 border-success-400/20',
-    'NEUTRAL': 'text-slate-300 bg-surface-3 border-stroke',
-    'DOWN': 'text-orange-400 bg-orange-500/10 border-orange-500/20',
-    'STRONG_DOWN': 'text-red-400 bg-red-500/15 border-red-500/30',
+    'NEUTRAL': 'text-text-secondary bg-surface-3 border-stroke',
+    'DOWN': 'text-warning-400 bg-orange-500/10 border-orange-500/20',
+    'STRONG_DOWN': 'text-danger-400 bg-danger-400/15 border-danger-400/30',
     'OVERSOLD': 'text-success-400 bg-success-400/12 border-success-400/25',
-    'OVERBOUGHT': 'text-red-400 bg-red-500/12 border-red-500/25',
+    'OVERBOUGHT': 'text-danger-400 bg-danger-400/12 border-danger-400/30',
   }
   const icons: Record<string, React.ReactNode> = {
     'STRONG_UP': <TrendingUp size={14} />,
@@ -143,8 +143,8 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
   if (error || !data?.summary) {
     return (
       <div className="text-center py-12">
-        <AlertTriangle size={32} className="text-red-400/50 mx-auto mb-2" />
-        <p className="text-red-400/70 text-sm">{error || 'Veri alinamadi'}</p>
+        <AlertTriangle size={32} className="text-danger-400/50 mx-auto mb-2" />
+        <p className="text-danger-400/70 text-sm">{error || 'Veri alinamadi'}</p>
       </div>
     )
   }
@@ -199,14 +199,14 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
           <div className="bg-surface-2 rounded-xl p-3 border border-stroke-subtle">
             <div className="text-[11px] text-text-tertiary font-medium mb-1">TREND GUCU (ADX)</div>
             <div className="text-lg font-bold text-white tabular-nums">{fmt(s.adx14, 1)}</div>
-            <span className={`text-xs ${(s.adx14 ?? 0) > 25 ? 'text-violet-400' : 'text-text-tertiary'}`}>
+            <span className={`text-xs ${(s.adx14 ?? 0) > 25 ? 'text-info-400' : 'text-text-tertiary'}`}>
               {(s.adx14 ?? 0) > 25 ? 'Guclu Trend' : (s.adx14 ?? 0) > 20 ? 'Orta Trend' : 'Zayif/Yatay'}
             </span>
           </div>
           <div className="bg-surface-2 rounded-xl p-3 border border-stroke-subtle">
             <div className="text-[11px] text-text-tertiary font-medium mb-1">EMA (20)</div>
             <div className="text-lg font-bold text-white tabular-nums">${fmt(s.ema20)}</div>
-            <span className={`text-xs ${s.priceAboveEma20 ? 'text-success-400' : 'text-red-400'}`}>
+            <span className={`text-xs ${s.priceAboveEma20 ? 'text-success-400' : 'text-danger-400'}`}>
               Fiyat {s.priceAboveEma20 ? 'ustunde' : 'altinda'}
             </span>
           </div>
@@ -225,7 +225,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             zones={[
               { from: 0, to: 30, color: 'bg-success-400/30' },
               { from: 30, to: 70, color: 'bg-surface-3' },
-              { from: 70, to: 100, color: 'bg-red-500/30' },
+              { from: 70, to: 100, color: 'bg-danger-400/30' },
             ]}
           />
           <GaugeBar
@@ -234,7 +234,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             zones={[
               { from: -100, to: -80, color: 'bg-success-400/30' },
               { from: -80, to: -20, color: 'bg-surface-3' },
-              { from: -20, to: 0, color: 'bg-red-500/30' },
+              { from: -20, to: 0, color: 'bg-danger-400/30' },
             ]}
           />
           <GaugeBar
@@ -242,8 +242,8 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             tip="0-20 zayif, 20-25 orta, 25+ guclu trend"
             zones={[
               { from: 0, to: 20, color: 'bg-slate-500/20' },
-              { from: 20, to: 25, color: 'bg-amber-500/20' },
-              { from: 25, to: 60, color: 'bg-violet-500/30' },
+              { from: 20, to: 25, color: 'bg-gold-500/20' },
+              { from: 25, to: 60, color: 'bg-info-400/30' },
             ]}
           />
         </div>
@@ -288,8 +288,8 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
               const h = (rsiVal / 100) * 100
               let color = 'bg-white/20'
               if (rsiVal < 30) color = 'bg-success-400/60'
-              else if (rsiVal > 70) color = 'bg-red-500/60'
-              else color = 'bg-violet-500/40'
+              else if (rsiVal > 70) color = 'bg-danger-400/60'
+              else color = 'bg-info-400/40'
               return (
                 <div key={i} className="flex-1 flex flex-col justify-end" title={`${point.date}: RSI ${rsiVal.toFixed(1)}`}>
                   <div className={`${color} rounded-t-sm transition-all duration-300`} style={{ height: `${h}%` }} />
@@ -301,7 +301,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             <span className="text-[10px] text-text-tertiary">{data.history.rsi[Math.min(29, data.history.rsi.length - 1)]?.date || ''}</span>
             <div className="flex items-center gap-3">
               <span className="text-[10px] text-success-400/50">--- 30 (asiri satim)</span>
-              <span className="text-[10px] text-red-400/50">--- 70 (asiri alim)</span>
+              <span className="text-[10px] text-danger-400/50">--- 70 (asiri alim)</span>
             </div>
             <span className="text-[10px] text-text-tertiary">{data.history.rsi[0]?.date || ''}</span>
           </div>
@@ -309,8 +309,8 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
       )}
 
       {/* Info */}
-      <div className="flex items-start gap-2 px-4 py-3 bg-violet-500/[0.05] rounded-xl border border-violet-500/10">
-        <Info size={14} className="text-violet-400/50 mt-0.5 shrink-0" />
+      <div className="flex items-start gap-2 px-4 py-3 bg-info-400/[0.05] rounded-xl border border-violet-500/10">
+        <Info size={14} className="text-info-400/50 mt-0.5 shrink-0" />
         <p className="text-[12px] text-text-tertiary leading-relaxed">
           Teknik gostergeler gunluk verilerle hesaplanir. RSI asiri alim/satim, SMA crossover trend yonu,
           ADX trend gucu, Williams %R momentum gosterir. Golden Cross (SMA50 &gt; SMA200) = yukselis trendi.

@@ -102,12 +102,12 @@ export default function TabAnalyst({ symbol }: TabAnalystProps) {
 
               return (
                 <div key={i} className={`rounded-lg p-2 text-center border ${
-                  beat ? 'bg-success-400/5 border-success-400/20' : 'bg-red-500/5 border-red-500/20'
+                  beat ? 'bg-success-400/5 border-success-400/20' : 'bg-danger-400/5 border-danger-400/30'
                 }`}>
                   <div className="text-[9px] text-text-tertiary mb-1">
                     {s.date?.split('-').slice(0, 2).join('/')}
                   </div>
-                  <div className={`text-xs font-bold tabular-nums ${beat ? 'text-success-400' : 'text-red-400'}`}>
+                  <div className={`text-xs font-bold tabular-nums ${beat ? 'text-success-400' : 'text-danger-400'}`}>
                     {beat ? '✓' : '✗'}
                   </div>
                   <div className="text-[9px] text-text-tertiary mt-0.5 tabular-nums">
@@ -195,14 +195,14 @@ function PriceTargetCard({ label, value, color }: { label: string; value: number
   return (
     <div className={`rounded-lg p-2 sm:p-3 text-center border ${
       color === 'hermes-green' ? 'bg-success-400/5 border-success-400/15' :
-      color === 'red' ? 'bg-red-500/5 border-red-500/15' :
-      'bg-violet-500/5 border-violet-500/15'
+      color === 'red' ? 'bg-danger-400/5 border-red-500/15' :
+      'bg-info-400/5 border-violet-500/15'
     }`}>
       <div className="text-[9px] text-text-tertiary uppercase mb-1">{label}</div>
       <div className={`text-base sm:text-lg font-bold tabular-nums ${
         color === 'hermes-green' ? 'text-success-400' :
-        color === 'red' ? 'text-red-400' :
-        'text-violet-400'
+        color === 'red' ? 'text-danger-400' :
+        'text-info-400'
       }`}>
         ${value?.toFixed(2)}
       </div>
@@ -218,7 +218,7 @@ function GradeBadge({ grade }: { grade: string }) {
   return (
     <span className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${
       isPositive ? 'bg-success-400/15 text-success-400' :
-      isNegative ? 'bg-red-500/15 text-red-400' :
+      isNegative ? 'bg-danger-400/15 text-danger-400' :
       'bg-white/5 text-text-tertiary'
     }`}>
       {grade || '—'}

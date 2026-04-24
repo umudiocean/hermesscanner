@@ -40,10 +40,10 @@ export default function TabFred() {
 
   const regimeColors: Record<string, { bg: string; text: string; border: string; emoji: string }> = {
     GOLDILOCKS: { bg: 'bg-success-400/10', text: 'text-success-400', border: 'border-success-400/25', emoji: '\u2728' },
-    REFLATION: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/25', emoji: '\uD83D\uDD25' },
-    STAGFLATION: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/25', emoji: '\u26A0\uFE0F' },
-    DEFLATION: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/25', emoji: '\u2744\uFE0F' },
-    UNKNOWN: { bg: 'bg-surface-3', text: 'text-slate-400', border: 'border-stroke', emoji: '\u2753' },
+    REFLATION: { bg: 'bg-gold-500/10', text: 'text-gold-400', border: 'border-amber-500/25', emoji: '\uD83D\uDD25' },
+    STAGFLATION: { bg: 'bg-danger-400/10', text: 'text-danger-400', border: 'border-danger-400/30', emoji: '\u26A0\uFE0F' },
+    DEFLATION: { bg: 'bg-info-400/10', text: 'text-info-400', border: 'border-blue-500/25', emoji: '\u2744\uFE0F' },
+    UNKNOWN: { bg: 'bg-surface-3', text: 'text-text-tertiary', border: 'border-stroke', emoji: '\u2753' },
   }
   const rc = regimeColors[data.macroRegime] || regimeColors.UNKNOWN
 
@@ -93,7 +93,7 @@ export default function TabFred() {
           <div className="ml-auto">
             <span className={`text-xl sm:text-2xl font-black tabular-nums ${
               data.fearGreedV2.composite >= 60 ? 'text-success-400' :
-              data.fearGreedV2.composite >= 40 ? 'text-slate-300' : 'text-red-400'
+              data.fearGreedV2.composite >= 40 ? 'text-text-secondary' : 'text-danger-400'
             }`}>{data.fearGreedV2.composite}</span>
             <span className="text-xs text-text-tertiary ml-1">/100</span>
           </div>
@@ -113,7 +113,7 @@ export default function TabFred() {
             <div key={c.name} className="bg-surface-2 rounded-xl p-3 border border-stroke-subtle">
               <div className="text-[10px] text-text-tertiary mb-1">{c.name}</div>
               <div className={`text-lg font-black tabular-nums ${
-                c.score >= 60 ? 'text-success-400' : c.score >= 40 ? 'text-slate-300' : 'text-red-400'
+                c.score >= 60 ? 'text-success-400' : c.score >= 40 ? 'text-text-secondary' : 'text-danger-400'
               }`}>{c.score}</div>
               <div className="w-full h-1.5 bg-surface-3 rounded-full overflow-hidden mt-1.5">
                 <div className="h-full rounded-full transition-all duration-500" style={{
@@ -136,22 +136,22 @@ export default function TabFred() {
         {/* Yield Curve Monitor */}
         <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
-            <TrendingUp size={16} className="text-violet-400" />
+            <TrendingUp size={16} className="text-info-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Verim Egrisi Monitor</h3>
           </div>
           <div className="flex items-center justify-between mb-3">
             <div>
               <div className="text-[10px] text-text-tertiary">10Y - 2Y Spread</div>
               <div className={`text-2xl sm:text-3xl font-black tabular-nums ${
-                data.yieldCurve.spread < 0 ? 'text-red-400' :
-                data.yieldCurve.spread < 0.5 ? 'text-orange-400' : 'text-success-400'
+                data.yieldCurve.spread < 0 ? 'text-danger-400' :
+                data.yieldCurve.spread < 0.5 ? 'text-warning-400' : 'text-success-400'
               }`}>{data.yieldCurve.spread >= 0 ? '+' : ''}{data.yieldCurve.spread.toFixed(2)}%</div>
             </div>
             <div className={`px-3 py-1.5 rounded-xl border text-sm font-bold ${
-              data.yieldCurve.status === 'INVERSION' ? 'text-red-400 bg-red-500/10 border-red-500/20' :
-              data.yieldCurve.status === 'DIKKAT' ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' :
+              data.yieldCurve.status === 'INVERSION' ? 'text-danger-400 bg-danger-400/10 border-danger-400/30' :
+              data.yieldCurve.status === 'DIKKAT' ? 'text-warning-400 bg-orange-500/10 border-orange-500/20' :
               data.yieldCurve.status === 'GENIS' ? 'text-success-400 bg-success-400/10 border-success-400/20' :
-              'text-slate-300 bg-surface-3 border-stroke'
+              'text-text-secondary bg-surface-3 border-stroke'
             }`}>{data.yieldCurve.status}</div>
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -171,12 +171,12 @@ export default function TabFred() {
         {/* Fed Policy Tracker */}
         <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
-            <DollarSign size={16} className="text-blue-400" />
+            <DollarSign size={16} className="text-info-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Fed Politika Takip</h3>
           </div>
           <div className="mb-3">
             <div className="text-[10px] text-text-tertiary">Federal Fonlar Orani</div>
-            <div className="text-2xl sm:text-3xl font-black text-blue-400 tabular-nums">{data.fedPolicy.fedFundsRate.toFixed(2)}%</div>
+            <div className="text-2xl sm:text-3xl font-black text-info-400 tabular-nums">{data.fedPolicy.fedFundsRate.toFixed(2)}%</div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <MetricBox label="Bank Prime" value={`${data.fedPolicy.bankPrime.toFixed(2)}%`} />
@@ -192,12 +192,12 @@ export default function TabFred() {
         {/* Enflasyon Barometresi */}
         <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
-            <Thermometer size={16} className="text-orange-400" />
+            <Thermometer size={16} className="text-warning-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Enflasyon Barometresi</h3>
           </div>
           <div className="mb-3">
             <div className="text-[10px] text-text-tertiary">CPI Endeksi (Tuketici Fiyat)</div>
-            <div className="text-2xl sm:text-3xl font-black text-orange-400 tabular-nums">{data.inflation.cpi.toFixed(1)}</div>
+            <div className="text-2xl sm:text-3xl font-black text-warning-400 tabular-nums">{data.inflation.cpi.toFixed(1)}</div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <MetricBox label="10Y Breakeven" value={`${data.inflation.breakeven10Y.toFixed(2)}%`} />
@@ -218,15 +218,15 @@ export default function TabFred() {
             <div>
               <div className="text-[10px] text-text-tertiary">Issizlik Orani</div>
               <div className={`text-2xl sm:text-3xl font-black tabular-nums ${
-                data.employment.unemploymentRate > 5 ? 'text-red-400' :
-                data.employment.unemploymentRate > 4 ? 'text-orange-400' : 'text-success-400'
+                data.employment.unemploymentRate > 5 ? 'text-danger-400' :
+                data.employment.unemploymentRate > 4 ? 'text-warning-400' : 'text-success-400'
               }`}>%{data.employment.unemploymentRate.toFixed(1)}</div>
             </div>
             <div>
               <div className="text-[10px] text-text-tertiary">Haftalik Basvurular</div>
               <div className={`text-2xl sm:text-3xl font-black tabular-nums ${
-                data.employment.joblessClaims > 300000 ? 'text-red-400' :
-                data.employment.joblessClaims > 250000 ? 'text-orange-400' : 'text-success-400'
+                data.employment.joblessClaims > 300000 ? 'text-danger-400' :
+                data.employment.joblessClaims > 250000 ? 'text-warning-400' : 'text-success-400'
               }`}>{(data.employment.joblessClaims / 1000).toFixed(0)}K</div>
             </div>
           </div>
@@ -245,18 +245,18 @@ export default function TabFred() {
         {/* VIX */}
         <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
           <div className="flex items-center gap-2 mb-2">
-            <Activity size={14} className="text-violet-400" />
+            <Activity size={14} className="text-info-400" />
             <span className="text-xs font-bold text-text-secondary uppercase">Volatilite (VIX)</span>
           </div>
           <div className={`text-xl sm:text-2xl font-black tabular-nums ${
-            data.volatility.status === 'PANIC' ? 'text-red-400' :
-            data.volatility.status === 'FEAR' ? 'text-orange-400' :
-            data.volatility.status === 'NORMAL' ? 'text-slate-300' : 'text-success-400'
+            data.volatility.status === 'PANIC' ? 'text-danger-400' :
+            data.volatility.status === 'FEAR' ? 'text-warning-400' :
+            data.volatility.status === 'NORMAL' ? 'text-text-secondary' : 'text-success-400'
           }`}>{data.volatility.vix.toFixed(1)}</div>
           <div className={`text-[10px] font-bold mt-1 ${
-            data.volatility.status === 'PANIC' ? 'text-red-400' :
-            data.volatility.status === 'FEAR' ? 'text-orange-400' :
-            data.volatility.status === 'NORMAL' ? 'text-slate-300' : 'text-success-400'
+            data.volatility.status === 'PANIC' ? 'text-danger-400' :
+            data.volatility.status === 'FEAR' ? 'text-warning-400' :
+            data.volatility.status === 'NORMAL' ? 'text-text-secondary' : 'text-success-400'
           }`}>{data.volatility.status}</div>
           <div className="text-[9px] text-text-quaternary mt-1">{data.volatility.vixDate}</div>
         </div>
@@ -264,17 +264,17 @@ export default function TabFred() {
         {/* Kredi Stresi */}
         <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
           <div className="flex items-center gap-2 mb-2">
-            <CreditCard size={14} className="text-orange-400" />
+            <CreditCard size={14} className="text-warning-400" />
             <span className="text-xs font-bold text-text-secondary uppercase">Kredi Stresi</span>
           </div>
           <div className={`text-xl sm:text-2xl font-black tabular-nums ${
-            data.creditStress.status === 'CRISIS' ? 'text-red-400' :
-            data.creditStress.status === 'HIGH' ? 'text-orange-400' :
+            data.creditStress.status === 'CRISIS' ? 'text-danger-400' :
+            data.creditStress.status === 'HIGH' ? 'text-warning-400' :
             data.creditStress.status === 'ELEVATED' ? 'text-yellow-400' : 'text-success-400'
           }`}>{data.creditStress.highYieldSpread.toFixed(2)}%</div>
           <div className={`text-[10px] font-bold mt-1 ${
-            data.creditStress.status === 'CRISIS' ? 'text-red-400' :
-            data.creditStress.status === 'HIGH' ? 'text-orange-400' : 'text-success-400'
+            data.creditStress.status === 'CRISIS' ? 'text-danger-400' :
+            data.creditStress.status === 'HIGH' ? 'text-warning-400' : 'text-success-400'
           }`}>{data.creditStress.status}</div>
           <div className="text-[9px] text-text-quaternary mt-1">{data.creditStress.highYieldDate}</div>
         </div>
@@ -297,12 +297,12 @@ export default function TabFred() {
         {/* Tuketici Guveni */}
         <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
           <div className="flex items-center gap-2 mb-2">
-            <Users size={14} className="text-amber-400" />
+            <Users size={14} className="text-gold-400" />
             <span className="text-xs font-bold text-text-secondary uppercase">Tuketici Guveni</span>
           </div>
           <div className={`text-xl sm:text-2xl font-black tabular-nums ${
             data.consumerSentiment.value > 70 ? 'text-success-400' :
-            data.consumerSentiment.value > 55 ? 'text-slate-300' : 'text-red-400'
+            data.consumerSentiment.value > 55 ? 'text-text-secondary' : 'text-danger-400'
           }`}>{data.consumerSentiment.value.toFixed(1)}</div>
           <div className="text-[10px] text-text-tertiary mt-1">
             Michigan Univ. Endeksi
@@ -366,7 +366,7 @@ function FredSkeleton() {
 function FredError({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] animate-fade-in px-2 sm:px-4">
-      <AlertTriangle size={36} className="text-red-400/50 mb-2 sm:mb-3" />
+      <AlertTriangle size={36} className="text-danger-400/50 mb-2 sm:mb-3" />
       <p className="text-text-tertiary text-sm sm:text-base">{message}</p>
       <p className="text-text-tertiary text-xs mt-1">FRED API baglantisi kontrol edin</p>
       <button onClick={() => window.location.reload()}

@@ -39,7 +39,7 @@ function getSignalStyle(signalType: string) {
   const styles: Record<string, { bg: string; text: string; border: string }> = {
     long: { bg: 'bg-success-400/15', text: 'text-success-400', border: 'border-success-400/40' },
     neutral: { bg: 'bg-surface-3', text: 'text-text-secondary', border: 'border-stroke' },
-    short: { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/40' },
+    short: { bg: 'bg-danger-400/15', text: 'text-danger-400', border: 'border-danger-400/40' },
   }
   return styles[mapped] || styles.neutral
 }
@@ -47,7 +47,7 @@ function getSignalStyle(signalType: string) {
 function getScoreColor(score: number): string {
   if (score <= 34) return 'text-success-400'
   if (score <= 91) return 'text-text-secondary'
-  return 'text-red-400'
+  return 'text-danger-400'
 }
 
 function formatMarketCap(mc: number): string {
@@ -101,8 +101,8 @@ function FilterButton({ active, onClick, children, count, variant = 'default' }:
     yellow: active ? 'bg-gold-400/15 border-stroke-gold-strong text-gold-300' : 'bg-transparent border-stroke-gold text-gold-400/40 hover:text-gold-300',
     green: active ? 'bg-success-400/15 border-success-400/40 text-success-400' : 'bg-transparent border-success-400/15 text-success-400/40 hover:text-success-400',
     gray: active ? 'bg-surface-3 border-stroke text-text-secondary' : 'bg-transparent border-white/8 text-text-tertiary hover:text-text-secondary',
-    orange: active ? 'bg-orange-500/15 border-orange-500/40 text-orange-400' : 'bg-transparent border-orange-500/15 text-orange-500/40 hover:text-orange-400',
-    red: active ? 'bg-red-500/15 border-red-500/40 text-red-400' : 'bg-transparent border-red-500/15 text-red-500/40 hover:text-red-400',
+    orange: active ? 'bg-warning-400/15 border-orange-500/40 text-warning-400' : 'bg-transparent border-orange-500/15 text-warning-500/40 hover:text-warning-400',
+    red: active ? 'bg-danger-400/15 border-danger-400/40 text-danger-400' : 'bg-transparent border-red-500/15 text-danger-400/40 hover:text-danger-400',
   }
   return (
     <button onClick={onClick} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all flex items-center gap-1.5 ${variants[variant]}`}>
@@ -119,9 +119,9 @@ function FilterButton({ active, onClick, children, count, variant = 'default' }:
 function getValuationStyle(label: string): string {
   if (label === 'COK UCUZ') return 'text-success-400 bg-success-400/15'
   if (label === 'UCUZ') return 'text-success-400 bg-success-400/10'
-  if (label === 'NORMAL') return 'text-slate-300 bg-surface-3'
-  if (label === 'PAHALI') return 'text-orange-400 bg-orange-500/10'
-  if (label === 'COK PAHALI') return 'text-red-400 bg-red-500/10'
+  if (label === 'NORMAL') return 'text-text-secondary bg-surface-3'
+  if (label === 'PAHALI') return 'text-warning-400 bg-orange-500/10'
+  if (label === 'COK PAHALI') return 'text-danger-400 bg-danger-400/10'
   return 'text-text-quaternary bg-surface-2'
 }
 
@@ -129,9 +129,9 @@ function getZoneStyle(zone: string): string {
   switch (zone) {
     case 'BUY_ZONE': return 'text-success-400 bg-success-400/15 border-success-400/30'
     case 'ACCUMULATE': return 'text-success-400 bg-success-400/8 border-success-400/20'
-    case 'NEUTRAL': return 'text-slate-300 bg-surface-3 border-stroke'
-    case 'DISTRIBUTE': return 'text-orange-400 bg-orange-500/8 border-orange-500/20'
-    case 'SELL_ZONE': return 'text-red-400 bg-red-500/15 border-red-500/30'
+    case 'NEUTRAL': return 'text-text-secondary bg-surface-3 border-stroke'
+    case 'DISTRIBUTE': return 'text-warning-400 bg-orange-500/8 border-orange-500/20'
+    case 'SELL_ZONE': return 'text-danger-400 bg-danger-400/15 border-danger-400/30'
     default: return 'text-text-quaternary bg-surface-2 border-white/5'
   }
 }
@@ -179,7 +179,7 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
         <td className="px-3 py-3 text-right" onClick={onToggle}>
           <PriceFlashCell price={quote?.price || hermes.price} className="font-mono text-text-primary text-sm" />
         </td>
-        <td className={`px-3 py-3 text-right font-mono ${(quote?.changePercent ?? 0) >= 0 ? 'text-success-400' : 'text-red-400'}`} onClick={onToggle}>
+        <td className={`px-3 py-3 text-right font-mono ${(quote?.changePercent ?? 0) >= 0 ? 'text-success-400' : 'text-danger-400'}`} onClick={onToggle}>
           {quote?.changePercent ? `${quote.changePercent >= 0 ? '+' : ''}${quote.changePercent.toFixed(2)}%` : '-'}
         </td>
         <td className="px-3 py-3" onClick={onToggle}>
@@ -192,7 +192,7 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
               <span className="px-1 py-0.5 rounded text-[9px] bg-success-400/10 text-success-400/80 border border-success-400/20" title="Skor LONG bolgelerine yaklastigi">↓L</span>
             )}
             {hermes.score >= 87 && hermes.score <= 91 && (
-              <span className="px-1 py-0.5 rounded text-[9px] bg-red-400/10 text-red-400/80 border border-red-400/20" title="Skor SHORT bolgelerine yaklastigi">↑S</span>
+              <span className="px-1 py-0.5 rounded text-[9px] bg-danger-400/10 text-danger-400/80 border border-danger-400/30" title="Skor SHORT bolgelerine yaklastigi">↑S</span>
             )}
             {hermes.delay?.waitingForConfirm && (
               <span className="px-1.5 py-0.5 rounded text-[10px] bg-gold-400/15 text-gold-300 border border-stroke-gold-strong">
@@ -207,12 +207,12 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
           </div>
         </td>
         <td className="px-3 py-3 text-right hidden md:table-cell" onClick={onToggle}>
-          <span className={`font-mono ${hermes.indicators.rsi >= 70 ? 'text-red-400' : hermes.indicators.rsi <= 30 ? 'text-success-400' : 'text-text-secondary'}`}>
+          <span className={`font-mono ${hermes.indicators.rsi >= 70 ? 'text-danger-400' : hermes.indicators.rsi <= 30 ? 'text-success-400' : 'text-text-secondary'}`}>
             {Math.round(hermes.indicators.rsi)}
           </span>
         </td>
         <td className="px-3 py-3 text-right hidden md:table-cell" onClick={onToggle}>
-          <span className={`font-mono ${hermes.indicators.mfi >= 75 ? 'text-red-400' : hermes.indicators.mfi <= 25 ? 'text-success-400' : 'text-text-secondary'}`}>
+          <span className={`font-mono ${hermes.indicators.mfi >= 75 ? 'text-danger-400' : hermes.indicators.mfi <= 25 ? 'text-success-400' : 'text-text-secondary'}`}>
             {Math.round(hermes.indicators.mfi)}
           </span>
         </td>
@@ -221,7 +221,7 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
         </td>
         <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
           <span className={`text-[11px] tabular-nums font-medium ${
-            confidence >= 70 ? 'text-success-400/60' : confidence >= 50 ? 'text-amber-400/60' : 'text-text-quaternary'
+            confidence >= 70 ? 'text-success-400/60' : confidence >= 50 ? 'text-gold-400/60' : 'text-text-quaternary'
           }`}>{confidence > 0 ? `${confidence}%` : '—'}</span>
         </td>
         <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
@@ -232,7 +232,7 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
           ) : <span className="text-text-tertiary text-[10px]">—</span>}
         </td>
         <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
-          <span className={`text-xs ${hermes.multipliers.quality > 0.9 ? 'text-success-400' : hermes.multipliers.quality < 0.7 ? 'text-red-400' : 'text-gold-300'}`}>
+          <span className={`text-xs ${hermes.multipliers.quality > 0.9 ? 'text-success-400' : hermes.multipliers.quality < 0.7 ? 'text-danger-400' : 'text-gold-300'}`}>
             {hermes.multipliers.quality.toFixed(2)}
           </span>
         </td>
@@ -262,7 +262,7 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
               <td className="px-3 py-3 text-right hidden xl:table-cell" onClick={onToggle}>
                 {tgt > 0 ? (
                   <div className="flex flex-col items-end">
-                    <span className={`font-mono text-xs font-semibold ${tgtPct >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+                    <span className={`font-mono text-xs font-semibold ${tgtPct >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                       ${tgt.toFixed(2)}
                     </span>
                     <span className="text-[10px] text-text-tertiary">{tgtPct >= 0 ? '+' : ''}{tgtPct.toFixed(1)}%</span>
@@ -272,14 +272,14 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
               <td className="px-3 py-3 text-right hidden xl:table-cell" onClick={onToggle}>
                 {flr > 0 ? (
                   <div className="flex flex-col items-end">
-                    <span className="font-mono text-xs text-red-400/80">${flr.toFixed(2)}</span>
+                    <span className="font-mono text-xs text-danger-400/80">${flr.toFixed(2)}</span>
                     <span className="text-[10px] text-text-tertiary">-{flrPct.toFixed(1)}%</span>
                   </div>
                 ) : <span className="text-text-tertiary text-[10px]">{'\u2014'}</span>}
               </td>
               <td className="px-3 py-3 text-center hidden xl:table-cell" onClick={onToggle}>
                 {rr > 0 ? (
-                  <span className={`font-mono text-xs font-bold ${rr >= 2 ? 'text-success-400' : rr >= 1 ? 'text-gold-300' : 'text-red-400'}`}>
+                  <span className={`font-mono text-xs font-bold ${rr >= 2 ? 'text-success-400' : rr >= 1 ? 'text-gold-300' : 'text-danger-400'}`}>
                     {rr.toFixed(1)}
                   </span>
                 ) : <span className="text-text-tertiary text-[10px]">{'\u2014'}</span>}
@@ -329,7 +329,7 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
               <DetailBlock title="Veri Durumu" items={[
                 { label: 'Bar', value: hermes.dataPoints.toString() },
                 { label: 'MktCap', value: formatMarketCap(quote?.marketCap || 0) },
-                { label: 'Durum', value: hermes.hasEnough52w ? 'TAM' : 'KISMI', color: hermes.hasEnough52w ? 'text-success-400' : 'text-orange-400' },
+                { label: 'Durum', value: hermes.hasEnough52w ? 'TAM' : 'KISMI', color: hermes.hasEnough52w ? 'text-success-400' : 'text-warning-400' },
                 { label: 'Delay', value: hermes.delay ? (hermes.delay.confirmed ? 'CONFIRMED' : `${hermes.delay.barsRemaining} bar bekle`) : '-', 
                   color: hermes.delay?.confirmed ? 'text-success-400' : hermes.delay?.waitingForConfirm ? 'text-gold-300' : 'text-text-tertiary' },
               ]} />
@@ -536,7 +536,7 @@ export default function ModuleNasdaqTrade() {
 
       {/* Error */}
       {error && !loading && (
-        <div className="text-sm text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-4 py-3 mb-4">
+        <div className="text-sm text-gold-400 bg-gold-500/10 border border-amber-500/20 rounded-lg px-4 py-3 mb-4">
           {error}
         </div>
       )}

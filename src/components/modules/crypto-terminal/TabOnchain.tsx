@@ -78,7 +78,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
 
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[30vh] text-center">
-      <p className="text-sm text-red-400 mb-2">{error}</p>
+      <p className="text-sm text-danger-400 mb-2">{error}</p>
       <button onClick={() => setNetwork(network)} className="px-4 py-2 rounded-xl bg-surface-3 text-text-secondary text-xs hover:bg-surface-3 transition-all">Tekrar Dene</button>
     </div>
   )
@@ -92,7 +92,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
             key={n.id}
             onClick={() => setNetwork(n.id)}
             className={`group px-3 py-1.5 rounded-xl text-[11px] font-bold whitespace-nowrap transition-all duration-300 border ${
-              network === n.id ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-text-tertiary hover:text-amber-200/80 border-stroke-subtle hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
+              network === n.id ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-gold-300 border-amber-500/35 shadow-sm shadow-amber-500/10 scale-[1.02]' : 'text-text-tertiary hover:text-amber-200/80 border-stroke-subtle hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
             }`}
           >{n.label}</button>
         ))}
@@ -101,7 +101,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
       {/* Trending Pools */}
       <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
-          <Flame size={16} className="text-orange-400" />
+          <Flame size={16} className="text-warning-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Trend DEX Havuzlari</h3>
         </div>
         {trendingPools?.data ? (
@@ -118,7 +118,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
                 <div className="flex items-center gap-3 text-[10px]">
                   <span className="text-text-tertiary">TVL: ${(parseFloat(pool.attributes?.reserve_in_usd || '0') / 1e6).toFixed(1)}M</span>
                   <span className="text-text-tertiary">24s: ${(parseFloat(pool.attributes?.volume_usd?.h24 || '0') / 1e6).toFixed(1)}M</span>
-                  <span className={`font-medium ${parseFloat(pool.attributes?.price_change_percentage?.h24 || '0') >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <span className={`font-medium ${parseFloat(pool.attributes?.price_change_percentage?.h24 || '0') >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                     {parseFloat(pool.attributes?.price_change_percentage?.h24 || '0').toFixed(1)}%
                   </span>
                 </div>
@@ -134,7 +134,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
       {newlyListed.length > 0 && (
         <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
-            <Clock size={16} className="text-violet-400" />
+            <Clock size={16} className="text-info-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Yeni Listelenen Coinler</h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
@@ -142,12 +142,12 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
               <button
                 key={coin.id}
                 onClick={() => onSelectCoin(coin.id)}
-                className="p-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 border border-stroke-subtle hover:border-violet-500/20 hover:shadow-sm hover:shadow-violet-500/5 hover:scale-[1.02] transition-all duration-300 text-left"
+                className="p-2.5 rounded-xl bg-surface-2 hover:bg-surface-3 border border-stroke-subtle hover:border-info-400/30 hover:shadow-sm hover:shadow-violet-500/5 hover:scale-[1.02] transition-all duration-300 text-left"
               >
                 <div className="text-xs font-bold text-white">{coin.symbol?.toUpperCase()}</div>
                 <div className="text-[10px] text-text-tertiary truncate">{coin.name}</div>
                 {coin.activated_at && (
-                  <div className="text-[9px] text-violet-400/60 mt-0.5">
+                  <div className="text-[9px] text-info-400/60 mt-0.5">
                     {new Date(coin.activated_at * 1000).toLocaleDateString('tr-TR')}
                   </div>
                 )}

@@ -137,7 +137,7 @@ function InsiderView({ trades }: { trades: InsiderTrade[] }) {
                     </td>
                     <td className="px-3 py-1.5 text-center">
                       <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-                        isBuy ? 'bg-success-400/15 text-success-400' : 'bg-red-500/15 text-red-400'
+                        isBuy ? 'bg-success-400/15 text-success-400' : 'bg-danger-400/15 text-danger-400'
                       }`}>
                         {isBuy ? 'ALIM' : 'SATIŞ'}
                       </span>
@@ -191,7 +191,7 @@ function InstitutionalView({ holders }: { holders: InstitutionalHolder[] }) {
                   </td>
                   <td className="px-3 py-1.5 text-right">
                     <span className={`text-[10px] tabular-nums ${
-                      changePositive ? 'text-success-400' : h.change < 0 ? 'text-red-400' : 'text-text-tertiary'
+                      changePositive ? 'text-success-400' : h.change < 0 ? 'text-danger-400' : 'text-text-tertiary'
                     }`}>
                       {changePositive ? '+' : ''}{h.change?.toLocaleString()}
                     </span>
@@ -240,8 +240,8 @@ function CongressionalView({ trades }: { trades: CongressionalTrade[] }) {
                   </td>
                   <td className="px-3 py-1.5">
                     <span className={`text-[9px] px-1.5 py-0.5 rounded ${
-                      t.party === 'Republican' ? 'bg-red-500/15 text-red-400' :
-                      t.party === 'Democrat' ? 'bg-blue-500/15 text-blue-400' :
+                      t.party === 'Republican' ? 'bg-danger-400/15 text-danger-400' :
+                      t.party === 'Democrat' ? 'bg-info-400/15 text-info-400' :
                       'bg-white/5 text-text-tertiary'
                     }`}>
                       {t.party?.charAt(0) || '?'}
@@ -249,7 +249,7 @@ function CongressionalView({ trades }: { trades: CongressionalTrade[] }) {
                   </td>
                   <td className="px-3 py-1.5 text-center">
                     <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-                      isBuy ? 'bg-success-400/15 text-success-400' : 'bg-red-500/15 text-red-400'
+                      isBuy ? 'bg-success-400/15 text-success-400' : 'bg-danger-400/15 text-danger-400'
                     }`}>
                       {isBuy ? 'ALIM' : 'SATIŞ'}
                     </span>
@@ -275,7 +275,7 @@ function StatCard({ label, value, color }: { label: string; value: string; color
       <div className="text-[9px] text-text-tertiary uppercase mb-1">{label}</div>
       <div className={`text-base sm:text-lg font-bold tabular-nums ${
         color === 'hermes-green' ? 'text-success-400' :
-        color === 'red' ? 'text-red-400' :
+        color === 'red' ? 'text-danger-400' :
         'text-white'
       }`}>
         {value}

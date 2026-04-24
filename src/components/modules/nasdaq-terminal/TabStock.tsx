@@ -18,9 +18,9 @@ import { downloadHermesReportPdf } from '@/lib/report-pdf-premium'
 function getValuationFromScore(valScore: number): { label: string; style: string } {
   if (valScore >= 80) return { label: 'COK UCUZ', style: 'text-success-400 bg-success-400/15 border-success-400/30' }
   if (valScore >= 65) return { label: 'UCUZ', style: 'text-success-400 bg-success-400/10 border-success-400/20' }
-  if (valScore >= 40) return { label: 'NORMAL', style: 'text-slate-300 bg-surface-3 border-stroke' }
-  if (valScore >= 25) return { label: 'PAHALI', style: 'text-orange-400 bg-orange-500/10 border-orange-500/20' }
-  return { label: 'COK PAHALI', style: 'text-red-400 bg-red-500/10 border-red-500/20' }
+  if (valScore >= 40) return { label: 'NORMAL', style: 'text-text-secondary bg-surface-3 border-stroke' }
+  if (valScore >= 25) return { label: 'PAHALI', style: 'text-warning-400 bg-orange-500/10 border-orange-500/20' }
+  return { label: 'COK PAHALI', style: 'text-danger-400 bg-danger-400/10 border-danger-400/30' }
 }
 
 interface TabStockProps {
@@ -558,7 +558,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
             {fmpScore && fmpScore.confidence > 0 && (
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                 fmpScore.confidence >= 70 ? 'text-success-400 bg-success-400/10 border-success-400/20' :
-                fmpScore.confidence >= 50 ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
+                fmpScore.confidence >= 50 ? 'text-gold-400 bg-gold-500/10 border-amber-500/20' :
                 'text-text-tertiary bg-surface-3 border-stroke'
               }`}>
                 Guven: {fmpScore.confidence}%
@@ -578,7 +578,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               ${profile?.price?.toFixed(2) ?? '—'}
             </div>
             <div className={`text-sm tabular-nums ${
-              (profile?.changes ?? 0) >= 0 ? 'text-success-400' : 'text-red-400'
+              (profile?.changes ?? 0) >= 0 ? 'text-success-400' : 'text-danger-400'
             }`}>
               {(profile?.changes ?? 0) >= 0 ? '+' : ''}{profile?.changes?.toFixed(2)} ({profile?.changesPercentage?.toFixed(2)}%)
             </div>
@@ -597,14 +597,14 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
             <button
               onClick={() => onAddToCompare(symbol)}
               className="px-3 py-1.5 rounded-lg border border-stroke text-[10px] text-text-secondary
-                         hover:border-violet-500/30 hover:text-violet-300 transition-all"
+                         hover:border-info-400/30 hover:text-info-400 transition-all"
             >
               Karsilastir
             </button>
             <button
               onClick={handleDownloadPdf}
               disabled={pdfLoading}
-              className="px-3 py-1.5 rounded-lg border border-amber-500/30 text-[10px] text-amber-300 hover:bg-amber-500/10 transition-all disabled:opacity-60"
+              className="px-3 py-1.5 rounded-lg border border-stroke-gold-strong text-[10px] text-gold-300 hover:bg-gold-500/10 transition-all disabled:opacity-60"
             >
               {pdfLoading ? 'PDF hazirlaniyor...' : 'Raporu PDF indir'} <span className="ml-1 text-[9px] text-amber-200/90">PREMIUM</span>
             </button>
@@ -717,11 +717,11 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
             <>
               <span className={`text-2xl font-black tabular-nums ${
                 fmpScore.confidence >= 70 ? 'text-success-400' :
-                fmpScore.confidence >= 50 ? 'text-amber-400' : 'text-text-tertiary'
+                fmpScore.confidence >= 50 ? 'text-gold-400' : 'text-text-tertiary'
               }`}>{fmpScore.confidence}%</span>
               <span className={`text-[10px] mt-1 font-semibold ${
                 fmpScore.confidence >= 70 ? 'text-success-400/70' :
-                fmpScore.confidence >= 50 ? 'text-amber-400/70' : 'text-text-tertiary'
+                fmpScore.confidence >= 50 ? 'text-gold-400/70' : 'text-text-tertiary'
               }`}>{fmpScore.confidence >= 70 ? 'YUKSEK' : fmpScore.confidence >= 50 ? 'ORTA' : 'DUSUK'}</span>
             </>
           ) : (
@@ -750,7 +750,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
             <>
               <span className={`text-2xl font-black tabular-nums ${
                 fmpScore.total >= 66 ? 'text-success-400' :
-                fmpScore.total >= 33 ? 'text-amber-400' : 'text-red-400'
+                fmpScore.total >= 33 ? 'text-gold-400' : 'text-danger-400'
               }`}>{Math.round(fmpScore.total)}</span>
               <span className={`text-[10px] mt-1 font-semibold ${getScoreColor(fmpScore.level)}`}>
                 {SCORE_LABELS[fmpScore.level]}
@@ -768,7 +768,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
             const price = profile?.price || 0
             const target = pt?.targetConsensus || pt?.targetMedian || 0
             const pct = (target > 0 && price > 0) ? ((target - price) / price) * 100 : 0
-            return pct >= 30 ? 'border-emerald-500/40' : pct <= -20 ? 'border-red-500/40' : 'border-white/5'
+            return pct >= 30 ? 'border-success-400/40' : pct <= -20 ? 'border-danger-400/40' : 'border-white/5'
           })()
         }`}>
           <span className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Hedef Fiyat</span>
@@ -780,15 +780,15 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               const pct = ((target - price) / price) * 100
               return (
                 <>
-                  <span className={`text-2xl font-black tabular-nums ${pct >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+                  <span className={`text-2xl font-black tabular-nums ${pct >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                     ${target.toFixed(2)}
                   </span>
                   {pct >= 30 ? (
-                    <span className="text-[10px] mt-1 font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] mt-1 font-bold text-success-400 bg-success-400/15 px-2 py-0.5 rounded-full">
                       YUKARI POTANSIYEL +{pct.toFixed(0)}%
                     </span>
                   ) : (
-                    <span className={`text-[10px] mt-1 font-semibold tabular-nums ${pct >= 0 ? 'text-success-400/70' : 'text-red-400/70'}`}>
+                    <span className={`text-[10px] mt-1 font-semibold tabular-nums ${pct >= 0 ? 'text-success-400/70' : 'text-danger-400/70'}`}>
                       {pct >= 0 ? '+' : ''}{pct.toFixed(1)}%
                     </span>
                   )}
@@ -805,7 +805,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
             const pt = priceTarget
             const price = profile?.price || 0
             const floor = pt?.targetLow || (profile?.range ? parseFloat(profile.range.split('-')[0]) || 0 : 0)
-            return (floor > 0 && price > 0 && price < floor) ? 'border-emerald-500/40' : 'border-white/5'
+            return (floor > 0 && price > 0 && price < floor) ? 'border-success-400/40' : 'border-white/5'
           })()
         }`}>
           <span className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Dip Fiyat</span>
@@ -819,15 +819,15 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               const belowFloor = price < floor
               return (
                 <>
-                  <span className={`text-2xl font-black tabular-nums ${belowFloor ? 'text-emerald-400' : pct >= -10 ? 'text-amber-400' : 'text-red-400'}`}>
+                  <span className={`text-2xl font-black tabular-nums ${belowFloor ? 'text-success-400' : pct >= -10 ? 'text-gold-400' : 'text-danger-400'}`}>
                     ${floor.toFixed(2)}
                   </span>
                   {belowFloor ? (
-                    <span className="text-[10px] mt-1 font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] mt-1 font-bold text-success-400 bg-success-400/15 px-2 py-0.5 rounded-full">
                       DIP ALTINDA ({pct > 0 ? '+' : ''}{pct.toFixed(1)}%)
                     </span>
                   ) : (
-                    <span className={`text-[10px] mt-1 font-semibold tabular-nums ${pct >= -10 ? 'text-amber-400/70' : 'text-red-400/70'}`}>
+                    <span className={`text-[10px] mt-1 font-semibold tabular-nums ${pct >= -10 ? 'text-gold-400/70' : 'text-danger-400/70'}`}>
                       {pct.toFixed(1)}%
                     </span>
                   )}
@@ -853,7 +853,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
           <button
             onClick={() => onAddToCompare(symbol)}
             className="w-full px-3 py-1.5 rounded-lg border border-stroke text-[10px] text-text-tertiary
-                       hover:border-violet-500/30 hover:text-violet-300 transition-all"
+                       hover:border-info-400/30 hover:text-info-400 transition-all"
           >
             Karsilastirmaya Ekle
           </button>
@@ -978,8 +978,8 @@ function MetricCard({
   if (!hasValue) {
     textColor = 'text-text-tertiary'
   } else if (thresholds && value != null) {
-    if (value < thresholds.danger) textColor = 'text-red-400'
-    else if (value < thresholds.warning) textColor = 'text-orange-400'
+    if (value < thresholds.danger) textColor = 'text-danger-400'
+    else if (value < thresholds.warning) textColor = 'text-warning-400'
     else textColor = 'text-success-400'
   }
 
@@ -1004,14 +1004,14 @@ function DCFDisplay({ dcfValue, currentPrice }: { dcfValue: number; currentPrice
           <div className="text-xl font-bold text-white tabular-nums">${dcfValue.toFixed(2)}</div>
         </div>
         <div className={`text-right px-3 py-2 rounded-lg ${
-          isUndervalued ? 'bg-success-400/10' : 'bg-red-500/10'
+          isUndervalued ? 'bg-success-400/10' : 'bg-danger-400/10'
         }`}>
           <div className={`text-lg font-bold tabular-nums ${
-            isUndervalued ? 'text-success-400' : 'text-red-400'
+            isUndervalued ? 'text-success-400' : 'text-danger-400'
           }`}>
             {isUndervalued ? '+' : ''}{upside.toFixed(1)}%
           </div>
-          <div className={`text-[9px] ${isUndervalued ? 'text-success-400/60' : 'text-red-400/60'}`}>
+          <div className={`text-[9px] ${isUndervalued ? 'text-success-400/60' : 'text-danger-400/60'}`}>
             {isUndervalued ? 'UCUZ' : 'PAHALI'}
           </div>
         </div>
@@ -1020,7 +1020,7 @@ function DCFDisplay({ dcfValue, currentPrice }: { dcfValue: number; currentPrice
       {/* Bar */}
       <div className="relative h-2 bg-white/5 rounded-full overflow-hidden">
         <div
-          className={`absolute h-full rounded-full ${isUndervalued ? 'bg-success-400' : 'bg-red-400'}`}
+          className={`absolute h-full rounded-full ${isUndervalued ? 'bg-success-400' : 'bg-danger-400'}`}
           style={{
             width: `${Math.min(100, Math.abs(upside))}%`,
             left: isUndervalued ? '50%' : `${50 - Math.min(50, Math.abs(upside))}%`,
@@ -1045,8 +1045,8 @@ function AnalystDisplay({
     { label: 'S.Buy', count: consensus.strongBuy, color: 'bg-yellow-400' },
     { label: 'Buy', count: consensus.buy, color: 'bg-success-400' },
     { label: 'Hold', count: consensus.hold, color: 'bg-slate-400' },
-    { label: 'Sell', count: consensus.sell, color: 'bg-orange-400' },
-    { label: 'S.Sell', count: consensus.strongSell, color: 'bg-red-400' },
+    { label: 'Sell', count: consensus.sell, color: 'bg-warning-400' },
+    { label: 'S.Sell', count: consensus.strongSell, color: 'bg-danger-400' },
   ]
 
   const targetUpside = priceTarget
@@ -1089,7 +1089,7 @@ function AnalystDisplay({
               ${priceTarget.targetConsensus.toFixed(2)}
             </div>
           </div>
-          <div className={`text-sm font-bold tabular-nums ${targetUpside >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+          <div className={`text-sm font-bold tabular-nums ${targetUpside >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
             {targetUpside >= 0 ? '▲' : '▼'} {Math.abs(targetUpside).toFixed(1)}%
           </div>
         </div>
@@ -1156,7 +1156,7 @@ function CompanyIntelligenceCards({ symbol, companyName }: { symbol: string; com
           <h4 className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2">Rakipler</h4>
           <div className="flex flex-wrap gap-1">
             {peers.slice(0, 8).map(p => (
-              <span key={p} className="px-2 py-0.5 rounded-md bg-surface-3 border border-stroke-subtle text-[11px] text-text-secondary hover:text-violet-400 cursor-pointer transition-colors">
+              <span key={p} className="px-2 py-0.5 rounded-md bg-surface-3 border border-stroke-subtle text-[11px] text-text-secondary hover:text-info-400 cursor-pointer transition-colors">
                 {p}
               </span>
             ))}
@@ -1225,7 +1225,7 @@ function TechnicalSummaryCard({ symbol }: { symbol: string }) {
 
   const TREND_COLORS: Record<string, string> = {
     'STRONG_UP': 'text-success-400', 'UP': 'text-success-400/70',
-    'NEUTRAL': 'text-text-tertiary', 'DOWN': 'text-orange-400', 'STRONG_DOWN': 'text-red-400'
+    'NEUTRAL': 'text-text-tertiary', 'DOWN': 'text-warning-400', 'STRONG_DOWN': 'text-danger-400'
   }
   const TREND_LABELS: Record<string, string> = {
     'STRONG_UP': 'GUCLU YUKSELIS', 'UP': 'YUKSELIS',
@@ -1239,15 +1239,15 @@ function TechnicalSummaryCard({ symbol }: { symbol: string }) {
         <div className="px-3 py-2 rounded-lg bg-surface-2 border border-white/5">
           <div className="text-[9px] text-text-tertiary mb-0.5">RSI (14)</div>
           <div className={`text-base font-bold tabular-nums ${
-            (tech.rsi14 ?? 50) < 30 ? 'text-success-400' : (tech.rsi14 ?? 50) > 70 ? 'text-red-400' : 'text-white'
+            (tech.rsi14 ?? 50) < 30 ? 'text-success-400' : (tech.rsi14 ?? 50) > 70 ? 'text-danger-400' : 'text-white'
           }`}>{tech.rsi14?.toFixed(1) ?? '--'}</div>
           <div className={`text-[9px] ${
-            tech.rsiSignal === 'OVERSOLD' ? 'text-success-400/60' : tech.rsiSignal === 'OVERBOUGHT' ? 'text-red-400/60' : 'text-text-quaternary'
+            tech.rsiSignal === 'OVERSOLD' ? 'text-success-400/60' : tech.rsiSignal === 'OVERBOUGHT' ? 'text-danger-400/60' : 'text-text-quaternary'
           }`}>{tech.rsiSignal === 'OVERSOLD' ? 'Asiri Satim' : tech.rsiSignal === 'OVERBOUGHT' ? 'Asiri Alim' : 'Notr'}</div>
         </div>
         <div className="px-3 py-2 rounded-lg bg-surface-2 border border-white/5">
           <div className="text-[9px] text-text-tertiary mb-0.5">SMA CROSS</div>
-          <div className={`text-sm font-bold ${tech.goldenCross ? 'text-success-400' : 'text-red-400'}`}>
+          <div className={`text-sm font-bold ${tech.goldenCross ? 'text-success-400' : 'text-danger-400'}`}>
             {tech.goldenCross ? 'GOLDEN' : 'DEATH'}
           </div>
           <div className="text-[9px] text-text-quaternary">50/200</div>
@@ -1266,7 +1266,7 @@ function TechnicalSummaryCard({ symbol }: { symbol: string }) {
         <div className="px-3 py-2 rounded-lg bg-surface-2 border border-white/5">
           <div className="text-[9px] text-text-tertiary mb-0.5">EMA 20</div>
           <div className="text-sm font-bold text-white tabular-nums">${tech.ema20?.toFixed(2) ?? '--'}</div>
-          <div className={`text-[9px] ${tech.priceAboveEma20 ? 'text-success-400/60' : 'text-red-400/60'}`}>
+          <div className={`text-[9px] ${tech.priceAboveEma20 ? 'text-success-400/60' : 'text-danger-400/60'}`}>
             Fiyat {tech.priceAboveEma20 ? 'ustunde' : 'altinda'}
           </div>
         </div>

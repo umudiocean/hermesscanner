@@ -39,11 +39,11 @@ function toggleCryptoWatchlist(id: string): string[] {
 }
 
 const SIGNAL_CONFIG: Record<CryptoScoreLevel, { color: string; icon: React.ReactNode; label: string; badge: string }> = {
-  STRONG: { color: 'text-amber-400 bg-amber-500/12 border-amber-500/25', icon: <Zap size={11} />, label: 'GUCLU', badge: 'text-amber-400' },
-  GOOD: { color: 'text-emerald-400 bg-emerald-500/12 border-emerald-500/25', icon: <TrendingUp size={11} />, label: 'IYI', badge: 'text-emerald-400' },
-  NEUTRAL: { color: 'text-slate-300 bg-surface-3 border-stroke', icon: <Minus size={11} />, label: 'NOTR', badge: 'text-slate-400' },
-  WEAK: { color: 'text-orange-400 bg-orange-500/12 border-orange-500/25', icon: <AlertTriangle size={11} />, label: 'ZAYIF', badge: 'text-orange-400' },
-  BAD: { color: 'text-red-400 bg-red-500/12 border-red-500/25', icon: <TrendingDown size={11} />, label: 'KOTU', badge: 'text-red-400' },
+  STRONG: { color: 'text-gold-400 bg-gold-500/12 border-amber-500/25', icon: <Zap size={11} />, label: 'GUCLU', badge: 'text-gold-400' },
+  GOOD: { color: 'text-success-400 bg-success-400/12 border-success-400/30', icon: <TrendingUp size={11} />, label: 'IYI', badge: 'text-success-400' },
+  NEUTRAL: { color: 'text-text-secondary bg-surface-3 border-stroke', icon: <Minus size={11} />, label: 'NOTR', badge: 'text-text-tertiary' },
+  WEAK: { color: 'text-warning-400 bg-orange-500/12 border-orange-500/25', icon: <AlertTriangle size={11} />, label: 'ZAYIF', badge: 'text-warning-400' },
+  BAD: { color: 'text-danger-400 bg-danger-400/12 border-danger-400/30', icon: <TrendingDown size={11} />, label: 'KOTU', badge: 'text-danger-400' },
 }
 
 function formatPrice(p: number): string {
@@ -134,10 +134,10 @@ function computeMaturity(c: CryptoTerminalCoin): { score: number; label: Maturit
 }
 
 const MATURITY_COLOR: Record<MaturityLabel, string> = {
-  'OLGUN': 'text-emerald-400',
-  'GELISEN': 'text-blue-400',
-  'GENC': 'text-amber-400',
-  'YENI': 'text-red-400',
+  'OLGUN': 'text-success-400',
+  'GELISEN': 'text-info-400',
+  'GENC': 'text-gold-400',
+  'YENI': 'text-danger-400',
   '': 'text-text-tertiary',
 }
 
@@ -153,11 +153,11 @@ function valuationRank(v: ValuationLabel): number {
 }
 
 const VALUATION_STYLE: Record<ValuationLabel, string> = {
-  'COK UCUZ': 'text-emerald-300 bg-emerald-500/15',
-  'UCUZ': 'text-emerald-400 bg-emerald-500/10',
-  'NORMAL': 'text-slate-300 bg-surface-3',
-  'PAHALI': 'text-orange-400 bg-orange-500/10',
-  'COK PAHALI': 'text-red-400 bg-red-500/10',
+  'COK UCUZ': 'text-success-300 bg-success-400/15',
+  'UCUZ': 'text-success-400 bg-success-400/10',
+  'NORMAL': 'text-text-secondary bg-surface-3',
+  'PAHALI': 'text-warning-400 bg-orange-500/10',
+  'COK PAHALI': 'text-danger-400 bg-danger-400/10',
   '': 'text-text-tertiary',
 }
 
@@ -189,7 +189,7 @@ function ScoreWithBreakdown({ coin, sigCfg }: { coin: CryptoTerminalCoin; sigCfg
         {coin.score!.total}
       </span>
       {coin.score!.degraded && (
-        <span className="ml-0.5 text-[8px] text-orange-400/50" title="Eksik veri — skor yaklasik">~</span>
+        <span className="ml-0.5 text-[8px] text-warning-400/50" title="Eksik veri — skor yaklasik">~</span>
       )}
     </div>
   )
@@ -199,7 +199,7 @@ function ChangeCell({ value }: { value: number }) {
   if (value == null) return <span className="text-text-tertiary">-</span>
   const isPos = value > 0
   return (
-    <span className={`text-xs tabular-nums font-medium ${isPos ? 'text-emerald-400' : value < 0 ? 'text-red-400' : 'text-text-tertiary'}`}>
+    <span className={`text-xs tabular-nums font-medium ${isPos ? 'text-success-400' : value < 0 ? 'text-danger-400' : 'text-text-tertiary'}`}>
       {isPos ? '+' : ''}{value.toFixed(2)}%
     </span>
   )
@@ -432,17 +432,17 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
     >
       <div className={`flex items-center gap-1 ${align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : ''}`}>
         {children}
-        {sortField === field && <span className="text-amber-400">{sortDir === 'asc' ? '\u25B2' : '\u25BC'}</span>}
+        {sortField === field && <span className="text-gold-400">{sortDir === 'asc' ? '\u25B2' : '\u25BC'}</span>}
       </div>
     </th>
   )
 
   const SIGNAL_CARDS: { level: CryptoScoreLevel; label: string; color: string; glow: string; border: string; activeBorder: string; bg: string; activeBg: string; iconBg: string }[] = [
-    { level: 'STRONG', label: 'GUCLU', color: 'text-amber-300', glow: 'shadow-amber-500/25', border: 'border-amber-500/25', activeBorder: 'border-amber-400/50', bg: 'bg-gradient-to-br from-amber-500/10 to-amber-600/5', activeBg: 'bg-gradient-to-br from-amber-500/25 to-amber-600/15', iconBg: 'bg-amber-500/20' },
-    { level: 'GOOD', label: 'IYI', color: 'text-emerald-300', glow: 'shadow-emerald-500/25', border: 'border-emerald-500/25', activeBorder: 'border-emerald-400/50', bg: 'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5', activeBg: 'bg-gradient-to-br from-emerald-500/25 to-emerald-600/15', iconBg: 'bg-emerald-500/20' },
-    { level: 'NEUTRAL', label: 'NOTR', color: 'text-slate-300', glow: 'shadow-slate-500/20', border: 'border-stroke', activeBorder: 'border-white/25', bg: 'bg-gradient-to-br from-slate-500/8 to-slate-600/5', activeBg: 'bg-gradient-to-br from-slate-500/20 to-slate-600/10', iconBg: 'bg-surface-3' },
+    { level: 'STRONG', label: 'GUCLU', color: 'text-gold-300', glow: 'shadow-amber-500/25', border: 'border-amber-500/25', activeBorder: 'border-amber-400/50', bg: 'bg-gradient-to-br from-amber-500/10 to-amber-600/5', activeBg: 'bg-gradient-to-br from-amber-500/25 to-amber-600/15', iconBg: 'bg-gold-500/20' },
+    { level: 'GOOD', label: 'IYI', color: 'text-success-300', glow: 'shadow-emerald-500/25', border: 'border-success-400/30', activeBorder: 'border-emerald-400/50', bg: 'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5', activeBg: 'bg-gradient-to-br from-emerald-500/25 to-emerald-600/15', iconBg: 'bg-success-400/20' },
+    { level: 'NEUTRAL', label: 'NOTR', color: 'text-text-secondary', glow: 'shadow-slate-500/20', border: 'border-stroke', activeBorder: 'border-white/25', bg: 'bg-gradient-to-br from-slate-500/8 to-slate-600/5', activeBg: 'bg-gradient-to-br from-slate-500/20 to-slate-600/10', iconBg: 'bg-surface-3' },
     { level: 'WEAK', label: 'ZAYIF', color: 'text-orange-300', glow: 'shadow-orange-500/25', border: 'border-orange-500/25', activeBorder: 'border-orange-400/50', bg: 'bg-gradient-to-br from-orange-500/10 to-orange-600/5', activeBg: 'bg-gradient-to-br from-orange-500/25 to-orange-600/15', iconBg: 'bg-orange-500/20' },
-    { level: 'BAD', label: 'KOTU', color: 'text-red-300', glow: 'shadow-red-500/25', border: 'border-red-500/25', activeBorder: 'border-red-400/50', bg: 'bg-gradient-to-br from-red-500/10 to-red-600/5', activeBg: 'bg-gradient-to-br from-red-500/25 to-red-600/15', iconBg: 'bg-red-500/20' },
+    { level: 'BAD', label: 'KOTU', color: 'text-danger-300', glow: 'shadow-red-500/25', border: 'border-danger-400/30', activeBorder: 'border-red-400/50', bg: 'bg-gradient-to-br from-red-500/10 to-red-600/5', activeBg: 'bg-gradient-to-br from-red-500/25 to-red-600/15', iconBg: 'bg-danger-400/20' },
   ]
 
   return (
@@ -482,15 +482,15 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
       {/* Quick Filters — Market Cap & Trend — Colorful & Bold */}
       <div className="flex flex-wrap gap-1.5 sm:gap-2">
         {([
-          { id: 'mega', label: 'Mega Cap', sub: '$10B+', count: quickFilterCounts.mega, icon: <Crown size={13} />, color: 'text-violet-300', glow: 'shadow-violet-500/30', border: 'border-violet-500/30', activeBorder: 'border-violet-400/60', bg: 'bg-gradient-to-r from-violet-500/15 to-violet-600/10', activeBg: 'bg-gradient-to-r from-violet-500/30 to-violet-600/20', iconBg: 'bg-violet-500/20' },
-          { id: 'large', label: 'Large Cap', sub: '$1-10B', count: quickFilterCounts.large, icon: <Gem size={13} />, color: 'text-blue-300', glow: 'shadow-blue-500/30', border: 'border-blue-500/30', activeBorder: 'border-blue-400/60', bg: 'bg-gradient-to-r from-blue-500/15 to-blue-600/10', activeBg: 'bg-gradient-to-r from-blue-500/30 to-blue-600/20', iconBg: 'bg-blue-500/20' },
+          { id: 'mega', label: 'Mega Cap', sub: '$10B+', count: quickFilterCounts.mega, icon: <Crown size={13} />, color: 'text-info-400', glow: 'shadow-violet-500/30', border: 'border-info-400/30', activeBorder: 'border-violet-400/60', bg: 'bg-gradient-to-r from-violet-500/15 to-violet-600/10', activeBg: 'bg-gradient-to-r from-violet-500/30 to-violet-600/20', iconBg: 'bg-info-400/20' },
+          { id: 'large', label: 'Large Cap', sub: '$1-10B', count: quickFilterCounts.large, icon: <Gem size={13} />, color: 'text-info-400', glow: 'shadow-blue-500/30', border: 'border-info-400/30', activeBorder: 'border-blue-400/60', bg: 'bg-gradient-to-r from-blue-500/15 to-blue-600/10', activeBg: 'bg-gradient-to-r from-blue-500/30 to-blue-600/20', iconBg: 'bg-info-400/20' },
           { id: 'mid', label: 'Mid Cap', sub: '$100M-1B', count: quickFilterCounts.mid, icon: <Layers size={13} />, color: 'text-cyan-300', glow: 'shadow-cyan-500/30', border: 'border-cyan-500/30', activeBorder: 'border-cyan-400/60', bg: 'bg-gradient-to-r from-cyan-500/15 to-cyan-600/10', activeBg: 'bg-gradient-to-r from-cyan-500/30 to-cyan-600/20', iconBg: 'bg-cyan-500/20' },
           { id: 'small', label: 'Small Cap', sub: '$10-100M', count: quickFilterCounts.small, icon: <Coins size={13} />, color: 'text-teal-300', glow: 'shadow-teal-500/30', border: 'border-teal-500/30', activeBorder: 'border-teal-400/60', bg: 'bg-gradient-to-r from-teal-500/15 to-teal-600/10', activeBg: 'bg-gradient-to-r from-teal-500/30 to-teal-600/20', iconBg: 'bg-teal-500/20' },
           { id: 'micro', label: 'Micro Cap', sub: '<$10M', count: quickFilterCounts.micro, icon: <Activity size={13} />, color: 'text-pink-300', glow: 'shadow-pink-500/30', border: 'border-pink-500/30', activeBorder: 'border-pink-400/60', bg: 'bg-gradient-to-r from-pink-500/15 to-pink-600/10', activeBg: 'bg-gradient-to-r from-pink-500/30 to-pink-600/20', iconBg: 'bg-pink-500/20' },
-          { id: 'bullish24', label: 'Yukselis', sub: '24s >+5%', count: quickFilterCounts.bullish24, icon: <TrendingUp size={13} />, color: 'text-emerald-300', glow: 'shadow-emerald-500/30', border: 'border-emerald-500/30', activeBorder: 'border-emerald-400/60', bg: 'bg-gradient-to-r from-emerald-500/15 to-emerald-600/10', activeBg: 'bg-gradient-to-r from-emerald-500/30 to-emerald-600/20', iconBg: 'bg-emerald-500/20' },
-          { id: 'bearish24', label: 'Dusus', sub: '24s <-5%', count: quickFilterCounts.bearish24, icon: <TrendingDown size={13} />, color: 'text-red-300', glow: 'shadow-red-500/30', border: 'border-red-500/30', activeBorder: 'border-red-400/60', bg: 'bg-gradient-to-r from-red-500/15 to-red-600/10', activeBg: 'bg-gradient-to-r from-red-500/30 to-red-600/20', iconBg: 'bg-red-500/20' },
-          { id: 'volSpike', label: 'Hacim Patlamasi', sub: 'Vol/MC >30%', count: quickFilterCounts.volSpike, icon: <Flame size={13} />, color: 'text-orange-300', glow: 'shadow-orange-500/30', border: 'border-orange-500/30', activeBorder: 'border-orange-400/60', bg: 'bg-gradient-to-r from-orange-500/15 to-orange-600/10', activeBg: 'bg-gradient-to-r from-orange-500/30 to-orange-600/20', iconBg: 'bg-orange-500/20' },
-          { id: 'newAth', label: 'ATH Yakin', sub: 'Zirveye <1%', count: quickFilterCounts.newAth, icon: <BarChart3 size={13} />, color: 'text-amber-300', glow: 'shadow-amber-500/30', border: 'border-amber-500/30', activeBorder: 'border-amber-400/60', bg: 'bg-gradient-to-r from-amber-500/15 to-amber-600/10', activeBg: 'bg-gradient-to-r from-amber-500/30 to-amber-600/20', iconBg: 'bg-amber-500/20' },
+          { id: 'bullish24', label: 'Yukselis', sub: '24s >+5%', count: quickFilterCounts.bullish24, icon: <TrendingUp size={13} />, color: 'text-success-300', glow: 'shadow-emerald-500/30', border: 'border-success-400/30', activeBorder: 'border-emerald-400/60', bg: 'bg-gradient-to-r from-emerald-500/15 to-emerald-600/10', activeBg: 'bg-gradient-to-r from-emerald-500/30 to-emerald-600/20', iconBg: 'bg-success-400/20' },
+          { id: 'bearish24', label: 'Dusus', sub: '24s <-5%', count: quickFilterCounts.bearish24, icon: <TrendingDown size={13} />, color: 'text-danger-300', glow: 'shadow-red-500/30', border: 'border-danger-400/30', activeBorder: 'border-red-400/60', bg: 'bg-gradient-to-r from-red-500/15 to-red-600/10', activeBg: 'bg-gradient-to-r from-red-500/30 to-red-600/20', iconBg: 'bg-danger-400/20' },
+          { id: 'volSpike', label: 'Hacim Patlamasi', sub: 'Vol/MC >30%', count: quickFilterCounts.volSpike, icon: <Flame size={13} />, color: 'text-orange-300', glow: 'shadow-orange-500/30', border: 'border-warning-400/30', activeBorder: 'border-orange-400/60', bg: 'bg-gradient-to-r from-orange-500/15 to-orange-600/10', activeBg: 'bg-gradient-to-r from-orange-500/30 to-orange-600/20', iconBg: 'bg-orange-500/20' },
+          { id: 'newAth', label: 'ATH Yakin', sub: 'Zirveye <1%', count: quickFilterCounts.newAth, icon: <BarChart3 size={13} />, color: 'text-gold-300', glow: 'shadow-amber-500/30', border: 'border-stroke-gold-strong', activeBorder: 'border-amber-400/60', bg: 'bg-gradient-to-r from-amber-500/15 to-amber-600/10', activeBg: 'bg-gradient-to-r from-amber-500/30 to-amber-600/20', iconBg: 'bg-gold-500/20' },
           { id: 'watchlist', label: 'Izleme', sub: 'Favoriler', count: quickFilterCounts.watchCount, icon: <Eye size={13} />, color: 'text-yellow-300', glow: 'shadow-yellow-500/30', border: 'border-yellow-500/30', activeBorder: 'border-yellow-400/60', bg: 'bg-gradient-to-r from-yellow-500/15 to-yellow-600/10', activeBg: 'bg-gradient-to-r from-yellow-500/30 to-yellow-600/20', iconBg: 'bg-yellow-500/20' },
         ] as const).map(f => {
           const isActive = quickFilter === f.id
@@ -555,11 +555,11 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
         <div className="flex items-center gap-3">
           {fearGreed && (
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] font-bold ${
-              fearGreed.index >= 70 ? 'text-emerald-300 border-emerald-500/20 bg-emerald-500/10' :
+              fearGreed.index >= 70 ? 'text-success-300 border-success-400/30 bg-success-400/10' :
               fearGreed.index >= 55 ? 'text-green-300 border-green-500/20 bg-green-500/10' :
-              fearGreed.index >= 45 ? 'text-slate-300 border-stroke bg-surface-3' :
+              fearGreed.index >= 45 ? 'text-text-secondary border-stroke bg-surface-3' :
               fearGreed.index >= 30 ? 'text-orange-300 border-orange-500/20 bg-orange-500/10' :
-              'text-red-300 border-red-500/20 bg-red-500/10'
+              'text-danger-300 border-danger-400/30 bg-danger-400/10'
             }`} title="Crypto Fear & Greed Index">
               <Activity size={11} />
               F&G: {fearGreed.index} — {fearGreed.label}
@@ -588,7 +588,7 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <button onClick={(e) => handleToggleWatch(e, coin.id)} className="p-0.5">
-                    <Star size={14} className={isWatched ? 'text-amber-400 fill-amber-400' : 'text-text-quaternary'} />
+                    <Star size={14} className={isWatched ? 'text-gold-400 fill-amber-400' : 'text-text-quaternary'} />
                   </button>
                   <img src={coin.image} alt={coin.symbol} className="w-6 h-6 rounded-full" loading="lazy" />
                   <div>
@@ -683,11 +683,11 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                 <tr
                   key={coin.id}
                   onClick={() => onSelectCoin(coin.id)}
-                  className="border-b border-white/[0.03] hover:bg-amber-500/[0.03] cursor-pointer transition-colors"
+                  className="border-b border-white/[0.03] hover:bg-gold-500/[0.03] cursor-pointer transition-colors"
                 >
                   <td className="pl-2 pr-0 py-2">
                     <button onClick={(e) => handleToggleWatch(e, coin.id)} className="p-0.5 hover:scale-110 transition-transform">
-                      <Star size={13} className={isWatched ? 'text-amber-400 fill-amber-400' : 'text-text-quaternary hover:text-text-tertiary'} />
+                      <Star size={13} className={isWatched ? 'text-gold-400 fill-amber-400' : 'text-text-quaternary hover:text-text-tertiary'} />
                     </button>
                   </td>
                   <td className="pl-1 pr-1 py-2 text-[11px] text-text-tertiary tabular-nums">{coin.marketCapRank}</td>
@@ -722,7 +722,7 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                   </td>
                   <td className="px-1 py-2 text-center">
                     {coin.score ? (
-                      <span className={`text-[10px] font-semibold tabular-nums ${coin.score.confidence >= 80 ? 'text-amber-400' : coin.score.confidence >= 50 ? 'text-text-secondary' : 'text-text-quaternary'}`}>
+                      <span className={`text-[10px] font-semibold tabular-nums ${coin.score.confidence >= 80 ? 'text-gold-400' : coin.score.confidence >= 50 ? 'text-text-secondary' : 'text-text-quaternary'}`}>
                         %{Math.round(coin.score.confidence)}
                       </span>
                     ) : <span className="text-[10px] text-text-quaternary">—</span>}
@@ -739,7 +739,7 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                     {(() => {
                       const r = computeRiskScore(coin)
                       return (
-                        <span className={`text-[10px] font-bold tabular-nums ${r >= 70 ? 'text-red-400' : r >= 50 ? 'text-orange-400' : r >= 30 ? 'text-text-secondary' : 'text-emerald-400'}`}>
+                        <span className={`text-[10px] font-bold tabular-nums ${r >= 70 ? 'text-danger-400' : r >= 50 ? 'text-warning-400' : r >= 30 ? 'text-text-secondary' : 'text-success-400'}`}>
                           {r}
                         </span>
                       )
@@ -748,11 +748,11 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                   <td className="px-1 py-2 text-center">
                     {coin.overvaluation ? (
                       <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${
-                        coin.overvaluation.level === 'EXTREME' ? 'text-red-400 bg-red-500/15' :
-                        coin.overvaluation.level === 'HIGH' ? 'text-orange-400 bg-orange-500/10' :
+                        coin.overvaluation.level === 'EXTREME' ? 'text-danger-400 bg-danger-400/15' :
+                        coin.overvaluation.level === 'HIGH' ? 'text-warning-400 bg-orange-500/10' :
                         coin.overvaluation.level === 'MODERATE' ? 'text-text-secondary bg-surface-3' :
-                        coin.overvaluation.level === 'FAIR' ? 'text-emerald-400 bg-emerald-500/10' :
-                        'text-emerald-300 bg-emerald-500/15'
+                        coin.overvaluation.level === 'FAIR' ? 'text-success-400 bg-success-400/10' :
+                        'text-success-300 bg-success-400/15'
                       }`}>
                         {coin.overvaluation.level === 'EXTREME' ? 'ASIRI' :
                          coin.overvaluation.level === 'HIGH' ? 'YUKSEK' :
@@ -764,10 +764,10 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                   <td className="px-1 py-2 text-center">
                     {coin.healthIndex ? (
                       <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${
-                        coin.healthIndex.level === 'HEALTHY' ? 'text-emerald-400 bg-emerald-500/15' :
-                        coin.healthIndex.level === 'CAUTION' ? 'text-amber-400 bg-amber-500/10' :
-                        coin.healthIndex.level === 'RISKY' ? 'text-orange-400 bg-orange-500/10' :
-                        'text-red-400 bg-red-500/15'
+                        coin.healthIndex.level === 'HEALTHY' ? 'text-success-400 bg-success-400/15' :
+                        coin.healthIndex.level === 'CAUTION' ? 'text-gold-400 bg-gold-500/10' :
+                        coin.healthIndex.level === 'RISKY' ? 'text-warning-400 bg-orange-500/10' :
+                        'text-danger-400 bg-danger-400/15'
                       }`}>
                         {coin.healthIndex.level === 'HEALTHY' ? 'SAGLIKLI' :
                          coin.healthIndex.level === 'CAUTION' ? 'DIKKAT' :
@@ -777,14 +777,14 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                   </td>
                   <td className="px-1 py-2 text-right hidden xl:table-cell">
                     {coin.priceTarget ? (
-                      <span className={`text-[10px] font-mono font-semibold ${coin.priceTarget.targetPct >= 0 ? 'text-success-400' : 'text-red-400'}`}>
+                      <span className={`text-[10px] font-mono font-semibold ${coin.priceTarget.targetPct >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                         ${coin.priceTarget.targetPrice < 1 ? coin.priceTarget.targetPrice.toPrecision(4) : coin.priceTarget.targetPrice.toFixed(2)}
                       </span>
                     ) : <span className="text-[10px] text-text-quaternary">—</span>}
                   </td>
                   <td className="px-1 py-2 text-right hidden xl:table-cell">
                     {coin.priceTarget ? (
-                      <span className="text-[10px] font-mono text-red-400/80">
+                      <span className="text-[10px] font-mono text-danger-400/80">
                         ${coin.priceTarget.floorPrice < 1 ? coin.priceTarget.floorPrice.toPrecision(4) : coin.priceTarget.floorPrice.toFixed(2)}
                       </span>
                     ) : <span className="text-[10px] text-text-quaternary">—</span>}
@@ -793,7 +793,7 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                     {coin.priceTarget ? (
                       <span className={`text-[10px] font-mono font-bold ${
                         coin.priceTarget.riskReward >= 2 ? 'text-success-400' :
-                        coin.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
+                        coin.priceTarget.riskReward >= 1 ? 'text-gold-300' : 'text-danger-400'
                       }`}>{coin.priceTarget.riskReward.toFixed(1)}</span>
                     ) : <span className="text-[10px] text-text-quaternary">—</span>}
                   </td>
@@ -812,7 +812,7 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                     {(() => {
                       const sr = computeSupplyRatio(coin)
                       return sr > 0 ? (
-                        <span className={`text-[10px] tabular-nums font-medium ${sr >= 80 ? 'text-emerald-400' : sr >= 50 ? 'text-text-secondary' : 'text-orange-400'}`}>
+                        <span className={`text-[10px] tabular-nums font-medium ${sr >= 80 ? 'text-success-400' : sr >= 50 ? 'text-text-secondary' : 'text-warning-400'}`}>
                           {sr.toFixed(0)}%
                         </span>
                       ) : <span className="text-[10px] text-text-quaternary">—</span>
@@ -822,14 +822,14 @@ export default function TabCoins({ onSelectCoin, onViewChart, onAddToCompare }: 
                     {(() => {
                       const fdr = computeFdvMcap(coin)
                       return fdr > 0 ? (
-                        <span className={`text-[10px] tabular-nums font-medium ${fdr > 3 ? 'text-red-400' : fdr > 1.5 ? 'text-orange-400' : 'text-emerald-400'}`}>
+                        <span className={`text-[10px] tabular-nums font-medium ${fdr > 3 ? 'text-danger-400' : fdr > 1.5 ? 'text-warning-400' : 'text-success-400'}`}>
                           {fdr.toFixed(1)}x
                         </span>
                       ) : <span className="text-[10px] text-text-quaternary">—</span>
                     })()}
                   </td>
                   <td className="px-1.5 py-2 text-right">
-                    <span className={`text-[10px] tabular-nums font-medium ${volMcRatio >= 0.15 ? 'text-amber-400' : volMcRatio >= 0.05 ? 'text-text-secondary' : 'text-text-tertiary'}`}>
+                    <span className={`text-[10px] tabular-nums font-medium ${volMcRatio >= 0.15 ? 'text-gold-400' : volMcRatio >= 0.05 ? 'text-text-secondary' : 'text-text-tertiary'}`}>
                       {(volMcRatio * 100).toFixed(1)}%
                     </span>
                   </td>
@@ -890,7 +890,7 @@ function PaginationControls({ serverPage, totalPages, totalEstimate, filteredCou
                 onClick={() => onPageChange(pageNum)}
                 className={`w-8 h-8 rounded-lg text-xs font-bold tabular-nums transition-all
                   ${pageNum === serverPage
-                    ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
+                    ? 'bg-gold-500/20 border border-stroke-gold-strong text-gold-400'
                     : 'bg-surface-2 border border-stroke-subtle text-text-tertiary hover:text-text-secondary hover:bg-surface-3'
                   }`}
               >
@@ -1043,7 +1043,7 @@ function CoinSearchInput({
         onFocus={() => { if (acResults.length > 0) setAcOpen(true) }}
         onKeyDown={handleKeyDown}
         placeholder="Coin, token veya contract ara..."
-        className="w-full sm:w-72 pl-8 pr-8 py-1.5 text-xs bg-surface-3 border border-white/8 rounded-lg text-white placeholder-white/25 focus:outline-none focus:border-amber-500/30"
+        className="w-full sm:w-72 pl-8 pr-8 py-1.5 text-xs bg-surface-3 border border-white/8 rounded-lg text-white placeholder-white/25 focus:outline-none focus:border-stroke-gold-strong"
       />
       {search && (
         <button
@@ -1055,7 +1055,7 @@ function CoinSearchInput({
       )}
       {acLoading && (
         <div className="absolute right-7 top-1/2 -translate-y-1/2 z-10">
-          <div className="w-3 h-3 border border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+          <div className="w-3 h-3 border border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />
         </div>
       )}
 
@@ -1064,7 +1064,7 @@ function CoinSearchInput({
         <div className="absolute top-full left-0 mt-1 w-full sm:w-80 max-h-[320px] overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50">
           <div className="px-3 py-1 border-b border-stroke-subtle flex items-center justify-between">
             <span className="text-[10px] text-text-tertiary">{acResults.length} sonuc (18,000+ coin)</span>
-            {localCount === 0 && <span className="text-[9px] text-amber-400/40">Listede yok — tikla detay gor</span>}
+            {localCount === 0 && <span className="text-[9px] text-gold-400/40">Listede yok — tikla detay gor</span>}
           </div>
           {acResults.map((coin, idx) => (
             <button
@@ -1072,7 +1072,7 @@ function CoinSearchInput({
               onClick={() => handleSelect(coin.id)}
               onMouseEnter={() => setSelectedIdx(idx)}
               className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors
-                ${idx === selectedIdx ? 'bg-amber-500/10' : 'hover:bg-surface-3'}
+                ${idx === selectedIdx ? 'bg-gold-500/10' : 'hover:bg-surface-3'}
                 ${idx < acResults.length - 1 ? 'border-b border-white/[0.02]' : ''}`}
             >
               <div className="flex-1 min-w-0">
@@ -1082,14 +1082,14 @@ function CoinSearchInput({
                 </div>
                 {coin.matchedContract ? (
                   <div className="flex items-center gap-1 mt-0.5">
-                    <span className="text-[8px] px-1 py-px rounded bg-violet-500/20 text-violet-300 border border-violet-500/20 font-medium uppercase">{coin.matchedContract.chain}</span>
+                    <span className="text-[8px] px-1 py-px rounded bg-info-400/20 text-info-400 border border-info-400/30 font-medium uppercase">{coin.matchedContract.chain}</span>
                     <span className="text-[9px] text-text-tertiary truncate font-mono">{coin.matchedContract.address.slice(0, 8)}...{coin.matchedContract.address.slice(-6)}</span>
                   </div>
                 ) : (
                   <span className="text-[9px] text-text-quaternary truncate block">{coin.id}</span>
                 )}
               </div>
-              <span className="text-[10px] text-amber-400/40 shrink-0">Detay →</span>
+              <span className="text-[10px] text-gold-400/40 shrink-0">Detay →</span>
             </button>
           ))}
         </div>

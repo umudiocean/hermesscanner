@@ -106,11 +106,11 @@ function CryptoPulseGauge({ score, label, size = 160 }: { score: number; label: 
 }
 
 // ─── StatCard ───
-function StatCard({ title, value, sub, icon, color = 'text-amber-300', className = '' }: {
+function StatCard({ title, value, sub, icon, color = 'text-gold-300', className = '' }: {
   title: string; value: string | number; sub?: string; icon: string; color?: string; className?: string
 }) {
   return (
-    <div className={`group relative bg-[#141414] rounded-xl border border-amber-400/8 p-3.5 hover:border-amber-400/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-400/5 overflow-hidden ${className}`}>
+    <div className={`group relative bg-[#141414] rounded-xl border border-amber-400/8 p-3.5 hover:border-stroke-gold transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-400/5 overflow-hidden ${className}`}>
       <div className="absolute inset-0 bg-gradient-to-br from-amber-400/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-1.5">
@@ -133,10 +133,10 @@ function DominanceBar({ btc, eth }: { btc: number; eth: number }) {
         <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Piyasa Hakimiyeti</span>
       </div>
       <div className="flex h-6 rounded-xl overflow-hidden border border-stroke-subtle">
-        <div style={{ width: `${btc}%` }} className="bg-amber-500 flex items-center justify-center transition-all duration-700 relative group hover:brightness-110">
+        <div style={{ width: `${btc}%` }} className="bg-gold-500 flex items-center justify-center transition-all duration-700 relative group hover:brightness-110">
           <span className="text-[9px] font-bold text-black/80">BTC {btc.toFixed(1)}%</span>
         </div>
-        <div style={{ width: `${eth}%` }} className="bg-violet-500 flex items-center justify-center transition-all duration-700 relative group hover:brightness-110">
+        <div style={{ width: `${eth}%` }} className="bg-info-400 flex items-center justify-center transition-all duration-700 relative group hover:brightness-110">
           <span className="text-[9px] font-bold text-text-primary">ETH {eth.toFixed(1)}%</span>
         </div>
         <div style={{ width: `${others}%` }} className="bg-white/10 flex items-center justify-center transition-all duration-700">
@@ -196,7 +196,7 @@ function TrendingCoins({ items }: { items: Array<{ item: { id: string; symbol: s
               {t.item.thumb && <img src={t.item.thumb} alt="" className="w-5 h-5 rounded-full" />}
               <div className="flex-1 min-w-0">
                 <span className="text-[10px] font-bold text-text-secondary uppercase block truncate">{t.item.symbol}</span>
-                <span className={`text-[9px] tabular-nums font-semibold ${change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <span className={`text-[9px] tabular-nums font-semibold ${change >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                   {change >= 0 ? '+' : ''}{change.toFixed(1)}%
                 </span>
               </div>
@@ -221,7 +221,7 @@ function TickerTape({ items }: { items: Array<{ symbol: string; price: number; c
           <span key={`${item.symbol}-${i}`} className="flex items-center gap-1.5 text-[10px]">
             <span className="font-bold text-text-secondary uppercase">{item.symbol}</span>
             <span className="text-text-tertiary tabular-nums font-mono">{formatPrice(item.price)}</span>
-            <span className={`font-semibold tabular-nums ${item.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <span className={`font-semibold tabular-nums ${item.change >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
               {item.change >= 0 ? '▲' : '▼'}{Math.abs(item.change).toFixed(2)}%
             </span>
           </span>
@@ -356,8 +356,8 @@ export default function ModuleCryptoIndex() {
       fgScore >= 55 ? 'GREED' :
       fgScore <= 30 ? 'EXTREME FEAR' :
       fgScore <= 45 ? 'FEAR' : 'NEUTRAL'
-    const dirColor = direction.includes('GREED') ? 'text-amber-400' :
-      direction.includes('FEAR') ? 'text-red-400' : 'text-text-secondary'
+    const dirColor = direction.includes('GREED') ? 'text-gold-400' :
+      direction.includes('FEAR') ? 'text-danger-400' : 'text-text-secondary'
     const dirIcon = direction.includes('GREED') ? '🚀' : direction.includes('FEAR') ? '🔻' : '⚖️'
 
     const topGainers: CoinData[] = (marketData.topGainers || [...coins].sort((a, b) => (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0)).slice(0, 5)) as CoinData[]
@@ -381,7 +381,7 @@ export default function ModuleCryptoIndex() {
       <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-8">
         <div className="flex flex-col items-center justify-center min-h-[50vh] gap-2 sm:gap-5">
           <div className="relative">
-            <div className="w-20 h-20 border-[3px] border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+            <div className="w-20 h-20 border-[3px] border-stroke-gold border-t-amber-400 rounded-full animate-spin" />
             <div className="absolute inset-0 flex items-center justify-center"><span className="text-xl sm:text-2xl animate-pulse">₿</span></div>
           </div>
           <div className="text-center">
@@ -389,7 +389,7 @@ export default function ModuleCryptoIndex() {
             <span className="text-text-tertiary text-xs mt-1 block">Kripto piyasa verilerini birlestiriyor...</span>
           </div>
           <div className="flex gap-2 mt-2">
-            {[0, 1, 2, 3, 4].map(i => <div key={i} className="w-2 h-2 rounded-full bg-amber-400/30 animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />)}
+            {[0, 1, 2, 3, 4].map(i => <div key={i} className="w-2 h-2 rounded-full bg-gold-400/30 animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />)}
           </div>
         </div>
       </div>
@@ -418,10 +418,10 @@ export default function ModuleCryptoIndex() {
             <span className="text-text-primary">HERMES</span>
             <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent ml-1.5 font-extrabold">AI CRYPTO INDEX</span>
           </h2>
-          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-400/10 text-amber-400/60 font-bold border border-amber-400/15 animate-border-shimmer">
+          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-gold-400/10 text-gold-400/60 font-bold border border-amber-400/15 animate-border-shimmer">
             {indexStats.n > 0 ? `${indexStats.n} COIN` : `${indexStats.activeCryptos} AKTIF`}
           </span>
-          {loading && <div className="w-3 h-3 border border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />}
+          {loading && <div className="w-3 h-3 border border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />}
         </div>
         <p className="text-[11px] text-text-quaternary ml-6 sm:ml-10">
           Kripto piyasasinin nabzi — Fear & Greed, hakimiyet, trendler ve sinyaller
@@ -436,16 +436,16 @@ export default function ModuleCryptoIndex() {
       {/* ═══ TOP ROW ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 mb-2 sm:mb-4">
         {/* Pulse Gauge */}
-        <div className="stagger-2 bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 lg:p-6 flex items-center justify-center hover:border-amber-400/20 transition-all duration-500">
+        <div className="stagger-2 bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 lg:p-6 flex items-center justify-center hover:border-stroke-gold transition-all duration-500">
           <CryptoPulseGauge score={indexStats.fgScore} label={indexStats.fgLabel} />
         </div>
 
         {/* Direction + Dominance */}
-        <div className="stagger-3 bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 lg:p-5 flex flex-col justify-between hover:border-amber-400/20 transition-all duration-500">
+        <div className="stagger-3 bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 lg:p-5 flex flex-col justify-between hover:border-stroke-gold transition-all duration-500">
           <div className="animate-scale-pop text-center mb-2 sm:mb-3">
             <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 backdrop-blur-sm ${
-              indexStats.direction.includes('GREED') ? 'border-amber-500/30 bg-amber-500/[0.06] shadow-lg shadow-amber-500/10' :
-              indexStats.direction.includes('FEAR') ? 'border-red-500/30 bg-red-500/[0.06] shadow-lg shadow-red-500/10' :
+              indexStats.direction.includes('GREED') ? 'border-stroke-gold-strong bg-gold-500/[0.06] shadow-lg shadow-amber-500/10' :
+              indexStats.direction.includes('FEAR') ? 'border-danger-400/30 bg-danger-400/[0.06] shadow-lg shadow-red-500/10' :
               'border-stroke bg-surface-2'
             }`}>
               <span className="text-xl sm:text-2xl">{indexStats.dirIcon}</span>
@@ -456,7 +456,7 @@ export default function ModuleCryptoIndex() {
           <div className="mt-3">
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Ort. 24s Degisim</span>
-              <span className={`text-sm font-bold tabular-nums ${indexStats.avgChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-sm font-bold tabular-nums ${indexStats.avgChange >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                 <AnimatedNumber value={indexStats.avgChange} prefix={indexStats.avgChange >= 0 ? '+' : ''} suffix="%" />
               </span>
             </div>
@@ -466,22 +466,22 @@ export default function ModuleCryptoIndex() {
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-2 stagger-4">
           <StatCard title="Toplam Mcap" value={formatMcap(marketData.totalMarketCap || indexStats.totalMcap)} icon="🏦" color="text-text-secondary" />
-          <StatCard title="24s Hacim" value={formatMcap(marketData.total24hVolume || indexStats.totalVolume)} icon="📊" color="text-amber-300" />
-          <StatCard title="BTC Dominance" value={`${indexStats.btcDom.toFixed(1)}%`} icon="₿" color="text-amber-400" sub={indexStats.btcDom > 50 ? 'BTC Sezonu' : 'Altcoin Sezonu'} />
+          <StatCard title="24s Hacim" value={formatMcap(marketData.total24hVolume || indexStats.totalVolume)} icon="📊" color="text-gold-300" />
+          <StatCard title="BTC Dominance" value={`${indexStats.btcDom.toFixed(1)}%`} icon="₿" color="text-gold-400" sub={indexStats.btcDom > 50 ? 'BTC Sezonu' : 'Altcoin Sezonu'} />
           <StatCard title="Aktif Coin" value={indexStats.activeCryptos.toLocaleString()} icon="🪙" color="text-text-secondary" />
         </div>
       </div>
 
       {/* ═══ SIGNAL DISTRIBUTION ═══ */}
       {coins.length > 0 && (
-        <div className="stagger-5 bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 lg:p-5 mb-2 sm:mb-4 hover:border-amber-400/20 transition-all duration-500">
+        <div className="stagger-5 bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 lg:p-5 mb-2 sm:mb-4 hover:border-stroke-gold transition-all duration-500">
           <CryptoSignalSummary coins={coins} />
         </div>
       )}
 
       {/* ═══ F&G COMPONENTS ═══ */}
       {indexStats.fgComponents && (
-        <div className="bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 lg:p-5 mb-2 sm:mb-4 hover:border-amber-400/20 transition-all duration-500">
+        <div className="bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 lg:p-5 mb-2 sm:mb-4 hover:border-stroke-gold transition-all duration-500">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
             <span className="text-sm">🧪</span>
             <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Fear & Greed Bilesenleri</span>
@@ -494,7 +494,7 @@ export default function ModuleCryptoIndex() {
                 altcoinSeason: 'Altcoin Sezonu', defiStrength: 'DeFi Gucu', derivativeSentiment: 'Turev Duyarlilik',
               }
               const v = typeof val === 'number' ? val : 50
-              const color = v >= 60 ? 'text-emerald-400' : v <= 40 ? 'text-red-400' : 'text-text-secondary'
+              const color = v >= 60 ? 'text-success-400' : v <= 40 ? 'text-danger-400' : 'text-text-secondary'
               return (
                 <div key={key} className="bg-surface-2 rounded-lg p-2 hover:bg-surface-3 transition-all">
                   <div className="text-[9px] text-text-tertiary truncate">{labels[key] || key}</div>
@@ -511,13 +511,13 @@ export default function ModuleCryptoIndex() {
 
       {/* ═══ MOVERS + TRENDING ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-4">
-        <div className="bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 hover:border-emerald-500/20 transition-all duration-500">
-          <CryptoMovers title="En Cok Yukselenler" items={indexStats.topGainers as CoinData[]} color="text-emerald-400" icon="🟢" />
+        <div className="bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 hover:border-success-400/30 transition-all duration-500">
+          <CryptoMovers title="En Cok Yukselenler" items={indexStats.topGainers as CoinData[]} color="text-success-400" icon="🟢" />
         </div>
-        <div className="bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 hover:border-red-500/20 transition-all duration-500">
-          <CryptoMovers title="En Cok Dusenler" items={indexStats.topLosers as CoinData[]} color="text-red-400" icon="🔴" />
+        <div className="bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 hover:border-danger-400/30 transition-all duration-500">
+          <CryptoMovers title="En Cok Dusenler" items={indexStats.topLosers as CoinData[]} color="text-danger-400" icon="🔴" />
         </div>
-        <div className="bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 hover:border-amber-400/20 transition-all duration-500">
+        <div className="bg-surface-1 rounded-2xl border border-amber-400/10 p-3 sm:p-4 hover:border-stroke-gold transition-all duration-500">
           <TrendingCoins items={indexStats.trending} />
         </div>
       </div>

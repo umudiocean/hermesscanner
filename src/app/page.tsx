@@ -451,7 +451,7 @@ function ComingSoonMarket({ marketId, onBack }: { marketId: MarketId; onBack: ()
         </p>
         <div className="flex items-center justify-center gap-3">
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-2 border border-stroke-subtle">
-            <div className="w-2 h-2 rounded-full bg-amber-400/50 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-gold-400/50 animate-pulse" />
             <span className="text-xs text-text-tertiary font-medium">Gelistirme asamasinda</span>
           </div>
         </div>

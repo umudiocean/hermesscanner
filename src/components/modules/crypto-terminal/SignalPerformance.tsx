@@ -75,9 +75,9 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
 
   const statusColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'text-blue-400'
-      case 'TP_HIT': return 'text-emerald-400'
-      case 'SL_HIT': return 'text-red-400'
+      case 'ACTIVE': return 'text-info-400'
+      case 'TP_HIT': return 'text-success-400'
+      case 'SL_HIT': return 'text-danger-400'
       case 'EXPIRED': return 'text-text-tertiary'
       default: return 'text-text-secondary'
     }
@@ -108,14 +108,14 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-stroke">
           <div className="flex items-center gap-3">
-            <Activity size={18} className="text-amber-400" />
+            <Activity size={18} className="text-gold-400" />
             <span className="text-white font-semibold text-sm">SINYAL PERFORMANS TAKIBI</span>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={refresh} className="p-1.5 rounded-xl hover:bg-white/10 text-text-secondary hover:text-white hover:shadow-sm hover:shadow-white/5 transition-all duration-200">
               <RefreshCw size={14} />
             </button>
-            <button onClick={handleClear} className="p-1.5 rounded-xl hover:bg-red-500/20 text-text-secondary hover:text-red-400 hover:shadow-sm hover:shadow-red-500/10 transition-all duration-200">
+            <button onClick={handleClear} className="p-1.5 rounded-xl hover:bg-danger-400/20 text-text-secondary hover:text-danger-400 hover:shadow-sm hover:shadow-red-500/10 transition-all duration-200">
               <Trash2 size={14} />
             </button>
             <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-white/10 text-text-secondary hover:text-white hover:shadow-sm hover:shadow-white/5 transition-all duration-200">
@@ -133,19 +133,19 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
             </div>
             <div className="bg-surface-2 rounded-xl p-3 text-center">
               <div className="text-[10px] text-text-tertiary uppercase tracking-wider mb-1">Win Rate</div>
-              <div className={`text-lg font-bold ${stats.winRate >= 50 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <div className={`text-lg font-bold ${stats.winRate >= 50 ? 'text-success-400' : 'text-danger-400'}`}>
                 {stats.winRate.toFixed(1)}%
               </div>
             </div>
             <div className="bg-surface-2 rounded-xl p-3 text-center">
               <div className="text-[10px] text-text-tertiary uppercase tracking-wider mb-1">Ort PnL</div>
-              <div className={`text-lg font-bold ${stats.avgPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <div className={`text-lg font-bold ${stats.avgPnl >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                 {stats.avgPnl >= 0 ? '+' : ''}{stats.avgPnl.toFixed(2)}%
               </div>
             </div>
             <div className="bg-surface-2 rounded-xl p-3 text-center">
               <div className="text-[10px] text-text-tertiary uppercase tracking-wider mb-1">Aktif</div>
-              <div className="text-lg font-bold text-blue-400">{stats.active}</div>
+              <div className="text-lg font-bold text-info-400">{stats.active}</div>
             </div>
           </div>
         )}
@@ -155,22 +155,22 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
           <div className="flex items-center gap-1 px-4 pt-3">
             <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden flex">
               {stats.tpHit > 0 && (
-                <div className="h-full bg-emerald-500" style={{ width: `${(stats.tpHit / stats.total) * 100}%` }} />
+                <div className="h-full bg-success-400" style={{ width: `${(stats.tpHit / stats.total) * 100}%` }} />
               )}
               {stats.active > 0 && (
-                <div className="h-full bg-blue-500" style={{ width: `${(stats.active / stats.total) * 100}%` }} />
+                <div className="h-full bg-info-400" style={{ width: `${(stats.active / stats.total) * 100}%` }} />
               )}
               {stats.slHit > 0 && (
-                <div className="h-full bg-red-500" style={{ width: `${(stats.slHit / stats.total) * 100}%` }} />
+                <div className="h-full bg-danger-400" style={{ width: `${(stats.slHit / stats.total) * 100}%` }} />
               )}
               {stats.expired > 0 && (
                 <div className="h-full bg-white/20" style={{ width: `${(stats.expired / stats.total) * 100}%` }} />
               )}
             </div>
             <div className="flex items-center gap-3 ml-3 text-[10px]">
-              <span className="text-emerald-400">TP {stats.tpHit}</span>
-              <span className="text-blue-400">Aktif {stats.active}</span>
-              <span className="text-red-400">SL {stats.slHit}</span>
+              <span className="text-success-400">TP {stats.tpHit}</span>
+              <span className="text-info-400">Aktif {stats.active}</span>
+              <span className="text-danger-400">SL {stats.slHit}</span>
               <span className="text-text-tertiary">Expired {stats.expired}</span>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
               onClick={() => setFilter(f)}
               className={`px-3 py-1 text-[10px] rounded-lg transition-colors ${
                 filter === f
-                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  ? 'bg-gold-500/20 text-gold-400 border border-stroke-gold-strong'
                   : 'bg-surface-3 text-text-tertiary border border-white/5 hover:text-text-secondary'
               }`}
             >
@@ -207,11 +207,11 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
                 <div key={s.id} className="flex items-center gap-3 px-3 py-2 bg-surface-2 rounded-lg hover:bg-surface-3 transition-colors">
                   {/* Direction Icon */}
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    s.signal.includes('LONG') || s.signal.includes('BUY') ? 'bg-emerald-500/20' : 'bg-red-500/20'
+                    s.signal.includes('LONG') || s.signal.includes('BUY') ? 'bg-success-400/20' : 'bg-danger-400/20'
                   }`}>
                     {s.signal.includes('LONG') || s.signal.includes('BUY')
-                      ? <TrendingUp size={12} className="text-emerald-400" />
-                      : <TrendingDown size={12} className="text-red-400" />
+                      ? <TrendingUp size={12} className="text-success-400" />
+                      : <TrendingDown size={12} className="text-danger-400" />
                     }
                   </div>
 
@@ -219,7 +219,7 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-white text-xs font-medium">{s.symbol.toUpperCase()}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium truncate">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-gold-500/10 text-gold-400 font-medium truncate">
                         {s.signal}
                       </span>
                     </div>
@@ -232,11 +232,11 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
 
                   {/* TP / SL targets */}
                   <div className="text-right text-[10px] hidden sm:block">
-                    <div className="flex items-center gap-1 text-emerald-400/70">
+                    <div className="flex items-center gap-1 text-success-400/70">
                       <Target size={9} />
                       TP: ${s.tpPrice.toLocaleString(undefined, { maximumFractionDigits: 6 })}
                     </div>
-                    <div className="flex items-center gap-1 text-red-400/70">
+                    <div className="flex items-center gap-1 text-danger-400/70">
                       <Target size={9} />
                       SL: ${s.slPrice.toLocaleString(undefined, { maximumFractionDigits: 6 })}
                     </div>
@@ -248,7 +248,7 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
                       {statusLabel(s.status)}
                     </div>
                     {s.pnlPercent != null && (
-                      <div className={`text-xs font-bold ${s.pnlPercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <div className={`text-xs font-bold ${s.pnlPercent >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                         {s.pnlPercent >= 0 ? '+' : ''}{s.pnlPercent.toFixed(2)}%
                       </div>
                     )}
@@ -262,8 +262,8 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
         {/* Best/Worst Signal */}
         {stats && stats.bestSignal !== '-' && (
           <div className="flex items-center justify-between px-4 py-2 border-t border-white/5 text-[10px] text-text-tertiary">
-            <span>En Iyi Sinyal: <span className="text-emerald-400">{stats.bestSignal}</span></span>
-            <span>En Kotu Sinyal: <span className="text-red-400">{stats.worstSignal}</span></span>
+            <span>En Iyi Sinyal: <span className="text-success-400">{stats.bestSignal}</span></span>
+            <span>En Kotu Sinyal: <span className="text-danger-400">{stats.worstSignal}</span></span>
           </div>
         )}
       </div>

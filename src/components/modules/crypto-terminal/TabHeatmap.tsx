@@ -25,14 +25,14 @@ interface TabHeatmapProps {
 type TimeFilter = '1h' | '24h' | '7d'
 
 function getChangeColor(change: number): string {
-  if (change > 10) return 'bg-emerald-500'
-  if (change > 5) return 'bg-emerald-500/80'
-  if (change > 2) return 'bg-emerald-500/60'
-  if (change > 0) return 'bg-emerald-500/40'
-  if (change > -2) return 'bg-red-500/40'
-  if (change > -5) return 'bg-red-500/60'
-  if (change > -10) return 'bg-red-500/80'
-  return 'bg-red-500'
+  if (change > 10) return 'bg-success-400'
+  if (change > 5) return 'bg-success-400/80'
+  if (change > 2) return 'bg-success-400/60'
+  if (change > 0) return 'bg-success-400/40'
+  if (change > -2) return 'bg-danger-400/40'
+  if (change > -5) return 'bg-danger-400/60'
+  if (change > -10) return 'bg-danger-400/80'
+  return 'bg-danger-400'
 }
 
 function getChangeTextColor(change: number): string {
@@ -202,7 +202,7 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Grid3X3 size={16} className="text-amber-400" />
+          <Grid3X3 size={16} className="text-gold-400" />
           <h3 className="text-sm font-bold text-white">MARKET CAP HEATMAP</h3>
           <span className="text-[10px] text-text-tertiary">Top 80 Coin</span>
         </div>
@@ -213,7 +213,7 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
               onClick={() => setTimeFilter(tf)}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
                 timeFilter === tf
-                  ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                  ? 'bg-gold-500/15 text-gold-300 border border-stroke-gold-strong'
                   : 'text-text-tertiary hover:text-text-secondary border border-transparent'
               }`}
             >
@@ -226,11 +226,11 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
       {/* Legend */}
       <div className="flex items-center gap-2 sm:gap-3 justify-center">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-2 rounded-sm bg-red-500" />
+          <div className="w-3 h-2 rounded-sm bg-danger-400" />
           <span className="text-[9px] text-text-tertiary">&lt;-10%</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-2 rounded-sm bg-red-500/50" />
+          <div className="w-3 h-2 rounded-sm bg-danger-400/50" />
           <span className="text-[9px] text-text-tertiary">-5%</span>
         </div>
         <div className="flex items-center gap-1">
@@ -238,11 +238,11 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
           <span className="text-[9px] text-text-tertiary">0%</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-2 rounded-sm bg-emerald-500/50" />
+          <div className="w-3 h-2 rounded-sm bg-success-400/50" />
           <span className="text-[9px] text-text-tertiary">+5%</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-2 rounded-sm bg-emerald-500" />
+          <div className="w-3 h-2 rounded-sm bg-success-400" />
           <span className="text-[9px] text-text-tertiary">&gt;+10%</span>
         </div>
       </div>
@@ -255,7 +255,7 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
       >
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-surface-1/90 z-10">
-            <div className="w-8 h-8 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />
           </div>
         )}
 

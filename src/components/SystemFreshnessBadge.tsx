@@ -92,10 +92,10 @@ export default function SystemFreshnessBadge({ compact = false }: { compact?: bo
   if (!health) return null
 
   const classes = view.level === 'bad'
-    ? 'bg-red-500/12 text-red-300 border-red-500/30'
+    ? 'bg-danger-400/12 text-danger-300 border-danger-400/30'
     : view.level === 'warn'
-      ? 'bg-amber-500/12 text-amber-300 border-amber-500/30'
-      : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
+      ? 'bg-gold-500/12 text-gold-300 border-stroke-gold-strong'
+      : 'bg-success-400/10 text-success-300 border-success-400/30'
 
   const label = view.level === 'bad' ? 'FRESHNESS BAD' : view.level === 'warn' ? 'FRESHNESS WARN' : 'FRESHNESS OK'
 

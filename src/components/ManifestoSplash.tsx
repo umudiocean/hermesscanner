@@ -159,10 +159,10 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
 
         {/* Badges */}
         <div className={`flex flex-wrap items-center justify-center gap-2 mb-5 lg:mb-7 transition-all duration-800 ${p(2) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={d(300)}>
-          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/20">
+          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-success-400/10 text-success-400/80 border border-success-400/30">
             %100 ÜCRETSİZ
           </span>
-          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-violet-500/10 text-violet-400/80 border border-violet-500/20">
+          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-info-400/10 text-info-400/80 border border-info-400/30">
             %100 YAPAY ZEKA
           </span>
           <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-gold-400/10 text-gold-400/80 border border-stroke-gold">
@@ -280,7 +280,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
               <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold-400/50 mb-1.5">Ekosistem Notu</p>
               <p className="text-[11px] text-text-tertiary leading-relaxed">
                 {'Hermes AI ekosisteminin parçası olan '}
-                <span className="text-amber-400/70 font-medium">Hermes Coin</span>
+                <span className="text-gold-400/70 font-medium">Hermes Coin</span>
                 {' (BSC Smart Contract) ileride platform içi bazı premium avantajlara erişim sağlayabilir.'}
               </p>
               <code className="block mt-1.5 text-[8px] text-text-quaternary font-mono bg-surface-2 px-2 py-1 rounded select-all break-all">

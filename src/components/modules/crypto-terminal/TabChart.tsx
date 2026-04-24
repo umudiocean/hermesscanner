@@ -578,7 +578,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
             onChange={e => setSearchInput(e.target.value.toLowerCase())}
             onKeyDown={e => { if (e.key === 'Enter' && searchInput) { onSelectCoin(searchInput); setSearchInput('') } }}
             placeholder="Orn: bitcoin, ethereum..."
-            className="px-4 py-2 rounded-lg bg-surface-3 border border-stroke text-sm text-white placeholder-white/30 focus:outline-none focus:border-amber-500/40 w-56"
+            className="px-4 py-2 rounded-lg bg-surface-3 border border-stroke text-sm text-white placeholder-white/30 focus:outline-none focus:border-stroke-gold-strong w-56"
           />
           <button onClick={() => { if (searchInput) { onSelectCoin(searchInput); setSearchInput('') } }}
             className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium">
@@ -602,7 +602,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
           {lastPrice > 0 && (
             <>
               <span className="text-base sm:text-lg font-bold text-white">{formatPrice(lastPrice)}</span>
-              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isPositive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'}`}>
+              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isPositive ? 'bg-success-400/15 text-success-400' : 'bg-danger-400/15 text-danger-400'}`}>
                 {isPositive ? '+' : ''}{priceChange.toFixed(2)}%
               </span>
             </>
@@ -613,7 +613,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
           {/* Chart mode toggle */}
           <button
             onClick={() => setChartMode(chartMode === 'candle' ? 'line' : 'candle')}
-            className={`p-1.5 rounded-xl text-[10px] transition-all duration-300 border ${chartMode === 'candle' ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10' : 'text-text-tertiary hover:text-amber-200/80 border-stroke-subtle hover:border-amber-500/20'}`}
+            className={`p-1.5 rounded-xl text-[10px] transition-all duration-300 border ${chartMode === 'candle' ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-gold-300 border-amber-500/35 shadow-sm shadow-amber-500/10' : 'text-text-tertiary hover:text-amber-200/80 border-stroke-subtle hover:border-amber-500/20'}`}
             title={chartMode === 'candle' ? 'Mum Grafik' : 'Cizgi Grafik'}
           >
             <BarChart3 size={14} />
@@ -626,8 +626,8 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
               onClick={() => toggleIndicator(ind)}
               className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all duration-300 border ${
                 indicators.has(ind)
-                  ? 'bg-gradient-to-r from-violet-500/15 to-purple-500/8 text-violet-300 border-violet-500/35 shadow-sm shadow-violet-500/10'
-                  : 'text-text-tertiary hover:text-violet-300/70 border-stroke-subtle hover:border-violet-500/20'
+                  ? 'bg-gradient-to-r from-violet-500/15 to-purple-500/8 text-info-400 border-violet-500/35 shadow-sm shadow-violet-500/10'
+                  : 'text-text-tertiary hover:text-info-400/70 border-stroke-subtle hover:border-info-400/30'
               }`}
             >
               {ind.toUpperCase()}
@@ -643,7 +643,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
               onClick={() => setRange(tr.value)}
               className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all duration-300 ${
                 range === tr.value
-                  ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border border-amber-500/35 shadow-sm shadow-amber-500/10'
+                  ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-gold-300 border border-amber-500/35 shadow-sm shadow-amber-500/10'
                   : 'text-text-tertiary hover:text-amber-200/80 border border-stroke-subtle hover:border-amber-500/20'
               }`}
             >
@@ -657,7 +657,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
       <div className="bg-surface-1 rounded-2xl border border-stroke-subtle relative overflow-hidden">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-surface-1/90 z-10 rounded-2xl">
-            <div className="w-8 h-8 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />
           </div>
         )}
         <div ref={chartContainerRef} className="w-full" />
@@ -672,7 +672,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
       {indicators.has('rsi') && ohlcData.length > 15 && (
         <div className="bg-surface-1 rounded-xl border border-stroke-subtle overflow-hidden">
           <div className="flex items-center gap-2 px-3 py-1.5 border-b border-stroke-subtle">
-            <Activity size={12} className="text-amber-400/60" />
+            <Activity size={12} className="text-gold-400/60" />
             <span className="text-[10px] font-medium text-text-tertiary">RSI (14)</span>
           </div>
           <div ref={rsiContainerRef} className="w-full" />
@@ -683,7 +683,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
       {indicators.has('macd') && ohlcData.length > 26 && (
         <div className="bg-surface-1 rounded-xl border border-stroke-subtle overflow-hidden">
           <div className="flex items-center gap-2 px-3 py-1.5 border-b border-stroke-subtle">
-            <Layers size={12} className="text-blue-400/60" />
+            <Layers size={12} className="text-info-400/60" />
             <span className="text-[10px] font-medium text-text-tertiary">MACD (12, 26, 9)</span>
           </div>
           <div ref={macdContainerRef} className="w-full" />
@@ -695,8 +695,8 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
           {[
             { label: 'Acilis', value: formatPrice(ohlcData[0].open), color: 'text-text-secondary' },
-            { label: 'En Yuksek', value: formatPrice(Math.max(...ohlcData.map(c => c.high))), color: 'text-emerald-400/70' },
-            { label: 'En Dusuk', value: formatPrice(Math.min(...ohlcData.map(c => c.low))), color: 'text-red-400/70' },
+            { label: 'En Yuksek', value: formatPrice(Math.max(...ohlcData.map(c => c.high))), color: 'text-success-400/70' },
+            { label: 'En Dusuk', value: formatPrice(Math.min(...ohlcData.map(c => c.low))), color: 'text-danger-400/70' },
             { label: 'Kapanis', value: formatPrice(ohlcData[ohlcData.length - 1].close), color: 'text-white' },
           ].map(stat => (
             <div key={stat.label} className="bg-surface-3 rounded-xl border border-stroke-subtle px-2 sm:px-3 py-1.5 sm:py-2 hover:border-stroke hover:shadow-md hover:shadow-black/20 transition-all duration-300">

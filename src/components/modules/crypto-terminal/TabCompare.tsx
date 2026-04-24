@@ -137,7 +137,7 @@ function CoinSearchInput({ onAdd, existingIds, placeholder }: {
           onFocus={() => { if (suggestions.length > 0) setShowDropdown(true) }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder || 'Orn: bitcoin, ethereum...'}
-          className="px-4 py-2 rounded-xl bg-surface-3 border border-stroke text-sm text-white placeholder-white/30 focus:outline-none focus:border-amber-500/40 focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300 w-64"
+          className="px-4 py-2 rounded-xl bg-surface-3 border border-stroke text-sm text-white placeholder-white/30 focus:outline-none focus:border-stroke-gold-strong focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300 w-64"
         />
         <button
           onClick={() => { if (input.trim()) { handleSelect(input.trim().toLowerCase()) } }}
@@ -153,7 +153,7 @@ function CoinSearchInput({ onAdd, existingIds, placeholder }: {
               key={c.id}
               onClick={() => handleSelect(c.id)}
               className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors ${
-                i === selectedIdx ? 'bg-amber-500/10 text-white' : 'text-text-secondary hover:bg-surface-3'
+                i === selectedIdx ? 'bg-gold-500/10 text-white' : 'text-text-secondary hover:bg-surface-3'
               }`}
             >
               <span className="font-mono font-bold text-xs w-12 uppercase">{c.symbol}</span>
@@ -226,7 +226,7 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <GitCompare size={16} className="text-amber-400" />
+          <GitCompare size={16} className="text-gold-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Coin Karsilastirma</h3>
         </div>
         {coinIds.length < 4 && (
@@ -239,7 +239,7 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
         {coinIds.map(id => (
           <div key={id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-3 border border-stroke">
             <span className="text-xs font-medium text-white">{id}</span>
-            <button onClick={() => onRemoveCoin(id)} className="text-text-tertiary hover:text-red-400 transition-colors text-xs ml-1">
+            <button onClick={() => onRemoveCoin(id)} className="text-text-tertiary hover:text-danger-400 transition-colors text-xs ml-1">
               <X size={12} />
             </button>
           </div>
@@ -249,7 +249,7 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
       {loading && (
         <div className="text-center py-8">
           <div className="inline-flex items-center gap-2 text-text-tertiary">
-            <div className="w-4 h-4 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />
             <span>Coin verileri yukleniyor...</span>
           </div>
         </div>
@@ -263,13 +263,13 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
                 <div className="h-40 flex flex-col items-center justify-center gap-2">
                   {loading ? (
                     <>
-                      <div className="w-6 h-6 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-stroke-gold-strong border-t-amber-400 rounded-full animate-spin" />
                       <span className="text-[10px] text-text-tertiary">{id} yukleniyor...</span>
                     </>
                   ) : (
                     <>
                       <span className="text-sm text-text-tertiary">{id}</span>
-                      <span className="text-[10px] text-red-400/50">Veri yuklenemedi</span>
+                      <span className="text-[10px] text-danger-400/50">Veri yuklenemedi</span>
                     </>
                   )}
                 </div>
@@ -292,15 +292,15 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
                 </div>
               </div>
               <div className="text-base sm:text-lg font-bold text-white tabular-nums mb-1">{formatPrice(price)}</div>
-              <div className={`text-xs font-medium mb-2 sm:mb-3 ${(md?.price_change_percentage_24h ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <div className={`text-xs font-medium mb-2 sm:mb-3 ${(md?.price_change_percentage_24h ?? 0) >= 0 ? 'text-success-400' : 'text-danger-400'}`}>
                 {(md?.price_change_percentage_24h ?? 0) >= 0 ? '+' : ''}{(md?.price_change_percentage_24h ?? 0).toFixed(2)}%
               </div>
               <div className="space-y-1 text-[10px]">
                 <div className="flex justify-between"><span className="text-text-tertiary">MCap</span><span className="text-text-secondary">{formatLarge(md?.market_cap?.usd ?? 0)}</span></div>
                 <div className="flex justify-between"><span className="text-text-tertiary">Hacim</span><span className="text-text-secondary">{formatLarge(md?.total_volume?.usd ?? 0)}</span></div>
                 <div className="flex justify-between"><span className="text-text-tertiary">FDV</span><span className="text-text-secondary">{formatLarge(md?.fully_diluted_valuation?.usd ?? 0)}</span></div>
-                <div className="flex justify-between"><span className="text-text-tertiary">7g</span><span className={`font-medium ${(md?.price_change_percentage_7d ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{(md?.price_change_percentage_7d ?? 0).toFixed(2)}%</span></div>
-                <div className="flex justify-between"><span className="text-text-tertiary">30g</span><span className={`font-medium ${(md?.price_change_percentage_30d ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{(md?.price_change_percentage_30d ?? 0).toFixed(2)}%</span></div>
+                <div className="flex justify-between"><span className="text-text-tertiary">7g</span><span className={`font-medium ${(md?.price_change_percentage_7d ?? 0) >= 0 ? 'text-success-400' : 'text-danger-400'}`}>{(md?.price_change_percentage_7d ?? 0).toFixed(2)}%</span></div>
+                <div className="flex justify-between"><span className="text-text-tertiary">30g</span><span className={`font-medium ${(md?.price_change_percentage_30d ?? 0) >= 0 ? 'text-success-400' : 'text-danger-400'}`}>{(md?.price_change_percentage_30d ?? 0).toFixed(2)}%</span></div>
               </div>
               {score && (
                 <div className="mt-3 pt-3 border-t border-stroke-subtle">
@@ -314,7 +314,7 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
                       .sort((a, b) => (score.categories[b] ?? 0) - (score.categories[a] ?? 0))
                       .map(key => {
                       const val = score.categories[key]
-                      const color = val >= 70 ? 'bg-emerald-400' : val >= 50 ? 'bg-amber-400' : val >= 30 ? 'bg-orange-400' : 'bg-red-400'
+                      const color = val >= 70 ? 'bg-success-400' : val >= 50 ? 'bg-gold-400' : val >= 30 ? 'bg-warning-400' : 'bg-danger-400'
                       return (
                         <div key={key} className="flex items-center gap-1">
                           <span className="w-12 text-[8px] text-text-quaternary truncate">{CRYPTO_CATEGORY_LABELS[key]}</span>
