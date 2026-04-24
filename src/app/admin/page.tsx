@@ -103,7 +103,7 @@ function Card({ title, icon: Icon, children, accent }: {
   return (
     <div className={`bg-surface-3 rounded-2xl border ${accent || 'border-white/8'} p-5 shadow-xl`}>
       <div className="flex items-center gap-2 mb-4">
-        <Icon className="w-4 h-4 text-[#B3945B]" />
+        <Icon className="w-4 h-4 text-[#D4B86A]" />
         <h3 className="text-xs uppercase tracking-wider text-text-secondary font-semibold">{title}</h3>
       </div>
       {children}
@@ -129,7 +129,7 @@ function MiniBar({ items, max }: { items: { label: string; value: number }[]; ma
           <span className="text-[10px] text-text-tertiary w-24 truncate">{item.label}</span>
           <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[#B3945B] to-[#8B7340] rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-[#D4B86A] to-[#8B7340] rounded-full transition-all duration-500"
               style={{ width: `${max > 0 ? Math.max(2, (item.value / max) * 100) : 0}%` }}
             />
           </div>
@@ -182,7 +182,7 @@ const TABS: { id: AdminTab; label: string; icon: React.ElementType; accent: stri
   { id: 'crypto', label: 'CRYPTO', icon: Bitcoin, accent: '#F59E0B' },
   { id: 'analytics', label: 'Analitik', icon: BarChart3, accent: '#8B5CF6' },
   { id: 'system', label: 'Sistem', icon: Server, accent: '#10B981' },
-  { id: 'diagnostics', label: 'Diagnostics', icon: AlertTriangle, accent: '#EF4444' },
+  { id: 'diagnostics', label: 'Diagnostics', icon: AlertTriangle, accent: '#F04848' },
 ]
 
 // ═══════════════════════════════════════════════════════════════════
@@ -461,8 +461,8 @@ export default function AdminDashboard() {
           {/* Top row: Logo + Actions */}
           <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#B3945B]/20 to-[#B3945B]/5 border border-[#B3945B]/30 flex items-center justify-center">
-                <Shield className="w-4.5 h-4.5 text-[#B3945B]" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4B86A]/20 to-[#D4B86A]/5 border border-[#D4B86A]/30 flex items-center justify-center">
+                <Shield className="w-4.5 h-4.5 text-[#D4B86A]" />
               </div>
               <div>
                 <h1 className="text-sm font-bold text-text-primary">HERMES AI Admin</h1>
@@ -534,7 +534,7 @@ export default function AdminDashboard() {
       <main className="p-4 md:p-8">
         {loading && !data ? (
           <div className="flex items-center justify-center h-64">
-            <div className="w-8 h-8 border-2 border-[#B3945B]/30 border-t-[#B3945B] rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[#D4B86A]/30 border-t-[#D4B86A] rounded-full animate-spin" />
           </div>
         ) : (
           <>
@@ -731,8 +731,8 @@ function OverviewTab({
           <MarketCard
             title="NASDAQ"
             icon="🇺🇸"
-            iconBg="bg-gradient-to-br from-[#B3945B]/20 to-[#B3945B]/5"
-            accent="#B3945B"
+            iconBg="bg-gradient-to-br from-[#D4B86A]/20 to-[#D4B86A]/5"
+            accent="#D4B86A"
             {...nasdaq}
             onRefresh={onRefreshNasdaq}
             onDetail={() => onSelectTab('nasdaq')}
@@ -894,7 +894,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
         <button
           onClick={onRefresh}
           disabled={status.refreshing}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#B3945B]/20 to-[#B3945B]/10 border border-[#B3945B]/30 text-[#B3945B] text-xs font-medium transition-all hover:from-[#B3945B]/30 hover:to-[#B3945B]/20"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#D4B86A]/20 to-[#D4B86A]/10 border border-[#D4B86A]/30 text-[#D4B86A] text-xs font-medium transition-all hover:from-[#D4B86A]/30 hover:to-[#D4B86A]/20"
         >
           {status.refreshing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           {status.refreshing ? 'Yenileniyor...' : 'Tum NASDAQ Verilerini Yenile'}
@@ -967,7 +967,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
                     className={`h-full rounded-full transition-all duration-1000 ${
                       bootstrap.status === 'complete'
                         ? 'bg-gradient-to-r from-emerald-500 to-emerald-400'
-                        : 'bg-gradient-to-r from-[#B3945B] to-amber-400'
+                        : 'bg-gradient-to-r from-[#D4B86A] to-amber-400'
                     }`}
                     style={{ width: `${bootstrap.total > 0 ? Math.max(1, (bootstrap.completed / bootstrap.total) * 100) : 0}%` }}
                   />
@@ -984,7 +984,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
               <button
                 onClick={onTriggerBootstrap}
                 disabled={bootstrapTriggering || !bootstrap.redisAvailable}
-                className="mt-2 w-full py-2 rounded-xl bg-gradient-to-r from-[#B3945B]/20 to-amber-500/15 border border-[#B3945B]/40 text-[#B3945B] text-xs font-semibold hover:from-[#B3945B]/30 hover:to-amber-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                className="mt-2 w-full py-2 rounded-xl bg-gradient-to-r from-[#D4B86A]/20 to-amber-500/15 border border-[#D4B86A]/40 text-[#D4B86A] text-xs font-semibold hover:from-[#D4B86A]/30 hover:to-amber-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
               >
                 {bootstrapTriggering ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                 {bootstrapTriggering ? 'Baslatiliyor...' : bootstrap.redisAvailable ? 'Bootstrap Baslat' : 'Redis gerekli'}
@@ -1306,7 +1306,7 @@ function AnalyticsTab({ analytics: a }: { analytics: AnalyticsData['analytics'] 
               <span className="text-[9px] text-text-tertiary w-16">{d.date.slice(5)}</span>
               <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#B3945B]/60 rounded-full"
+                  className="h-full bg-[#D4B86A]/60 rounded-full"
                   style={{ width: `${weekPV > 0 ? Math.max(2, (d.count / Math.max(...(a?.pageViews?.map(x => x.count) || [1]))) * 100) : 0}%` }}
                 />
               </div>

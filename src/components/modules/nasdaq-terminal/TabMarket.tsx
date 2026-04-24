@@ -239,8 +239,8 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
           const bottom5 = sorted.slice(-5).reverse().map(s => ({ symbol: s.symbol, score: s.signalScore, signal: s.signal }))
 
           let signalLabel: string, signalColor: string
-          if (avg >= 70) { signalLabel = 'GUCLU'; signalColor = '#62cbc1' }
-          else if (avg >= 55) { signalLabel = 'IYI'; signalColor = '#62cbc1' }
+          if (avg >= 70) { signalLabel = 'GUCLU'; signalColor = '#3FCAB4' }
+          else if (avg >= 55) { signalLabel = 'IYI'; signalColor = '#3FCAB4' }
           else if (avg >= 45) { signalLabel = 'NOTR'; signalColor = '#94a3b8' }
           else if (avg >= 30) { signalLabel = 'ZAYIF'; signalColor = '#fb923c' }
           else { signalLabel = 'KOTU'; signalColor = '#f87171' }
@@ -292,8 +292,8 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
     )
 
     let label: string, color: string
-    if (composite >= 75) { label = 'GUCLU YUKSELIS'; color = '#62cbc1' }
-    else if (composite >= 60) { label = 'YUKSELIS'; color = '#62cbc1' }
+    if (composite >= 75) { label = 'GUCLU YUKSELIS'; color = '#3FCAB4' }
+    else if (composite >= 60) { label = 'YUKSELIS'; color = '#3FCAB4' }
     else if (composite >= 45) { label = 'NOTR'; color = '#94a3b8' }
     else if (composite >= 30) { label = 'DUSUS'; color = '#fb923c' }
     else { label = 'GUCLU DUSUS'; color = '#f87171' }
@@ -315,7 +315,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       {data && <MarketOpenForecast data={data} />}
 
       {/* ═══ FEAR & GREED INDEX BAR ═══ */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20 glass-card">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-5 shadow-glass glass-card">
         <div className="flex items-center gap-2 mb-3">
           <Activity size={16} className="text-info-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Korku & Acgozluluk Endeksi</h3>
@@ -335,7 +335,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
 
         {/* Trend Gucu Gauge */}
         {trend && (
-          <div className="lg:col-span-3 bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+          <div className="lg:col-span-3 bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-5 shadow-glass">
             <div className="flex items-center gap-2 mb-4">
               <Gauge size={18} className="text-info-400" />
               <div>
@@ -350,7 +350,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
                 <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
                   <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
                   <circle cx="60" cy="60" r="50" fill="none"
-                    stroke={trend.trendColor === 'emerald' ? '#62cbc1' : trend.trendColor === 'red' ? '#f87171' : '#94a3b8'}
+                    stroke={trend.trendColor === 'emerald' ? '#3FCAB4' : trend.trendColor === 'red' ? '#f87171' : '#94a3b8'}
                     strokeWidth="10" strokeLinecap="round"
                     strokeDasharray={`${trend.trendScore * 3.14} 314`}
                     className="transition-all duration-1000" />
@@ -391,7 +391,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
               data.indexes.map((idx, i) => <IndexCard key={i} index={idx} />)
             ) : (
               ['S&P 500', 'NASDAQ', 'Dow Jones'].map(n => (
-                <div key={n} className="bg-surface-3 rounded-2xl border border-stroke-subtle p-4 animate-pulse">
+                <div key={n} className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-4 animate-pulse">
                   <span className="text-xs text-text-quaternary">{n}</span>
                   <div className="mt-2 h-6 w-24 bg-surface-3 rounded-lg" />
                 </div>
@@ -400,7 +400,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
           </div>
 
           {/* Treasury below indexes */}
-          <div className="mt-2 sm:mt-3 bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+          <div className="mt-2 sm:mt-3 bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
             <div className="flex items-center gap-2 mb-2">
               <DollarSign size={16} className="text-info-400/60" />
               <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">ABD Tahvil Faizleri</h3>
@@ -419,10 +419,10 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
         const cap = indexScores.filter(i => INDEX_META[i.symbol]?.tier === 'cap')
         const sector = indexScores.filter(i => INDEX_META[i.symbol]?.tier === 'sector')
         const allAvg = indexScores.length > 0 ? Math.round(indexScores.reduce((s, i) => s + i.avgScore, 0) / indexScores.length) : 0
-        const allColor = allAvg >= 55 ? '#62cbc1' : allAvg >= 45 ? '#94a3b8' : '#f87171'
+        const allColor = allAvg >= 55 ? '#3FCAB4' : allAvg >= 45 ? '#94a3b8' : '#f87171'
 
         return (
-          <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+          <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-5 shadow-glass">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -484,7 +484,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       })()}
 
       {/* ═══ ROW 2: SEKTOR ROTASYON & PERFORMANS ═══ */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
         <div className="flex items-center justify-between mb-2 sm:mb-3">
           <div className="flex items-center gap-2">
             <BarChart3 size={16} className="text-info-400/60" />
@@ -556,7 +556,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
       </div>
 
       {/* ═══ ROW 3.5: BUYUK PARA AKISI (V3) ═══ */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
         <div className="flex items-center gap-2 mb-3">
           <DollarSign size={16} className="text-success-400/60" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Buyuk Para Akisi</h3>
@@ -605,7 +605,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
 
       {/* ═══ ROW 4: ECONOMIC CALENDAR ═══ */}
       {data.economicCalendar.length > 0 && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-3">
             <Calendar size={16} className="text-info-400/60" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Ekonomik Takvim</h3>
@@ -624,7 +624,7 @@ export default function TabMarket({ onSelectSymbol }: TabMarketProps) {
 
 function TrendBar({ label, value, desc }: { label: string; value: number; desc: string }) {
   const clampedValue = Math.max(0, Math.min(100, value))
-  const color = clampedValue >= 60 ? '#62cbc1' : clampedValue >= 40 ? '#94a3b8' : '#f87171'
+  const color = clampedValue >= 60 ? '#3FCAB4' : clampedValue >= 40 ? '#94a3b8' : '#f87171'
   return (
     <div>
       <div className="flex items-center justify-between mb-0.5">
@@ -750,7 +750,7 @@ function IndexCard({ index }: { index: IndexQuote }) {
   const desc = INDEX_DESC[index.symbol] || ''
 
   return (
-    <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300 shadow-xl shadow-black/20 group">
+    <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300 shadow-glass group">
       <div className="flex items-center justify-between mb-2">
         <div>
           <span className="text-xs text-text-tertiary font-medium">{name}</span>
@@ -857,7 +857,7 @@ function MoversCard({ title, desc, items, type, icon, onSelect }: {
   type: 'gainer' | 'loser' | 'active'; icon: React.ReactNode; onSelect: (s: string) => void
 }) {
   return (
-    <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+    <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
       <div className="flex items-center gap-2 mb-2 sm:mb-3">
         {icon}
         <div>
@@ -938,7 +938,7 @@ function FearGreedV2({ fg }: { fg: FearGreedComponents }) {
   ]
 
   return (
-    <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+    <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
       <div className="flex items-center justify-between mb-2 sm:mb-3">
         <div className="flex items-center gap-2">
           <Zap size={16} className="text-cyan-400" />
@@ -971,7 +971,7 @@ function FearGreedV2({ fg }: { fg: FearGreedComponents }) {
               <div className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${c.score}%`,
-                  backgroundColor: c.score >= 60 ? '#62cbc1' : c.score >= 40 ? '#94a3b8' : '#f87171'
+                  backgroundColor: c.score >= 60 ? '#3FCAB4' : c.score >= 40 ? '#94a3b8' : '#f87171'
                 }} />
             </div>
             <div className="text-[9px] text-text-tertiary mt-0.5">{c.weight}</div>
@@ -1014,7 +1014,7 @@ function MacroRadarCards({ fred }: { fred: FredDashboardData & { fearGreedV2: Fe
   }
 
   return (
-    <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+    <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
       <div className="flex items-center justify-between mb-2 sm:mb-3">
         <div className="flex items-center gap-2">
           <Radio size={16} className="text-cyan-400" />
@@ -1140,7 +1140,7 @@ function MarketSkeleton() {
       <div className="flex justify-center relative z-10 opacity-0" style={{ animation: 'card-reveal 0.4s ease-out 1s forwards' }}>
         <div className="flex items-center gap-2">
           <div className="w-24 h-0.5 bg-surface-3 rounded-full overflow-hidden">
-            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
+            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #8E7536, #DCC273)' }} />
           </div>
           <span className="text-[9px] text-text-quaternary font-mono">Piyasa verisi yukleniyor</span>
         </div>
@@ -1286,7 +1286,7 @@ function HermesPulseGauge({ pulse }: {
 
             <div className="space-y-2.5">
               {components.map((comp, i) => {
-                const barColor = comp.value >= 60 ? '#62cbc1' : comp.value >= 45 ? '#94a3b8' : '#fb923c'
+                const barColor = comp.value >= 60 ? '#3FCAB4' : comp.value >= 45 ? '#94a3b8' : '#fb923c'
                 return (
                   <div key={i} className="flex items-center gap-3 group">
                     <span className="text-[10px] w-3 text-center" style={{ color: `${barColor}80` }}>{comp.icon}</span>
@@ -1355,7 +1355,7 @@ function HermesAIScoreSummary() {
       .catch(() => {})
   }, [])
 
-  if (!stats) return <div className="lg:col-span-3 bg-surface-3 rounded-2xl border border-stroke-subtle p-4 animate-pulse"><div className="h-40 bg-surface-2 rounded-xl" /></div>
+  if (!stats) return <div className="lg:col-span-3 bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-4 animate-pulse"><div className="h-40 bg-surface-2 rounded-xl" /></div>
 
   const healthPct = stats.total > 0 ? Math.round(((stats.strong + stats.good) / stats.total) * 100) : 50
   const riskPct = stats.total > 0 ? Math.round(((stats.weak + stats.bad) / stats.total) * 100) : 0
@@ -1363,7 +1363,7 @@ function HermesAIScoreSummary() {
   const healthLabel = healthPct >= 40 ? 'GUCLU PIYASA' : healthPct >= 25 ? 'DENGELI' : 'ZAYIF PIYASA'
 
   return (
-    <div className="lg:col-span-3 bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+    <div className="lg:col-span-3 bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-5 shadow-glass">
       <div className="flex items-center gap-2 mb-4">
         <Shield size={18} className="text-info-400" />
         <div>
@@ -1505,8 +1505,8 @@ function MarketOpenForecast({ data }: { data: MarketDashboardData }) {
 
   const cardGlow = isGoldenSignal ? 'signal-fire-gold' : pct >= 65 ? 'signal-fire-green' : pct <= 35 ? 'signal-fire-red' : ''
   const borderColor = isGoldenSignal ? 'border-stroke-gold-strong' : pct >= 65 ? 'border-success-400/30' : pct <= 35 ? 'border-danger-400/30' : 'border-stroke'
-  const bgColor = isGoldenSignal ? 'bg-gold-400/[0.04]' : pct >= 65 ? 'bg-success-400/[0.04]' : pct <= 35 ? 'bg-danger-400/[0.04]' : 'bg-surface-2'
-  const accentColor = isGoldenSignal ? '#B3945B' : pct >= 65 ? '#62cbc1' : pct <= 35 ? '#ef4444' : '#94a3b8'
+  const bgColor = isGoldenSignal ? 'bg-gold-400/8' : pct >= 65 ? 'bg-success-400/8' : pct <= 35 ? 'bg-danger-400/8' : 'bg-surface-2/70 backdrop-blur-xl'
+  const accentColor = isGoldenSignal ? '#D4B86A' : pct >= 65 ? '#3FCAB4' : pct <= 35 ? '#F04848' : '#B6B2A8'
   const idxAvgNow = idxs.length > 0
     ? idxs.reduce((sum, i) => sum + (i.changesPercentage ?? 0), 0) / idxs.length
     : 0
@@ -1558,7 +1558,7 @@ function MarketOpenForecast({ data }: { data: MarketDashboardData }) {
   }, [biasShort, confidence, idxAvgNow])
 
   return (
-    <div className={`rounded-2xl border p-3 sm:p-4 shadow-xl shadow-black/20 transition-all duration-500 ${borderColor} ${bgColor} ${cardGlow}`}>
+    <div className={`rounded-2xl border p-3 sm:p-4 shadow-glass transition-all duration-300 ease-snap ${borderColor} ${bgColor} ${cardGlow}`}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         <div className="relative">
@@ -1592,10 +1592,10 @@ function MarketOpenForecast({ data }: { data: MarketDashboardData }) {
             <div className="flex-1 h-1.5 rounded-full bg-surface-3 overflow-hidden">
               <div
                 className="h-full rounded-full confidence-bar transition-all"
-                style={{ '--conf-width': `${confidence}%`, backgroundColor: confidence >= 60 ? '#62cbc1' : confidence >= 40 ? '#B3945B' : '#f87171' } as React.CSSProperties}
+                style={{ '--conf-width': `${confidence}%`, backgroundColor: confidence >= 60 ? '#3FCAB4' : confidence >= 40 ? '#D4B86A' : '#f87171' } as React.CSSProperties}
               />
             </div>
-            <span className="text-[10px] font-mono tabular-nums" style={{ color: confidence >= 60 ? '#62cbc1' : confidence >= 40 ? '#B3945B' : '#f87171' }}>{confidence}%</span>
+            <span className="text-[10px] font-mono tabular-nums" style={{ color: confidence >= 60 ? '#3FCAB4' : confidence >= 40 ? '#D4B86A' : '#f87171' }}>{confidence}%</span>
           </div>
         </div>
       </div>

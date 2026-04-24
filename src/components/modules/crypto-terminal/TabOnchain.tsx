@@ -99,7 +99,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
       </div>
 
       {/* Trending Pools */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
           <Flame size={16} className="text-warning-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Trend DEX Havuzlari</h3>
@@ -132,7 +132,7 @@ export default function TabOnchain({ onSelectCoin }: TabOnchainProps) {
 
       {/* Newly Listed */}
       {newlyListed.length > 0 && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
             <Clock size={16} className="text-info-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Yeni Listelenen Coinler</h3>

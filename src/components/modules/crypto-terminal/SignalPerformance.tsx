@@ -104,7 +104,7 @@ export default function SignalPerformance({ isOpen, onClose }: SignalPerformance
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-surface-3 border border-stroke rounded-t-2xl sm:rounded-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl shadow-black/40">
+      <div className="bg-surface-3 border border-stroke rounded-t-2xl sm:rounded-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col shadow-depth-3">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-stroke">
           <div className="flex items-center gap-3">

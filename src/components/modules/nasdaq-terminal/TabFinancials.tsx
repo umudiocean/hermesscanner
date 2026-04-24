@@ -234,7 +234,7 @@ function FinancialSkeleton() {
             <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(179,148,91,0.06)" strokeWidth="2" />
             <circle cx="50" cy="50" r="42" fill="none" stroke="url(#finGold)" strokeWidth="2" strokeLinecap="round"
               strokeDasharray="264" style={{ animation: 'ring-pulse 1.6s ease-in-out infinite' }} />
-            <defs><linearGradient id="finGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#C9A96E" /><stop offset="100%" stopColor="#876b3a" /></linearGradient></defs>
+            <defs><linearGradient id="finGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#DCC273" /><stop offset="100%" stopColor="#8E7536" /></linearGradient></defs>
           </svg>
           <div className="absolute inset-0 flex items-center justify-center text-gold-400/80 text-lg">💰</div>
         </div>
@@ -243,7 +243,7 @@ function FinancialSkeleton() {
           <p className="text-[9px] text-text-tertiary mt-0.5">Gelir, bilanco, nakit akis</p>
         </div>
         <div className="w-32 h-0.5 bg-surface-3 rounded-full overflow-hidden">
-          <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
+          <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #8E7536, #DCC273)' }} />
         </div>
         <div className="flex gap-2">
           {['Gelir', 'Bilanco', 'Nakit'].map((t, i) => (

@@ -39,7 +39,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
               <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(179,148,91,0.06)" strokeWidth="2" />
               <circle cx="50" cy="50" r="42" fill="none" stroke="url(#macGold)" strokeWidth="2" strokeLinecap="round"
                 strokeDasharray="264" style={{ animation: 'ring-pulse 1.6s ease-in-out infinite' }} />
-              <defs><linearGradient id="macGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#C9A96E" /><stop offset="100%" stopColor="#876b3a" /></linearGradient></defs>
+              <defs><linearGradient id="macGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#DCC273" /><stop offset="100%" stopColor="#8E7536" /></linearGradient></defs>
             </svg>
             <div className="absolute inset-0 flex items-center justify-center text-gold-400/80 text-lg">🌐</div>
           </div>
@@ -48,7 +48,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
             <p className="text-[9px] text-text-tertiary mt-0.5">GDP, sentiment, ESG, endeksler</p>
           </div>
           <div className="w-32 h-0.5 bg-surface-3 rounded-full overflow-hidden">
-            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
+            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #8E7536, #DCC273)' }} />
           </div>
           <div className="flex gap-2">
             {['GDP', 'Sentiment', 'News', 'ESG'].map((t, i) => (
@@ -82,7 +82,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
   return (
     <div className="space-y-2 sm:space-y-4 animate-fade-in">
       {/* Header */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-5 shadow-glass">
         <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-hermes-green to-teal-500 flex items-center justify-center">
             <Globe2 size={20} className="text-white" />
@@ -131,7 +131,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
         {/* GDP Trend */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-5 shadow-glass">
           <h4 className="text-sm font-bold text-text-secondary mb-2 sm:mb-3 flex items-center gap-1.5">
             <TrendingUp size={14} /> GDP TRENDI {data.gdp.length > 0 ? `(Son ${Math.min(12, data.gdp.length)} Ceyrek)` : ''}
           </h4>
@@ -165,7 +165,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
         </div>
 
         {/* Consumer Sentiment Trend */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-5 shadow-glass">
           <h4 className="text-sm font-bold text-text-secondary mb-2 sm:mb-3 flex items-center gap-1.5">
             <Building2 size={14} /> TUKETICI GUVENI TRENDI
           </h4>
@@ -201,7 +201,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
 
       {/* General News */}
       {data.generalNews.length > 0 && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-5 shadow-glass">
           <h4 className="text-sm font-bold text-text-secondary mb-2 sm:mb-3 flex items-center gap-1.5">
             <Newspaper size={14} /> PIYASA HABERLERI
           </h4>
@@ -227,7 +227,7 @@ export default function TabMacro({ onSelectSymbol }: { onSelectSymbol?: (s: stri
 
       {/* ESG Benchmarks */}
       {data.esgBenchmarks.length > 0 && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-5 shadow-glass">
           <h4 className="text-sm font-bold text-text-secondary mb-2 sm:mb-3 flex items-center gap-1.5">
             <Leaf size={14} /> ESG SEKTOR KARSILASTIRMASI
           </h4>

@@ -212,12 +212,12 @@ export default function WalletConnect({
         className="flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-300"
         style={{ 
           backgroundColor: FUND_THEME.surface,
-          border: `1px solid ${isCorrectChain ? '#22C55E' : '#EF4444'}40`
+          border: `1px solid ${isCorrectChain ? '#22C55E' : '#F04848'}40`
         }}
       >
         <div 
           className="w-2.5 h-2.5 rounded-full animate-pulse"
-          style={{ backgroundColor: isCorrectChain ? '#22C55E' : '#EF4444' }}
+          style={{ backgroundColor: isCorrectChain ? '#22C55E' : '#F04848' }}
         />
         <span className="font-mono text-sm" style={{ color: FUND_THEME.text }}>
           {formatAddress(address || '')}
@@ -247,7 +247,7 @@ export default function WalletConnect({
             <div className="p-3" style={{ borderBottom: `1px solid ${FUND_THEME.primary}20` }}>
               <div className="flex items-center justify-between">
                 <span style={{ color: FUND_THEME.textMuted }}>{language === 'tr' ? 'Ağ' : 'Network'}</span>
-                <span style={{ color: isCorrectChain ? '#22C55E' : '#EF4444' }}>
+                <span style={{ color: isCorrectChain ? '#22C55E' : '#F04848' }}>
                   {isCorrectChain ? 'BSC ✓' : (language === 'tr' ? 'Yanlış Ağ' : 'Wrong Network')}
                 </span>
               </div>
@@ -260,7 +260,7 @@ export default function WalletConnect({
                   <span style={{ color: FUND_THEME.textMuted }}>HERMES</span>
                   <span 
                     className="font-mono"
-                    style={{ color: parseFloat(hermesBalance) >= FUND_CONSTANTS.HERMES_STAKE_REQUIRED ? '#22C55E' : '#EF4444' }}
+                    style={{ color: parseFloat(hermesBalance) >= FUND_CONSTANTS.HERMES_STAKE_REQUIRED ? '#22C55E' : '#F04848' }}
                   >
                     {formatBalance(hermesBalance)} HERMES
                   </span>
@@ -306,7 +306,7 @@ export default function WalletConnect({
             <button
               onClick={handleDisconnect}
               className="w-full p-3 text-sm text-left flex items-center gap-2 hover:bg-white/5 transition-colors"
-              style={{ color: '#EF4444', borderTop: `1px solid ${FUND_THEME.primary}20` }}
+              style={{ color: '#F04848', borderTop: `1px solid ${FUND_THEME.primary}20` }}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

@@ -147,7 +147,7 @@ function CoinSearchInput({ onAdd, existingIds, placeholder }: {
         </button>
       </div>
       {showDropdown && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 w-80 max-h-64 overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50">
+        <div className="absolute top-full left-0 mt-1 w-80 max-h-64 overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-depth-3 z-50">
           {suggestions.map((c, i) => (
             <button
               key={c.id}
@@ -259,7 +259,7 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
         {coins.map(({ id, data }) => {
           if (!data) {
             return (
-              <div key={id} className="bg-surface-3 rounded-2xl border border-stroke-subtle p-4">
+              <div key={id} className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-4">
                 <div className="h-40 flex flex-col items-center justify-center gap-2">
                   {loading ? (
                     <>
@@ -280,7 +280,7 @@ export default function TabCompare({ coinIds, onRemoveCoin, onSelectCoin }: TabC
           const md = detail.market_data
           const price = md?.current_price?.usd ?? 0
           return (
-            <div key={id} className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 relative hover:border-stroke hover:shadow-lg hover:shadow-black/20 transition-all duration-300">
+            <div key={id} className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 relative hover:border-stroke hover:shadow-lg hover:shadow-black/20 transition-all duration-300">
               <button onClick={() => onRemoveCoin(id)} className="absolute top-2 right-2 p-1 rounded-lg hover:bg-surface-3 text-text-tertiary hover:text-text-secondary">
                 <X size={14} />
               </button>

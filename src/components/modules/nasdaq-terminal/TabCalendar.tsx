@@ -221,7 +221,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
               <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(179,148,91,0.06)" strokeWidth="2" />
               <circle cx="50" cy="50" r="42" fill="none" stroke="url(#calGold)" strokeWidth="2" strokeLinecap="round"
                 strokeDasharray="264" style={{ animation: 'ring-pulse 1.6s ease-in-out infinite' }} />
-              <defs><linearGradient id="calGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#C9A96E" /><stop offset="100%" stopColor="#876b3a" /></linearGradient></defs>
+              <defs><linearGradient id="calGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#DCC273" /><stop offset="100%" stopColor="#8E7536" /></linearGradient></defs>
             </svg>
             <div className="absolute inset-0 flex items-center justify-center text-gold-400/80 text-lg">📅</div>
           </div>
@@ -230,7 +230,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
             <p className="text-[9px] text-text-tertiary mt-0.5">Kazanc, temettu, split, IPO</p>
           </div>
           <div className="w-32 h-0.5 bg-surface-3 rounded-full overflow-hidden">
-            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
+            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #8E7536, #DCC273)' }} />
           </div>
           <div className="flex gap-2">
             {['Kazanc', 'Temettu', 'Split', 'IPO'].map((t, i) => (
@@ -249,7 +249,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
     <div className="space-y-2 sm:space-y-3 px-2 sm:px-4 lg:px-6 animate-fade-in">
 
       {/* Mini Calendar Strip + Stats */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/80 to-orange-600/80 flex items-center justify-center shadow-lg shadow-amber-500/15">
@@ -373,7 +373,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
 
       {/* Mega-Cap Upcoming (featured events) */}
       {megaEvents.length > 0 && filter !== 'dividends' && filter !== 'splits' && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-gold p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-3 rounded-2xl border border-stroke-gold p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-2.5">
             <Star size={13} className="text-gold-400" />
             <span className="text-[10px] font-bold text-gold-400/80 uppercase tracking-wider">Onemli Etkinlikler</span>
@@ -408,7 +408,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
       {/* Date-Grouped Timeline */}
       <div className="space-y-2">
         {dateGroups.length === 0 ? (
-          <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-8 text-center">
+          <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-8 text-center">
             <Calendar size={36} className="text-text-quaternary mx-auto mb-3" />
             <p className="text-text-tertiary text-sm font-medium">Bu donemde etkinlik bulunamadi</p>
             <p className="text-[10px] text-text-quaternary mt-1">Filtre veya tarih secimini degistirmeyi deneyin</p>
@@ -416,7 +416,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
         ) : dateGroups.map((group, gi) => {
           const dl = getDateLabel(group.date)
           return (
-            <div key={group.date} className="bg-surface-3 rounded-2xl border border-stroke-subtle overflow-hidden shadow-xl shadow-black/20"
+            <div key={group.date} className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke overflow-hidden shadow-glass"
               style={{ animationDelay: `${gi * 50}ms` }}>
 
               {/* Date Header */}

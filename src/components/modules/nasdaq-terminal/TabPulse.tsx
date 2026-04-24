@@ -52,8 +52,8 @@ function RadialGauge({ value, size = 220 }: { value: number; size?: number }) {
         <path d={describeArc(-210, -162)} fill="none" stroke="#dc2626" strokeWidth={strokeWidth - 4} strokeLinecap="round" opacity={0.3} />
         <path d={describeArc(-162, -114)} fill="none" stroke="#f87171" strokeWidth={strokeWidth - 4} strokeLinecap="round" opacity={0.3} />
         <path d={describeArc(-114, -66)} fill="none" stroke="#94a3b8" strokeWidth={strokeWidth - 4} strokeLinecap="round" opacity={0.3} />
-        <path d={describeArc(-66, -18)} fill="none" stroke="#62cbc1" strokeWidth={strokeWidth - 4} strokeLinecap="round" opacity={0.3} />
-        <path d={describeArc(-18, 30)} fill="none" stroke="#B3945B" strokeWidth={strokeWidth - 4} strokeLinecap="round" opacity={0.3} />
+        <path d={describeArc(-66, -18)} fill="none" stroke="#3FCAB4" strokeWidth={strokeWidth - 4} strokeLinecap="round" opacity={0.3} />
+        <path d={describeArc(-18, 30)} fill="none" stroke="#D4B86A" strokeWidth={strokeWidth - 4} strokeLinecap="round" opacity={0.3} />
         {/* Value arc */}
         {value > 0 && (
           <path d={describeArc(startAngle, valueAngle)} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" className="transition-all duration-1000" />

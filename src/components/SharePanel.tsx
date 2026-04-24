@@ -155,7 +155,7 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
 
       {open && (
         <div className="absolute right-0 top-full mt-2 z-50 animate-fade-in">
-          <div className="bg-[#131318] border border-stroke rounded-2xl shadow-2xl shadow-black/40 p-3 w-[280px] max-w-[calc(100vw-2rem)]"
+          <div className="bg-[#131318] border border-stroke rounded-2xl shadow-depth-3 p-3 w-[280px] max-w-[calc(100vw-2rem)]"
             style={{ backdropFilter: 'blur(20px)' }}>
 
             {/* Header */}

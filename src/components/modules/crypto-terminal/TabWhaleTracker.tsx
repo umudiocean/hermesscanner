@@ -280,7 +280,7 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
           </div>
 
           {/* Top Exchanges by Volume */}
-          <div className="bg-surface-3 rounded-2xl border border-stroke-subtle overflow-hidden">
+          <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke overflow-hidden">
             <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-b border-stroke-subtle">
               <div className="flex items-center gap-2">
                 <BarChart3 size={14} className="text-gold-400/60" />

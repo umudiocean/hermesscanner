@@ -79,11 +79,11 @@ function AnimatedNumber({ value, decimals = 1, prefix = '', suffix = '' }: { val
 // ─── Circular Gauge — Ana kalp atisi ───
 function PulseGauge({ score, label, size = 160 }: { score: number; label: string; size?: number }) {
   const getTheme = (s: number) => {
-    if (s <= 20) return { color: '#EF4444', glow: 'rgba(239,68,68,0.3)', text: 'EXTREME FEAR' }
+    if (s <= 20) return { color: '#F04848', glow: 'rgba(239,68,68,0.3)', text: 'EXTREME FEAR' }
     if (s <= 35) return { color: '#fb923c', glow: 'rgba(251,146,60,0.25)', text: 'FEAR' }
     if (s <= 50) return { color: '#94a3b8', glow: 'rgba(148,163,184,0.15)', text: 'NEUTRAL' }
-    if (s <= 65) return { color: '#62CBC1', glow: 'rgba(98,203,193,0.25)', text: 'GREED' }
-    return { color: '#B3945B', glow: 'rgba(179,148,91,0.35)', text: 'EXTREME GREED' }
+    if (s <= 65) return { color: '#3FCAB4', glow: 'rgba(98,203,193,0.25)', text: 'GREED' }
+    return { color: '#D4B86A', glow: 'rgba(179,148,91,0.35)', text: 'EXTREME GREED' }
   }
   const t = getTheme(score)
   const r = 52
@@ -163,7 +163,7 @@ function GaugeBar({ value, label, color, subLabel }: {
   value: number; label: string; color: string; subLabel?: string
 }) {
   const pct = Math.min(100, Math.max(0, value))
-  const barColor = color.includes('green') ? '#62CBC1' : color.includes('gold') ? '#B3945B' : color.includes('red') ? '#EF4444' : '#94a3b8'
+  const barColor = color.includes('green') ? '#3FCAB4' : color.includes('gold') ? '#D4B86A' : color.includes('red') ? '#F04848' : '#94a3b8'
   return (
     <div className="group">
       <div className="flex items-center justify-between mb-1">
@@ -184,9 +184,9 @@ function GaugeBar({ value, label, color, subLabel }: {
 function SignalDistBar({ counts, total }: { counts: Record<string, number>; total: number }) {
   if (total === 0) return null
   const segments = [
-    { key: 'long', color: '#62CBC1', glow: 'rgba(98,203,193,0.3)', label: 'LONG' },
+    { key: 'long', color: '#3FCAB4', glow: 'rgba(98,203,193,0.3)', label: 'LONG' },
     { key: 'neutral', color: '#64748b', glow: 'rgba(100,116,139,0.2)', label: 'BEKLE' },
-    { key: 'short', color: '#EF4444', glow: 'rgba(239,68,68,0.3)', label: 'SHORT' },
+    { key: 'short', color: '#F04848', glow: 'rgba(239,68,68,0.3)', label: 'SHORT' },
   ]
   const [hovered, setHovered] = useState<string | null>(null)
   return (
@@ -296,7 +296,7 @@ function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; a
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
       {sorted.map((s, i) => {
-        const accentColor = s.avgScore <= 20 ? '#B3945B' : s.avgScore <= 30 ? '#62CBC1' : s.avgScore < 70 ? '#64748b' : s.avgScore < 90 ? '#fb923c' : '#EF4444'
+        const accentColor = s.avgScore <= 20 ? '#D4B86A' : s.avgScore <= 30 ? '#3FCAB4' : s.avgScore < 70 ? '#64748b' : s.avgScore < 90 ? '#fb923c' : '#F04848'
         const borderClass = s.avgScore <= 20 ? 'border-stroke-gold' :
           s.avgScore <= 30 ? 'border-success-400/15' :
           s.avgScore < 70 ? 'border-stroke-subtle' :
@@ -563,8 +563,8 @@ export default function ModuleHermesIndex() {
       const weak = scored.filter(s => s.signal === 'WEAK').length
       const bad = scored.filter(s => s.signal === 'BAD').length
       let label: string, color: string
-      if (avg >= 70) { label = 'GUCLU'; color = '#62cbc1' }
-      else if (avg >= 55) { label = 'IYI'; color = '#62cbc1' }
+      if (avg >= 70) { label = 'GUCLU'; color = '#3FCAB4' }
+      else if (avg >= 55) { label = 'IYI'; color = '#3FCAB4' }
       else if (avg >= 45) { label = 'NOTR'; color = '#94a3b8' }
       else if (avg >= 30) { label = 'ZAYIF'; color = '#fb923c' }
       else { label = 'KOTU'; color = '#f87171' }
@@ -650,7 +650,7 @@ export default function ModuleHermesIndex() {
       {/* ═══ PREMIUM HEADER ═══ */}
       <div className="relative mb-4 stagger-1 bg-surface-0 rounded-2xl border border-stroke-gold p-4 sm:p-5 overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, #B3945B 0.5px, transparent 0.5px)`,
+          backgroundImage: `radial-gradient(circle at 1px 1px, #D4B86A 0.5px, transparent 0.5px)`,
           backgroundSize: '24px 24px',
         }} />
         <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-gold-400/30 to-transparent header-glow-line" />
@@ -754,7 +754,7 @@ export default function ModuleHermesIndex() {
                 <svg className="w-24 h-24 -rotate-90" viewBox="0 0 80 80">
                   <circle cx="40" cy="40" r="32" fill="none" stroke="currentColor" strokeWidth="5" className="text-white/[0.04]" />
                   <circle cx="40" cy="40" r="32" fill="none"
-                    stroke={pulseData.composite >= 60 ? '#62CBC1' : pulseData.composite <= 40 ? '#EF4444' : '#94a3b8'}
+                    stroke={pulseData.composite >= 60 ? '#3FCAB4' : pulseData.composite <= 40 ? '#F04848' : '#94a3b8'}
                     strokeWidth="5" strokeDasharray={`${(pulseData.composite / 100) * 201} 201`} strokeLinecap="round"
                     className="transition-all duration-1000" />
                 </svg>
@@ -844,11 +844,11 @@ export default function ModuleHermesIndex() {
             }
             const total = fmpStocks.length || 1
             const bars = [
-              { key: 'STRONG', color: '#B3945B', count: counts.STRONG },
-              { key: 'GOOD', color: '#62CBC1', count: counts.GOOD },
+              { key: 'STRONG', color: '#D4B86A', count: counts.STRONG },
+              { key: 'GOOD', color: '#3FCAB4', count: counts.GOOD },
               { key: 'NOTR', color: '#64748b', count: counts.NEUTRAL },
               { key: 'WEAK', color: '#fb923c', count: counts.WEAK },
-              { key: 'BAD', color: '#ef4444', count: counts.BAD },
+              { key: 'BAD', color: '#F04848', count: counts.BAD },
             ]
             return (
               <div>
@@ -926,7 +926,7 @@ export default function ModuleHermesIndex() {
               <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
                 <circle cx="40" cy="40" r="32" fill="none" stroke="currentColor" strokeWidth="5" className="text-white/[0.04]" />
                 <circle cx="40" cy="40" r="32" fill="none"
-                  stroke={aiConsensus >= 50 ? '#62CBC1' : aiConsensus >= 30 ? '#B3945B' : '#EF4444'}
+                  stroke={aiConsensus >= 50 ? '#3FCAB4' : aiConsensus >= 30 ? '#D4B86A' : '#F04848'}
                   strokeWidth="5" strokeDasharray={`${(aiConsensus / 100) * 201} 201`} strokeLinecap="round"
                   className="transition-all duration-1000"
                   style={{ filter: `drop-shadow(0 0 4px ${aiConsensus >= 50 ? 'rgba(98,203,193,0.4)' : aiConsensus >= 30 ? 'rgba(179,148,91,0.4)' : 'rgba(239,68,68,0.4)'})` }}

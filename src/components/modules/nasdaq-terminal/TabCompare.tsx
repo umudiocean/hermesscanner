@@ -134,7 +134,7 @@ function SymbolSearchInput({ onAdd, existingSymbols, placeholder }: {
         </button>
       </div>
       {showDropdown && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 w-72 max-h-64 overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50">
+        <div className="absolute top-full left-0 mt-1 w-72 max-h-64 overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-depth-3 z-50">
           {suggestions.map((s, i) => (
             <button
               key={s.symbol}

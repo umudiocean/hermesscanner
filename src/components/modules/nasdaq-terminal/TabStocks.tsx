@@ -398,7 +398,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
       )}
 
       {/* Table — Virtualized with @tanstack/react-virtual */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle overflow-hidden shadow-xl shadow-black/20">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke overflow-hidden shadow-glass">
         <div ref={scrollContainerRef} className="overflow-x-auto overflow-y-auto max-h-[80vh]" style={{ willChange: 'transform' }}>
           <table className="w-full border-collapse">
             <thead className="sticky top-0 bg-[#0e0e18] z-10 after:absolute after:left-0 after:right-0 after:bottom-0 after:h-px after:bg-surface-3">
@@ -465,7 +465,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                 if (!s) return null
                 const idx = virtualRow.index
                 const sig = SIGNAL_CONFIG[s.signal] || SIGNAL_CONFIG.NEUTRAL
-                const SIGNAL_COLORS: Record<string, string> = { STRONG: '#fbbf24', GOOD: '#62cbc1', NEUTRAL: '#94a3b8', WEAK: '#fb923c', BAD: '#f87171' }
+                const SIGNAL_COLORS: Record<string, string> = { STRONG: '#fbbf24', GOOD: '#3FCAB4', NEUTRAL: '#94a3b8', WEAK: '#fb923c', BAD: '#f87171' }
                 const scoreColor = SIGNAL_COLORS[s.signal] || SIGNAL_COLORS.NEUTRAL
                 return (
                   <tr key={s.symbol}
@@ -531,7 +531,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                               <div className="flex-1 h-1.5 bg-surface-3 rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all" style={{
                                   width: `${c.val}%`,
-                                  backgroundColor: c.val >= 70 ? '#62cbc1' : c.val >= 40 ? '#fbbf24' : '#f87171'
+                                  backgroundColor: c.val >= 70 ? '#3FCAB4' : c.val >= 40 ? '#fbbf24' : '#f87171'
                                 }} />
                               </div>
                               <span className="text-[10px] tabular-nums text-text-secondary w-6 text-right">{c.val}</span>
@@ -795,9 +795,9 @@ function TableSkeleton() {
               strokeDasharray="283" style={{ animation: 'ring-pulse 1.8s ease-in-out infinite' }} />
             <defs>
               <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#C9A96E" />
-                <stop offset="50%" stopColor="#B3945B" />
-                <stop offset="100%" stopColor="#876b3a" />
+                <stop offset="0%" stopColor="#DCC273" />
+                <stop offset="50%" stopColor="#D4B86A" />
+                <stop offset="100%" stopColor="#8E7536" />
               </linearGradient>
             </defs>
           </svg>
@@ -815,7 +815,7 @@ function TableSkeleton() {
         {/* Progress bar */}
         <div className="w-full max-w-xs">
           <div className="h-1 bg-surface-3 rounded-full overflow-hidden">
-            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E, #B3945B)' }} />
+            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #8E7536, #DCC273, #D4B86A)' }} />
           </div>
         </div>
 

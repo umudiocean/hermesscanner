@@ -62,7 +62,7 @@ export default function ScoreGauge({ score, size = 'lg', showLabel = true, anima
   // SVG renk (tailwind class'larını SVG'de kullanamayız, direkt renk)
   const svgColors: Record<string, { stroke: string; glow: string }> = {
     STRONG: { stroke: '#facc15', glow: 'rgba(250,204,21,0.3)' },
-    GOOD: { stroke: '#62cbc1', glow: 'rgba(52,211,153,0.3)' },
+    GOOD: { stroke: '#3FCAB4', glow: 'rgba(52,211,153,0.3)' },
     NEUTRAL: { stroke: '#94a3b8', glow: 'rgba(148,163,184,0.15)' },
     WEAK: { stroke: '#fb923c', glow: 'rgba(251,146,60,0.3)' },
     BAD: { stroke: '#f87171', glow: 'rgba(248,113,113,0.3)' },

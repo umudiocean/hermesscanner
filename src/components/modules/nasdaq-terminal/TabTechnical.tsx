@@ -116,7 +116,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
               <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(179,148,91,0.06)" strokeWidth="2" />
               <circle cx="50" cy="50" r="42" fill="none" stroke="url(#techGold)" strokeWidth="2" strokeLinecap="round"
                 strokeDasharray="264" style={{ animation: 'ring-pulse 1.6s ease-in-out infinite' }} />
-              <defs><linearGradient id="techGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#C9A96E" /><stop offset="100%" stopColor="#876b3a" /></linearGradient></defs>
+              <defs><linearGradient id="techGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#DCC273" /><stop offset="100%" stopColor="#8E7536" /></linearGradient></defs>
             </svg>
             <div className="absolute inset-0 flex items-center justify-center text-gold-400/80 text-lg">📊</div>
           </div>
@@ -125,7 +125,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             <p className="text-[9px] text-text-tertiary mt-0.5">RSI, SMA, ADX, Williams%R</p>
           </div>
           <div className="w-32 h-0.5 bg-surface-3 rounded-full overflow-hidden">
-            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
+            <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #8E7536, #DCC273)' }} />
           </div>
           <div className="flex gap-2">
             {['RSI', 'SMA', 'ADX', 'EMA'].map((t, i) => (
@@ -166,7 +166,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
   return (
     <div className="space-y-5 animate-fade-in">
       {/* Header */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-5 shadow-xl shadow-black/20">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-5 shadow-glass">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
@@ -215,7 +215,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
 
       {/* Gauge Bars */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-5 shadow-xl shadow-black/20 space-y-5">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-5 shadow-glass space-y-5">
           <h4 className="text-sm font-bold text-text-secondary flex items-center gap-1.5">
             <BarChart3 size={14} /> OSILATÖRLER
           </h4>
@@ -248,7 +248,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
           />
         </div>
 
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-5 shadow-xl shadow-black/20 space-y-5">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-5 shadow-glass space-y-5">
           <h4 className="text-sm font-bold text-text-secondary flex items-center gap-1.5">
             <TrendingUp size={14} /> HAREKETLI ORTALAMALAR
           </h4>
@@ -278,7 +278,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
 
       {/* RSI History Mini Chart */}
       {data.history.rsi.length > 0 && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-5 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-5 shadow-glass">
           <h4 className="text-sm font-bold text-text-secondary mb-3 flex items-center gap-1.5">
             <Activity size={14} /> SON 30 GUN RSI TRENDI
           </h4>

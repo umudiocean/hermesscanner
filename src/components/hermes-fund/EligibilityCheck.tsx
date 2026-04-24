@@ -157,21 +157,21 @@ export default function EligibilityCheckComponent({
         className="rounded-xl p-6 text-center"
         style={{ 
           backgroundColor: FUND_THEME.surface,
-          border: `1px solid #EF444440`
+          border: `1px solid #F0484840`
         }}
       >
         <motion.div 
           className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: '#EF444420' }}
+          style={{ backgroundColor: '#F0484820' }}
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#EF4444">
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="#F04848">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </motion.div>
         
-        <h3 className="text-xl font-bold mb-2" style={{ color: '#EF4444' }}>
+        <h3 className="text-xl font-bold mb-2" style={{ color: '#F04848' }}>
           {language === 'tr' ? 'Yanlış Ağ!' : 'Wrong Network!'}
         </h3>
         
@@ -188,7 +188,7 @@ export default function EligibilityCheckComponent({
             } catch {}
           }}
           className="px-6 py-3 rounded-lg font-semibold"
-          style={{ backgroundColor: '#EF4444', color: '#FFFFFF' }}
+          style={{ backgroundColor: '#F04848', color: '#FFFFFF' }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -220,7 +220,7 @@ export default function EligibilityCheckComponent({
         className="rounded-xl p-6"
         style={{ 
           backgroundColor: FUND_THEME.surface,
-          border: `1px solid ${isEligible ? '#22C55E' : '#EF4444'}40`
+          border: `1px solid ${isEligible ? '#22C55E' : '#F04848'}40`
         }}
       >
         {/* Status Badge */}
@@ -250,8 +250,8 @@ export default function EligibilityCheckComponent({
             <motion.div 
               className="px-3 py-1 rounded-full text-sm font-medium"
               style={{ 
-                backgroundColor: isEligible ? '#22C55E20' : '#EF444420',
-                color: isEligible ? '#22C55E' : '#EF4444'
+                backgroundColor: isEligible ? '#22C55E20' : '#F0484820',
+                color: isEligible ? '#22C55E' : '#F04848'
               }}
               animate={isEligible ? { scale: [1, 1.05, 1] } : {}}
               transition={{ duration: 2, repeat: Infinity }}
@@ -289,12 +289,12 @@ export default function EligibilityCheckComponent({
           {!isEligible && (
             <motion.div 
               className="mt-4 p-3 rounded-lg"
-              style={{ backgroundColor: '#EF444410' }}
+              style={{ backgroundColor: '#F0484810' }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
             >
               <div className="flex items-center gap-2 text-sm">
-                <span style={{ color: '#EF4444' }}>
+                <span style={{ color: '#F04848' }}>
                   ⚠️ {language === 'tr' 
                     ? `${formatHermes(deficit)} HERMES daha gerekli`
                     : `Need ${formatHermes(deficit)} more HERMES`}

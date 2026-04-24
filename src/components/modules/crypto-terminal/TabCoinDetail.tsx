@@ -453,7 +453,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
   return (
     <div className="space-y-2 sm:space-y-4 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
         <div className="flex items-center gap-3">
           {detail.image?.large && (
             <img src={detail.image.large} alt={detail.symbol} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full" />
@@ -641,7 +641,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
 
       {/* Score Breakdown */}
       {score && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-2 sm:mb-3">HERMES AI Skor Dagilimi</h3>
           <div className="space-y-2">
             {CRYPTO_CATEGORY_KEYS
@@ -667,7 +667,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
       {/* Community & Developer */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
         {detail.community_data && (
-          <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4">
+          <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4">
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
               <Users size={14} className="text-info-400" />
               <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Topluluk</h3>
@@ -681,7 +681,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
           </div>
         )}
         {detail.developer_data && (
-          <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4">
+          <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4">
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
               <Code size={14} className="text-info-400" />
               <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Gelistirici</h3>
@@ -698,7 +698,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
 
       {/* Description */}
       {detail.description?.en && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4">
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-1.5 sm:mb-2">Hakkinda</h3>
           <p className="text-xs text-text-tertiary leading-relaxed line-clamp-4">{detail.description.en.replace(/<[^>]*>/g, '').substring(0, 500)}</p>
         </div>

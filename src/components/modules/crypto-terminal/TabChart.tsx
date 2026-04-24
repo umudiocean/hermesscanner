@@ -324,11 +324,11 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
       if (chartMode === 'candle') {
         const candleSeries = chart.addSeries(lc.CandlestickSeries, {
           upColor: '#22c55e',
-          downColor: '#ef4444',
+          downColor: '#F04848',
           borderUpColor: '#22c55e',
-          borderDownColor: '#ef4444',
+          borderDownColor: '#F04848',
           wickUpColor: '#22c55e',
-          wickDownColor: '#ef4444',
+          wickDownColor: '#F04848',
         })
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         candleSeries.setData(ohlcData as any)
@@ -336,7 +336,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
         const closes = ohlcData.map(c => c.close)
         const isPositive = closes[closes.length - 1] >= closes[0]
         const lineSeries = chart.addSeries(lc.AreaSeries, {
-          lineColor: isPositive ? '#22c55e' : '#ef4444',
+          lineColor: isPositive ? '#22c55e' : '#F04848',
           topColor: isPositive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
           bottomColor: 'transparent',
           lineWidth: 2,

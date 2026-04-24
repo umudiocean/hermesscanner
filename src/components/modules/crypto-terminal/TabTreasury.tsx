@@ -105,7 +105,7 @@ export default function TabTreasury() {
 
       {/* Companies Table */}
       {data?.companies && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
           <h4 className="text-xs font-bold text-text-tertiary uppercase mb-2 sm:mb-3">Sirketler</h4>
 
           {/* Mobile */}

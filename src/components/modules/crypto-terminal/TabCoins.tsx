@@ -1061,7 +1061,7 @@ function CoinSearchInput({
 
       {/* Autocomplete Dropdown */}
       {acOpen && acResults.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 w-full sm:w-80 max-h-[320px] overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50">
+        <div className="absolute top-full left-0 mt-1 w-full sm:w-80 max-h-[320px] overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-depth-3 z-50">
           <div className="px-3 py-1 border-b border-stroke-subtle flex items-center justify-between">
             <span className="text-[10px] text-text-tertiary">{acResults.length} sonuc (18,000+ coin)</span>
             {localCount === 0 && <span className="text-[9px] text-gold-400/40">Listede yok — tikla detay gor</span>}
@@ -1097,7 +1097,7 @@ function CoinSearchInput({
 
       {/* No results message */}
       {acOpen && search.trim().length >= 2 && acResults.length === 0 && !acLoading && (
-        <div className="absolute top-full left-0 mt-1 w-full sm:w-80 bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50 p-3 text-center">
+        <div className="absolute top-full left-0 mt-1 w-full sm:w-80 bg-surface-3 border border-stroke rounded-xl shadow-depth-3 z-50 p-3 text-center">
           <span className="text-[11px] text-text-quaternary">Sonuc bulunamadi</span>
         </div>
       )}

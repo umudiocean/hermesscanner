@@ -143,7 +143,7 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
 
       {/* Fear & Greed */}
       {fg && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300 shadow-xl shadow-black/20 hover:border-stroke hover:shadow-2xl transition-all duration-300">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300 shadow-glass hover:border-stroke hover:shadow-2xl transition-all duration-300">
           <div className="flex items-center justify-between mb-2 sm:mb-3">
             <div className="flex items-center gap-2">
               <Activity size={16} className="text-gold-400" />
@@ -250,7 +250,7 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
       </div>
 
       {/* Dominance Section */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
         <div className="flex items-center gap-2 mb-2 sm:mb-4">
           <BarChart3 size={16} className="text-gold-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Hakimiyet & Piyasa Yapisi</h3>
@@ -287,7 +287,7 @@ export default function TabMarket({ onSelectCoin }: TabMarketProps) {
 
       {/* Trending */}
       {data.trending?.coins && data.trending.coins.length > 0 && (
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
             <Flame size={16} className="text-warning-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Trend Coinler</h3>
@@ -353,7 +353,7 @@ function MoverList({ title, icon, coins, onSelectCoin, isGainer }: {
   title: string; icon: React.ReactNode; coins: CoinMarket[]; onSelectCoin: (id: string) => void; isGainer: boolean
 }) {
   return (
-    <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+    <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
       <div className="flex items-center gap-2 mb-2 sm:mb-3">
         {icon}
         <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">{title}</h3>

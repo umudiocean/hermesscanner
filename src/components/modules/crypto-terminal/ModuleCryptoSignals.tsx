@@ -632,7 +632,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
       </div>
 
       {/* Table */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle overflow-hidden">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>

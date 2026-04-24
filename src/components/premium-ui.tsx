@@ -64,11 +64,11 @@ export function PremiumGauge({ value, size = 140, label, sublabel }: {
   const circ = 2 * Math.PI * r
   const arc = (animVal / 100) * circ * 0.75
   const getColor = (v: number) => {
-    if (v <= 20) return { stroke: '#EF4444', glow: 'rgba(239,68,68,0.5)', text: 'EXTREME FEAR' }
+    if (v <= 20) return { stroke: '#F04848', glow: 'rgba(239,68,68,0.5)', text: 'EXTREME FEAR' }
     if (v <= 35) return { stroke: '#fb923c', glow: 'rgba(251,146,60,0.4)', text: 'FEAR' }
     if (v <= 50) return { stroke: '#94a3b8', glow: 'rgba(148,163,184,0.25)', text: 'NEUTRAL' }
-    if (v <= 65) return { stroke: '#62CBC1', glow: 'rgba(98,203,193,0.4)', text: 'GREED' }
-    return { stroke: '#B3945B', glow: 'rgba(179,148,91,0.5)', text: 'EXTREME GREED' }
+    if (v <= 65) return { stroke: '#3FCAB4', glow: 'rgba(98,203,193,0.4)', text: 'GREED' }
+    return { stroke: '#D4B86A', glow: 'rgba(179,148,91,0.5)', text: 'EXTREME GREED' }
   }
   const c = getColor(animVal)
 
@@ -139,7 +139,7 @@ export function FearGreedBar({ value, label }: { value: number; label?: string }
         </div>
       </div>
       <div className="relative h-3 rounded-full overflow-hidden" style={{
-        background: 'linear-gradient(90deg, #dc2626 0%, #f97316 25%, #94a3b8 50%, #62cbc1 75%, #62cbc1 100%)',
+        background: 'linear-gradient(90deg, #dc2626 0%, #f97316 25%, #94a3b8 50%, #3FCAB4 75%, #3FCAB4 100%)',
       }}>
         <div className="absolute top-0 h-full w-1.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.6)] transition-all duration-700 ease-out"
           style={{ left: `calc(${clamped}% - 3px)` }} />
@@ -245,7 +245,7 @@ export const SignalBadge = memo(function SignalBadge({ type, label, compact = fa
 // ─── ScoreMiniBar — mini gradient bar for score columns ──────────
 export const ScoreMiniBar = memo(function ScoreMiniBar({ value, maxWidth = 48 }: { value: number; maxWidth?: number }) {
   const clamped = Math.max(0, Math.min(100, value))
-  const color = clamped >= 75 ? '#B3945B' : clamped >= 60 ? '#62cbc1' : clamped >= 40 ? '#94a3b8' : clamped >= 25 ? '#fb923c' : '#ef4444'
+  const color = clamped >= 75 ? '#D4B86A' : clamped >= 60 ? '#3FCAB4' : clamped >= 40 ? '#94a3b8' : clamped >= 25 ? '#fb923c' : '#F04848'
   const textColor = clamped >= 75 ? 'text-gold-400' : clamped >= 60 ? 'text-success-400' : clamped >= 40 ? 'text-text-secondary' : clamped >= 25 ? 'text-warning-400' : 'text-danger-400'
   return (
     <div className="flex items-center gap-1.5">

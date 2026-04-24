@@ -443,7 +443,7 @@ function CoinSearchAutocomplete({
 
       {/* Dropdown */}
       {open && results.length > 0 && (
-        <div className="absolute top-full right-0 mt-1 w-72 sm:w-80 max-h-[360px] overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50 animate-fade-in">
+        <div className="absolute top-full right-0 mt-1 w-72 sm:w-80 max-h-[360px] overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-depth-3 z-50 animate-fade-in">
           <div className="px-3 py-1.5 border-b border-stroke-subtle">
             <span className="text-[10px] text-text-tertiary">{results.length} sonuc</span>
           </div>
@@ -478,7 +478,7 @@ function CoinSearchAutocomplete({
 
       {/* No results */}
       {open && value.trim().length >= 1 && results.length === 0 && !loading && (
-        <div className="absolute top-full right-0 mt-1 w-72 sm:w-80 bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50 p-4 text-center">
+        <div className="absolute top-full right-0 mt-1 w-72 sm:w-80 bg-surface-3 border border-stroke rounded-xl shadow-depth-3 z-50 p-4 text-center">
           <span className="text-xs text-text-quaternary">Sonuc bulunamadi</span>
         </div>
       )}

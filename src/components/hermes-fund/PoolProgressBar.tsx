@@ -45,7 +45,7 @@ export default function PoolProgressBar({ stats, isLoading }: PoolProgressBarPro
   
   // Renk gradyanı
   const getProgressColor = () => {
-    if (isFull) return '#EF4444';
+    if (isFull) return '#F04848';
     if (isNearFull) return '#F59E0B';
     return '#22C55E';
   };
@@ -81,8 +81,8 @@ export default function PoolProgressBar({ stats, isLoading }: PoolProgressBarPro
       className="relative overflow-hidden rounded-3xl"
       style={{ 
         background: `linear-gradient(145deg, ${FUND_THEME.surface} 0%, ${FUND_THEME.background} 100%)`,
-        border: `2px solid ${isFull ? '#EF4444' : isNearFull ? '#F59E0B' : FUND_THEME.primary}50`,
-        boxShadow: `0 20px 60px ${isFull ? '#EF444430' : isNearFull ? '#F59E0B30' : `${FUND_THEME.primary}30`}`
+        border: `2px solid ${isFull ? '#F04848' : isNearFull ? '#F59E0B' : FUND_THEME.primary}50`,
+        boxShadow: `0 20px 60px ${isFull ? '#F0484830' : isNearFull ? '#F59E0B30' : `${FUND_THEME.primary}30`}`
       }}
     >
       {/* Animated Background Particles */}
@@ -130,7 +130,7 @@ export default function PoolProgressBar({ stats, isLoading }: PoolProgressBarPro
           animate={{ opacity: showPulse ? 0.2 : 0.05 }}
           transition={{ duration: 1 }}
           style={{ 
-            background: `radial-gradient(ellipse at center, ${isFull ? '#EF4444' : '#F59E0B'} 0%, transparent 60%)`
+            background: `radial-gradient(ellipse at center, ${isFull ? '#F04848' : '#F59E0B'} 0%, transparent 60%)`
           }}
         />
       )}
@@ -262,7 +262,7 @@ export default function PoolProgressBar({ stats, isLoading }: PoolProgressBarPro
               className="h-full rounded-2xl relative overflow-hidden"
               style={{ 
                 background: isFull 
-                  ? 'linear-gradient(90deg, #DC2626, #EF4444, #F87171)' 
+                  ? 'linear-gradient(90deg, #DC2626, #F04848, #F87171)' 
                   : isNearFull 
                     ? 'linear-gradient(90deg, #22C55E, #F59E0B, #FBBF24)'
                     : 'linear-gradient(90deg, #059669, #10B981, #22C55E, #34D399)'
@@ -406,27 +406,27 @@ export default function PoolProgressBar({ stats, isLoading }: PoolProgressBarPro
               exit={{ opacity: 0, height: 0, y: -20 }}
               className="mt-6 p-5 rounded-2xl relative overflow-hidden"
               style={{ 
-                background: 'linear-gradient(135deg, #EF444420, #DC262610)',
-                border: '2px solid #EF444450'
+                background: 'linear-gradient(135deg, #F0484820, #DC262610)',
+                border: '2px solid #F0484850'
               }}
             >
               <motion.div
                 className="absolute inset-0"
                 animate={{ opacity: [0.1, 0.3, 0.1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                style={{ background: 'radial-gradient(ellipse at center, #EF4444, transparent 70%)' }}
+                style={{ background: 'radial-gradient(ellipse at center, #F04848, transparent 70%)' }}
               />
               <div className="relative flex items-center gap-4">
                 <motion.div 
                   className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: '#EF444430' }}
+                  style={{ backgroundColor: '#F0484830' }}
                   animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.1, 1] }}
                   transition={{ duration: 1, repeat: Infinity }}
                 >
                   <span className="text-3xl">🚫</span>
                 </motion.div>
                 <div>
-                  <h4 className="font-black text-xl" style={{ color: '#EF4444' }}>
+                  <h4 className="font-black text-xl" style={{ color: '#F04848' }}>
                     {language === 'tr' ? 'Havuz Dolu!' : 'Pool is Full!'}
                   </h4>
                   <p className="text-sm mt-1" style={{ color: FUND_THEME.textMuted }}>

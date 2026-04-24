@@ -661,7 +661,7 @@ export default function DepositForm({
               {error && (
                 <motion.div 
                   className="p-3 rounded-lg text-sm"
-                  style={{ backgroundColor: '#EF444420', color: '#EF4444' }}
+                  style={{ backgroundColor: '#F0484820', color: '#F04848' }}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                 >

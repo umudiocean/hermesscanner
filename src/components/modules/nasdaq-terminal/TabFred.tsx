@@ -51,7 +51,7 @@ export default function TabFred() {
     <div className="space-y-2 sm:space-y-4 px-2 sm:px-4 lg:px-6 animate-fade-in">
 
       {/* ═══ MAKRO REJIM KARTI ═══ */}
-      <div className={`rounded-2xl border ${rc.border} ${rc.bg} p-3 sm:p-4 lg:p-5 shadow-xl shadow-black/20`}>
+      <div className={`rounded-2xl border ${rc.border} ${rc.bg} p-3 sm:p-4 lg:p-5 shadow-glass`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Radio size={20} className="text-cyan-400" />
@@ -85,7 +85,7 @@ export default function TabFred() {
       </div>
 
       {/* ═══ Fear & Greed v2 Detay ═══ */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
           <Zap size={16} className="text-cyan-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">FRED Korku & Acgozluluk v2</h3>
@@ -118,7 +118,7 @@ export default function TabFred() {
               <div className="w-full h-1.5 bg-surface-3 rounded-full overflow-hidden mt-1.5">
                 <div className="h-full rounded-full transition-all duration-500" style={{
                   width: `${c.score}%`,
-                  backgroundColor: c.score >= 60 ? '#62cbc1' : c.score >= 40 ? '#94a3b8' : '#f87171'
+                  backgroundColor: c.score >= 60 ? '#3FCAB4' : c.score >= 40 ? '#94a3b8' : '#f87171'
                 }} />
               </div>
               <div className="flex justify-between mt-1">
@@ -134,7 +134,7 @@ export default function TabFred() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
 
         {/* Yield Curve Monitor */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
             <TrendingUp size={16} className="text-info-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Verim Egrisi Monitor</h3>
@@ -169,7 +169,7 @@ export default function TabFred() {
         </div>
 
         {/* Fed Policy Tracker */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
             <DollarSign size={16} className="text-info-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Fed Politika Takip</h3>
@@ -190,7 +190,7 @@ export default function TabFred() {
         </div>
 
         {/* Enflasyon Barometresi */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
             <Thermometer size={16} className="text-warning-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Enflasyon Barometresi</h3>
@@ -209,7 +209,7 @@ export default function TabFred() {
         </div>
 
         {/* Istihdam Paneli */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-2 sm:mb-3">
             <Users size={16} className="text-cyan-400" />
             <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Istihdam Nabzi</h3>
@@ -243,7 +243,7 @@ export default function TabFred() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
 
         {/* VIX */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-2">
             <Activity size={14} className="text-info-400" />
             <span className="text-xs font-bold text-text-secondary uppercase">Volatilite (VIX)</span>
@@ -262,7 +262,7 @@ export default function TabFred() {
         </div>
 
         {/* Kredi Stresi */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-2">
             <CreditCard size={14} className="text-warning-400" />
             <span className="text-xs font-bold text-text-secondary uppercase">Kredi Stresi</span>
@@ -280,7 +280,7 @@ export default function TabFred() {
         </div>
 
         {/* Likidite */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign size={14} className="text-cyan-400" />
             <span className="text-xs font-bold text-text-secondary uppercase">Likidite (M2)</span>
@@ -295,7 +295,7 @@ export default function TabFred() {
         </div>
 
         {/* Tuketici Guveni */}
-        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 shadow-glass">
           <div className="flex items-center gap-2 mb-2">
             <Users size={14} className="text-gold-400" />
             <span className="text-xs font-bold text-text-secondary uppercase">Tuketici Guveni</span>
@@ -333,7 +333,7 @@ function MetricBox({ label, value, small }: { label: string; value: string; smal
 function FredSkeleton() {
   return (
     <div className="space-y-2 sm:space-y-4 px-2 sm:px-4 lg:px-6 animate-fade-in">
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 lg:p-6 shadow-xl">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 lg:p-6 shadow-xl">
         <div className="flex items-center gap-3 mb-2 sm:mb-4">
           <Radio size={20} className="text-cyan-400" />
           <div>
@@ -352,7 +352,7 @@ function FredSkeleton() {
       </div>
       <div className="grid grid-cols-2 gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-surface-3 rounded-2xl border border-stroke-subtle p-4 h-44">
+          <div key={i} className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-4 h-44">
             <div className="h-4 w-32 skeleton-shimmer rounded mb-3" />
             <div className="h-10 w-24 skeleton-shimmer rounded-md mb-2" />
             <div className="h-3 w-full skeleton-shimmer rounded" />

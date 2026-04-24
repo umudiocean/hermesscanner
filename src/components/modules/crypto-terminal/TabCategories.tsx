@@ -81,7 +81,7 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
         {filtered.slice(0, 30).map(cat => {
           const isPos = (cat.market_cap_change_24h ?? 0) >= 0
           return (
-            <div key={cat.id} className="group bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke hover:shadow-lg hover:shadow-black/20 hover:scale-[1.01] transition-all duration-300">
+            <div key={cat.id} className="group bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke hover:shadow-lg hover:shadow-black/20 hover:scale-[1.01] transition-all duration-300">
               <div className="flex items-start justify-between mb-1.5 sm:mb-2">
                 <div>
                   <h4 className="text-sm font-bold text-white">{cat.name}</h4>

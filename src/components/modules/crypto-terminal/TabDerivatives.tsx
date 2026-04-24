@@ -76,7 +76,7 @@ export default function TabDerivatives() {
       </div>
 
       {/* Funding Rate Heatmap */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
         <div className="flex items-center gap-2 mb-2 sm:mb-3">
           <Activity size={16} className="text-gold-400" />
           <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Funding Rate Haritasi</h3>
@@ -114,7 +114,7 @@ export default function TabDerivatives() {
       </div>
 
       {/* Derivative Exchanges */}
-      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+      <div className="bg-surface-2/70 backdrop-blur-md rounded-2xl border border-stroke p-3 sm:p-4 hover:border-stroke transition-all duration-300">
         <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-2 sm:mb-3">Turev Borsalari</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left">

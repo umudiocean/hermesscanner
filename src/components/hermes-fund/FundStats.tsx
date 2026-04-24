@@ -100,8 +100,8 @@ export default function FundStatsComponent({ stats, isLoading }: FundStatsProps)
       {(() => {
         const isFull = stats.utilizationPercent >= 100;
         const isNearFull = stats.utilizationPercent >= 80;
-        const progressColor = isFull ? '#EF4444' : isNearFull ? '#F59E0B' : '#22C55E';
-        const limitColor = isFull ? '#EF4444' : '#22C55E';
+        const progressColor = isFull ? '#F04848' : isNearFull ? '#F59E0B' : '#22C55E';
+        const limitColor = isFull ? '#F04848' : '#22C55E';
         
         return (
           <motion.div
@@ -134,7 +134,7 @@ export default function FundStatsComponent({ stats, isLoading }: FundStatsProps)
                 className="h-full rounded-full"
                 style={{ 
                   background: isFull 
-                    ? '#EF4444' 
+                    ? '#F04848' 
                     : `linear-gradient(90deg, #22C55E, ${isNearFull ? '#F59E0B' : '#10B981'})`
                 }}
               />

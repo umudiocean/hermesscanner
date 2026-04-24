@@ -73,10 +73,10 @@ function formatPrice(p: number): string {
 // ─── Pulse Gauge ───
 function CryptoPulseGauge({ score, label, size = 160 }: { score: number; label: string; size?: number }) {
   const getTheme = (s: number) => {
-    if (s <= 20) return { color: '#EF4444', glow: 'rgba(239,68,68,0.3)', text: 'EXTREME FEAR' }
+    if (s <= 20) return { color: '#F04848', glow: 'rgba(239,68,68,0.3)', text: 'EXTREME FEAR' }
     if (s <= 35) return { color: '#fb923c', glow: 'rgba(251,146,60,0.25)', text: 'FEAR' }
     if (s <= 50) return { color: '#94a3b8', glow: 'rgba(148,163,184,0.15)', text: 'NEUTRAL' }
-    if (s <= 65) return { color: '#62CBC1', glow: 'rgba(98,203,193,0.25)', text: 'GREED' }
+    if (s <= 65) return { color: '#3FCAB4', glow: 'rgba(98,203,193,0.25)', text: 'GREED' }
     return { color: '#f59e0b', glow: 'rgba(245,158,11,0.35)', text: 'EXTREME GREED' }
   }
   const t = getTheme(score)
@@ -253,10 +253,10 @@ function CryptoSignalSummary({ coins }: { coins: CoinData[] }) {
   const total = coins.length
   const segments = [
     { key: 'strong_long' as const, color: '#f59e0b', label: 'S.LONG' },
-    { key: 'long' as const, color: '#62CBC1', label: 'LONG' },
+    { key: 'long' as const, color: '#3FCAB4', label: 'LONG' },
     { key: 'neutral' as const, color: '#64748b', label: 'NOTR' },
     { key: 'short' as const, color: '#fb923c', label: 'SHORT' },
-    { key: 'strong_short' as const, color: '#EF4444', label: 'S.SHORT' },
+    { key: 'strong_short' as const, color: '#F04848', label: 'S.SHORT' },
   ]
   const [hovered, setHovered] = useState<string | null>(null)
 
@@ -500,7 +500,7 @@ export default function ModuleCryptoIndex() {
                   <div className="text-[9px] text-text-tertiary truncate">{labels[key] || key}</div>
                   <div className={`text-sm font-black tabular-nums ${color}`}>{v.toFixed(0)}</div>
                   <div className="h-1 bg-surface-3 rounded-full mt-1 overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${v}%`, backgroundColor: v >= 60 ? '#62CBC1' : v <= 40 ? '#EF4444' : '#64748b' }} />
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${v}%`, backgroundColor: v >= 60 ? '#3FCAB4' : v <= 40 ? '#F04848' : '#64748b' }} />
                   </div>
                 </div>
               )

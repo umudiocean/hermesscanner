@@ -39,8 +39,8 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-surface-1 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#B3945B]/20 to-[#B3945B]/5 border border-[#B3945B]/30 mb-4">
-            <Shield className="w-8 h-8 text-[#B3945B]" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4B86A]/20 to-[#D4B86A]/5 border border-[#D4B86A]/30 mb-4">
+            <Shield className="w-8 h-8 text-[#D4B86A]" />
           </div>
           <h1 className="text-2xl font-bold text-text-primary">HERMES AI</h1>
           <p className="text-text-tertiary text-sm mt-1">Admin Panel</p>
@@ -56,7 +56,7 @@ export default function AdminLoginPage() {
               value={username}
               onChange={e => setUsername(e.target.value)}
               placeholder="Kullanici adinizi girin"
-              className="w-full bg-surface-1 border border-stroke rounded-xl px-4 py-3 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-[#B3945B]/50 transition-colors"
+              className="w-full bg-surface-1 border border-stroke rounded-xl px-4 py-3 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-[#D4B86A]/50 transition-colors"
               autoFocus
               autoComplete="username"
             />
@@ -71,7 +71,7 @@ export default function AdminLoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="Sifrenizi girin"
-              className="w-full bg-surface-1 border border-stroke rounded-xl px-4 py-3 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-[#B3945B]/50 transition-colors"
+              className="w-full bg-surface-1 border border-stroke rounded-xl px-4 py-3 text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-[#D4B86A]/50 transition-colors"
               autoComplete="current-password"
             />
           </div>
@@ -83,7 +83,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading || !username || !password}
-            className="w-full bg-gradient-to-r from-[#B3945B] to-[#8B7340] hover:from-[#C4A56C] hover:to-[#9C8451] text-black font-semibold rounded-xl px-4 py-3 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-[#D4B86A] to-[#8B7340] hover:from-[#C4A56C] hover:to-[#9C8451] text-black font-semibold rounded-xl px-4 py-3 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {loading ? 'Giris yapiliyor...' : 'Giris Yap'}
           </button>
