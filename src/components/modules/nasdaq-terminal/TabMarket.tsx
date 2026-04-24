@@ -1557,117 +1557,178 @@ function MarketOpenForecast({ data }: { data: MarketDashboardData }) {
     }
   }, [biasShort, confidence, idxAvgNow])
 
+  // ─── Premium accent palette ─────────────────────────────────────
+  const isPositive = pct >= 65
+  const isNegative = pct <= 35
+  const tone: 'gold' | 'success' | 'danger' | 'neutral' =
+    isGoldenSignal ? 'gold' : isPositive ? 'success' : isNegative ? 'danger' : 'neutral'
+  const toneRing = {
+    gold:    'shadow-[0_0_0_1px_rgba(212,184,106,0.40),0_0_40px_rgba(212,184,106,0.15)]',
+    success: 'shadow-[0_0_0_1px_rgba(63,202,180,0.40),0_0_40px_rgba(63,202,180,0.15)]',
+    danger:  'shadow-[0_0_0_1px_rgba(240,72,72,0.40),0_0_40px_rgba(240,72,72,0.15)]',
+    neutral: 'shadow-glass',
+  }[tone]
+  const toneAccent = {
+    gold: 'from-gold-500 via-gold-300 to-gold-500',
+    success: 'from-success-500 via-success-300 to-success-500',
+    danger: 'from-danger-500 via-danger-300 to-danger-500',
+    neutral: 'from-stroke via-stroke-strong to-stroke',
+  }[tone]
+  const toneText = {
+    gold: 'text-gold-300',
+    success: 'text-success-300',
+    danger: 'text-danger-300',
+    neutral: 'text-text-secondary',
+  }[tone]
+
   return (
-    <div className={`rounded-2xl border p-3 sm:p-4 shadow-glass transition-all duration-300 ease-snap ${borderColor} ${bgColor} ${cardGlow}`}>
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="relative">
-          <Radio size={14} className="text-gold-300" />
-          <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-gold-400 live-dot" />
-        </div>
-        <span className="text-xs font-bold uppercase tracking-wider text-gold-300">PIYASA ACILIS ONGORU</span>
-        {isGoldenSignal && (
-          <span className="badge-enter ml-1 px-1.5 py-0.5 rounded-full bg-gold-400/20 border border-stroke-gold-strong text-[9px] font-bold text-gold-300 combo-pulse">
-            GOLDEN SIGNAL
-          </span>
-        )}
-        <span className="text-[10px] text-text-quaternary ml-auto tabular-nums">{posCount}/{totalSig} uyumlu</span>
-      </div>
+    <div className={`relative rounded-2xl bg-surface-2/80 backdrop-blur-xl overflow-hidden transition-all duration-300 ease-snap ${toneRing}`}>
+      {/* Top accent gradient seam */}
+      <div className={`h-px bg-gradient-to-r ${toneAccent}`} />
 
-      {/* Score + Bias */}
-      <div className="flex items-start gap-4 mb-3">
-        <div className="relative">
-          <div className="text-4xl font-black tabular-nums animate-number-glow" style={{ color: accentColor }}>
-            {pct}
-          </div>
-          <span className="absolute -top-1 -right-3 text-[10px] font-bold" style={{ color: accentColor }}>%</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-bold" style={{ color: accentColor }}>{bias}</div>
-          <div className="text-[10px] text-text-quaternary mt-0.5">V4 Adaptif Model — {specialSignals.length > 0 ? `${specialSignals.length} ozel sinyal aktif` : '6 bilesen analizi'}</div>
-
-          {/* Confidence Bar */}
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-[9px] text-text-quaternary w-14 shrink-0">Guven</span>
-            <div className="flex-1 h-1.5 rounded-full bg-surface-3 overflow-hidden">
-              <div
-                className="h-full rounded-full confidence-bar transition-all"
-                style={{ '--conf-width': `${confidence}%`, backgroundColor: confidence >= 60 ? '#3FCAB4' : confidence >= 40 ? '#D4B86A' : '#f87171' } as React.CSSProperties}
-              />
+      <div className="p-4 sm:p-5">
+        {/* ── Header bar ── */}
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="relative w-7 h-7 rounded-lg bg-surface-3 border border-stroke flex items-center justify-center">
+              <Radio size={13} className={toneText} />
+              <span className={`absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full ${tone === 'gold' ? 'bg-gold-400' : tone === 'success' ? 'bg-success-400' : tone === 'danger' ? 'bg-danger-400' : 'bg-text-tertiary'} live-dot`} />
             </div>
-            <span className="text-[10px] font-mono tabular-nums" style={{ color: confidence >= 60 ? '#3FCAB4' : confidence >= 40 ? '#D4B86A' : '#f87171' }}>{confidence}%</span>
+            <div>
+              <div className="text-2xs font-bold uppercase tracking-widest text-text-tertiary">Piyasa Açılış Öngörüsü</div>
+              <div className="text-2xs text-text-quaternary mt-0.5">V4 Adaptif Model · 6 bileşen + özel sinyaller</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {isGoldenSignal && (
+              <span className="inline-flex items-center gap-1 h-6 px-2 rounded-full bg-gold-400/15 border border-stroke-gold-strong text-2xs font-bold text-gold-300 combo-pulse">
+                ★ GOLDEN
+              </span>
+            )}
+            <span className="inline-flex items-center h-6 px-2 rounded-md bg-surface-3 border border-stroke text-2xs font-mono tabular-nums text-text-tertiary">
+              {posCount}<span className="text-text-quaternary mx-0.5">/</span>{totalSig}
+            </span>
           </div>
         </div>
-      </div>
 
-      {/* Special Signals (V4 Ozel Sinyaller) */}
-      {specialSignals.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {specialSignals.map((ss, i) => (
+        {/* ── Hero score block ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-5 mb-5 items-center">
+          {/* Big score */}
+          <div className="relative flex items-baseline">
             <span
-              key={i}
-              className={`badge-enter inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                ss.type === 'bullish'
-                  ? 'bg-success-400/15 text-success-400 border-success-400/30'
-                  : 'bg-danger-400/15 text-danger-400 border-danger-400/30'
-              }`}
-              style={{ animationDelay: `${i * 100}ms` }}
+              className="font-mono font-bold tabular-nums leading-none"
+              style={{ fontSize: '64px', color: accentColor, textShadow: `0 0 32px ${accentColor}55` }}
             >
-              {ss.type === 'bullish' ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-              {ss.label}
+              {pct}
             </span>
+            <span className="text-xl font-mono font-semibold tabular-nums ml-1" style={{ color: accentColor, opacity: 0.7 }}>%</span>
+          </div>
+
+          {/* Bias + confidence */}
+          <div className="min-w-0">
+            <div className="text-md font-semibold tracking-tight text-text-primary uppercase">{bias}</div>
+
+            {/* Special signals row */}
+            {specialSignals.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {specialSignals.map((ss, i) => (
+                  <span
+                    key={i}
+                    className={`inline-flex items-center gap-1 h-5 px-1.5 rounded text-2xs font-bold tracking-wide border ${
+                      ss.type === 'bullish'
+                        ? 'bg-success-400/12 text-success-300 border-success-400/30'
+                        : 'bg-danger-400/12 text-danger-300 border-danger-400/30'
+                    }`}
+                  >
+                    {ss.type === 'bullish' ? <ArrowUpRight size={9} /> : <ArrowDownRight size={9} />}
+                    {ss.label}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Confidence bar */}
+            <div className="mt-3 flex items-center gap-2.5">
+              <span className="text-2xs font-semibold tracking-widest uppercase text-text-quaternary w-12 shrink-0">Güven</span>
+              <div className="flex-1 h-1 rounded-full bg-surface-4 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700 ease-snap"
+                  style={{
+                    width: `${confidence}%`,
+                    background: confidence >= 60
+                      ? 'linear-gradient(90deg, #2BA896, #3FCAB4)'
+                      : confidence >= 40
+                        ? 'linear-gradient(90deg, #B89A4F, #D4B86A)'
+                        : 'linear-gradient(90deg, #D62F2F, #F04848)',
+                  }}
+                />
+              </div>
+              <span className="text-xs font-mono font-semibold tabular-nums w-10 text-right" style={{ color: confidence >= 60 ? '#3FCAB4' : confidence >= 40 ? '#D4B86A' : '#F04848' }}>
+                {confidence}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Signal grid (premium pill cards) ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
+          {signals.map((s, i) => (
+            <div
+              key={i}
+              className="group flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-surface-3/60 border border-stroke-subtle hover:border-stroke hover:bg-surface-3 transition-all duration-150 ease-snap"
+            >
+              <div className="min-w-0 flex flex-col">
+                <span className="text-2xs font-semibold uppercase tracking-wide text-text-quaternary truncate">{s.label}</span>
+                <span className={`text-xs font-mono font-semibold tabular-nums mt-0.5 ${s.positive ? 'text-success-400' : 'text-danger-400'}`}>
+                  {s.value}
+                </span>
+              </div>
+              <span className={`text-md ${s.positive ? 'text-success-400' : 'text-danger-400'} shrink-0 group-hover:scale-110 transition-transform duration-150`}>
+                {s.positive ? '▲' : '▼'}
+              </span>
+            </div>
           ))}
         </div>
-      )}
 
-      {/* Signal Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-        {signals.map((s, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between bg-surface-2 hover:bg-surface-3 rounded-lg px-2 py-1.5 transition-all duration-200"
-            style={{ animationDelay: `${i * 50}ms` }}
-          >
-            <span className="text-[10px] text-text-tertiary truncate mr-1">{s.label}</span>
-            <span className={`text-[10px] font-mono shrink-0 ${s.positive ? 'text-success-400' : 'text-danger-400'}`}>
-              {s.positive ? '▲' : '▼'} {s.value}
+        {/* ── Bottom strip: backtest + V4 badge ── */}
+        <div className="flex items-center justify-between gap-3 pb-3 border-b border-stroke-subtle">
+          <div className="flex items-center gap-2 min-w-0">
+            <Shield size={11} className="text-text-quaternary shrink-0" />
+            <span className="text-2xs text-text-tertiary truncate">
+              Backtest Hit Rate: <span className="font-mono font-semibold text-text-secondary">
+                {isGoldenSignal ? '%68.8 (1G) · %81.2 (3G)' : (isPositive || isNegative) ? '%59.1 (1G)' : '—'}
+              </span>
             </span>
           </div>
-        ))}
-      </div>
+          <span className="inline-flex items-center h-5 px-1.5 rounded bg-surface-3 border border-stroke text-2xs font-mono font-semibold text-gold-300">V4</span>
+        </div>
 
-      {/* V4 Model Badge */}
-      <div className="mt-3 pt-2 border-t border-stroke-subtle flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Shield size={10} className="text-text-quaternary" />
-          <span className="text-[9px] text-text-quaternary">Backtest Hit Rate: %{isGoldenSignal ? '68.8 (1G) / %81.2 (3G)' : pct >= 65 || pct <= 35 ? '59.1 (1G)' : '--'}</span>
+        {/* ── Forecast tracker (live performance) ── */}
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <ForecastWRBox label="7 Gün WR"  value={perf.d7}  samples={perf.n7} />
+          <ForecastWRBox label="30 Gün WR" value={perf.d30} samples={perf.n30} />
         </div>
-        <span className="text-[9px] px-1.5 py-0.5 rounded bg-surface-2 text-text-quaternary font-mono">V4</span>
       </div>
+    </div>
+  )
+}
 
-      {/* Forecast Performance Tracker */}
-      <div className="mt-2 rounded-lg bg-surface-2 border border-stroke-subtle px-2.5 py-2">
-        <div className="flex items-center justify-between text-[9px] text-text-quaternary mb-1.5">
-          <span>Forecast Tracker (auto, browser)</span>
-          <span>30m validation</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-md bg-surface-2 border border-stroke-subtle px-2 py-1.5">
-            <div className="text-[9px] text-text-quaternary">7 Gun WR</div>
-            <div className={`text-sm font-bold tabular-nums ${perf.d7 >= 60 ? 'text-success-400' : perf.d7 >= 45 ? 'text-gold-300' : 'text-danger-400'}`}>
-              %{perf.d7}
-            </div>
-            <div className="text-[9px] text-text-quaternary">{perf.n7} ornek</div>
-          </div>
-          <div className="rounded-md bg-surface-2 border border-stroke-subtle px-2 py-1.5">
-            <div className="text-[9px] text-text-quaternary">30 Gun WR</div>
-            <div className={`text-sm font-bold tabular-nums ${perf.d30 >= 60 ? 'text-success-400' : perf.d30 >= 45 ? 'text-gold-300' : 'text-danger-400'}`}>
-              %{perf.d30}
-            </div>
-            <div className="text-[9px] text-text-quaternary">{perf.n30} ornek</div>
-          </div>
-        </div>
+// ─── Helper: Win-Rate display box ─────────────────────────────────
+function ForecastWRBox({ label, value, samples }: { label: string; value: number; samples: number }) {
+  const tone =
+    samples === 0 ? 'text-text-quaternary' :
+    value >= 60   ? 'text-success-400'    :
+    value >= 45   ? 'text-gold-300'       : 'text-danger-400'
+  return (
+    <div className="rounded-lg bg-surface-3/60 border border-stroke-subtle px-3 py-2.5">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-2xs font-semibold uppercase tracking-widest text-text-quaternary">{label}</span>
+        <span className="text-2xs text-text-quaternary font-mono tabular-nums">{samples}</span>
       </div>
+      <div className={`text-xl font-mono font-bold tabular-nums leading-none ${tone}`}>
+        %{value}
+      </div>
+      <div className="text-2xs text-text-quaternary mt-1">örnek</div>
     </div>
   )
 }
