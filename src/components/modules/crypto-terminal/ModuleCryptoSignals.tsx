@@ -560,7 +560,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
   const SortHeader = ({ field, children }: { field: string; children: React.ReactNode }) => (
     <th
       onClick={() => handleSort(field)}
-      className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/45 font-semibold cursor-pointer hover:text-white/60 transition-colors select-none whitespace-nowrap"
+      className="px-2 py-2 text-[9px] uppercase tracking-wider text-text-tertiary font-semibold cursor-pointer hover:text-text-secondary transition-colors select-none whitespace-nowrap"
     >
       {children}
       {sortField === field && <span className="ml-0.5 text-amber-400">{sortAsc ? '\u25B2' : '\u25BC'}</span>}
@@ -577,17 +577,17 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
           </div>
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white">CRYPTO AI <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">SIGNALS</span></h2>
-            <p className="text-[10px] text-white/40">HERMES AI Skor x Momentum x Overval x CHI Capraz Sinyal | {coinCount > 0 ? `${coinCount} coin` : ''}</p>
+            <p className="text-[10px] text-text-tertiary">HERMES AI Skor x Momentum x Overval x CHI Capraz Sinyal | {coinCount > 0 ? `${coinCount} coin` : ''}</p>
           </div>
           <div className="flex items-center gap-2 ml-3">
             <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400">{buyCount} ALIS</span>
             <span className="px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-[10px] font-bold text-red-400">{sellCount} SATIS</span>
-            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-white/50">{rows.length} TOPLAM</span>
+            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-stroke text-[10px] font-bold text-text-tertiary">{rows.length} TOPLAM</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {filtered.length > 0 && canCSV && (
-            <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-white/50 border border-white/8 hover:bg-white/[0.08] hover:text-white/60 transition-all">
+            <button onClick={downloadCSV} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-3 text-text-tertiary border border-white/8 hover:bg-surface-3 hover:text-text-secondary transition-all">
               <Download size={12} className="inline mr-1" />CSV
             </button>
           )}
@@ -608,7 +608,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
           className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-200
             ${filter === 'all'
               ? 'bg-gradient-to-r from-violet-500/15 to-violet-600/8 text-violet-300 border-violet-500/35'
-              : 'text-white/40 border-white/[0.06] hover:text-white/60 hover:border-white/15'}`}
+              : 'text-text-tertiary border-stroke-subtle hover:text-text-secondary hover:border-stroke'}`}
         >
           TUMU ({rows.length})
         </button>
@@ -623,7 +623,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
               className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all duration-200
                 ${isActive
                   ? `${cfg.bg} ${cfg.text} ${cfg.border}`
-                  : 'text-white/40 border-white/[0.06] hover:text-white/60 hover:border-white/15'}`}
+                  : 'text-text-tertiary border-stroke-subtle hover:text-text-secondary hover:border-stroke'}`}
             >
               {cfg.label} ({count})
             </button>
@@ -632,33 +632,33 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
       </div>
 
       {/* Table */}
-      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] overflow-hidden">
+      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[#0c0c14] border-b border-white/[0.04]">
+              <tr className="bg-surface-1 border-b border-stroke-subtle">
                 <th className="w-8 px-2 py-2"></th>
                 <SortHeader field="symbol">COIN</SortHeader>
                 <SortHeader field="signal">SINYAL</SortHeader>
                 <SortHeader field="teknikScore">MOMENTUM</SortHeader>
-                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/45 font-semibold whitespace-nowrap">SKOR</th>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-text-tertiary font-semibold whitespace-nowrap">SKOR</th>
                 <SortHeader field="aiScore">HERMES AI</SortHeader>
                 <SortHeader field="confidence">GUVEN</SortHeader>
-                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/45 font-semibold whitespace-nowrap" title="Asiri Deger Skoru">OVERVAL</th>
-                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/45 font-semibold whitespace-nowrap" title="Crypto Health Index">CHI</th>
-                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/45 font-semibold whitespace-nowrap">FIYATLAMA</th>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-text-tertiary font-semibold whitespace-nowrap" title="Asiri Deger Skoru">OVERVAL</th>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-text-tertiary font-semibold whitespace-nowrap" title="Crypto Health Index">CHI</th>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-text-tertiary font-semibold whitespace-nowrap">FIYATLAMA</th>
                 <SortHeader field="price">FIYAT</SortHeader>
                 <SortHeader field="change">DEGISIM%</SortHeader>
-                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/45 font-semibold whitespace-nowrap text-right hidden xl:table-cell" title="Hedef Fiyat">HEDEF</th>
-                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/45 font-semibold whitespace-nowrap text-right hidden xl:table-cell" title="Dip Fiyat">DIP</th>
-                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-white/45 font-semibold whitespace-nowrap text-center hidden xl:table-cell" title="Risk/Odul Orani">R:R</th>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-text-tertiary font-semibold whitespace-nowrap text-right hidden xl:table-cell" title="Hedef Fiyat">HEDEF</th>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-text-tertiary font-semibold whitespace-nowrap text-right hidden xl:table-cell" title="Dip Fiyat">DIP</th>
+                <th className="px-2 py-2 text-[9px] uppercase tracking-wider text-text-tertiary font-semibold whitespace-nowrap text-center hidden xl:table-cell" title="Risk/Odul Orani">R:R</th>
                 <SortHeader field="mcap">MCAP</SortHeader>
               </tr>
             </thead>
             <tbody>
               {loading && Array.from({ length: 8 }).map((_, i) => (
                 <tr key={i} className="border-b border-white/[0.03]">
-                  <td colSpan={16} className="px-3 py-3"><div className="h-4 bg-white/[0.03] animate-pulse rounded-lg" /></td>
+                  <td colSpan={16} className="px-3 py-3"><div className="h-4 bg-surface-2 animate-pulse rounded-lg" /></td>
                 </tr>
               ))}
               {!loading && filtered.map(r => {
@@ -670,7 +670,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                     className={`border-b border-white/[0.03] hover:bg-violet-500/[0.03] transition-colors ${onSelectCoin ? 'cursor-pointer' : ''}`}
                   >
                     <td className="px-2 py-2" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => toggleWatchlist(r.id)} className="text-white/40 hover:text-amber-400 transition-colors">
+                      <button onClick={() => toggleWatchlist(r.id)} className="text-text-tertiary hover:text-amber-400 transition-colors">
                         <Star size={12} fill={watchlist.has(r.id) ? '#f59e0b' : 'none'} className={watchlist.has(r.id) ? 'text-amber-400' : ''} />
                       </button>
                     </td>
@@ -678,7 +678,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                       <div className="flex items-center gap-1.5">
                         {r.image && <img src={r.image} alt="" className="w-4 h-4 rounded-full" />}
                         <span className="font-bold text-white text-[11px]">{r.symbol}</span>
-                        <span className="text-[8px] text-white/40 hidden sm:inline">{r.name}</span>
+                        <span className="text-[8px] text-text-tertiary hidden sm:inline">{r.name}</span>
                       </div>
                     </td>
                     <td className="px-2 py-2">
@@ -691,14 +691,14 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                         r.teknikScore <= 20 ? 'text-amber-400' :
                         r.teknikScore <= 35 ? 'text-emerald-400' :
                         r.teknikScore >= 90 ? 'text-red-500' :
-                        r.teknikScore >= 70 ? 'text-red-400' : 'text-white/50'
+                        r.teknikScore >= 70 ? 'text-red-400' : 'text-text-tertiary'
                       }`}>
                         {r.teknikSignal}
                       </span>
                     </td>
                     <td className="px-2 py-2 text-right">
                       <span className={`text-[10px] font-bold tabular-nums ${
-                        r.teknikScore <= 30 ? 'text-emerald-400' : r.teknikScore >= 70 ? 'text-red-400' : 'text-white/50'
+                        r.teknikScore <= 30 ? 'text-emerald-400' : r.teknikScore >= 70 ? 'text-red-400' : 'text-text-tertiary'
                       }`}>{r.teknikScore}</span>
                     </td>
                     <td className="px-2 py-2">
@@ -706,13 +706,13 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                         r.fundamentalLevel === 'STRONG' ? 'text-amber-400' :
                         r.fundamentalLevel === 'GOOD' ? 'text-emerald-400' :
                         r.fundamentalLevel === 'WEAK' ? 'text-orange-400' :
-                        r.fundamentalLevel === 'BAD' ? 'text-red-400' : 'text-white/50'
+                        r.fundamentalLevel === 'BAD' ? 'text-red-400' : 'text-text-tertiary'
                       }`}>{r.fundamentalLevel}</span>
-                      <span className="text-[9px] text-white/40 ml-1">{r.fundamentalScore}</span>
+                      <span className="text-[9px] text-text-tertiary ml-1">{r.fundamentalScore}</span>
                     </td>
                     <td className="px-2 py-2 text-center">
                       <span className={`text-[10px] font-bold tabular-nums ${
-                        r.confidence >= 70 ? 'text-amber-400' : r.confidence >= 50 ? 'text-white/60' : 'text-white/40'
+                        r.confidence >= 70 ? 'text-amber-400' : r.confidence >= 50 ? 'text-text-secondary' : 'text-text-tertiary'
                       }`}>{r.confidence}%</span>
                     </td>
                     <td className="px-2 py-2 text-center">
@@ -720,7 +720,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                         <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${
                           r.overvalLevel === 'EXTREME' ? 'text-red-400 bg-red-500/15' :
                           r.overvalLevel === 'HIGH' ? 'text-orange-400 bg-orange-500/10' :
-                          r.overvalLevel === 'MODERATE' ? 'text-white/50 bg-white/[0.03]' :
+                          r.overvalLevel === 'MODERATE' ? 'text-text-tertiary bg-surface-2' :
                           r.overvalLevel === 'FAIR' ? 'text-emerald-400 bg-emerald-500/10' :
                           'text-emerald-300 bg-emerald-500/15'
                         }`}>
@@ -729,7 +729,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                            r.overvalLevel === 'MODERATE' ? 'ORTA' :
                            r.overvalLevel === 'FAIR' ? 'UYGUN' : 'UCUZ'}
                         </span>
-                      ) : <span className="text-[10px] text-white/35">—</span>}
+                      ) : <span className="text-[10px] text-text-quaternary">—</span>}
                     </td>
                     <td className="px-2 py-2 text-center">
                       {r.chiLevel ? (
@@ -743,7 +743,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                            r.chiLevel === 'CAUTION' ? 'DIKKAT' :
                            r.chiLevel === 'RISKY' ? 'RISKLI' : 'KRITIK'}
                         </span>
-                      ) : <span className="text-[10px] text-white/35">—</span>}
+                      ) : <span className="text-[10px] text-text-quaternary">—</span>}
                     </td>
                     <td className="px-2 py-2 text-center">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
@@ -751,7 +751,7 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                         r.valuation === 'UCUZ' ? 'text-emerald-400 bg-emerald-500/8 border-emerald-500/15' :
                         r.valuation === 'PAHALI' ? 'text-orange-400 bg-orange-500/8 border-orange-500/15' :
                         r.valuation === 'COK PAHALI' ? 'text-red-400 bg-red-500/8 border-red-500/15' :
-                        'text-white/40 bg-white/[0.02] border-white/[0.06]'
+                        'text-text-tertiary bg-surface-2 border-stroke-subtle'
                       }`}>{r.valuation || 'NORMAL'}</span>
                     </td>
                     <td className="px-2 py-2 text-right">
@@ -762,28 +762,28 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
                     </td>
                     <td className="px-2 py-2 text-right hidden xl:table-cell">
                       {r.targetPrice != null ? (
-                        <span className={`text-[10px] font-mono font-semibold ${(r.targetPct ?? 0) >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                        <span className={`text-[10px] font-mono font-semibold ${(r.targetPct ?? 0) >= 0 ? 'text-success-400' : 'text-red-400'}`}>
                           ${r.targetPrice < 1 ? r.targetPrice.toPrecision(4) : r.targetPrice.toFixed(2)}
                         </span>
-                      ) : <span className="text-[10px] text-white/35">—</span>}
+                      ) : <span className="text-[10px] text-text-quaternary">—</span>}
                     </td>
                     <td className="px-2 py-2 text-right hidden xl:table-cell">
                       {r.floorPrice != null ? (
                         <span className="text-[10px] font-mono text-red-400/80">
                           ${r.floorPrice < 1 ? r.floorPrice.toPrecision(4) : r.floorPrice.toFixed(2)}
                         </span>
-                      ) : <span className="text-[10px] text-white/35">—</span>}
+                      ) : <span className="text-[10px] text-text-quaternary">—</span>}
                     </td>
                     <td className="px-2 py-2 text-center hidden xl:table-cell">
                       {r.riskReward != null ? (
                         <span className={`text-[10px] font-mono font-bold ${
-                          r.riskReward >= 2 ? 'text-hermes-green' :
+                          r.riskReward >= 2 ? 'text-success-400' :
                           r.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
                         }`}>{r.riskReward.toFixed(1)}</span>
-                      ) : <span className="text-[10px] text-white/35">—</span>}
+                      ) : <span className="text-[10px] text-text-quaternary">—</span>}
                     </td>
                     <td className="px-2 py-2 text-right">
-                      <span className="text-[10px] text-white/50 tabular-nums">{formatMcap(r.marketCap)}</span>
+                      <span className="text-[10px] text-text-tertiary tabular-nums">{formatMcap(r.marketCap)}</span>
                     </td>
                   </tr>
                 )
@@ -792,13 +792,13 @@ export default function ModuleCryptoSignals({ onSelectCoin }: ModuleCryptoSignal
           </table>
         </div>
         {!loading && filtered.length === 0 && (
-          <div className="text-center py-16 text-white/35 text-sm">
+          <div className="text-center py-16 text-text-quaternary text-sm">
             Aktif sinyal bulunamadi
           </div>
         )}
-        <div className="px-4 py-2 border-t border-white/[0.04] flex justify-between">
-          <span className="text-[10px] text-white/40">{filtered.length} sinyal gosteriliyor / {rows.length} toplam</span>
-          <span className="text-[10px] text-white/35">HERMES AI Score x Momentum x Overvaluation x CHI</span>
+        <div className="px-4 py-2 border-t border-stroke-subtle flex justify-between">
+          <span className="text-[10px] text-text-tertiary">{filtered.length} sinyal gosteriliyor / {rows.length} toplam</span>
+          <span className="text-[10px] text-text-quaternary">HERMES AI Score x Momentum x Overvaluation x CHI</span>
         </div>
       </div>
     </div>

@@ -51,28 +51,28 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
   if (loading) return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {Array.from({ length: 9 }).map((_, i) => (
-        <div key={i} className="h-28 bg-white/[0.02] rounded-2xl animate-pulse" />
+        <div key={i} className="h-28 bg-surface-2 rounded-2xl animate-pulse" />
       ))}
     </div>
   )
-  if (error) return <div className="text-center py-20 text-white/50">{error}</div>
+  if (error) return <div className="text-center py-20 text-text-tertiary">{error}</div>
 
   return (
     <div className="space-y-2 sm:space-y-3 animate-fade-in">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <PieChart size={16} className="text-violet-400" />
-          <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Kripto Kategorileri</h3>
-          <span className="text-[10px] text-white/40">{filtered.length}</span>
+          <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Kripto Kategorileri</h3>
+          <span className="text-[10px] text-text-tertiary">{filtered.length}</span>
         </div>
         <div className="relative">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/35" />
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-quaternary" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Ara..."
-            className="w-40 pl-8 pr-3 py-1.5 text-xs bg-white/[0.04] border border-white/8 rounded-xl text-white placeholder-white/25 focus:outline-none focus:border-amber-500/30 focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300"
+            className="w-40 pl-8 pr-3 py-1.5 text-xs bg-surface-3 border border-white/8 rounded-xl text-white placeholder-white/25 focus:outline-none focus:border-amber-500/30 focus:shadow-md focus:shadow-amber-500/10 transition-all duration-300"
           />
         </div>
       </div>
@@ -81,17 +81,17 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
         {filtered.slice(0, 30).map(cat => {
           const isPos = (cat.market_cap_change_24h ?? 0) >= 0
           return (
-            <div key={cat.id} className="group bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20 hover:scale-[1.01] transition-all duration-300">
+            <div key={cat.id} className="group bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke hover:shadow-lg hover:shadow-black/20 hover:scale-[1.01] transition-all duration-300">
               <div className="flex items-start justify-between mb-1.5 sm:mb-2">
                 <div>
                   <h4 className="text-sm font-bold text-white">{cat.name}</h4>
-                  <span className="text-[10px] text-white/35">{formatLarge(cat.market_cap)} Piyasa Deg.</span>
+                  <span className="text-[10px] text-text-quaternary">{formatLarge(cat.market_cap)} Piyasa Deg.</span>
                 </div>
                 <span className={`text-xs font-medium tabular-nums ${isPos ? 'text-emerald-400' : 'text-red-400'}`}>
                   {isPos ? '+' : ''}{(cat.market_cap_change_24h ?? 0).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-[10px] text-white/40">
+              <div className="flex items-center gap-2 text-[10px] text-text-tertiary">
                 <span>24s Hacim: {formatLarge(cat.volume_24h)}</span>
               </div>
               {cat.top_3_coins && cat.top_3_coins.length > 0 && (
@@ -99,7 +99,7 @@ export default function TabCategories({ onSelectCoin }: TabCategoriesProps) {
                   {cat.top_3_coins.slice(0, 3).map((img, i) => (
                     <img key={i} src={img} alt="" className="w-4 h-4 rounded-full" loading="lazy" />
                   ))}
-                  <span className="text-[9px] text-white/40 ml-1">Top 3</span>
+                  <span className="text-[9px] text-text-tertiary ml-1">Top 3</span>
                 </div>
               )}
             </div>

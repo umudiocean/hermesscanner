@@ -175,13 +175,13 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
               className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap ${
                 selectedCoin.id === coin.id
                   ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                  : 'text-white/50 hover:text-white/60 border border-transparent'
+                  : 'text-text-tertiary hover:text-text-secondary border border-transparent'
               }`}
             >
               {coin.symbol}
             </button>
           ))}
-          <button onClick={loadData} className="ml-2 p-1.5 rounded-xl text-white/40 hover:text-amber-400 hover:bg-amber-500/10 hover:shadow-sm hover:shadow-amber-500/10 transition-all duration-300">
+          <button onClick={loadData} className="ml-2 p-1.5 rounded-xl text-text-tertiary hover:text-amber-400 hover:bg-amber-500/10 hover:shadow-sm hover:shadow-amber-500/10 transition-all duration-300">
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
@@ -196,12 +196,12 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
       {!loading && whaleData && (
         <>
           {/* Coin Header */}
-          <div className="flex items-center justify-between bg-[#151520] rounded-xl border border-white/[0.06] p-2 sm:p-3 hover:border-white/[0.12] hover:shadow-md hover:shadow-black/20 transition-all duration-300">
+          <div className="flex items-center justify-between bg-surface-3 rounded-xl border border-stroke-subtle p-2 sm:p-3 hover:border-stroke hover:shadow-md hover:shadow-black/20 transition-all duration-300">
             <div className="flex items-center gap-3">
               {whaleData.image && <img src={whaleData.image} alt={whaleData.symbol} className="w-8 h-8 rounded-full" />}
               <div>
                 <span className="text-sm font-bold text-white">{whaleData.coinName}</span>
-                <span className="text-xs text-white/40 ml-2">{whaleData.symbol}</span>
+                <span className="text-xs text-text-tertiary ml-2">{whaleData.symbol}</span>
               </div>
             </div>
             <div className="text-right">
@@ -214,44 +214,44 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
 
           {/* Flow Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-            <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-3 hover:border-emerald-500/20 hover:shadow-md hover:shadow-emerald-500/5 transition-all duration-300">
-              <div className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Net Akis Tahmini</div>
+            <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 hover:border-emerald-500/20 hover:shadow-md hover:shadow-emerald-500/5 transition-all duration-300">
+              <div className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Net Akis Tahmini</div>
               <div className={`text-base sm:text-lg font-bold ${whaleData.netFlow >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {whaleData.netFlow >= 0 ? '+' : ''}{formatUSD(Math.abs(whaleData.netFlow))}
               </div>
               <div className="flex items-center gap-1 mt-1">
                 {whaleData.netFlow >= 0 ? <ArrowUpRight size={10} className="text-emerald-400" /> : <ArrowDownRight size={10} className="text-red-400" />}
-                <span className="text-[9px] text-white/40">Momentum bazli</span>
+                <span className="text-[9px] text-text-tertiary">Momentum bazli</span>
               </div>
             </div>
 
-            <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-3 hover:border-white/[0.12] hover:shadow-md hover:shadow-black/20 transition-all duration-300">
-              <div className="text-[9px] text-white/40 uppercase tracking-wider mb-1">24s Hacim</div>
+            <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 hover:border-stroke hover:shadow-md hover:shadow-black/20 transition-all duration-300">
+              <div className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">24s Hacim</div>
               <div className="text-base sm:text-lg font-bold text-white">{formatUSD(whaleData.volume24h)}</div>
-              <div className="text-[9px] text-white/40 mt-1">V/MC: {(whaleData.volumeToMcap * 100).toFixed(2)}%</div>
+              <div className="text-[9px] text-text-tertiary mt-1">V/MC: {(whaleData.volumeToMcap * 100).toFixed(2)}%</div>
             </div>
 
-            <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-3 hover:border-white/[0.12] hover:shadow-md hover:shadow-black/20 transition-all duration-300">
-              <div className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Piyasa Degeri</div>
+            <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 hover:border-stroke hover:shadow-md hover:shadow-black/20 transition-all duration-300">
+              <div className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Piyasa Degeri</div>
               <div className="text-base sm:text-lg font-bold text-white">{formatUSD(whaleData.marketCap)}</div>
-              <div className="text-[9px] text-white/40 mt-1">ATH: {whaleData.athDistance.toFixed(1)}%</div>
+              <div className="text-[9px] text-text-tertiary mt-1">ATH: {whaleData.athDistance.toFixed(1)}%</div>
             </div>
 
-            <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-3 hover:border-white/[0.12] hover:shadow-md hover:shadow-black/20 transition-all duration-300">
-              <div className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Arz Orani</div>
+            <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 hover:border-stroke hover:shadow-md hover:shadow-black/20 transition-all duration-300">
+              <div className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Arz Orani</div>
               <div className="text-base sm:text-lg font-bold text-white">{whaleData.supplyRatio.toFixed(1)}%</div>
               <div className="flex items-center gap-1 mt-1">
-                <Users size={10} className="text-white/40" />
-                <span className="text-[9px] text-white/40">Dolasimdaki / Toplam</span>
+                <Users size={10} className="text-text-tertiary" />
+                <span className="text-[9px] text-text-tertiary">Dolasimdaki / Toplam</span>
               </div>
             </div>
           </div>
 
           {/* Buy/Sell Pressure Bar */}
-          <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-3 sm:p-4 hover:border-white/[0.12] transition-all duration-300">
+          <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-white/60">ALIS / SATIS BASKISI</span>
-              <span className="text-[10px] text-white/35">{whaleData.exchangeCount} borsa aktif</span>
+              <span className="text-xs font-bold text-text-secondary">ALIS / SATIS BASKISI</span>
+              <span className="text-[10px] text-text-quaternary">{whaleData.exchangeCount} borsa aktif</span>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
               <div className="flex-1">
@@ -268,47 +268,47 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
             <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs">
               <div className="flex items-center gap-2">
                 <TrendingUp size={12} className="text-emerald-400" />
-                <span className="text-white/50">Alis Baskisi:</span>
+                <span className="text-text-tertiary">Alis Baskisi:</span>
                 <span className="text-emerald-400 font-bold">{formatUSD(whaleData.buyPressureProxy)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <TrendingDown size={12} className="text-red-400" />
-                <span className="text-white/50">Satis Baskisi:</span>
+                <span className="text-text-tertiary">Satis Baskisi:</span>
                 <span className="text-red-400 font-bold">{formatUSD(whaleData.sellPressureProxy)}</span>
               </div>
             </div>
           </div>
 
           {/* Top Exchanges by Volume */}
-          <div className="bg-[#151520] rounded-2xl border border-white/[0.06] overflow-hidden">
-            <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-b border-white/[0.04]">
+          <div className="bg-surface-3 rounded-2xl border border-stroke-subtle overflow-hidden">
+            <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 border-b border-stroke-subtle">
               <div className="flex items-center gap-2">
                 <BarChart3 size={14} className="text-amber-400/60" />
-                <span className="text-xs font-bold text-white/60">BORSA HACIM DAGILIMI — {whaleData.symbol}</span>
+                <span className="text-xs font-bold text-text-secondary">BORSA HACIM DAGILIMI — {whaleData.symbol}</span>
               </div>
-              <span className="text-[9px] text-white/40">Top {whaleData.topExchangeVolume.length} borsa</span>
+              <span className="text-[9px] text-text-tertiary">Top {whaleData.topExchangeVolume.length} borsa</span>
             </div>
 
             <div className="divide-y divide-white/[0.03]">
               {whaleData.topExchangeVolume.length === 0 && (
-                <div className="px-4 py-8 text-center text-xs text-white/35">Borsa verisi bulunamadi</div>
+                <div className="px-4 py-8 text-center text-xs text-text-quaternary">Borsa verisi bulunamadi</div>
               )}
               {whaleData.topExchangeVolume.map((ex, idx) => {
                 const maxVol = whaleData.topExchangeVolume[0]?.volume || 1
                 const widthPercent = (ex.volume / maxVol) * 100
                 return (
-                  <div key={idx} className="flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2 sm:py-2.5 hover:bg-white/[0.02] transition-colors">
-                    <span className="text-[10px] text-white/40 w-5 text-right tabular-nums">{idx + 1}</span>
+                  <div key={idx} className="flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2 sm:py-2.5 hover:bg-surface-2 transition-colors">
+                    <span className="text-[10px] text-text-tertiary w-5 text-right tabular-nums">{idx + 1}</span>
                     <div className="flex items-center gap-2 w-32 min-w-[100px]">
                       <div className={`w-2 h-2 rounded-full ${ex.trustScore === 'green' ? 'bg-emerald-400' : ex.trustScore === 'yellow' ? 'bg-amber-400' : 'bg-white/20'}`} />
-                      <span className="text-xs text-white/70 font-medium truncate">{ex.name}</span>
+                      <span className="text-xs text-text-secondary font-medium truncate">{ex.name}</span>
                     </div>
                     <div className="flex-1">
                       <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-amber-500/60 to-amber-400/40 rounded-full transition-all duration-500" style={{ width: `${widthPercent}%` }} />
                       </div>
                     </div>
-                    <span className="text-xs text-white/60 font-medium tabular-nums w-24 text-right">{formatUSD(ex.volume)}</span>
+                    <span className="text-xs text-text-secondary font-medium tabular-nums w-24 text-right">{formatUSD(ex.volume)}</span>
                   </div>
                 )
               })}
@@ -319,9 +319,9 @@ export default function TabWhaleTracker({ onSelectCoin }: TabWhaleTrackerProps) 
 
       {!loading && !whaleData && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Eye size={32} className="text-white/10 mb-3" />
-          <p className="text-sm text-white/40">Whale verileri yuklenemedi</p>
-          <p className="text-[10px] text-white/35 mt-1">Lutfen tekrar deneyin</p>
+          <Eye size={32} className="text-text-quaternary mb-3" />
+          <p className="text-sm text-text-tertiary">Whale verileri yuklenemedi</p>
+          <p className="text-[10px] text-text-quaternary mt-1">Lutfen tekrar deneyin</p>
         </div>
       )}
     </div>

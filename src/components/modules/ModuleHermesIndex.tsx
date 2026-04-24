@@ -114,7 +114,7 @@ function PulseGauge({ score, label, size = 160 }: { score: number; label: string
           <span className="text-[9px] font-bold tracking-wider mt-0.5" style={{ color: t.color }}>{label || t.text}</span>
         </div>
       </div>
-      <span className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mt-2">Piyasa Nabzi</span>
+      <span className="text-[10px] text-text-tertiary uppercase tracking-widest font-semibold mt-2">Piyasa Nabzi</span>
     </div>
   )
 }
@@ -126,9 +126,9 @@ function DirectionBadge({ direction, dirColor }: { direction: string; dirColor: 
   return (
     <div className="animate-scale-pop text-center">
       <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 backdrop-blur-sm transition-all duration-500 ${
-        isLong ? 'border-hermes-green/30 bg-hermes-green/[0.06] shadow-lg shadow-hermes-green/10' :
+        isLong ? 'border-success-400/30 bg-success-400/[0.06] shadow-lg shadow-success-400/10' :
         isShort ? 'border-red-500/30 bg-red-500/[0.06] shadow-lg shadow-red-500/10' :
-        'border-white/10 bg-white/[0.03]'
+        'border-stroke bg-surface-2'
       }`}>
         <span className={`text-2xl ${isLong ? 'animate-bounce' : isShort ? 'animate-bounce' : ''}`}>
           {isLong ? '🚀' : isShort ? '🔻' : '⚖️'}
@@ -144,15 +144,15 @@ function StatCard({ title, value, sub, icon, color = 'text-gold-300', className 
   title: string; value: string | number; sub?: string; icon: string; color?: string; className?: string
 }) {
   return (
-    <div className={`group relative bg-[#141414] rounded-xl border border-gold-400/8 p-3.5 hover:border-gold-400/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-gold-400/5 overflow-hidden ${className}`}>
+    <div className={`group relative bg-[#141414] rounded-xl border border-stroke-gold p-3.5 hover:border-stroke-gold transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-gold-400/5 overflow-hidden ${className}`}>
       <div className="absolute inset-0 bg-gradient-to-br from-gold-400/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-1.5">
           <span className="text-base group-hover:scale-110 transition-transform duration-300">{icon}</span>
-          <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">{title}</span>
+          <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">{title}</span>
         </div>
         <div className={`text-xl font-black tabular-nums ${color}`}>{typeof value === 'number' ? <AnimatedNumber value={value} /> : value}</div>
-        {sub && <div className="text-[10px] text-white/35 mt-0.5">{sub}</div>}
+        {sub && <div className="text-[10px] text-text-quaternary mt-0.5">{sub}</div>}
       </div>
     </div>
   )
@@ -167,15 +167,15 @@ function GaugeBar({ value, label, color, subLabel }: {
   return (
     <div className="group">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">{label}</span>
+        <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">{label}</span>
         <span className={`text-sm font-bold tabular-nums ${color}`}><AnimatedNumber value={value} /></span>
       </div>
-      <div className="h-2.5 bg-white/[0.04] rounded-full overflow-hidden relative">
+      <div className="h-2.5 bg-surface-3 rounded-full overflow-hidden relative">
         <div className="h-full rounded-full transition-all duration-1000 relative" style={{ width: `${pct}%`, backgroundColor: barColor }}>
           <div className="absolute inset-0 rounded-full opacity-50" style={{ background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)`, backgroundSize: '200% 100%', animation: 'bar-sweep 2s linear infinite' }} />
         </div>
       </div>
-      {subLabel && <span className="text-[9px] text-white/40 mt-0.5 block">{subLabel}</span>}
+      {subLabel && <span className="text-[9px] text-text-tertiary mt-0.5 block">{subLabel}</span>}
     </div>
   )
 }
@@ -191,7 +191,7 @@ function SignalDistBar({ counts, total }: { counts: Record<string, number>; tota
   const [hovered, setHovered] = useState<string | null>(null)
   return (
     <div>
-      <div className="flex h-8 rounded-xl overflow-hidden border border-white/[0.06] shadow-inner">
+      <div className="flex h-8 rounded-xl overflow-hidden border border-stroke-subtle shadow-inner">
         {segments.map(s => {
           const count = counts[s.key] || 0
           const pct = (count / total) * 100
@@ -206,12 +206,12 @@ function SignalDistBar({ counts, total }: { counts: Record<string, number>; tota
               className={`transition-all duration-300 relative cursor-default ${isHov ? 'brightness-125 z-10 scale-y-110' : ''}`}
             >
               <div className="absolute inset-0 flex items-center justify-center">
-                {pct > 6 && <span className={`text-[10px] font-bold transition-all duration-200 ${isHov ? 'text-white scale-110' : 'text-white/70'}`}>{count}</span>}
+                {pct > 6 && <span className={`text-[10px] font-bold transition-all duration-200 ${isHov ? 'text-white scale-110' : 'text-text-secondary'}`}>{count}</span>}
               </div>
               {isHov && (
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1a1a1a] border border-white/10 px-2.5 py-1 rounded-lg shadow-xl z-20 whitespace-nowrap animate-scale-pop">
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface-2 border border-stroke px-2.5 py-1 rounded-lg shadow-xl z-20 whitespace-nowrap animate-scale-pop">
                   <span className="text-[10px] font-bold" style={{ color: s.color }}>{s.label}: {count}</span>
-                  <span className="text-[10px] text-white/50 ml-1.5">({pct.toFixed(1)}%)</span>
+                  <span className="text-[10px] text-text-tertiary ml-1.5">({pct.toFixed(1)}%)</span>
                 </div>
               )}
             </div>
@@ -222,8 +222,8 @@ function SignalDistBar({ counts, total }: { counts: Record<string, number>; tota
         {segments.map(s => (
           <div key={s.key} className="flex items-center gap-1 group cursor-default" onMouseEnter={() => setHovered(s.key)} onMouseLeave={() => setHovered(null)}>
             <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${hovered === s.key ? 'scale-125' : ''}`} style={{ backgroundColor: s.color }} />
-            <span className={`text-[9px] transition-colors ${hovered === s.key ? 'text-white/70' : 'text-white/35'}`}>{s.label}</span>
-            <span className={`text-[10px] font-bold tabular-nums transition-colors ${hovered === s.key ? 'text-white/90' : 'text-white/50'}`}>{counts[s.key] || 0}</span>
+            <span className={`text-[9px] transition-colors ${hovered === s.key ? 'text-text-secondary' : 'text-text-quaternary'}`}>{s.label}</span>
+            <span className={`text-[10px] font-bold tabular-nums transition-colors ${hovered === s.key ? 'text-text-primary' : 'text-text-tertiary'}`}>{counts[s.key] || 0}</span>
           </div>
         ))}
       </div>
@@ -237,15 +237,15 @@ function HermesIndexCard({ idx, compact = false }: { idx: { name: string; icon: 
     idx.tier === 'cap' ? 'border-blue-500/8 hover:border-blue-500/25' :
     'border-amber-500/8 hover:border-amber-500/25'
   return (
-    <div className={`group bg-[#0e0e0e] rounded-xl border ${tierBorder} ${compact ? 'p-2.5' : 'p-3 sm:p-4'} transition-all duration-500 overflow-hidden relative`}>
+    <div className={`group bg-surface-1 rounded-xl border ${tierBorder} ${compact ? 'p-2.5' : 'p-3 sm:p-4'} transition-all duration-500 overflow-hidden relative`}>
       <div className="absolute inset-0 bg-gradient-to-br from-gold-400/[0.015] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className={compact ? 'text-sm' : 'text-base'}>{idx.icon}</span>
             <div className="min-w-0">
-              <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-bold text-white/80 truncate block`}>{idx.name}</span>
-              <span className="text-[8px] text-white/30">{idx.count} hisse</span>
+              <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-bold text-text-primary truncate block`}>{idx.name}</span>
+              <span className="text-[8px] text-text-quaternary">{idx.count} hisse</span>
             </div>
           </div>
           <div className="flex flex-col items-end flex-shrink-0">
@@ -257,7 +257,7 @@ function HermesIndexCard({ idx, compact = false }: { idx: { name: string; icon: 
             </span>
           </div>
         </div>
-        <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden mb-1.5">
+        <div className="h-1 bg-surface-3 rounded-full overflow-hidden mb-1.5">
           <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${idx.avg}%`, background: `linear-gradient(90deg, ${idx.color}50, ${idx.color})` }} />
         </div>
         <div className="flex h-2 rounded-full overflow-hidden gap-px mb-1">
@@ -268,7 +268,7 @@ function HermesIndexCard({ idx, compact = false }: { idx: { name: string; icon: 
           {idx.bad > 0 && <div className="bg-red-400 rounded-sm" style={{ flex: idx.bad }} />}
         </div>
         {!compact && (
-          <div className="flex flex-wrap justify-between text-[7px] text-white/35">
+          <div className="flex flex-wrap justify-between text-[7px] text-text-quaternary">
             <span className="text-amber-400">{idx.strong}</span>
             <span className="text-emerald-400">{idx.good}</span>
             <span className="text-slate-400">{idx.neutral}</span>
@@ -285,10 +285,10 @@ function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; a
   if (sectorStats.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="w-14 h-14 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center animate-empty-float mb-4">
+        <div className="w-14 h-14 rounded-xl bg-surface-2 border border-stroke-subtle flex items-center justify-center animate-empty-float mb-4">
           <span className="text-2xl">🗺️</span>
         </div>
-        <p className="text-sm text-white/40">Sektor verisi bekleniyor...</p>
+        <p className="text-sm text-text-tertiary">Sektor verisi bekleniyor...</p>
       </div>
     )
   }
@@ -297,16 +297,16 @@ function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; a
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
       {sorted.map((s, i) => {
         const accentColor = s.avgScore <= 20 ? '#B3945B' : s.avgScore <= 30 ? '#62CBC1' : s.avgScore < 70 ? '#64748b' : s.avgScore < 90 ? '#fb923c' : '#EF4444'
-        const borderClass = s.avgScore <= 20 ? 'border-gold-400/15' :
-          s.avgScore <= 30 ? 'border-hermes-green/15' :
-          s.avgScore < 70 ? 'border-white/[0.06]' :
+        const borderClass = s.avgScore <= 20 ? 'border-stroke-gold' :
+          s.avgScore <= 30 ? 'border-success-400/15' :
+          s.avgScore < 70 ? 'border-stroke-subtle' :
           s.avgScore < 90 ? 'border-orange-500/15' : 'border-red-500/15'
         const textColor = s.avgScore <= 20 ? 'text-gold-300' :
-          s.avgScore <= 30 ? 'text-hermes-green' :
-          s.avgScore < 70 ? 'text-white/60' :
+          s.avgScore <= 30 ? 'text-success-400' :
+          s.avgScore < 70 ? 'text-text-secondary' :
           s.avgScore < 90 ? 'text-orange-400' : 'text-red-400'
         return (
-          <div key={s.sector} className={`group relative rounded-xl border p-3 ${borderClass} bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] cursor-default overflow-hidden`}
+          <div key={s.sector} className={`group relative rounded-xl border p-3 ${borderClass} bg-surface-2 backdrop-blur-sm transition-all duration-300 hover:scale-[1.03] cursor-default overflow-hidden`}
             style={{ animationDelay: `${i * 40}ms` }}>
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{
               background: `radial-gradient(circle at 50% 50%, ${accentColor}10, transparent 70%)`
@@ -314,16 +314,16 @@ function SectorHeatmap({ sectorStats }: { sectorStats: Array<{ sector: string; a
             <div className="absolute inset-0 scan-line opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
             <div className="relative z-10">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold truncate text-white/60 max-w-[80%]">{shortSector(s.sector)}</span>
-                <span className="text-[9px] text-white/40 tabular-nums">{s.count}</span>
+                <span className="text-[10px] font-semibold truncate text-text-secondary max-w-[80%]">{shortSector(s.sector)}</span>
+                <span className="text-[9px] text-text-tertiary tabular-nums">{s.count}</span>
               </div>
               <div className="flex items-end justify-between mt-2">
                 <span className={`text-lg font-black tabular-nums ${textColor}`}>{s.avgScore.toFixed(0)}</span>
-                <span className={`text-[11px] tabular-nums font-bold ${s.avgChange >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                <span className={`text-[11px] tabular-nums font-bold ${s.avgChange >= 0 ? 'text-success-400' : 'text-red-400'}`}>
                   {s.avgChange >= 0 ? '+' : ''}{s.avgChange.toFixed(2)}%
                 </span>
               </div>
-              <div className="h-1 bg-white/[0.04] rounded-full mt-2 overflow-hidden">
+              <div className="h-1 bg-surface-3 rounded-full mt-2 overflow-hidden">
                 <div className="h-full rounded-full transition-all duration-700" style={{
                   width: `${Math.min(100, s.avgScore)}%`,
                   backgroundColor: accentColor,
@@ -359,22 +359,22 @@ function TopMovers({ title, items, color, icon }: {
     <div>
       <div className="flex items-center gap-2 mb-2.5">
         <span className="text-sm">{icon}</span>
-        <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">{title}</span>
+        <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">{title}</span>
       </div>
       <div className="space-y-1">
         {items.slice(0, 5).map((item, i) => (
-          <div key={item.symbol} className="group flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-200 hover:translate-x-1 cursor-default" style={{ animationDelay: `${i * 60}ms` }}>
+          <div key={item.symbol} className="group flex items-center justify-between px-3 py-2 rounded-lg bg-surface-2 hover:bg-surface-3 transition-all duration-200 hover:translate-x-1 cursor-default" style={{ animationDelay: `${i * 60}ms` }}>
             <div className="flex items-center gap-2.5">
-              <span className="text-[10px] text-white/40 w-3 font-mono">{i + 1}</span>
-              <span className="text-xs font-bold text-white/80 group-hover:text-white transition-colors">{item.symbol}</span>
+              <span className="text-[10px] text-text-tertiary w-3 font-mono">{i + 1}</span>
+              <span className="text-xs font-bold text-text-primary group-hover:text-white transition-colors">{item.symbol}</span>
               <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold border ${
-                (item.signalType === 'long' || item.signalType === 'strong_long') ? 'bg-hermes-green/10 text-hermes-green border-hermes-green/20' :
+                (item.signalType === 'long' || item.signalType === 'strong_long') ? 'bg-success-400/10 text-success-400 border-success-400/20' :
                 (item.signalType === 'short' || item.signalType === 'strong_short') ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                'bg-white/[0.04] text-white/40 border-white/[0.06]'
+                'bg-surface-3 text-text-tertiary border-stroke-subtle'
               }`}>{getSignalLabel(item.signalType)}</span>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-[10px] text-white/40 tabular-nums font-mono">${item.price.toFixed(2)}</span>
+              <span className="text-[10px] text-text-tertiary tabular-nums font-mono">${item.price.toFixed(2)}</span>
               <span className={`text-xs font-bold tabular-nums ${color} group-hover:scale-110 transition-transform origin-right`}>
                 {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
               </span>
@@ -391,22 +391,22 @@ function TickerTape({ items }: { items: Array<{ symbol: string; price: number; c
   if (items.length === 0) return null
   const doubled = [...items, ...items]
   return (
-    <div className="overflow-hidden relative h-8 border-y border-gold-400/[0.06] bg-[#0a0a0a]/80 backdrop-blur-sm">
+    <div className="overflow-hidden relative h-8 border-y border-gold-400/[0.06] bg-surface-0/80 backdrop-blur-sm">
       <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10" />
       <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10" />
       <div className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex items-center gap-1.5">
         <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full rounded-full bg-hermes-green opacity-40 live-dot" />
-          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-hermes-green" />
+          <span className="absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-40 live-dot" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success-400" />
         </span>
-        <span className="text-[9px] font-bold tracking-widest text-hermes-green/70">LIVE</span>
+        <span className="text-[9px] font-bold tracking-widest text-success-400/70">LIVE</span>
       </div>
       <div className="flex items-center gap-7 ticker-scroll whitespace-nowrap py-1.5 pl-16">
         {doubled.map((item, i) => (
           <span key={`${item.symbol}-${i}`} className="flex items-center gap-1.5 text-[10px]">
-            <span className="font-bold text-white/60">{item.symbol}</span>
-            <span className="text-white/45 tabular-nums font-mono">${item.price.toFixed(2)}</span>
-            <span className={`font-semibold tabular-nums ${item.change >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+            <span className="font-bold text-text-secondary">{item.symbol}</span>
+            <span className="text-text-tertiary tabular-nums font-mono">${item.price.toFixed(2)}</span>
+            <span className={`font-semibold tabular-nums ${item.change >= 0 ? 'text-success-400' : 'text-red-400'}`}>
               {item.change >= 0 ? '▲' : '▼'}{Math.abs(item.change).toFixed(2)}%
             </span>
           </span>
@@ -479,7 +479,7 @@ export default function ModuleHermesIndex() {
     const longPct = (longs / n) * 100
     const shortPct = (shorts / n) * 100
     const direction = longPct > 45 ? 'LONG' : shortPct > 45 ? 'SHORT' : 'BEKLE'
-    const dirColor = direction === 'LONG' ? 'text-hermes-green' : direction === 'SHORT' ? 'text-red-400' : 'text-white/60'
+    const dirColor = direction === 'LONG' ? 'text-success-400' : direction === 'SHORT' ? 'text-red-400' : 'text-text-secondary'
 
     const sectorMap = new Map<string, { scores: number[]; changes: number[]; aiScores: number[] }>()
     const fmpMap = new Map<string, FmpStock>()
@@ -603,8 +603,8 @@ export default function ModuleHermesIndex() {
       <div className="max-w-[1920px] mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <div className="text-center py-24">
           <div className="text-7xl mb-5 animate-float">💎</div>
-          <h3 className="text-xl font-bold text-white/60 mb-2 gold-shimmer inline-block">HERMES AI INDEX</h3>
-          <p className="text-white/35 text-sm max-w-md mx-auto mt-2">
+          <h3 className="text-xl font-bold text-text-secondary mb-2 gold-shimmer inline-block">HERMES AI INDEX</h3>
+          <p className="text-text-quaternary text-sm max-w-md mx-auto mt-2">
             Trade AI taramasi tamamlandiktan sonra aktif olur. Yukaridaki <span className="text-gold-300 font-semibold">Scan</span> butonuna basin.
           </p>
         </div>
@@ -648,14 +648,14 @@ export default function ModuleHermesIndex() {
   return (
     <div className={`max-w-[1920px] mx-auto px-2 sm:px-4 py-2 sm:py-4 ${mounted ? 'animate-fade-in' : ''}`}>
       {/* ═══ PREMIUM HEADER ═══ */}
-      <div className="relative mb-4 stagger-1 bg-[#0d0d0d] rounded-2xl border border-gold-400/10 p-4 sm:p-5 overflow-hidden">
+      <div className="relative mb-4 stagger-1 bg-surface-0 rounded-2xl border border-stroke-gold p-4 sm:p-5 overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, #B3945B 0.5px, transparent 0.5px)`,
           backgroundSize: '24px 24px',
         }} />
         <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-gold-400/30 to-transparent header-glow-line" />
         <div className="absolute -top-32 -right-32 w-64 h-64 bg-gold-400/[0.03] rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-hermes-green/[0.02] rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-success-400/[0.02] rounded-full blur-[100px] pointer-events-none" />
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -664,10 +664,10 @@ export default function ModuleHermesIndex() {
             </div>
             <div>
               <h2 className="text-lg sm:text-xl font-black tracking-wide">
-                <span className="text-white/90">HERMES</span>
+                <span className="text-text-primary">HERMES</span>
                 <span className="gold-shimmer ml-1.5">AI INDEX</span>
               </h2>
-              <p className="text-[10px] text-white/40 mt-0.5">
+              <p className="text-[10px] text-text-tertiary mt-0.5">
                 Teknik + Temel analiz birlesimi — canli piyasa endeksi
               </p>
             </div>
@@ -675,15 +675,15 @@ export default function ModuleHermesIndex() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-hermes-green opacity-40 live-dot" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-hermes-green" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-40 live-dot" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-success-400" />
               </span>
-              <span className="text-[9px] font-bold text-hermes-green/60 tracking-wider">LIVE</span>
+              <span className="text-[9px] font-bold text-success-400/60 tracking-wider">LIVE</span>
             </div>
-            <span className="text-[10px] px-3 py-1 rounded-full bg-gold-400/8 text-gold-400/50 font-bold border border-gold-400/12 animate-border-shimmer tabular-nums">
+            <span className="text-[10px] px-3 py-1 rounded-full bg-gold-400/8 text-gold-400/50 font-bold border border-stroke-gold animate-border-shimmer tabular-nums">
               {indexStats.n} HISSE
             </span>
-            {isLoading && <div className="w-3 h-3 border border-gold-400/30 border-t-gold-400 rounded-full animate-spin" />}
+            {isLoading && <div className="w-3 h-3 border border-stroke-gold-strong border-t-gold-400 rounded-full animate-spin" />}
           </div>
         </div>
       </div>
@@ -696,43 +696,43 @@ export default function ModuleHermesIndex() {
       {/* ═══ TOP ROW: Gauge + Direction + Stats ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 mb-2 sm:mb-4">
         {/* Premium Gauge */}
-        <div className="stagger-2 bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 lg:p-6 flex items-center justify-center hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+        <div className="stagger-2 bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 lg:p-6 flex items-center justify-center hover:border-stroke-gold transition-all duration-500 gold-border-glow">
           <PremiumGauge value={indexStats.marketPulse} label={marketData.fearGreedLabel || 'MARKET PULSE'} />
         </div>
 
         {/* Direction + Gauges */}
-        <div className="stagger-3 bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 lg:p-5 flex flex-col justify-between hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+        <div className="stagger-3 bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 lg:p-5 flex flex-col justify-between hover:border-stroke-gold transition-all duration-500 gold-border-glow">
           <DirectionBadge direction={indexStats.direction} dirColor={indexStats.dirColor} />
-          <div className="text-[10px] text-white/35 text-center mt-2 mb-3">
-            Long: <span className="text-hermes-green font-bold">{indexStats.longPct.toFixed(1)}%</span>
-            {' | '}Notr: <span className="text-white/50 font-bold">{((indexStats.neutrals / indexStats.n) * 100).toFixed(1)}%</span>
+          <div className="text-[10px] text-text-quaternary text-center mt-2 mb-3">
+            Long: <span className="text-success-400 font-bold">{indexStats.longPct.toFixed(1)}%</span>
+            {' | '}Notr: <span className="text-text-tertiary font-bold">{((indexStats.neutrals / indexStats.n) * 100).toFixed(1)}%</span>
             {' | '}Short: <span className="text-red-400 font-bold">{indexStats.shortPct.toFixed(1)}%</span>
           </div>
           <div className="space-y-2.5">
-            <GaugeBar value={indexStats.avgScore} label="Ort. Teknik Skor" color={indexStats.avgScore <= 40 ? 'text-hermes-green' : indexStats.avgScore <= 60 ? 'text-white/60' : 'text-red-400'} subLabel="0=Alis baskisi, 100=Satis baskisi" />
-            <GaugeBar value={indexStats.avgAiScore} label="Ort. HERMES AI Skor" color={indexStats.avgAiScore >= 60 ? 'text-hermes-green' : indexStats.avgAiScore >= 40 ? 'text-white/60' : 'text-red-400'} subLabel="0=Kotu, 100=Mukemmel" />
+            <GaugeBar value={indexStats.avgScore} label="Ort. Teknik Skor" color={indexStats.avgScore <= 40 ? 'text-success-400' : indexStats.avgScore <= 60 ? 'text-text-secondary' : 'text-red-400'} subLabel="0=Alis baskisi, 100=Satis baskisi" />
+            <GaugeBar value={indexStats.avgAiScore} label="Ort. HERMES AI Skor" color={indexStats.avgAiScore >= 60 ? 'text-success-400' : indexStats.avgAiScore >= 40 ? 'text-text-secondary' : 'text-red-400'} subLabel="0=Kotu, 100=Mukemmel" />
           </div>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-2 stagger-4">
-          <StatCard title="Ort. Degisim" value={`${indexStats.avgChange >= 0 ? '+' : ''}${indexStats.avgChange.toFixed(2)}%`} icon="📈" color={indexStats.avgChange >= 0 ? 'text-hermes-green' : 'text-red-400'} />
-          <StatCard title="Ort. Risk" value={indexStats.avgRisk.toFixed(0)} icon="🛡️" color={indexStats.avgRisk <= 40 ? 'text-hermes-green' : indexStats.avgRisk <= 60 ? 'text-gold-300' : 'text-red-400'} sub={indexStats.avgRisk <= 40 ? 'Dusuk Risk' : indexStats.avgRisk <= 60 ? 'Orta Risk' : 'Yuksek Risk'} />
-          <StatCard title="Ort. RSI" value={indexStats.avgRsi.toFixed(1)} icon="📊" color={indexStats.avgRsi < 40 ? 'text-hermes-green' : indexStats.avgRsi > 60 ? 'text-red-400' : 'text-white/60'} sub={indexStats.avgRsi < 30 ? 'Asiri Satim' : indexStats.avgRsi > 70 ? 'Asiri Alim' : 'Normal'} />
-          <StatCard title="Ort. MFI" value={indexStats.avgMfi.toFixed(1)} icon="💰" color={indexStats.avgMfi < 40 ? 'text-hermes-green' : indexStats.avgMfi > 60 ? 'text-red-400' : 'text-white/60'} sub={indexStats.avgMfi < 20 ? 'Para Girisi' : indexStats.avgMfi > 80 ? 'Para Cikisi' : 'Dengeli'} />
+          <StatCard title="Ort. Degisim" value={`${indexStats.avgChange >= 0 ? '+' : ''}${indexStats.avgChange.toFixed(2)}%`} icon="📈" color={indexStats.avgChange >= 0 ? 'text-success-400' : 'text-red-400'} />
+          <StatCard title="Ort. Risk" value={indexStats.avgRisk.toFixed(0)} icon="🛡️" color={indexStats.avgRisk <= 40 ? 'text-success-400' : indexStats.avgRisk <= 60 ? 'text-gold-300' : 'text-red-400'} sub={indexStats.avgRisk <= 40 ? 'Dusuk Risk' : indexStats.avgRisk <= 60 ? 'Orta Risk' : 'Yuksek Risk'} />
+          <StatCard title="Ort. RSI" value={indexStats.avgRsi.toFixed(1)} icon="📊" color={indexStats.avgRsi < 40 ? 'text-success-400' : indexStats.avgRsi > 60 ? 'text-red-400' : 'text-text-secondary'} sub={indexStats.avgRsi < 30 ? 'Asiri Satim' : indexStats.avgRsi > 70 ? 'Asiri Alim' : 'Normal'} />
+          <StatCard title="Ort. MFI" value={indexStats.avgMfi.toFixed(1)} icon="💰" color={indexStats.avgMfi < 40 ? 'text-success-400' : indexStats.avgMfi > 60 ? 'text-red-400' : 'text-text-secondary'} sub={indexStats.avgMfi < 20 ? 'Para Girisi' : indexStats.avgMfi > 80 ? 'Para Cikisi' : 'Dengeli'} />
         </div>
       </div>
 
       {/* ═══ SIGNAL DISTRIBUTION ═══ */}
-      <div className="stagger-5 bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 lg:p-5 mb-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+      <div className="stagger-5 bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 lg:p-5 mb-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-sm">⚡</span>
-            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Sinyal Dagilimi</span>
+            <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Sinyal Dagilimi</span>
           </div>
           <div className="flex items-center gap-3 text-[10px]">
-            <span className="text-hermes-green font-bold">{indexStats.longs} Long</span>
-            <span className="text-white/40">|</span>
+            <span className="text-success-400 font-bold">{indexStats.longs} Long</span>
+            <span className="text-text-tertiary">|</span>
             <span className="text-red-400 font-bold">{indexStats.shorts} Short</span>
           </div>
         </div>
@@ -742,11 +742,11 @@ export default function ModuleHermesIndex() {
       {/* ═══ PREMIUM: WALL STREET PULSE + PIYASA ONGORU + AI SKOR DAGILIMI ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-4">
         {/* Wall Street Pulse Mini */}
-        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm">💓</span>
-            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Wall Street Nabzi</span>
-            {pulseData && <span className={`ml-auto text-[8px] px-1.5 py-0.5 rounded-full font-bold border ${pulseData.marketOpen ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-white/30 border-white/[0.06]'}`}>{pulseData.marketOpen ? 'CANLI' : 'KAPALI'}</span>}
+            <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Wall Street Nabzi</span>
+            {pulseData && <span className={`ml-auto text-[8px] px-1.5 py-0.5 rounded-full font-bold border ${pulseData.marketOpen ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-text-quaternary border-stroke-subtle'}`}>{pulseData.marketOpen ? 'CANLI' : 'KAPALI'}</span>}
           </div>
           {pulseData ? (
             <div className="flex flex-col items-center">
@@ -759,34 +759,34 @@ export default function ModuleHermesIndex() {
                     className="transition-all duration-1000" />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className={`text-2xl font-black tabular-nums ${pulseData.composite >= 60 ? 'text-hermes-green' : pulseData.composite <= 40 ? 'text-red-400' : 'text-white/60'}`}>
+                  <span className={`text-2xl font-black tabular-nums ${pulseData.composite >= 60 ? 'text-success-400' : pulseData.composite <= 40 ? 'text-red-400' : 'text-text-secondary'}`}>
                     <AnimatedNumber value={pulseData.composite} decimals={0} />
                   </span>
                 </div>
               </div>
-              <span className={`text-xs font-bold ${pulseData.composite >= 60 ? 'text-hermes-green' : pulseData.composite <= 40 ? 'text-red-400' : 'text-white/50'}`}>{pulseData.levelLabel}</span>
+              <span className={`text-xs font-bold ${pulseData.composite >= 60 ? 'text-success-400' : pulseData.composite <= 40 ? 'text-red-400' : 'text-text-tertiary'}`}>{pulseData.levelLabel}</span>
               <div className="mt-2 w-full space-y-0.5">
                 {(pulseData.components || []).filter(c => c.available).slice(0, 5).map(c => (
                   <div key={c.id} className="flex items-center gap-1.5">
-                    <span className="text-[8px] text-white/35 w-20 truncate">{c.name}</span>
-                    <div className="flex-1 h-1 rounded-full bg-white/[0.04] overflow-hidden">
+                    <span className="text-[8px] text-text-quaternary w-20 truncate">{c.name}</span>
+                    <div className="flex-1 h-1 rounded-full bg-surface-3 overflow-hidden">
                       <div className={`h-full rounded-full ${c.value >= 60 ? 'bg-emerald-500' : c.value >= 40 ? 'bg-slate-500' : 'bg-red-500'}`} style={{ width: `${c.value}%` }} />
                     </div>
-                    <span className="text-[8px] text-white/40 font-mono w-5">{c.value.toFixed(0)}</span>
+                    <span className="text-[8px] text-text-tertiary font-mono w-5">{c.value.toFixed(0)}</span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center py-4 text-white/25 text-xs">Pulse verisi bekleniyor...</div>
+            <div className="flex flex-col items-center py-4 text-text-quaternary text-xs">Pulse verisi bekleniyor...</div>
           )}
         </div>
 
         {/* Piyasa Acilis Ongoru */}
-        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm">🔮</span>
-            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Piyasa Ongoru</span>
+            <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Piyasa Ongoru</span>
           </div>
           {(() => {
             const signals: { label: string; positive: boolean }[] = []
@@ -806,19 +806,19 @@ export default function ModuleHermesIndex() {
             const totalSig = signals.length || 1
             const pct = Math.round((posCount / totalSig) * 100)
             const bias = pct >= 65 ? 'POZITIF BEKLENTI' : pct <= 35 ? 'NEGATIF BEKLENTI' : 'NOTR BEKLENTI'
-            const biasColor = pct >= 65 ? 'text-hermes-green' : pct <= 35 ? 'text-red-400' : 'text-white/50'
+            const biasColor = pct >= 65 ? 'text-success-400' : pct <= 35 ? 'text-red-400' : 'text-text-tertiary'
             return (
               <div>
                 <div className="flex flex-col items-center mb-3">
                   <div className={`text-4xl font-black tabular-nums ${biasColor}`}>{pct}%</div>
                   <span className={`text-xs font-bold ${biasColor}`}>{bias}</span>
-                  <span className="text-[9px] text-white/30 mt-0.5">{posCount}/{signals.length} sinyal pozitif</span>
+                  <span className="text-[9px] text-text-quaternary mt-0.5">{posCount}/{signals.length} sinyal pozitif</span>
                 </div>
                 <div className="space-y-1.5">
                   {signals.map((s, i) => (
                     <div key={i} className="flex items-center gap-2 text-[10px]">
-                      <span className={s.positive ? 'text-hermes-green' : 'text-red-400'}>{s.positive ? '▲' : '▼'}</span>
-                      <span className="text-white/50">{s.label}</span>
+                      <span className={s.positive ? 'text-success-400' : 'text-red-400'}>{s.positive ? '▲' : '▼'}</span>
+                      <span className="text-text-tertiary">{s.label}</span>
                     </div>
                   ))}
                 </div>
@@ -828,10 +828,10 @@ export default function ModuleHermesIndex() {
         </div>
 
         {/* HERMES AI Skor Dagilimi */}
-        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm">📊</span>
-            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">AI Skor Dagilimi</span>
+            <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">AI Skor Dagilimi</span>
           </div>
           {fmpStocks.length > 0 ? (() => {
             const counts = { STRONG: 0, GOOD: 0, NEUTRAL: 0, WEAK: 0, BAD: 0 }
@@ -855,7 +855,7 @@ export default function ModuleHermesIndex() {
                 <div className="flex h-6 rounded-lg overflow-hidden gap-px mb-3">
                   {bars.filter(b => b.count > 0).map(b => (
                     <div key={b.key} className="flex items-center justify-center transition-all duration-700" style={{ flex: b.count, backgroundColor: b.color }}>
-                      {(b.count / total * 100) > 5 && <span className="text-[9px] font-bold text-white/80">{b.count}</span>}
+                      {(b.count / total * 100) > 5 && <span className="text-[9px] font-bold text-text-primary">{b.count}</span>}
                     </div>
                   ))}
                 </div>
@@ -863,44 +863,44 @@ export default function ModuleHermesIndex() {
                   {bars.map(b => (
                     <div key={b.key} className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
-                      <span className="text-[10px] text-white/50 w-12">{b.key}</span>
-                      <div className="flex-1 h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
+                      <span className="text-[10px] text-text-tertiary w-12">{b.key}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-surface-3 overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(b.count / total) * 100}%`, backgroundColor: b.color }} />
                       </div>
-                      <span className="text-[10px] font-mono text-white/40 w-12 text-right">{b.count} ({((b.count / total) * 100).toFixed(0)}%)</span>
+                      <span className="text-[10px] font-mono text-text-tertiary w-12 text-right">{b.count} ({((b.count / total) * 100).toFixed(0)}%)</span>
                     </div>
                   ))}
                 </div>
-                <div className="mt-2 pt-2 border-t border-white/[0.04] text-[9px] text-white/30 text-center">
+                <div className="mt-2 pt-2 border-t border-stroke-subtle text-[9px] text-text-quaternary text-center">
                   Tum hisseler — Saglikli: {((counts.STRONG + counts.GOOD) / total * 100).toFixed(0)}% | Risk: {((counts.WEAK + counts.BAD) / total * 100).toFixed(0)}%
                 </div>
               </div>
             )
-          })() : <div className="text-xs text-white/25 py-8 text-center">Veri bekleniyor...</div>}
+          })() : <div className="text-xs text-text-quaternary py-8 text-center">Veri bekleniyor...</div>}
         </div>
       </div>
 
       {/* ═══ MARKET BREADTH + AI CONSENSUS ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 mb-2 sm:mb-4">
         {/* Market Breadth */}
-        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm">📊</span>
-            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Piyasa Genisligi</span>
+            <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Piyasa Genisligi</span>
           </div>
           <div className="flex items-center justify-between mb-2">
             <div className="text-center">
-              <div className="text-lg font-black text-hermes-green tabular-nums"><AnimatedNumber value={breadthUp} decimals={0} /></div>
-              <span className="text-[9px] text-hermes-green/50">Yukselen</span>
+              <div className="text-lg font-black text-success-400 tabular-nums"><AnimatedNumber value={breadthUp} decimals={0} /></div>
+              <span className="text-[9px] text-success-400/50">Yukselen</span>
             </div>
             <div className="flex-1 mx-4">
-              <div className="h-4 rounded-full bg-white/[0.04] overflow-hidden flex relative">
-                <div className="h-full bg-hermes-green/40 transition-all duration-1000 relative" style={{ width: `${breadthPct}%` }}>
+              <div className="h-4 rounded-full bg-surface-3 overflow-hidden flex relative">
+                <div className="h-full bg-success-400/40 transition-all duration-1000 relative" style={{ width: `${breadthPct}%` }}>
                   <div className="absolute inset-0 opacity-40" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)', backgroundSize: '200% 100%', animation: 'bar-sweep 2.5s linear infinite' }} />
                 </div>
                 <div className="h-full bg-red-500/40 flex-1 transition-all duration-1000" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-white/60 tabular-nums">{breadthPct.toFixed(0)}% / {(100 - breadthPct).toFixed(0)}%</span>
+                  <span className="text-[10px] font-bold text-text-secondary tabular-nums">{breadthPct.toFixed(0)}% / {(100 - breadthPct).toFixed(0)}%</span>
                 </div>
               </div>
             </div>
@@ -909,17 +909,17 @@ export default function ModuleHermesIndex() {
               <span className="text-[9px] text-red-400/50">Dusen</span>
             </div>
           </div>
-          <div className="text-[9px] text-white/35 text-center">
+          <div className="text-[9px] text-text-quaternary text-center">
             {breadthPct >= 60 ? 'Genisleme bolgesi — cok hisse yukseliyor' : breadthPct <= 40 ? 'Daralma bolgesi — cok hisse dusuyor' : 'Dengeli piyasa'}
           </div>
         </div>
 
         {/* AI Consensus */}
-        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-sm">🧠</span>
-            <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">AI Konsensus</span>
-            <span className="text-[8px] text-white/35 ml-auto">Teknik + Temel uyum orani</span>
+            <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">AI Konsensus</span>
+            <span className="text-[8px] text-text-quaternary ml-auto">Teknik + Temel uyum orani</span>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative w-20 h-20">
@@ -933,15 +933,15 @@ export default function ModuleHermesIndex() {
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={`text-xl font-black tabular-nums ${aiConsensus >= 50 ? 'text-hermes-green' : aiConsensus >= 30 ? 'text-gold-300' : 'text-red-400'}`}>
+                <span className={`text-xl font-black tabular-nums ${aiConsensus >= 50 ? 'text-success-400' : aiConsensus >= 30 ? 'text-gold-300' : 'text-red-400'}`}>
                   <AnimatedNumber value={aiConsensus} decimals={0} suffix="%" />
                 </span>
               </div>
             </div>
             <div className="flex-1 space-y-2">
-              <GaugeBar value={indexStats.longPct} label="Teknik LONG" color="text-hermes-green" />
+              <GaugeBar value={indexStats.longPct} label="Teknik LONG" color="text-success-400" />
               <GaugeBar value={indexStats.aiStrongCount > 0 ? (indexStats.aiStrongCount / fmpStocks.length) * 100 : 0} label="AI STRONG" color="text-gold-300" />
-              <div className="text-[9px] text-white/35">
+              <div className="text-[9px] text-text-quaternary">
                 {aiConsensus >= 50 ? 'Teknik ve temel analiz buyuk olcude uyumlu' : aiConsensus >= 30 ? 'Kismi uyum — karmasik piyasa' : 'Dusuk uyum — dikkatli olun'}
               </div>
             </div>
@@ -953,12 +953,12 @@ export default function ModuleHermesIndex() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2 mb-2 sm:mb-4 stagger-6">
         <StatCard title="AI STRONG" value={indexStats.aiStrongCount} icon="⭐" color="text-gold-300" sub="Temel analiz guclu" />
         <StatCard title="AI BAD" value={indexStats.aiBadCount} icon="⚠️" color="text-red-400" sub="Temel analiz kotu" />
-        <StatCard title="Toplam Mcap" value={formatMcap(indexStats.totalMcap)} icon="🏦" color="text-white/60" sub="Tum hisseler" />
-        <div className="group relative bg-[#141414] rounded-xl border border-gold-400/8 p-3.5 hover:border-gold-400/20 transition-all duration-300 overflow-hidden">
+        <StatCard title="Toplam Mcap" value={formatMcap(indexStats.totalMcap)} icon="🏦" color="text-text-secondary" sub="Tum hisseler" />
+        <div className="group relative bg-[#141414] rounded-xl border border-stroke-gold p-3.5 hover:border-stroke-gold transition-all duration-300 overflow-hidden">
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-base">🎭</span>
-              <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Fear & Greed</span>
+              <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Fear & Greed</span>
             </div>
             <FearGreedBar value={marketData.fearGreedIndex ?? 50} label={marketData.fearGreedLabel || 'NEUTRAL'} />
           </div>
@@ -971,11 +971,11 @@ export default function ModuleHermesIndex() {
         const cap = indexScoreCards.filter(i => i.tier === 'cap')
         const sector = indexScoreCards.filter(i => i.tier === 'sector')
         return (
-          <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 mb-2 sm:mb-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow stagger-7">
+          <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 mb-2 sm:mb-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow stagger-7">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm">📊</span>
-              <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">HERMES AI Endeks Paneli</span>
-              <span className="text-[9px] text-white/30">10 endeks puanlamasi</span>
+              <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">HERMES AI Endeks Paneli</span>
+              <span className="text-[9px] text-text-quaternary">10 endeks puanlamasi</span>
             </div>
 
             {/* Resmi Endeksler */}
@@ -1024,50 +1024,50 @@ export default function ModuleHermesIndex() {
       })()}
 
       {/* ═══ SECTOR HEATMAP ═══ */}
-      <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-3 sm:p-4 lg:p-5 mb-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+      <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-3 sm:p-4 lg:p-5 mb-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-sm">🗺️</span>
-          <span className="text-[10px] text-white/45 uppercase tracking-wider font-semibold">Sektor Haritasi</span>
-          <span className="text-[9px] text-white/40">(Teknik Skor Ortalamasi — dusuk = alis baskisi)</span>
+          <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-semibold">Sektor Haritasi</span>
+          <span className="text-[9px] text-text-tertiary">(Teknik Skor Ortalamasi — dusuk = alis baskisi)</span>
         </div>
         <SectorHeatmap sectorStats={indexStats.sectorStats} />
       </div>
 
       {/* ═══ TOP MOVERS + STRONGEST SIGNALS ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-2 sm:mb-4">
-        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-4 hover:border-hermes-green/20 transition-all duration-500 gold-border-glow">
-          <TopMovers title="En Cok Yukselenler" items={indexStats.topGainers} color="text-hermes-green" icon="🟢" />
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-4 hover:border-success-400/20 transition-all duration-500 gold-border-glow">
+          <TopMovers title="En Cok Yukselenler" items={indexStats.topGainers} color="text-success-400" icon="🟢" />
         </div>
-        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-4 hover:border-red-500/20 transition-all duration-500 gold-border-glow">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-4 hover:border-red-500/20 transition-all duration-500 gold-border-glow">
           <TopMovers title="En Cok Dusenler" items={indexStats.topLosers} color="text-red-400" icon="🔴" />
         </div>
-        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-4 hover:border-gold-400/20 transition-all duration-500 gold-border-glow">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-4 hover:border-stroke-gold transition-all duration-500 gold-border-glow">
           <TopMovers title="En Guclu LONG" items={indexStats.topStrongLongs} color="text-gold-300" icon="🏆" />
         </div>
-        <div className="bg-[#111111] rounded-2xl border border-gold-400/10 p-4 hover:border-orange-500/20 transition-all duration-500 gold-border-glow">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-gold p-4 hover:border-orange-500/20 transition-all duration-500 gold-border-glow">
           <TopMovers title="En Guclu SHORT" items={indexStats.topStrongShorts} color="text-orange-400" icon="⚡" />
         </div>
       </div>
 
       {/* ═══ FOOTER ═══ */}
-      <div className="relative rounded-xl border border-gold-400/6 bg-[#0d0d0d]/50 p-3 mt-2">
+      <div className="relative rounded-xl border border-gold-400/6 bg-surface-0/50 p-3 mt-2">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-400/15 to-transparent" />
-        <div className="flex items-center justify-between text-[10px] text-white/40">
+        <div className="flex items-center justify-between text-[10px] text-text-tertiary">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-hermes-green/50" />
-              Trade AI: <span className="text-white/50 font-semibold">{results.length}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-success-400/50" />
+              Trade AI: <span className="text-text-tertiary font-semibold">{results.length}</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-gold-400/50" />
-              Terminal AI: <span className="text-white/50 font-semibold">{fmpStocks.length}</span>
+              Terminal AI: <span className="text-text-tertiary font-semibold">{fmpStocks.length}</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-violet-400/50" />
-              Sektorler: <span className="text-white/50 font-semibold">{indexStats.sectorStats.length}</span>
+              Sektorler: <span className="text-text-tertiary font-semibold">{indexStats.sectorStats.length}</span>
             </span>
           </div>
-          <span className="tabular-nums text-white/35">Son guncelleme: {new Date().toLocaleTimeString('tr-TR')}</span>
+          <span className="tabular-nums text-text-quaternary">Son guncelleme: {new Date().toLocaleTimeString('tr-TR')}</span>
         </div>
       </div>
     </div>

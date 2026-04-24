@@ -36,7 +36,7 @@ function TabSkeleton() {
     <div className="flex items-center justify-center min-h-[40vh]">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
-        <span className="text-xs text-white/35">Yukleniyor...</span>
+        <span className="text-xs text-text-quaternary">Yukleniyor...</span>
       </div>
     </div>
   )
@@ -134,8 +134,8 @@ export default function ModuleCryptoTerminal() {
               ${activeModule === mod.id
                 ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/12 text-amber-300 border-amber-500/40 shadow-lg shadow-amber-500/15 scale-[1.02]'
                 : mod.active
-                  ? 'text-white/50 hover:text-amber-300 hover:bg-gradient-to-r hover:from-amber-500/10 hover:to-orange-500/5 border-white/[0.06] hover:border-amber-500/25 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.01]'
-                  : 'text-white/35 border-transparent cursor-not-allowed'
+                  ? 'text-text-tertiary hover:text-amber-300 hover:bg-gradient-to-r hover:from-amber-500/10 hover:to-orange-500/5 border-stroke-subtle hover:border-amber-500/25 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.01]'
+                  : 'text-text-quaternary border-transparent cursor-not-allowed'
               }`}
           >
             <span className={`transition-transform duration-200 ${activeModule === mod.id ? 'scale-110' : 'group-hover:scale-110'}`}>{mod.icon}</span>
@@ -144,18 +144,18 @@ export default function ModuleCryptoTerminal() {
             {(mod.id === 'signals' || mod.id === 'index') && (
               <span className="relative ml-1 text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/15 text-amber-300/90 border border-amber-400/30 font-bold tracking-wider animate-pulse group/premium cursor-default">
                 PREMIUM
-                <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] px-2 py-1 rounded-lg bg-[#1a1a2e]/95 text-amber-300/80 border border-amber-400/20 opacity-0 group-hover/premium:opacity-100 transition-opacity duration-300 pointer-events-none backdrop-blur-sm shadow-lg z-50">
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] px-2 py-1 rounded-lg bg-surface-2/95 text-amber-300/80 border border-amber-400/20 opacity-0 group-hover/premium:opacity-100 transition-opacity duration-300 pointer-events-none backdrop-blur-sm shadow-lg z-50">
                   Ileride Hermes Coin holder&apos;larina ozel
                 </span>
               </span>
             )}
-            {!mod.active && <Lock size={10} className="text-white/35 ml-0.5" />}
+            {!mod.active && <Lock size={10} className="text-text-quaternary ml-0.5" />}
           </button>
         ))}
         {/* Signal Performance Tracker Button */}
         <button
           onClick={() => setShowPerfTracker(true)}
-          className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 border text-white/50 hover:text-amber-300 hover:bg-gradient-to-r hover:from-amber-500/10 hover:to-orange-500/5 border-white/[0.06] hover:border-amber-500/25 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.01] ml-auto"
+          className="group flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-300 border text-text-tertiary hover:text-amber-300 hover:bg-gradient-to-r hover:from-amber-500/10 hover:to-orange-500/5 border-stroke-subtle hover:border-amber-500/25 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.01] ml-auto"
         >
           <span className="group-hover:scale-110 transition-transform duration-200"><Activity size={14} /></span>
           <span className="hidden sm:inline">PERFORMANS</span>
@@ -221,7 +221,7 @@ function TerminalContent({
             <h2 className="text-base sm:text-lg font-bold text-white tracking-wide">
               CRYPTO TERMINAL <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">AI</span>
             </h2>
-            <p className="text-[10px] sm:text-[11px] text-white/40 hidden sm:block">CoinGecko Analyst | Canli Kripto Analiz</p>
+            <p className="text-[10px] sm:text-[11px] text-text-tertiary hidden sm:block">CoinGecko Analyst | Canli Kripto Analiz</p>
           </div>
           <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-400/8 border border-amber-400/15 ml-2">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
@@ -249,7 +249,7 @@ function TerminalContent({
             className={`group flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-300 border
               ${activeTab === tab.id
                 ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-md shadow-amber-500/10 scale-[1.02]'
-                : 'text-white/45 hover:text-amber-200/80 hover:bg-gradient-to-r hover:from-amber-500/8 hover:to-transparent border-white/[0.04] hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
+                : 'text-text-tertiary hover:text-amber-200/80 hover:bg-gradient-to-r hover:from-amber-500/8 hover:to-transparent border-stroke-subtle hover:border-amber-500/20 hover:shadow-sm hover:shadow-amber-500/5'
               }`}
             title={tab.desc}
           >
@@ -268,7 +268,7 @@ function TerminalContent({
             className={`group flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap transition-all duration-300 border
               ${activeTab === tab.id
                 ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10'
-                : 'text-white/45 hover:text-amber-200/80 border-transparent hover:border-amber-500/20'
+                : 'text-text-tertiary hover:text-amber-200/80 border-transparent hover:border-amber-500/20'
               }`}
           >
             <span className={`transition-transform duration-200 ${activeTab === tab.id ? 'scale-110' : 'group-hover:scale-110'}`}>{tab.icon}</span>
@@ -414,7 +414,7 @@ function CoinSearchAutocomplete({
   return (
     <div ref={containerRef} className="relative">
       <div className="relative group">
-        <Search size={14} className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-white/35 group-focus-within:text-amber-400 transition-colors z-10" />
+        <Search size={14} className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-text-quaternary group-focus-within:text-amber-400 transition-colors z-10" />
         <input
           ref={inputRef}
           type="text"
@@ -423,13 +423,13 @@ function CoinSearchAutocomplete({
           onFocus={() => { if (results.length > 0) setOpen(true) }}
           onKeyDown={handleKeyDown}
           placeholder="Coin, token veya contract ara..."
-          className="w-48 sm:w-64 lg:w-80 pl-8 sm:pl-9 pr-8 py-1.5 sm:py-2 text-xs sm:text-sm bg-white/[0.04] border border-white/8 rounded-lg sm:rounded-xl
+          className="w-48 sm:w-64 lg:w-80 pl-8 sm:pl-9 pr-8 py-1.5 sm:py-2 text-xs sm:text-sm bg-surface-3 border border-white/8 rounded-lg sm:rounded-xl
                      text-white placeholder-white/25 focus:outline-none focus:border-amber-500/30 transition-all font-mono"
         />
         {value && (
           <button
             onClick={() => { onChange(''); setOpen(false); setResults([]) }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors z-10"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary transition-colors z-10"
           >
             <X size={14} />
           </button>
@@ -443,9 +443,9 @@ function CoinSearchAutocomplete({
 
       {/* Dropdown */}
       {open && results.length > 0 && (
-        <div className="absolute top-full right-0 mt-1 w-72 sm:w-80 max-h-[360px] overflow-y-auto bg-[#151520] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 animate-fade-in">
-          <div className="px-3 py-1.5 border-b border-white/[0.04]">
-            <span className="text-[10px] text-white/40">{results.length} sonuc</span>
+        <div className="absolute top-full right-0 mt-1 w-72 sm:w-80 max-h-[360px] overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50 animate-fade-in">
+          <div className="px-3 py-1.5 border-b border-stroke-subtle">
+            <span className="text-[10px] text-text-tertiary">{results.length} sonuc</span>
           </div>
           {results.map((coin, idx) => (
             <button
@@ -453,21 +453,21 @@ function CoinSearchAutocomplete({
               onClick={() => handleSelect(coin.id)}
               onMouseEnter={() => setSelectedIdx(idx)}
               className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors
-                ${idx === selectedIdx ? 'bg-amber-500/10' : 'hover:bg-white/[0.04]'}
+                ${idx === selectedIdx ? 'bg-amber-500/10' : 'hover:bg-surface-3'}
                 ${idx < results.length - 1 ? 'border-b border-white/[0.02]' : ''}`}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-white uppercase">{coin.symbol}</span>
-                  <span className="text-[10px] text-white/40 truncate">{coin.name}</span>
+                  <span className="text-[10px] text-text-tertiary truncate">{coin.name}</span>
                 </div>
                 {coin.matchedContract ? (
                   <div className="flex items-center gap-1 mt-0.5">
                     <span className="text-[8px] px-1 py-px rounded bg-violet-500/20 text-violet-300 border border-violet-500/20 font-medium uppercase">{coin.matchedContract.chain}</span>
-                    <span className="text-[9px] text-white/40 truncate font-mono">{coin.matchedContract.address.slice(0, 8)}...{coin.matchedContract.address.slice(-6)}</span>
+                    <span className="text-[9px] text-text-tertiary truncate font-mono">{coin.matchedContract.address.slice(0, 8)}...{coin.matchedContract.address.slice(-6)}</span>
                   </div>
                 ) : (
-                  <span className="text-[9px] text-white/35 truncate block">{coin.id}</span>
+                  <span className="text-[9px] text-text-quaternary truncate block">{coin.id}</span>
                 )}
               </div>
               <span className="text-[10px] text-amber-400/50 shrink-0">→</span>
@@ -478,8 +478,8 @@ function CoinSearchAutocomplete({
 
       {/* No results */}
       {open && value.trim().length >= 1 && results.length === 0 && !loading && (
-        <div className="absolute top-full right-0 mt-1 w-72 sm:w-80 bg-[#151520] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50 p-4 text-center">
-          <span className="text-xs text-white/35">Sonuc bulunamadi</span>
+        <div className="absolute top-full right-0 mt-1 w-72 sm:w-80 bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50 p-4 text-center">
+          <span className="text-xs text-text-quaternary">Sonuc bulunamadi</span>
         </div>
       )}
     </div>
@@ -499,11 +499,11 @@ function ComingSoonModule({ moduleId }: { moduleId: CryptoModule }) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-6">
-      <div className="w-20 h-20 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-6">
+      <div className="w-20 h-20 rounded-2xl bg-surface-2 border border-stroke-subtle flex items-center justify-center mb-6">
         {c.icon}
       </div>
-      <h2 className="text-2xl font-black text-white/80 mb-2">{c.name}</h2>
-      <p className="text-sm text-white/40 max-w-md mb-6 leading-relaxed">{c.desc}</p>
+      <h2 className="text-2xl font-black text-text-primary mb-2">{c.name}</h2>
+      <p className="text-sm text-text-tertiary max-w-md mb-6 leading-relaxed">{c.desc}</p>
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
         <Lock size={14} className="text-amber-400" />
         <span className="text-xs font-bold text-amber-300 tracking-wider">COMING SOON</span>

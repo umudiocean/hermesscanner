@@ -16,9 +16,9 @@ import SharePanel from '@/components/SharePanel'
 import { downloadHermesReportPdf } from '@/lib/report-pdf-premium'
 
 function getValuationFromScore(valScore: number): { label: string; style: string } {
-  if (valScore >= 80) return { label: 'COK UCUZ', style: 'text-hermes-green bg-hermes-green/15 border-hermes-green/30' }
-  if (valScore >= 65) return { label: 'UCUZ', style: 'text-hermes-green bg-hermes-green/10 border-hermes-green/20' }
-  if (valScore >= 40) return { label: 'NORMAL', style: 'text-slate-300 bg-white/[0.04] border-white/10' }
+  if (valScore >= 80) return { label: 'COK UCUZ', style: 'text-success-400 bg-success-400/15 border-success-400/30' }
+  if (valScore >= 65) return { label: 'UCUZ', style: 'text-success-400 bg-success-400/10 border-success-400/20' }
+  if (valScore >= 40) return { label: 'NORMAL', style: 'text-slate-300 bg-surface-3 border-stroke' }
   if (valScore >= 25) return { label: 'PAHALI', style: 'text-orange-400 bg-orange-500/10 border-orange-500/20' }
   return { label: 'COK PAHALI', style: 'text-red-400 bg-red-500/10 border-red-500/20' }
 }
@@ -479,7 +479,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
         <span className="text-5xl mb-4">🔍</span>
         <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Hisse Seçin</h3>
-        <p className="text-white/50 text-sm mb-6">Yukarıdaki arama çubuğunu kullanın veya Pazar sekmesinden hisse seçin</p>
+        <p className="text-text-tertiary text-sm mb-6">Yukarıdaki arama çubuğunu kullanın veya Pazar sekmesinden hisse seçin</p>
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -492,7 +492,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               }
             }}
             placeholder="Örn: AAPL, NVDA, MSFT..."
-            className="px-4 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-sm text-white
+            className="px-4 py-2 rounded-lg bg-surface-3 border border-stroke text-sm text-white
                        placeholder-white/30 focus:outline-none focus:border-violet-500/40 w-56"
           />
           <button
@@ -511,7 +511,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[40vh]">
       <span className="text-3xl mb-3">⚠️</span>
-      <p className="text-white/60 text-sm">{error}</p>
+      <p className="text-text-secondary text-sm">{error}</p>
     </div>
   )
   if (!data) return null
@@ -536,16 +536,16 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-bold text-white">{symbol}</h3>
-              <span className="text-xs text-white/50">{profile?.companyName}</span>
+              <span className="text-xs text-text-tertiary">{profile?.companyName}</span>
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               {profile?.sector && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/50">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-text-tertiary">
                   {profile.sector}
                 </span>
               )}
               {profile?.industry && (
-                <span className="text-[10px] text-white/40">{profile.industry}</span>
+                <span className="text-[10px] text-text-tertiary">{profile.industry}</span>
               )}
             </div>
           </div>
@@ -557,9 +557,9 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
           <div className="flex flex-col items-end gap-1">
             {fmpScore && fmpScore.confidence > 0 && (
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                fmpScore.confidence >= 70 ? 'text-hermes-green bg-hermes-green/10 border-hermes-green/20' :
+                fmpScore.confidence >= 70 ? 'text-success-400 bg-success-400/10 border-success-400/20' :
                 fmpScore.confidence >= 50 ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
-                'text-white/50 bg-white/[0.04] border-white/10'
+                'text-text-tertiary bg-surface-3 border-stroke'
               }`}>
                 Guven: {fmpScore.confidence}%
               </span>
@@ -578,7 +578,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               ${profile?.price?.toFixed(2) ?? '—'}
             </div>
             <div className={`text-sm tabular-nums ${
-              (profile?.changes ?? 0) >= 0 ? 'text-hermes-green' : 'text-red-400'
+              (profile?.changes ?? 0) >= 0 ? 'text-success-400' : 'text-red-400'
             }`}>
               {(profile?.changes ?? 0) >= 0 ? '+' : ''}{profile?.changes?.toFixed(2)} ({profile?.changesPercentage?.toFixed(2)}%)
             </div>
@@ -588,15 +588,15 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               onClick={handleToggleWatchlist}
               className={`px-3 py-1.5 rounded-lg border text-[10px] font-medium transition-all ${
                 watchlist.includes(symbol)
-                  ? 'bg-gold-400/15 border-gold-400/30 text-gold-300 hover:bg-gold-400/25'
-                  : 'border-white/10 text-white/60 hover:border-gold-400/30 hover:text-gold-300'
+                  ? 'bg-gold-400/15 border-stroke-gold-strong text-gold-300 hover:bg-gold-400/25'
+                  : 'border-stroke text-text-secondary hover:border-stroke-gold-strong hover:text-gold-300'
               }`}
             >
               {watchlist.includes(symbol) ? '★ Izleniyor' : '☆ Izle'}
             </button>
             <button
               onClick={() => onAddToCompare(symbol)}
-              className="px-3 py-1.5 rounded-lg border border-white/10 text-[10px] text-white/60
+              className="px-3 py-1.5 rounded-lg border border-stroke text-[10px] text-text-secondary
                          hover:border-violet-500/30 hover:text-violet-300 transition-all"
             >
               Karsilastir
@@ -629,7 +629,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
       {/* Score + DNA Barcode + Key Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3">
         {/* Score Gauge — Enhanced */}
-        <div className="lg:col-span-3 relative overflow-hidden bg-[#0F0F15] rounded-xl border border-gold-400/15 p-3 sm:p-4 flex flex-col items-center justify-center group/score hover:border-gold-400/30 transition-all duration-500">
+        <div className="lg:col-span-3 relative overflow-hidden bg-[#0F0F15] rounded-xl border border-stroke-gold p-3 sm:p-4 flex flex-col items-center justify-center group/score hover:border-stroke-gold-strong transition-all duration-500">
           <div className="absolute inset-0 bg-gradient-to-b from-gold-400/[0.03] to-transparent pointer-events-none" />
           <div className="absolute -top-20 -right-20 w-40 h-40 bg-gold-400/[0.04] rounded-full blur-3xl pointer-events-none group-hover/score:bg-gold-400/[0.08] transition-all duration-700" />
           <span className="relative text-[10px] text-gold-400/60 uppercase tracking-[0.15em] font-bold mb-2 sm:mb-3">HERMES AI Skor</span>
@@ -640,11 +640,11 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
 
         {/* DNA Barcode */}
         <div className="lg:col-span-4 bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
-          <span className="text-[10px] text-white/40 uppercase tracking-wider mb-2 sm:mb-3 block">Kategori Detayı</span>
+          <span className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2 sm:mb-3 block">Kategori Detayı</span>
           {fmpScore ? (
             <DNABarcode categories={fmpScore.categories} />
           ) : (
-            <p className="text-white/40 text-xs">Skor hesaplanamadı</p>
+            <p className="text-text-tertiary text-xs">Skor hesaplanamadı</p>
           )}
         </div>
 
@@ -712,44 +712,44 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
       {/* Yatirim Ozeti: Guven + Fiyatlama + Risk + Hedef + Dip + Izleme */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4 flex flex-col items-center justify-center">
-          <span className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Guven Puani</span>
+          <span className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Guven Puani</span>
           {fmpScore && fmpScore.confidence > 0 ? (
             <>
               <span className={`text-2xl font-black tabular-nums ${
-                fmpScore.confidence >= 70 ? 'text-hermes-green' :
-                fmpScore.confidence >= 50 ? 'text-amber-400' : 'text-white/50'
+                fmpScore.confidence >= 70 ? 'text-success-400' :
+                fmpScore.confidence >= 50 ? 'text-amber-400' : 'text-text-tertiary'
               }`}>{fmpScore.confidence}%</span>
               <span className={`text-[10px] mt-1 font-semibold ${
-                fmpScore.confidence >= 70 ? 'text-hermes-green/70' :
-                fmpScore.confidence >= 50 ? 'text-amber-400/70' : 'text-white/40'
+                fmpScore.confidence >= 70 ? 'text-success-400/70' :
+                fmpScore.confidence >= 50 ? 'text-amber-400/70' : 'text-text-tertiary'
               }`}>{fmpScore.confidence >= 70 ? 'YUKSEK' : fmpScore.confidence >= 50 ? 'ORTA' : 'DUSUK'}</span>
             </>
           ) : (
-            <span className="text-lg text-white/40">—</span>
+            <span className="text-lg text-text-tertiary">—</span>
           )}
         </div>
 
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4 flex flex-col items-center justify-center">
-          <span className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Fiyatlama</span>
+          <span className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Fiyatlama</span>
           {fmpScore && fmpScore.categories.valuation > 0 ? (() => {
             const val = getValuationFromScore(fmpScore.categories.valuation)
             return (
               <>
                 <span className={`text-base font-black px-3 py-1 rounded-lg border ${val.style}`}>{val.label}</span>
-                <span className="text-[10px] text-white/35 mt-1 tabular-nums">Skor: {Math.round(fmpScore.categories.valuation)}/100</span>
+                <span className="text-[10px] text-text-quaternary mt-1 tabular-nums">Skor: {Math.round(fmpScore.categories.valuation)}/100</span>
               </>
             )
           })() : (
-            <span className="text-lg text-white/40">—</span>
+            <span className="text-lg text-text-tertiary">—</span>
           )}
         </div>
 
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4 flex flex-col items-center justify-center">
-          <span className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Risk Seviyesi</span>
+          <span className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Risk Seviyesi</span>
           {fmpScore ? (
             <>
               <span className={`text-2xl font-black tabular-nums ${
-                fmpScore.total >= 66 ? 'text-hermes-green' :
+                fmpScore.total >= 66 ? 'text-success-400' :
                 fmpScore.total >= 33 ? 'text-amber-400' : 'text-red-400'
               }`}>{Math.round(fmpScore.total)}</span>
               <span className={`text-[10px] mt-1 font-semibold ${getScoreColor(fmpScore.level)}`}>
@@ -757,7 +757,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               </span>
             </>
           ) : (
-            <span className="text-lg text-white/40">—</span>
+            <span className="text-lg text-text-tertiary">—</span>
           )}
         </div>
 
@@ -771,7 +771,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
             return pct >= 30 ? 'border-emerald-500/40' : pct <= -20 ? 'border-red-500/40' : 'border-white/5'
           })()
         }`}>
-          <span className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Hedef Fiyat</span>
+          <span className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Hedef Fiyat</span>
           {(() => {
             const pt = priceTarget
             const price = profile?.price || 0
@@ -780,7 +780,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               const pct = ((target - price) / price) * 100
               return (
                 <>
-                  <span className={`text-2xl font-black tabular-nums ${pct >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                  <span className={`text-2xl font-black tabular-nums ${pct >= 0 ? 'text-success-400' : 'text-red-400'}`}>
                     ${target.toFixed(2)}
                   </span>
                   {pct >= 30 ? (
@@ -788,14 +788,14 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
                       YUKARI POTANSIYEL +{pct.toFixed(0)}%
                     </span>
                   ) : (
-                    <span className={`text-[10px] mt-1 font-semibold tabular-nums ${pct >= 0 ? 'text-hermes-green/70' : 'text-red-400/70'}`}>
+                    <span className={`text-[10px] mt-1 font-semibold tabular-nums ${pct >= 0 ? 'text-success-400/70' : 'text-red-400/70'}`}>
                       {pct >= 0 ? '+' : ''}{pct.toFixed(1)}%
                     </span>
                   )}
                 </>
               )
             }
-            return <span className="text-lg text-white/40">—</span>
+            return <span className="text-lg text-text-tertiary">—</span>
           })()}
         </div>
 
@@ -808,7 +808,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
             return (floor > 0 && price > 0 && price < floor) ? 'border-emerald-500/40' : 'border-white/5'
           })()
         }`}>
-          <span className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Dip Fiyat</span>
+          <span className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">Dip Fiyat</span>
           {(() => {
             const pt = priceTarget
             const price = profile?.price || 0
@@ -834,25 +834,25 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
                 </>
               )
             }
-            return <span className="text-lg text-white/40">—</span>
+            return <span className="text-lg text-text-tertiary">—</span>
           })()}
         </div>
 
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4 flex flex-col items-center justify-center gap-2">
-          <span className="text-[9px] text-white/40 uppercase tracking-wider">Izleme Listesi</span>
+          <span className="text-[9px] text-text-tertiary uppercase tracking-wider">Izleme Listesi</span>
           <button
             onClick={handleToggleWatchlist}
             className={`w-full px-4 py-2.5 rounded-xl border text-sm font-bold transition-all ${
               watchlist.includes(symbol)
-                ? 'bg-gold-400/15 border-gold-400/30 text-gold-300 hover:bg-gold-400/25 shadow-lg shadow-gold-400/10'
-                : 'border-white/10 text-white/60 hover:border-gold-400/30 hover:text-gold-300 hover:bg-gold-400/5'
+                ? 'bg-gold-400/15 border-stroke-gold-strong text-gold-300 hover:bg-gold-400/25 shadow-lg shadow-gold-400/10'
+                : 'border-stroke text-text-secondary hover:border-stroke-gold-strong hover:text-gold-300 hover:bg-gold-400/5'
             }`}
           >
             {watchlist.includes(symbol) ? '★ Izleniyor' : '☆ Izleme Listesine Ekle'}
           </button>
           <button
             onClick={() => onAddToCompare(symbol)}
-            className="w-full px-3 py-1.5 rounded-lg border border-white/10 text-[10px] text-white/50
+            className="w-full px-3 py-1.5 rounded-lg border border-stroke text-[10px] text-text-tertiary
                        hover:border-violet-500/30 hover:text-violet-300 transition-all"
           >
             Karsilastirmaya Ekle
@@ -864,21 +864,21 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
         {/* DCF Değerleme */}
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
-          <h4 className="text-[10px] text-white/40 uppercase tracking-wider mb-2 sm:mb-3">DCF Değerleme</h4>
+          <h4 className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2 sm:mb-3">DCF Değerleme</h4>
           {dcf && profile ? (
             <DCFDisplay dcfValue={dcf.dcf} currentPrice={profile.price} />
           ) : (
-            <p className="text-white/40 text-xs">DCF verisi yok</p>
+            <p className="text-text-tertiary text-xs">DCF verisi yok</p>
           )}
         </div>
 
         {/* Analist Consensus */}
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
-          <h4 className="text-[10px] text-white/40 uppercase tracking-wider mb-2 sm:mb-3">Analist Görüşü</h4>
+          <h4 className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2 sm:mb-3">Analist Görüşü</h4>
           {analystConsensus ? (
             <AnalystDisplay consensus={analystConsensus} priceTarget={priceTarget} currentPrice={profile?.price ?? 0} />
           ) : (
-            <p className="text-white/40 text-xs">Analist verisi yok</p>
+            <p className="text-text-tertiary text-xs">Analist verisi yok</p>
           )}
         </div>
       </div>
@@ -900,7 +900,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
       {/* Son Haberler (compact) */}
       {data.news.length > 0 && (
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
-          <h4 className="text-[10px] text-white/40 uppercase tracking-wider mb-2 sm:mb-3">Son Haberler</h4>
+          <h4 className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2 sm:mb-3">Son Haberler</h4>
           <div className="space-y-2">
             {data.news.slice(0, 5).map((n, i) => (
               <a
@@ -908,13 +908,13 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
                 href={n.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-start gap-3 py-1.5 hover:bg-white/[0.02] rounded-md px-2 transition-all"
+                className="flex items-start gap-3 py-1.5 hover:bg-surface-2 rounded-md px-2 transition-all"
               >
-                <span className="text-[10px] text-white/35 shrink-0 mt-0.5">
+                <span className="text-[10px] text-text-quaternary shrink-0 mt-0.5">
                   {new Date(n.publishedDate).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' })}
                 </span>
-                <span className="text-xs text-white/70 line-clamp-1">{n.title}</span>
-                <span className="text-[9px] text-white/40 shrink-0">{n.site}</span>
+                <span className="text-xs text-text-secondary line-clamp-1">{n.title}</span>
+                <span className="text-[9px] text-text-tertiary shrink-0">{n.site}</span>
               </a>
             ))}
           </div>
@@ -924,7 +924,7 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
       {/* Score Decomposition */}
       {fmpScore && (
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
-          <h4 className="text-[10px] text-white/40 uppercase tracking-wider mb-2 sm:mb-3">Skor Dağılımı</h4>
+          <h4 className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2 sm:mb-3">Skor Dağılımı</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
             {(Object.keys(fmpScore.categories) as Array<keyof typeof fmpScore.categories>).map(key => {
               const val = fmpScore.categories[key]
@@ -934,14 +934,14 @@ export default function TabStock({ symbol, onSelectSymbol, onAddToCompare }: Tab
               const color = getScoreColor(level)
 
               return (
-                <div key={key} className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
+                <div key={key} className="px-3 py-2 rounded-lg bg-surface-2 border border-white/5">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[9px] text-white/50">{CATEGORY_LABELS[key]}</span>
-                    <span className="text-[9px] text-white/40">{Math.round(weight * 100)}%</span>
+                    <span className="text-[9px] text-text-tertiary">{CATEGORY_LABELS[key]}</span>
+                    <span className="text-[9px] text-text-tertiary">{Math.round(weight * 100)}%</span>
                   </div>
                   <div className="flex items-baseline gap-1">
                     <span className={`text-lg font-bold tabular-nums ${color}`}>{val}</span>
-                    <span className="text-[9px] text-white/40">→ {weighted}p</span>
+                    <span className="text-[9px] text-text-tertiary">→ {weighted}p</span>
                   </div>
                 </div>
               )
@@ -976,17 +976,17 @@ function MetricCard({
 
   let textColor = 'text-white'
   if (!hasValue) {
-    textColor = 'text-white/40'
+    textColor = 'text-text-tertiary'
   } else if (thresholds && value != null) {
     if (value < thresholds.danger) textColor = 'text-red-400'
     else if (value < thresholds.warning) textColor = 'text-orange-400'
-    else textColor = 'text-hermes-green'
+    else textColor = 'text-success-400'
   }
 
   return (
-    <div className="bg-[#0F0F15] rounded-lg border border-white/5 px-3 py-2.5 hover:border-white/10 transition-all"
+    <div className="bg-[#0F0F15] rounded-lg border border-white/5 px-3 py-2.5 hover:border-stroke transition-all"
       title={tip || ''}>
-      <div className="text-[9px] text-white/40 uppercase tracking-wider mb-1">{label}</div>
+      <div className="text-[9px] text-text-tertiary uppercase tracking-wider mb-1">{label}</div>
       <div className={`text-base font-bold tabular-nums ${textColor}`}>{display}</div>
     </div>
   )
@@ -1000,18 +1000,18 @@ function DCFDisplay({ dcfValue, currentPrice }: { dcfValue: number; currentPrice
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[10px] text-white/50 mb-0.5">Gerçek Değer (DCF)</div>
+          <div className="text-[10px] text-text-tertiary mb-0.5">Gerçek Değer (DCF)</div>
           <div className="text-xl font-bold text-white tabular-nums">${dcfValue.toFixed(2)}</div>
         </div>
         <div className={`text-right px-3 py-2 rounded-lg ${
-          isUndervalued ? 'bg-hermes-green/10' : 'bg-red-500/10'
+          isUndervalued ? 'bg-success-400/10' : 'bg-red-500/10'
         }`}>
           <div className={`text-lg font-bold tabular-nums ${
-            isUndervalued ? 'text-hermes-green' : 'text-red-400'
+            isUndervalued ? 'text-success-400' : 'text-red-400'
           }`}>
             {isUndervalued ? '+' : ''}{upside.toFixed(1)}%
           </div>
-          <div className={`text-[9px] ${isUndervalued ? 'text-hermes-green/60' : 'text-red-400/60'}`}>
+          <div className={`text-[9px] ${isUndervalued ? 'text-success-400/60' : 'text-red-400/60'}`}>
             {isUndervalued ? 'UCUZ' : 'PAHALI'}
           </div>
         </div>
@@ -1020,7 +1020,7 @@ function DCFDisplay({ dcfValue, currentPrice }: { dcfValue: number; currentPrice
       {/* Bar */}
       <div className="relative h-2 bg-white/5 rounded-full overflow-hidden">
         <div
-          className={`absolute h-full rounded-full ${isUndervalued ? 'bg-hermes-green' : 'bg-red-400'}`}
+          className={`absolute h-full rounded-full ${isUndervalued ? 'bg-success-400' : 'bg-red-400'}`}
           style={{
             width: `${Math.min(100, Math.abs(upside))}%`,
             left: isUndervalued ? '50%' : `${50 - Math.min(50, Math.abs(upside))}%`,
@@ -1043,7 +1043,7 @@ function AnalystDisplay({
 
   const segments = [
     { label: 'S.Buy', count: consensus.strongBuy, color: 'bg-yellow-400' },
-    { label: 'Buy', count: consensus.buy, color: 'bg-hermes-green' },
+    { label: 'Buy', count: consensus.buy, color: 'bg-success-400' },
     { label: 'Hold', count: consensus.hold, color: 'bg-slate-400' },
     { label: 'Sell', count: consensus.sell, color: 'bg-orange-400' },
     { label: 'S.Sell', count: consensus.strongSell, color: 'bg-red-400' },
@@ -1074,8 +1074,8 @@ function AnalystDisplay({
         {segments.map((seg, i) => (
           <div key={i} className="flex items-center gap-1">
             <span className={`w-1.5 h-1.5 rounded-sm ${seg.color}`} />
-            <span className="text-white/50">{seg.label}</span>
-            <span className="text-white/60 font-medium">{seg.count}</span>
+            <span className="text-text-tertiary">{seg.label}</span>
+            <span className="text-text-secondary font-medium">{seg.count}</span>
           </div>
         ))}
       </div>
@@ -1084,12 +1084,12 @@ function AnalystDisplay({
       {priceTarget && (
         <div className="flex items-center justify-between pt-2 border-t border-white/5">
           <div>
-            <div className="text-[9px] text-white/40">Hedef Fiyat</div>
+            <div className="text-[9px] text-text-tertiary">Hedef Fiyat</div>
             <div className="text-base font-bold text-white tabular-nums">
               ${priceTarget.targetConsensus.toFixed(2)}
             </div>
           </div>
-          <div className={`text-sm font-bold tabular-nums ${targetUpside >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+          <div className={`text-sm font-bold tabular-nums ${targetUpside >= 0 ? 'text-success-400' : 'text-red-400'}`}>
             {targetUpside >= 0 ? '▲' : '▼'} {Math.abs(targetUpside).toFixed(1)}%
           </div>
         </div>
@@ -1101,7 +1101,7 @@ function AnalystDisplay({
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-[#0F0F15] rounded-lg border border-white/5 px-3 py-2">
-      <div className="text-[9px] text-white/40 uppercase mb-0.5">{label}</div>
+      <div className="text-[9px] text-text-tertiary uppercase mb-0.5">{label}</div>
       <div className="text-xs text-white font-medium tabular-nums">{value}</div>
     </div>
   )
@@ -1153,10 +1153,10 @@ function CompanyIntelligenceCards({ symbol, companyName }: { symbol: string; com
       {/* Rakipler */}
       {hasPeers && (
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
-          <h4 className="text-[10px] text-white/40 uppercase tracking-wider mb-2">Rakipler</h4>
+          <h4 className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2">Rakipler</h4>
           <div className="flex flex-wrap gap-1">
             {peers.slice(0, 8).map(p => (
-              <span key={p} className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.06] text-[11px] text-white/60 hover:text-violet-400 cursor-pointer transition-colors">
+              <span key={p} className="px-2 py-0.5 rounded-md bg-surface-3 border border-stroke-subtle text-[11px] text-text-secondary hover:text-violet-400 cursor-pointer transition-colors">
                 {p}
               </span>
             ))}
@@ -1167,16 +1167,16 @@ function CompanyIntelligenceCards({ symbol, companyName }: { symbol: string; com
       {/* Yonetim */}
       {hasExecs && (
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
-          <h4 className="text-[10px] text-white/40 uppercase tracking-wider mb-2">Ust Yonetim</h4>
+          <h4 className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2">Ust Yonetim</h4>
           <div className="space-y-1.5">
             {executives.slice(0, 4).map((e, i) => (
               <div key={i} className="flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] text-white/60">{e.name}</span>
-                  <span className="text-[9px] text-white/35 ml-1">{e.title}</span>
+                  <span className="text-[11px] text-text-secondary">{e.name}</span>
+                  <span className="text-[9px] text-text-quaternary ml-1">{e.title}</span>
                 </div>
                 {e.pay != null && e.pay > 0 && (
-                  <span className="text-[10px] text-white/40 tabular-nums">
+                  <span className="text-[10px] text-text-tertiary tabular-nums">
                     ${(e.pay / 1e6).toFixed(1)}M
                   </span>
                 )}
@@ -1189,12 +1189,12 @@ function CompanyIntelligenceCards({ symbol, companyName }: { symbol: string; com
       {/* Son Aciklamalar */}
       {hasPress && (
         <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
-          <h4 className="text-[10px] text-white/40 uppercase tracking-wider mb-2">Son Aciklamalar</h4>
+          <h4 className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2">Son Aciklamalar</h4>
           <div className="space-y-1.5">
             {pressReleases.map((p, i) => (
               <div key={i}>
-                <div className="text-[11px] text-white/60 line-clamp-1">{p.title}</div>
-                <div className="text-[9px] text-white/40">{p.date}</div>
+                <div className="text-[11px] text-text-secondary line-clamp-1">{p.title}</div>
+                <div className="text-[9px] text-text-tertiary">{p.date}</div>
               </div>
             ))}
           </div>
@@ -1224,8 +1224,8 @@ function TechnicalSummaryCard({ symbol }: { symbol: string }) {
   if (!tech) return null
 
   const TREND_COLORS: Record<string, string> = {
-    'STRONG_UP': 'text-hermes-green', 'UP': 'text-hermes-green/70',
-    'NEUTRAL': 'text-white/50', 'DOWN': 'text-orange-400', 'STRONG_DOWN': 'text-red-400'
+    'STRONG_UP': 'text-success-400', 'UP': 'text-success-400/70',
+    'NEUTRAL': 'text-text-tertiary', 'DOWN': 'text-orange-400', 'STRONG_DOWN': 'text-red-400'
   }
   const TREND_LABELS: Record<string, string> = {
     'STRONG_UP': 'GUCLU YUKSELIS', 'UP': 'YUKSELIS',
@@ -1234,39 +1234,39 @@ function TechnicalSummaryCard({ symbol }: { symbol: string }) {
 
   return (
     <div className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
-      <h4 className="text-[10px] text-white/40 uppercase tracking-wider mb-2 sm:mb-3">Teknik Ozet</h4>
+      <h4 className="text-[10px] text-text-tertiary uppercase tracking-wider mb-2 sm:mb-3">Teknik Ozet</h4>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
-        <div className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
-          <div className="text-[9px] text-white/40 mb-0.5">RSI (14)</div>
+        <div className="px-3 py-2 rounded-lg bg-surface-2 border border-white/5">
+          <div className="text-[9px] text-text-tertiary mb-0.5">RSI (14)</div>
           <div className={`text-base font-bold tabular-nums ${
-            (tech.rsi14 ?? 50) < 30 ? 'text-hermes-green' : (tech.rsi14 ?? 50) > 70 ? 'text-red-400' : 'text-white'
+            (tech.rsi14 ?? 50) < 30 ? 'text-success-400' : (tech.rsi14 ?? 50) > 70 ? 'text-red-400' : 'text-white'
           }`}>{tech.rsi14?.toFixed(1) ?? '--'}</div>
           <div className={`text-[9px] ${
-            tech.rsiSignal === 'OVERSOLD' ? 'text-hermes-green/60' : tech.rsiSignal === 'OVERBOUGHT' ? 'text-red-400/60' : 'text-white/35'
+            tech.rsiSignal === 'OVERSOLD' ? 'text-success-400/60' : tech.rsiSignal === 'OVERBOUGHT' ? 'text-red-400/60' : 'text-text-quaternary'
           }`}>{tech.rsiSignal === 'OVERSOLD' ? 'Asiri Satim' : tech.rsiSignal === 'OVERBOUGHT' ? 'Asiri Alim' : 'Notr'}</div>
         </div>
-        <div className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
-          <div className="text-[9px] text-white/40 mb-0.5">SMA CROSS</div>
-          <div className={`text-sm font-bold ${tech.goldenCross ? 'text-hermes-green' : 'text-red-400'}`}>
+        <div className="px-3 py-2 rounded-lg bg-surface-2 border border-white/5">
+          <div className="text-[9px] text-text-tertiary mb-0.5">SMA CROSS</div>
+          <div className={`text-sm font-bold ${tech.goldenCross ? 'text-success-400' : 'text-red-400'}`}>
             {tech.goldenCross ? 'GOLDEN' : 'DEATH'}
           </div>
-          <div className="text-[9px] text-white/35">50/200</div>
+          <div className="text-[9px] text-text-quaternary">50/200</div>
         </div>
-        <div className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
-          <div className="text-[9px] text-white/40 mb-0.5">ADX (14)</div>
+        <div className="px-3 py-2 rounded-lg bg-surface-2 border border-white/5">
+          <div className="text-[9px] text-text-tertiary mb-0.5">ADX (14)</div>
           <div className="text-base font-bold text-white tabular-nums">{tech.adx14?.toFixed(1) ?? '--'}</div>
-          <div className="text-[9px] text-white/35">{(tech.adx14 ?? 0) > 25 ? 'Guclu Trend' : 'Zayif'}</div>
+          <div className="text-[9px] text-text-quaternary">{(tech.adx14 ?? 0) > 25 ? 'Guclu Trend' : 'Zayif'}</div>
         </div>
-        <div className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
-          <div className="text-[9px] text-white/40 mb-0.5">TREND</div>
-          <div className={`text-sm font-bold ${TREND_COLORS[tech.trendStrength] || 'text-white/50'}`}>
+        <div className="px-3 py-2 rounded-lg bg-surface-2 border border-white/5">
+          <div className="text-[9px] text-text-tertiary mb-0.5">TREND</div>
+          <div className={`text-sm font-bold ${TREND_COLORS[tech.trendStrength] || 'text-text-tertiary'}`}>
             {TREND_LABELS[tech.trendStrength] || 'YATAY'}
           </div>
         </div>
-        <div className="px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5">
-          <div className="text-[9px] text-white/40 mb-0.5">EMA 20</div>
+        <div className="px-3 py-2 rounded-lg bg-surface-2 border border-white/5">
+          <div className="text-[9px] text-text-tertiary mb-0.5">EMA 20</div>
           <div className="text-sm font-bold text-white tabular-nums">${tech.ema20?.toFixed(2) ?? '--'}</div>
-          <div className={`text-[9px] ${tech.priceAboveEma20 ? 'text-hermes-green/60' : 'text-red-400/60'}`}>
+          <div className={`text-[9px] ${tech.priceAboveEma20 ? 'text-success-400/60' : 'text-red-400/60'}`}>
             Fiyat {tech.priceAboveEma20 ? 'ustunde' : 'altinda'}
           </div>
         </div>
@@ -1288,7 +1288,7 @@ function StockSkeleton() {
     <div className="relative space-y-4 animate-fade-in overflow-hidden">
       <div className="absolute inset-0 data-stream pointer-events-none" />
       {/* Header */}
-      <div className="bg-[#1A1A1A]/60 rounded-xl border border-white/[0.05] p-4 h-16 opacity-0 overflow-hidden"
+      <div className="bg-surface-2/60 rounded-xl border border-stroke-subtle p-4 h-16 opacity-0 overflow-hidden"
         style={{ animation: 'card-reveal 0.5s ease-out 0.1s forwards' }}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg skeleton-shimmer" />
@@ -1302,11 +1302,11 @@ function StockSkeleton() {
       {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-3 relative z-10">
         {SECTIONS.slice(1).map((s, i) => (
-          <div key={i} className={`${s.w} bg-[#1A1A1A]/60 rounded-xl border border-white/[0.05] p-3 ${s.h} opacity-0 overflow-hidden`}
+          <div key={i} className={`${s.w} bg-surface-2/60 rounded-xl border border-stroke-subtle p-3 ${s.h} opacity-0 overflow-hidden`}
             style={{ animation: `card-reveal 0.5s ease-out ${0.25 + i * 0.15}s forwards` }}>
             <div className="flex items-center gap-1.5 mb-2.5">
               <div className="w-1.5 h-1.5 rounded-full bg-gold-400/25" style={{ animation: 'heartbeat 2s ease-in-out infinite' }} />
-              <span className="text-[9px] text-white/40 font-medium tracking-wider uppercase">{s.label}</span>
+              <span className="text-[9px] text-text-tertiary font-medium tracking-wider uppercase">{s.label}</span>
             </div>
             <div className="space-y-2">
               {Array.from({ length: i === 2 ? 6 : 4 }).map((_, j) => (
@@ -1320,7 +1320,7 @@ function StockSkeleton() {
         ))}
       </div>
       <div className="flex justify-center relative z-10 opacity-0" style={{ animation: 'card-reveal 0.4s ease-out 0.8s forwards' }}>
-        <span className="text-[9px] text-white/35 font-mono">Hisse detaylari yukleniyor...</span>
+        <span className="text-[9px] text-text-quaternary font-mono">Hisse detaylari yukleniyor...</span>
       </div>
     </div>
   )

@@ -37,16 +37,16 @@ function getSignalLabel(signalType: string): string {
 function getSignalStyle(signalType: string) {
   const mapped = signalType === 'strong_long' ? 'long' : signalType === 'strong_short' ? 'short' : signalType
   const styles: Record<string, { bg: string; text: string; border: string }> = {
-    long: { bg: 'bg-hermes-green/15', text: 'text-hermes-green', border: 'border-hermes-green/40' },
-    neutral: { bg: 'bg-white/[0.06]', text: 'text-white/60', border: 'border-white/10' },
+    long: { bg: 'bg-success-400/15', text: 'text-success-400', border: 'border-success-400/40' },
+    neutral: { bg: 'bg-surface-3', text: 'text-text-secondary', border: 'border-stroke' },
     short: { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/40' },
   }
   return styles[mapped] || styles.neutral
 }
 
 function getScoreColor(score: number): string {
-  if (score <= 34) return 'text-hermes-green'
-  if (score <= 91) return 'text-white/60'
+  if (score <= 34) return 'text-success-400'
+  if (score <= 91) return 'text-text-secondary'
   return 'text-red-400'
 }
 
@@ -97,10 +97,10 @@ function FilterButton({ active, onClick, children, count, variant = 'default' }:
   variant?: 'default' | 'yellow' | 'green' | 'gray' | 'orange' | 'red'
 }) {
   const variants: Record<string, string> = {
-    default: active ? 'bg-gold-400/10 border-gold-400/30 text-gold-300' : 'bg-transparent border-gold-400/8 text-white/50 hover:text-white/60',
-    yellow: active ? 'bg-gold-400/15 border-gold-400/40 text-gold-300' : 'bg-transparent border-gold-400/10 text-gold-400/40 hover:text-gold-300',
-    green: active ? 'bg-hermes-green/15 border-hermes-green/40 text-hermes-green' : 'bg-transparent border-hermes-green/15 text-hermes-green/40 hover:text-hermes-green',
-    gray: active ? 'bg-white/[0.06] border-white/15 text-white/60' : 'bg-transparent border-white/8 text-white/40 hover:text-white/60',
+    default: active ? 'bg-gold-400/10 border-stroke-gold-strong text-gold-300' : 'bg-transparent border-stroke-gold text-text-tertiary hover:text-text-secondary',
+    yellow: active ? 'bg-gold-400/15 border-stroke-gold-strong text-gold-300' : 'bg-transparent border-stroke-gold text-gold-400/40 hover:text-gold-300',
+    green: active ? 'bg-success-400/15 border-success-400/40 text-success-400' : 'bg-transparent border-success-400/15 text-success-400/40 hover:text-success-400',
+    gray: active ? 'bg-surface-3 border-stroke text-text-secondary' : 'bg-transparent border-white/8 text-text-tertiary hover:text-text-secondary',
     orange: active ? 'bg-orange-500/15 border-orange-500/40 text-orange-400' : 'bg-transparent border-orange-500/15 text-orange-500/40 hover:text-orange-400',
     red: active ? 'bg-red-500/15 border-red-500/40 text-red-400' : 'bg-transparent border-red-500/15 text-red-500/40 hover:text-red-400',
   }
@@ -108,7 +108,7 @@ function FilterButton({ active, onClick, children, count, variant = 'default' }:
     <button onClick={onClick} className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all flex items-center gap-1.5 ${variants[variant]}`}>
       {children}
       {count !== undefined && (
-        <span className={`font-bold tabular-nums ${active ? 'text-white/90' : 'text-white/60'}`}>
+        <span className={`font-bold tabular-nums ${active ? 'text-text-primary' : 'text-text-secondary'}`}>
           {count}
         </span>
       )}
@@ -117,22 +117,22 @@ function FilterButton({ active, onClick, children, count, variant = 'default' }:
 }
 
 function getValuationStyle(label: string): string {
-  if (label === 'COK UCUZ') return 'text-hermes-green bg-hermes-green/15'
-  if (label === 'UCUZ') return 'text-hermes-green bg-hermes-green/10'
-  if (label === 'NORMAL') return 'text-slate-300 bg-white/[0.04]'
+  if (label === 'COK UCUZ') return 'text-success-400 bg-success-400/15'
+  if (label === 'UCUZ') return 'text-success-400 bg-success-400/10'
+  if (label === 'NORMAL') return 'text-slate-300 bg-surface-3'
   if (label === 'PAHALI') return 'text-orange-400 bg-orange-500/10'
   if (label === 'COK PAHALI') return 'text-red-400 bg-red-500/10'
-  return 'text-white/35 bg-white/[0.03]'
+  return 'text-text-quaternary bg-surface-2'
 }
 
 function getZoneStyle(zone: string): string {
   switch (zone) {
-    case 'BUY_ZONE': return 'text-hermes-green bg-hermes-green/15 border-hermes-green/30'
-    case 'ACCUMULATE': return 'text-hermes-green bg-hermes-green/8 border-hermes-green/20'
-    case 'NEUTRAL': return 'text-slate-300 bg-white/[0.04] border-white/10'
+    case 'BUY_ZONE': return 'text-success-400 bg-success-400/15 border-success-400/30'
+    case 'ACCUMULATE': return 'text-success-400 bg-success-400/8 border-success-400/20'
+    case 'NEUTRAL': return 'text-slate-300 bg-surface-3 border-stroke'
     case 'DISTRIBUTE': return 'text-orange-400 bg-orange-500/8 border-orange-500/20'
     case 'SELL_ZONE': return 'text-red-400 bg-red-500/15 border-red-500/30'
-    default: return 'text-white/35 bg-white/[0.03] border-white/5'
+    default: return 'text-text-quaternary bg-surface-2 border-white/5'
   }
 }
 
@@ -165,21 +165,21 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
         <td className="px-2 py-3 w-10">
           <button
             onClick={(e) => { e.stopPropagation(); onWatchlistToggle() }}
-            className={`p-1 rounded transition-all ${inWatchlist ? 'text-gold-300' : 'text-white/40 hover:text-gold-400/50'}`}
+            className={`p-1 rounded transition-all ${inWatchlist ? 'text-gold-300' : 'text-text-tertiary hover:text-gold-400/50'}`}
           >
             {inWatchlist ? '★' : '☆'}
           </button>
         </td>
         <td className="px-3 py-3" onClick={onToggle}>
           <div className="flex items-center gap-2">
-            <span className="font-mono font-semibold text-white/90">{symbol}</span>
+            <span className="font-mono font-semibold text-text-primary">{symbol}</span>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-gold-400/8 text-gold-400/50">{segment}</span>
           </div>
         </td>
         <td className="px-3 py-3 text-right" onClick={onToggle}>
-          <PriceFlashCell price={quote?.price || hermes.price} className="font-mono text-white/90 text-sm" />
+          <PriceFlashCell price={quote?.price || hermes.price} className="font-mono text-text-primary text-sm" />
         </td>
-        <td className={`px-3 py-3 text-right font-mono ${(quote?.changePercent ?? 0) >= 0 ? 'text-hermes-green' : 'text-red-400'}`} onClick={onToggle}>
+        <td className={`px-3 py-3 text-right font-mono ${(quote?.changePercent ?? 0) >= 0 ? 'text-success-400' : 'text-red-400'}`} onClick={onToggle}>
           {quote?.changePercent ? `${quote.changePercent >= 0 ? '+' : ''}${quote.changePercent.toFixed(2)}%` : '-'}
         </td>
         <td className="px-3 py-3" onClick={onToggle}>
@@ -189,39 +189,39 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
           <div className="flex items-center gap-1.5 flex-wrap">
             <SignalBadge type={hermes.signalType as 'long' | 'neutral' | 'short' | 'strong_long' | 'strong_short'} label={getSignalLabel(hermes.signalType)} />
             {hermes.score >= 35 && hermes.score <= 40 && (
-              <span className="px-1 py-0.5 rounded text-[9px] bg-hermes-green/10 text-hermes-green/80 border border-hermes-green/20" title="Skor LONG bolgelerine yaklastigi">↓L</span>
+              <span className="px-1 py-0.5 rounded text-[9px] bg-success-400/10 text-success-400/80 border border-success-400/20" title="Skor LONG bolgelerine yaklastigi">↓L</span>
             )}
             {hermes.score >= 87 && hermes.score <= 91 && (
               <span className="px-1 py-0.5 rounded text-[9px] bg-red-400/10 text-red-400/80 border border-red-400/20" title="Skor SHORT bolgelerine yaklastigi">↑S</span>
             )}
             {hermes.delay?.waitingForConfirm && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] bg-gold-400/15 text-gold-300 border border-gold-400/30">
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-gold-400/15 text-gold-300 border border-stroke-gold-strong">
                 {hermes.delay.barsRemaining} bar
               </span>
             )}
             {hermes.delay?.confirmed && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] bg-hermes-green/15 text-hermes-green border border-hermes-green/30">
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-success-400/15 text-success-400 border border-success-400/30">
                 ✓
               </span>
             )}
           </div>
         </td>
         <td className="px-3 py-3 text-right hidden md:table-cell" onClick={onToggle}>
-          <span className={`font-mono ${hermes.indicators.rsi >= 70 ? 'text-red-400' : hermes.indicators.rsi <= 30 ? 'text-hermes-green' : 'text-white/60'}`}>
+          <span className={`font-mono ${hermes.indicators.rsi >= 70 ? 'text-red-400' : hermes.indicators.rsi <= 30 ? 'text-success-400' : 'text-text-secondary'}`}>
             {Math.round(hermes.indicators.rsi)}
           </span>
         </td>
         <td className="px-3 py-3 text-right hidden md:table-cell" onClick={onToggle}>
-          <span className={`font-mono ${hermes.indicators.mfi >= 75 ? 'text-red-400' : hermes.indicators.mfi <= 25 ? 'text-hermes-green' : 'text-white/60'}`}>
+          <span className={`font-mono ${hermes.indicators.mfi >= 75 ? 'text-red-400' : hermes.indicators.mfi <= 25 ? 'text-success-400' : 'text-text-secondary'}`}>
             {Math.round(hermes.indicators.mfi)}
           </span>
         </td>
         <td className="px-3 py-3 text-right hidden lg:table-cell" onClick={onToggle}>
-          <span className="font-mono text-white/60">{formatMarketCap(quote?.marketCap || 0)}</span>
+          <span className="font-mono text-text-secondary">{formatMarketCap(quote?.marketCap || 0)}</span>
         </td>
         <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
           <span className={`text-[11px] tabular-nums font-medium ${
-            confidence >= 70 ? 'text-hermes-green/60' : confidence >= 50 ? 'text-amber-400/60' : 'text-white/35'
+            confidence >= 70 ? 'text-success-400/60' : confidence >= 50 ? 'text-amber-400/60' : 'text-text-quaternary'
           }`}>{confidence > 0 ? `${confidence}%` : '—'}</span>
         </td>
         <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
@@ -229,10 +229,10 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${getValuationStyle(valuationLabel)}`}>
               {valuationLabel}
             </span>
-          ) : <span className="text-white/40 text-[10px]">—</span>}
+          ) : <span className="text-text-tertiary text-[10px]">—</span>}
         </td>
         <td className="px-3 py-3 text-center hidden lg:table-cell" onClick={onToggle}>
-          <span className={`text-xs ${hermes.multipliers.quality > 0.9 ? 'text-hermes-green' : hermes.multipliers.quality < 0.7 ? 'text-red-400' : 'text-gold-300'}`}>
+          <span className={`text-xs ${hermes.multipliers.quality > 0.9 ? 'text-success-400' : hermes.multipliers.quality < 0.7 ? 'text-red-400' : 'text-gold-300'}`}>
             {hermes.multipliers.quality.toFixed(2)}
           </span>
         </td>
@@ -262,41 +262,41 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
               <td className="px-3 py-3 text-right hidden xl:table-cell" onClick={onToggle}>
                 {tgt > 0 ? (
                   <div className="flex flex-col items-end">
-                    <span className={`font-mono text-xs font-semibold ${tgtPct >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                    <span className={`font-mono text-xs font-semibold ${tgtPct >= 0 ? 'text-success-400' : 'text-red-400'}`}>
                       ${tgt.toFixed(2)}
                     </span>
-                    <span className="text-[10px] text-white/40">{tgtPct >= 0 ? '+' : ''}{tgtPct.toFixed(1)}%</span>
+                    <span className="text-[10px] text-text-tertiary">{tgtPct >= 0 ? '+' : ''}{tgtPct.toFixed(1)}%</span>
                   </div>
-                ) : <span className="text-white/40 text-[10px]">{'\u2014'}</span>}
+                ) : <span className="text-text-tertiary text-[10px]">{'\u2014'}</span>}
               </td>
               <td className="px-3 py-3 text-right hidden xl:table-cell" onClick={onToggle}>
                 {flr > 0 ? (
                   <div className="flex flex-col items-end">
                     <span className="font-mono text-xs text-red-400/80">${flr.toFixed(2)}</span>
-                    <span className="text-[10px] text-white/40">-{flrPct.toFixed(1)}%</span>
+                    <span className="text-[10px] text-text-tertiary">-{flrPct.toFixed(1)}%</span>
                   </div>
-                ) : <span className="text-white/40 text-[10px]">{'\u2014'}</span>}
+                ) : <span className="text-text-tertiary text-[10px]">{'\u2014'}</span>}
               </td>
               <td className="px-3 py-3 text-center hidden xl:table-cell" onClick={onToggle}>
                 {rr > 0 ? (
-                  <span className={`font-mono text-xs font-bold ${rr >= 2 ? 'text-hermes-green' : rr >= 1 ? 'text-gold-300' : 'text-red-400'}`}>
+                  <span className={`font-mono text-xs font-bold ${rr >= 2 ? 'text-success-400' : rr >= 1 ? 'text-gold-300' : 'text-red-400'}`}>
                     {rr.toFixed(1)}
                   </span>
-                ) : <span className="text-white/40 text-[10px]">{'\u2014'}</span>}
+                ) : <span className="text-text-tertiary text-[10px]">{'\u2014'}</span>}
               </td>
               <td className="px-3 py-3 text-center hidden xl:table-cell" onClick={onToggle}>
                 {zone ? (
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap border ${getZoneStyle(zone)}`}>
                     {ZONE_LABELS[zone] || zone}
                   </span>
-                ) : <span className="text-white/40 text-[10px]">{'\u2014'}</span>}
+                ) : <span className="text-text-tertiary text-[10px]">{'\u2014'}</span>}
               </td>
             </>
           )
         })()}
       </tr>
       {expanded && (
-        <tr className="border-b border-gold-400/5 bg-midnight-50/30">
+        <tr className="border-b border-gold-400/5 bg-surface-3/30">
           <td colSpan={16} className="px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4 text-xs">
               <DetailBlock title="Bilesenler (70/15/15)" items={[
@@ -329,9 +329,9 @@ const StockRow = memo(function StockRow({ result, expanded, onToggle, onWatchlis
               <DetailBlock title="Veri Durumu" items={[
                 { label: 'Bar', value: hermes.dataPoints.toString() },
                 { label: 'MktCap', value: formatMarketCap(quote?.marketCap || 0) },
-                { label: 'Durum', value: hermes.hasEnough52w ? 'TAM' : 'KISMI', color: hermes.hasEnough52w ? 'text-hermes-green' : 'text-orange-400' },
+                { label: 'Durum', value: hermes.hasEnough52w ? 'TAM' : 'KISMI', color: hermes.hasEnough52w ? 'text-success-400' : 'text-orange-400' },
                 { label: 'Delay', value: hermes.delay ? (hermes.delay.confirmed ? 'CONFIRMED' : `${hermes.delay.barsRemaining} bar bekle`) : '-', 
-                  color: hermes.delay?.confirmed ? 'text-hermes-green' : hermes.delay?.waitingForConfirm ? 'text-gold-300' : 'text-white/40' },
+                  color: hermes.delay?.confirmed ? 'text-success-400' : hermes.delay?.waitingForConfirm ? 'text-gold-300' : 'text-text-tertiary' },
               ]} />
             </div>
           </td>
@@ -348,8 +348,8 @@ function DetailBlock({ title, items }: { title: string; items: { label: string; 
       <div className="space-y-1">
         {items.map(item => (
           <div key={item.label} className="flex justify-between">
-            <span className="text-white/45">{item.label}</span>
-            <span className={item.color || 'text-white/70'}>{item.value}</span>
+            <span className="text-text-tertiary">{item.label}</span>
+            <span className={item.color || 'text-text-secondary'}>{item.value}</span>
           </div>
         ))}
       </div>
@@ -455,7 +455,7 @@ export default function ModuleNasdaqTrade() {
   })
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <span className="text-white/40 ml-1">↕</span>
+    if (sortField !== field) return <span className="text-text-tertiary ml-1">↕</span>
     return <span className="text-gold-300 ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>
   }
 
@@ -480,7 +480,7 @@ export default function ModuleNasdaqTrade() {
               <FilterButton active={signalFilter === 'short'} onClick={() => setSignalFilter('short')} variant="red" count={signalCounts.short}>Short</FilterButton>
             </div>
           </div>
-          <div className="hidden lg:block w-px h-8 bg-white/[0.06] shrink-0" />
+          <div className="hidden lg:block w-px h-8 bg-surface-3 shrink-0" />
           {/* Market Cap */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-xs text-gold-400/50 w-16 shrink-0">Market Cap</span>
@@ -491,7 +491,7 @@ export default function ModuleNasdaqTrade() {
               ))}
             </div>
           </div>
-          <div className="hidden lg:block w-px h-8 bg-white/[0.06] shrink-0" />
+          <div className="hidden lg:block w-px h-8 bg-surface-3 shrink-0" />
           {/* Fiyatlama */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <span className="text-xs text-gold-400/50 w-16 shrink-0">Fiyatlama</span>
@@ -515,20 +515,20 @@ export default function ModuleNasdaqTrade() {
               placeholder="Sembol ara..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="bg-midnight-50/50 border border-gold-400/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-gold-400/25 w-32"
+              className="bg-surface-3/50 border border-stroke-gold rounded-lg px-3 py-1.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-stroke-gold w-32"
             />
             {canCSV && (
               <button
                 onClick={() => exportToCSV(filteredResults, 'hermes_52week', fmpStocksMap)}
                 disabled={filteredResults.length === 0}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold-400/8 hover:bg-gold-400/15 text-gold-400/60 hover:text-gold-300 border border-gold-400/15 flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gold-400/8 hover:bg-gold-400/15 text-gold-400/60 hover:text-gold-300 border border-stroke-gold flex items-center gap-1.5"
               >
                 CSV
               </button>
             )}
-            <span className="text-xs text-white/60 tabular-nums whitespace-nowrap">
+            <span className="text-xs text-text-secondary tabular-nums whitespace-nowrap">
               <span className="font-bold text-gold-300">{filteredResults.length}</span>
-              <span className="text-white/40"> / {results.length}</span>
+              <span className="text-text-tertiary"> / {results.length}</span>
             </span>
           </div>
         </div>
@@ -550,22 +550,22 @@ export default function ModuleNasdaqTrade() {
         >
           <table className="w-full">
             <thead className="sticky top-0 z-10 bg-midnight/95 backdrop-blur-sm">
-              <tr className="border-b border-gold-400/10 text-white/45 text-xs uppercase tracking-wider">
+              <tr className="border-b border-stroke-gold text-text-tertiary text-xs uppercase tracking-wider">
                 <th className="px-2 py-3 w-10"></th>
-                <th className="px-3 py-3 text-left cursor-pointer hover:text-white/80" onClick={() => handleSort('symbol')}>Sembol <SortIcon field="symbol" /></th>
-                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80" onClick={() => handleSort('price')}>Fiyat <SortIcon field="price" /></th>
-                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80" onClick={() => handleSort('change')}>Degisim <SortIcon field="change" /></th>
-                <th className="px-3 py-3 text-left cursor-pointer hover:text-white/80" onClick={() => handleSort('score')}>Skor <SortIcon field="score" /></th>
-                <th className="px-3 py-3 text-left cursor-pointer hover:text-white/80" onClick={() => handleSort('signal')}>Sinyal <SortIcon field="signal" /></th>
-                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden md:table-cell" onClick={() => handleSort('rsi')}>RSI <SortIcon field="rsi" /></th>
-                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden md:table-cell" onClick={() => handleSort('mfi')}>MFI <SortIcon field="mfi" /></th>
-                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('marketCap')}>MktCap <SortIcon field="marketCap" /></th>
-                <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('confidence')} title="Temel analiz veri tamligi (Confidence %)">Guven <SortIcon field="confidence" /></th>
-                <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('valuation')} title="Fiyatlama seviyesi (COK UCUZ -> COK PAHALI)">Fiyatlama <SortIcon field="valuation" /></th>
-                <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden lg:table-cell" onClick={() => handleSort('quality')}>Kalite <SortIcon field="quality" /></th>
-                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden xl:table-cell" onClick={() => handleSort('targetPrice')} title="Hedef Fiyat (VWAP+Analist+DCF)">Hedef <SortIcon field="targetPrice" /></th>
-                <th className="px-3 py-3 text-right cursor-pointer hover:text-white/80 hidden xl:table-cell" onClick={() => handleSort('floorPrice')} title="Dip Fiyat (Destek seviyeleri)">Dip <SortIcon field="floorPrice" /></th>
-                <th className="px-3 py-3 text-center cursor-pointer hover:text-white/80 hidden xl:table-cell" onClick={() => handleSort('riskReward')} title="Risk/Odul Orani (>1 = olumlu)">R:R <SortIcon field="riskReward" /></th>
+                <th className="px-3 py-3 text-left cursor-pointer hover:text-text-primary" onClick={() => handleSort('symbol')}>Sembol <SortIcon field="symbol" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-text-primary" onClick={() => handleSort('price')}>Fiyat <SortIcon field="price" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-text-primary" onClick={() => handleSort('change')}>Degisim <SortIcon field="change" /></th>
+                <th className="px-3 py-3 text-left cursor-pointer hover:text-text-primary" onClick={() => handleSort('score')}>Skor <SortIcon field="score" /></th>
+                <th className="px-3 py-3 text-left cursor-pointer hover:text-text-primary" onClick={() => handleSort('signal')}>Sinyal <SortIcon field="signal" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-text-primary hidden md:table-cell" onClick={() => handleSort('rsi')}>RSI <SortIcon field="rsi" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-text-primary hidden md:table-cell" onClick={() => handleSort('mfi')}>MFI <SortIcon field="mfi" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-text-primary hidden lg:table-cell" onClick={() => handleSort('marketCap')}>MktCap <SortIcon field="marketCap" /></th>
+                <th className="px-3 py-3 text-center cursor-pointer hover:text-text-primary hidden lg:table-cell" onClick={() => handleSort('confidence')} title="Temel analiz veri tamligi (Confidence %)">Guven <SortIcon field="confidence" /></th>
+                <th className="px-3 py-3 text-center cursor-pointer hover:text-text-primary hidden lg:table-cell" onClick={() => handleSort('valuation')} title="Fiyatlama seviyesi (COK UCUZ -> COK PAHALI)">Fiyatlama <SortIcon field="valuation" /></th>
+                <th className="px-3 py-3 text-center cursor-pointer hover:text-text-primary hidden lg:table-cell" onClick={() => handleSort('quality')}>Kalite <SortIcon field="quality" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-text-primary hidden xl:table-cell" onClick={() => handleSort('targetPrice')} title="Hedef Fiyat (VWAP+Analist+DCF)">Hedef <SortIcon field="targetPrice" /></th>
+                <th className="px-3 py-3 text-right cursor-pointer hover:text-text-primary hidden xl:table-cell" onClick={() => handleSort('floorPrice')} title="Dip Fiyat (Destek seviyeleri)">Dip <SortIcon field="floorPrice" /></th>
+                <th className="px-3 py-3 text-center cursor-pointer hover:text-text-primary hidden xl:table-cell" onClick={() => handleSort('riskReward')} title="Risk/Odul Orani (>1 = olumlu)">R:R <SortIcon field="riskReward" /></th>
                 <th className="px-3 py-3 text-center hidden xl:table-cell" title="Fiyat Bolgesi">Bolge</th>
               </tr>
             </thead>
@@ -600,17 +600,17 @@ export default function ModuleNasdaqTrade() {
           {filteredResults.length === 0 && !loading && (
             <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
               <div className="relative mb-5">
-                <div className="w-16 h-16 rounded-2xl bg-[#141414] border border-gold-400/10 flex items-center justify-center animate-empty-float">
+                <div className="w-16 h-16 rounded-2xl bg-[#141414] border border-stroke-gold flex items-center justify-center animate-empty-float">
                   <span className="text-3xl">{results.length === 0 ? '🔍' : '🎯'}</span>
                 </div>
                 <div className="absolute inset-[-24px]" style={{ animation: 'orbit 8s linear infinite' }}>
                   <div className="w-1.5 h-1.5 rounded-full bg-gold-400/30 absolute top-0 left-1/2 -translate-x-1/2" />
                 </div>
               </div>
-              <p className="text-sm text-white/50 font-medium">
+              <p className="text-sm text-text-tertiary font-medium">
                 {results.length === 0 ? 'Tarama sonucu yok' : 'Filtre kriterlerine uyan sonuc yok'}
               </p>
-              <p className="text-[11px] text-white/40 mt-1">
+              <p className="text-[11px] text-text-tertiary mt-1">
                 {results.length === 0 ? 'Yukaridan TARA butonuna basin' : 'Filtre ayarlarini degistirin'}
               </p>
             </div>

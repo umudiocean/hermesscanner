@@ -2,23 +2,169 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════════════════
+   HERMES AI — Premium Design Token Layer (CSS Variables)
+   ───────────────────────────────────────────────────────────────────
+   Single source of truth for runtime token consumption.
+   Mirrors tailwind.config.ts. Legacy vars preserved as aliases.
+   ═══════════════════════════════════════════════════════════════════ */
 :root {
-  --bg-primary: #0d0d0d;
-  --bg-card: #1A1A1A;
-  --bg-card-hover: #242424;
-  --border: rgba(179, 148, 91, 0.12);
-  --border-hover: rgba(179, 148, 91, 0.25);
-  --text-primary: #e8e4dc;
-  --text-secondary: #9d977a;
-  --accent: #B3945B;
-  --accent-light: #C9A96E;
-  --accent-dark: #876b3a;
-  --green: #62CBC1;
-  --red: #EF4444;
-  --safe-top: env(safe-area-inset-top, 0px);
+  /* ── Surface Ladder ── */
+  --surface-0: #08090B;
+  --surface-1: #0D0E11;
+  --surface-2: #121317;
+  --surface-3: #1A1B20;
+  --surface-4: #23252C;
+  --surface-5: #2D2F37;
+
+  /* ── Text Scale (WCAG AA on surface-0) ── */
+  --text-primary:    #F2F0EA;
+  --text-secondary:  #B6B2A8;
+  --text-tertiary:   #7C7B73;
+  --text-quaternary: #56554F;
+  --text-inverse:    #08090B;
+
+  /* ── Gold Palette (recalibrated, 5.8:1 contrast) ── */
+  --gold-50:  #FBF6E6;
+  --gold-100: #F4E9C2;
+  --gold-200: #E9D798;
+  --gold-300: #DCC273;
+  --gold-400: #D4B86A;   /* primary */
+  --gold-500: #B89A4F;
+  --gold-600: #8E7536;
+  --gold-700: #6A5828;
+
+  /* ── Semantic ── */
+  --success:  #3FCAB4;
+  --success-strong: #2BA896;
+  --danger:   #F04848;
+  --danger-strong: #D62F2F;
+  --warning:  #F5A524;
+  --info:     #3B82F6;
+
+  /* ── Strokes ── */
+  --stroke-subtle:      rgba(255,255,255,0.06);
+  --stroke:             rgba(255,255,255,0.10);
+  --stroke-strong:      rgba(255,255,255,0.16);
+  --stroke-gold:        rgba(212,184,106,0.22);
+  --stroke-gold-strong: rgba(212,184,106,0.40);
+
+  /* ── Shadows ── */
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.30), 0 1px 1px rgba(0,0,0,0.20);
+  --shadow-2: 0 4px 12px rgba(0,0,0,0.40), 0 2px 4px rgba(0,0,0,0.20);
+  --shadow-3: 0 10px 28px rgba(0,0,0,0.50), 0 4px 8px rgba(0,0,0,0.25);
+  --shadow-glass: 0 8px 32px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(255,255,255,0.04);
+  --glow-gold:    0 0 0 1px rgba(212,184,106,0.20), 0 0 24px rgba(212,184,106,0.18);
+  --glow-success: 0 0 0 1px rgba(63,202,180,0.22),  0 0 24px rgba(63,202,180,0.18);
+  --glow-danger:  0 0 0 1px rgba(240,72,72,0.24),   0 0 24px rgba(240,72,72,0.18);
+
+  /* ── Motion ── */
+  --ease-snap:   cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast:   150ms;
+  --dur-base:   250ms;
+  --dur-slow:   400ms;
+
+  /* ── Radius Scale ── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+
+  /* ── Safe Area (iOS) ── */
+  --safe-top:    env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+
+  /* ── LEGACY ALIASES — DO NOT USE IN NEW CODE ── */
+  --bg-primary: var(--surface-0);
+  --bg-card: var(--surface-2);
+  --bg-card-hover: var(--surface-3);
+  --border: var(--stroke-gold);
+  --border-hover: var(--stroke-gold-strong);
+  --accent:       var(--gold-400);
+  --accent-light: var(--gold-300);
+  --accent-dark:  var(--gold-600);
+  --green: var(--success);
+  --red:   var(--danger);
+}
+
+/* ═══ FOCUS RING — Universal accessibility primitive ═══ */
+*:focus { outline: none; }
+*:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+  transition: outline-color 100ms;
+}
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  box-shadow: 0 0 0 2px var(--surface-0), 0 0 0 4px rgba(212,184,106,0.55);
+  outline: none;
+}
+
+/* ═══ TEXT SELECTION — Premium signature ═══ */
+::selection {
+  background: rgba(212,184,106,0.30);
+  color: var(--text-primary);
+}
+::-moz-selection {
+  background: rgba(212,184,106,0.30);
+  color: var(--text-primary);
+}
+
+/* ═══ TABULAR NUMBERS — for monetary / metric values ═══ */
+.tabular-nums,
+.font-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
+}
+
+/* ═══ PREMIUM MICRO-DETAILS ═══ */
+/* Cursor caret in inputs uses brand gold */
+input, textarea, [contenteditable] {
+  caret-color: var(--gold-400);
+}
+
+/* Smooth scroll site-wide */
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Higher quality image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  text-rendering: optimizeLegibility;
+}
+
+/* Link underline polish — wavy underline removed, custom underline */
+a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+/* Disable iOS double-tap zoom on app surfaces */
+button, a, [role="button"], [role="tab"], [role="menuitem"], [role="option"] {
+  touch-action: manipulation;
+}
+
+/* Premium input baseline (extends globally for consistency) */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+textarea,
+select {
+  font-family: inherit;
 }
 
 body {
@@ -86,21 +232,27 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Custom scrollbar — Midnight Gold */
+/* ═══ PREMIUM SCROLLBAR — 8px, fade-on-hover, gold thumb ═══ */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0d0d0d;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3d3525;
-  border-radius: 4px;
+  background: rgba(212, 184, 106, 0.18);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 200ms var(--ease-snap);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #B3945B;
+  background: rgba(212, 184, 106, 0.55);
+  background-clip: padding-box;
 }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-color: rgba(212,184,106,0.30) transparent; scrollbar-width: thin; }
 
 /* Scanning animation */
 @keyframes scan-pulse {

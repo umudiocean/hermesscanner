@@ -102,7 +102,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
   const d = (ms: number) => ({ transitionDelay: `${ms}ms` })
 
   return (
-    <div className={`fixed inset-0 z-[100] bg-[#060606] transition-all duration-600 overflow-y-auto overflow-x-hidden ${closing ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}>
+    <div className={`fixed inset-0 z-[100] bg-surface-0 transition-all duration-600 overflow-y-auto overflow-x-hidden ${closing ? 'opacity-0 scale-105' : 'opacity-100 scale-100'}`}>
 
       <canvas ref={canvasRef} className="absolute inset-0 z-0" />
 
@@ -118,7 +118,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="fixed top-4 right-4 z-[110] w-10 h-10 flex items-center justify-center rounded-full bg-white/[0.06] border border-white/[0.12] text-white/50 hover:text-white hover:bg-white/[0.12] transition-all duration-300"
+          className="fixed top-4 right-4 z-[110] w-10 h-10 flex items-center justify-center rounded-full bg-surface-3 border border-stroke text-text-tertiary hover:text-white hover:bg-white/[0.12] transition-all duration-300"
           aria-label="Kapat"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -128,7 +128,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
 
         {/* Logo */}
         <div className={`flex items-center gap-3 mb-5 lg:mb-7 transition-all duration-700 ${p(1) ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6'}`}>
-          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
+          <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-surface-3 border border-stroke flex items-center justify-center">
             <svg className="w-6 h-6 lg:w-7 lg:h-7" viewBox="0 0 32 32" fill="none">
               <path d="M4 22 L8.5 17 L13 19.5 L18 13 L22.5 16 L28 10" stroke="rgba(179,148,91,0.9)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               <circle cx="16" cy="7" r="2" fill="rgba(179,148,91,0.5)" />
@@ -139,7 +139,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
             </svg>
           </div>
           <h1 className="text-xl lg:text-2xl font-black tracking-tight leading-none">
-            <span className="text-white/90">HERMES</span>{' '}
+            <span className="text-text-primary">HERMES</span>{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-amber-400 to-gold-300">AI</span>
           </h1>
         </div>
@@ -150,7 +150,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
             {'Türk kullanıcılar için tasarlanan bu platform tamamen '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-400">{'ücretsizdir.'}</span>
           </h2>
-          <p className="mt-2 text-sm sm:text-base lg:text-lg text-white/60 font-medium tracking-wide uppercase">
+          <p className="mt-2 text-sm sm:text-base lg:text-lg text-text-secondary font-medium tracking-wide uppercase">
             {'ChatGPT, Claude, Kimi ve Gemini gücüyle, '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-400 font-bold">{'%100 yapay zeka'}</span>
             {' desteklidir.'}
@@ -165,7 +165,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
           <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-violet-500/10 text-violet-400/80 border border-violet-500/20">
             %100 YAPAY ZEKA
           </span>
-          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-gold-400/10 text-gold-400/80 border border-gold-400/20">
+          <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold tracking-wider bg-gold-400/10 text-gold-400/80 border border-stroke-gold">
             TÜRKÇE
           </span>
         </div>
@@ -184,18 +184,18 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
 
           {/* ═══ LEFT COLUMN: Vizyon + Amac ═══ */}
           <div className="flex flex-col gap-3">
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
+            <div className="rounded-xl border border-stroke-subtle bg-surface-2 backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
               <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold-400/50 mb-2">Vizyon</p>
-              <p className="text-xs lg:text-sm text-white/65 leading-relaxed">
+              <p className="text-xs lg:text-sm text-text-secondary leading-relaxed">
                 {'Seeking Alpha, TipRanks ve benzeri global platformlardan daha fazlasını '}
-                <span className="text-white/90 font-semibold">{'Hermes AI tamamen ücretsiz ve Türkçe'}</span>{' olarak sunuyor.'}
+                <span className="text-text-primary font-semibold">{'Hermes AI tamamen ücretsiz ve Türkçe'}</span>{' olarak sunuyor.'}
               </p>
-              <p className="mt-2 text-xs text-white/50 leading-relaxed">
+              <p className="mt-2 text-xs text-text-tertiary leading-relaxed">
                 {'Bu yazılımı 7 yıllık bir emekle inşa ettim. Bilgiye erişimi herkese ücretsiz açmayı seçtim.'}
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
+            <div className="rounded-xl border border-stroke-subtle bg-surface-2 backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4">
               <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold-400/50 mb-2">Amaç</p>
               <div className="space-y-1.5">
                 {[
@@ -205,7 +205,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
                 ].map((item, i) => (
                   <div key={i} className={`flex items-start gap-2 transition-all duration-500 ${p(4) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`} style={d(i * 150)}>
                     <div className="w-1 h-1 rounded-full bg-gold-400/40 shrink-0 mt-1.5" />
-                    <span className="text-[11px] lg:text-xs text-white/55">{item}</span>
+                    <span className="text-[11px] lg:text-xs text-text-secondary">{item}</span>
                   </div>
                 ))}
               </div>
@@ -233,17 +233,17 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
 
               {/* Content */}
               <div className="px-4 pb-4 lg:px-5 lg:pb-5 -mt-4 relative z-10">
-                <h3 className="text-base lg:text-lg font-bold text-white/90 mb-2 leading-snug">
+                <h3 className="text-base lg:text-lg font-bold text-text-primary mb-2 leading-snug">
                   Hayatta bazı yatırımlar vardır;{' '}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-amber-400">
                     karşılığı parayla ölçülmez.
                   </span>
                 </h3>
-                <p className="text-[11px] lg:text-xs text-white/45 leading-relaxed mb-3">
+                <p className="text-[11px] lg:text-xs text-text-tertiary leading-relaxed mb-3">
                   Kazandığımız tüm geliri, maddi imkânları sınırlı çocukların eğitimi için{' '}
                   <span className="text-gold-300/80 font-semibold">Darüşşafaka</span>&#39;ya bağışlıyoruz.
                 </p>
-                <p className="text-[11px] text-white/35 italic leading-relaxed mb-4">
+                <p className="text-[11px] text-text-quaternary italic leading-relaxed mb-4">
                   &ldquo;Gerçek kazanç, bir çocuğun yarınlara umutla bakabilmesidir.&rdquo;
                 </p>
 
@@ -251,7 +251,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
                   href="https://fonzip.com/darussafaka/fundraising-campaigns/hermes-ai-ile-gelecege-yatirim"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600/25 via-gold-400/20 to-amber-600/25 border border-gold-400/25 hover:border-gold-400/45 text-gold-300 font-bold text-xs tracking-wide transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/15 hover:scale-[1.03]"
+                  className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600/25 via-gold-400/20 to-amber-600/25 border border-stroke-gold hover:border-gold-400/45 text-gold-300 font-bold text-xs tracking-wide transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/15 hover:scale-[1.03]"
                 >
                   <span className="heart-beat">&#10084;&#65039;</span>
                   <span>Bağış Yap ve Umut Ol</span>
@@ -265,25 +265,25 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
 
           {/* ═══ RIGHT COLUMN: Neden Ucretsiz + Ekosistem + Giris ═══ */}
           <div className="flex flex-col gap-3">
-            <div className={`rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(4) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`}>
+            <div className={`rounded-xl border border-stroke-subtle bg-surface-2 backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(4) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`}>
               <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold-400/50 mb-2">Neden Ücretsiz?</p>
-              <p className="text-xs text-white/55 leading-relaxed">
+              <p className="text-xs text-text-secondary leading-relaxed">
                 {'Hermes AI yalnızca ticari bir yazılım değil. '}
-                <span className="text-white/85 font-medium">{'Finansal özgürlüğün herkes için mümkün olduğuna inanan bir vizyondur.'}</span>
+                <span className="text-text-primary font-medium">{'Finansal özgürlüğün herkes için mümkün olduğuna inanan bir vizyondur.'}</span>
               </p>
-              <p className="mt-2 text-[11px] text-white/40 leading-relaxed">
+              <p className="mt-2 text-[11px] text-text-tertiary leading-relaxed">
                 {'Kurucusu olarak zaten kazanıyorum. Platformu ücretli bir modele taşımak yerine, bilgiyi paylaşmayı seçtim.'}
               </p>
             </div>
 
-            <div className={`rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(5) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`} style={d(200)}>
+            <div className={`rounded-xl border border-stroke-subtle bg-surface-2 backdrop-blur-sm px-4 py-3 lg:px-5 lg:py-4 transition-all duration-700 ${p(5) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-6'}`} style={d(200)}>
               <p className="text-[9px] font-bold tracking-[0.25em] uppercase text-gold-400/50 mb-1.5">Ekosistem Notu</p>
-              <p className="text-[11px] text-white/50 leading-relaxed">
+              <p className="text-[11px] text-text-tertiary leading-relaxed">
                 {'Hermes AI ekosisteminin parçası olan '}
                 <span className="text-amber-400/70 font-medium">Hermes Coin</span>
                 {' (BSC Smart Contract) ileride platform içi bazı premium avantajlara erişim sağlayabilir.'}
               </p>
-              <code className="block mt-1.5 text-[8px] text-white/30 font-mono bg-white/[0.03] px-2 py-1 rounded select-all break-all">
+              <code className="block mt-1.5 text-[8px] text-text-quaternary font-mono bg-surface-2 px-2 py-1 rounded select-all break-all">
                 0x9495ab3549338bf14ad2f86cbcf79c7b574bba37
               </code>
             </div>
@@ -291,7 +291,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
             <div className={`transition-all duration-700 ${p(5) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={d(400)}>
               <button
                 onClick={handleClose}
-                className="w-full group flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-gold-400/10 to-amber-500/10 border border-gold-400/20 text-gold-300/90 text-sm font-bold tracking-wider hover:from-gold-400/20 hover:to-amber-500/20 hover:border-gold-400/35 hover:text-gold-300 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-gold-400/10"
+                className="w-full group flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-gold-400/10 to-amber-500/10 border border-stroke-gold text-gold-300/90 text-sm font-bold tracking-wider hover:from-gold-400/20 hover:to-amber-500/20 hover:border-gold-400/35 hover:text-gold-300 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-gold-400/10"
               >
                 Platforma Giriş Yap
                 <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -304,7 +304,7 @@ export default function ManifestoSplash({ onClose }: ManifestoSplashProps) {
 
         {/* Bottom close */}
         <div className={`mt-5 lg:mt-7 text-center transition-all duration-700 ${p(6) ? 'opacity-100' : 'opacity-0'}`} style={d(200)}>
-          <button onClick={handleClose} className="text-xs text-white/30 hover:text-white/60 transition-colors duration-300 tracking-widest uppercase px-4 py-2 rounded-lg border border-white/[0.06] hover:border-white/15 hover:bg-white/[0.03]">
+          <button onClick={handleClose} className="text-xs text-text-quaternary hover:text-text-secondary transition-colors duration-300 tracking-widest uppercase px-4 py-2 rounded-lg border border-stroke-subtle hover:border-stroke hover:bg-surface-2">
             Kapat &times;
           </button>
         </div>

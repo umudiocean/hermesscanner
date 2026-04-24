@@ -1,13 +1,23 @@
 'use client'
 
 // ═══════════════════════════════════════════════════════════════════
-// HERMES AI TERMINAL - Ana Modul Container
-// Modern trading platform UI - Flowbite/HyperUI/Lucide inspired
+// HERMES AI — NASDAQ Terminal (Premium Redesign)
+// Layout: header → premium search → segmented tab nav → lazy content
 // ═══════════════════════════════════════════════════════════════════
 
 import { useState, useCallback, lazy, Suspense, useEffect, useRef } from 'react'
-import { Brain, Search, BarChart3, Globe, Eye, PieChart, Users, Target, GitCompare, Calendar, Globe2, Radio, X, Activity } from 'lucide-react'
+import {
+  Brain, Search, BarChart3, Globe, Eye, PieChart, Users, Target,
+  GitCompare, Calendar, Globe2, Radio, X, Activity,
+} from 'lucide-react'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { HermesLogo } from '@/components/shell/HermesLogo'
+import { Badge, Kbd, Skeleton } from '@/components/ui'
+import { cn } from '@/lib/cn'
+
+// ═══════════════════════════════════════════════════════════════════
+// SYMBOL SEARCH — premium typeahead with debounced FMP autocomplete
+// ═══════════════════════════════════════════════════════════════════
 
 interface SearchResultItem {
   symbol: string
@@ -100,7 +110,10 @@ function NasdaqSymbolSearchInput({
 
   return (
     <div ref={containerRef} className="relative group">
-      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/35 group-focus-within:text-gold-400 transition-colors z-10" />
+      <Search
+        size={14}
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary group-focus-within:text-gold-400 transition-colors z-10"
+      />
       <input
         ref={inputRef}
         type="text"
@@ -108,48 +121,67 @@ function NasdaqSymbolSearchInput({
         onChange={e => setSearchQuery(e.target.value.toUpperCase())}
         onFocus={() => { if (acResults.length > 0) setAcOpen(true) }}
         onKeyDown={handleKeyDown}
-        placeholder="Hisse ara (sembol)..."
-        className="w-32 sm:w-44 md:w-60 pl-9 pr-10 sm:pr-12 py-1.5 sm:py-2 rounded-xl bg-midnight-50/50 border border-gold-400/10 
-                   text-sm sm:text-base text-white placeholder-white/25 
-                   focus:outline-none focus:border-gold-400/30 focus:bg-midnight-50/80 focus:shadow-lg focus:shadow-gold-400/5
-                   transition-all duration-200"
+        placeholder="Hisse ara…"
+        className={cn(
+          'h-9 w-36 sm:w-52 md:w-64 pl-8 pr-12 rounded-lg',
+          'bg-surface-2 border border-stroke text-sm font-mono text-text-primary',
+          'placeholder:text-text-quaternary placeholder:font-sans',
+          'focus:outline-none focus:bg-surface-3 focus:border-stroke-gold focus:shadow-glow-gold',
+          'transition-all duration-150 ease-snap',
+        )}
       />
       {searchQuery && (
         <button
           type="button"
           onClick={() => { setSearchQuery(''); setAcOpen(false); setAcResults([]) }}
-          className="absolute right-8 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors z-10"
+          aria-label="Aramayı temizle"
+          className="absolute right-9 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors z-10"
         >
-          <X size={14} />
+          <X size={12} />
         </button>
       )}
       {acLoading && (
-        <div className="absolute right-10 top-1/2 -translate-y-1/2 z-10">
-          <div className="w-3 h-3 border border-gold-400/30 border-t-gold-400 rounded-full animate-spin" />
+        <div className="absolute right-9 top-1/2 -translate-y-1/2 z-10">
+          <div className="w-3 h-3 border-2 border-stroke-gold-strong border-t-gold-400 rounded-full animate-spin" />
         </div>
       )}
       {!searchQuery && (
-        <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-white/35 bg-white/[0.05] px-1.5 py-0.5 rounded hidden md:inline-block z-10">
-          Enter
-        </kbd>
+        <Kbd size="xs" className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden md:flex z-10">
+          ↵
+        </Kbd>
       )}
+
+      {/* Autocomplete dropdown */}
       {acOpen && acResults.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 w-full min-w-[220px] max-h-[280px] overflow-y-auto bg-[#151520] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/40 z-50">
-          <div className="px-3 py-1.5 border-b border-white/[0.04] text-[10px] text-white/40">
-            Tikla veya Enter ile sec
+        <div
+          role="listbox"
+          className={cn(
+            'absolute top-full left-0 mt-1.5 w-full min-w-[260px] max-h-[320px] overflow-y-auto z-50',
+            'bg-surface-3 border border-stroke-strong rounded-xl shadow-depth-3 p-1',
+            'animate-fade-in-up',
+          )}
+        >
+          <div className="px-2.5 py-1 text-2xs font-semibold uppercase tracking-widest text-text-quaternary">
+            Sonuçlar ({acResults.length})
           </div>
           {acResults.map((item, idx) => (
             <button
               key={item.symbol}
               type="button"
+              role="option"
+              aria-selected={idx === selectedIdx}
               onClick={() => handleSelect(item.symbol)}
               onMouseEnter={() => setSelectedIdx(idx)}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-colors
-                ${idx === selectedIdx ? 'bg-gold-400/10' : 'hover:bg-white/[0.04]'}
-                ${idx < acResults.length - 1 ? 'border-b border-white/[0.02]' : ''}`}
+              className={cn(
+                'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-left',
+                'transition-colors duration-100',
+                idx === selectedIdx
+                  ? 'bg-surface-4 text-text-primary'
+                  : 'text-text-secondary hover:bg-surface-3',
+              )}
             >
-              <span className="font-mono font-semibold text-white shrink-0">{item.symbol}</span>
-              <span className="min-w-0 truncate text-[11px] text-white/60">
+              <span className="font-mono font-semibold text-sm text-gold-300 shrink-0 w-14">{item.symbol}</span>
+              <span className="min-w-0 truncate text-xs text-text-tertiary">
                 {item.companyName || item.sector || ''}
               </span>
             </button>
@@ -157,90 +189,92 @@ function NasdaqSymbolSearchInput({
         </div>
       )}
       {acOpen && searchQuery.trim().length >= 1 && acResults.length === 0 && !acLoading && (
-        <div className="absolute top-full left-0 mt-1 w-full min-w-[220px] bg-[#151520] border border-white/[0.08] rounded-xl shadow-2xl z-50 p-3 text-center">
-          <span className="text-[11px] text-white/35">Hisse bulunamadi</span>
+        <div className="absolute top-full left-0 mt-1.5 w-full min-w-[260px] z-50 bg-surface-3 border border-stroke rounded-xl shadow-depth-3 p-4 text-center animate-fade-in-up">
+          <span className="text-xs text-text-tertiary">Hisse bulunamadı</span>
         </div>
       )}
     </div>
   )
 }
 
-// Lazy load tabs — only the active tab's code is loaded
-const TabStocks = lazy(() => import('./TabStocks'))
-const TabMarket = lazy(() => import('./TabMarket'))
-const TabStock = lazy(() => import('./TabStock'))
-const TabCalendar = lazy(() => import('./TabCalendar'))
-const TabMacro = lazy(() => import('./TabMacro'))
-const TabFinancials = lazy(() => import('./TabFinancials'))
-const TabOwnership = lazy(() => import('./TabOwnership'))
-const TabAnalyst = lazy(() => import('./TabAnalyst'))
-const TabCompare = lazy(() => import('./TabCompare'))
-const TabFred = lazy(() => import('./TabFred'))
-const TabPulse = lazy(() => import('./TabPulse'))
+// ═══════════════════════════════════════════════════════════════════
+// LAZY TABS
+// ═══════════════════════════════════════════════════════════════════
 
+const TabStocks     = lazy(() => import('./TabStocks'))
+const TabMarket     = lazy(() => import('./TabMarket'))
+const TabStock      = lazy(() => import('./TabStock'))
+const TabCalendar   = lazy(() => import('./TabCalendar'))
+const TabMacro      = lazy(() => import('./TabMacro'))
+const TabFinancials = lazy(() => import('./TabFinancials'))
+const TabOwnership  = lazy(() => import('./TabOwnership'))
+const TabAnalyst    = lazy(() => import('./TabAnalyst'))
+const TabCompare    = lazy(() => import('./TabCompare'))
+const TabFred       = lazy(() => import('./TabFred'))
+const TabPulse      = lazy(() => import('./TabPulse'))
+
+// ─── Premium Skeleton (replaces over-animated old loader) ───────────
 function TabSkeleton() {
-  const MODULES = ['Veri', 'Analiz', 'Skor']
   return (
-    <div className="relative min-h-[40vh] flex flex-col items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 data-stream pointer-events-none" />
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(179,148,91,0.03) 0%, transparent 70%)' }} />
-      <div className="relative z-10 flex flex-col items-center gap-5">
-        {/* Ring */}
-        <div className="relative w-14 h-14">
-          <svg className="w-14 h-14" viewBox="0 0 100 100" style={{ animation: 'ring-spin 2s linear infinite' }}>
-            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(179,148,91,0.06)" strokeWidth="2" />
-            <circle cx="50" cy="50" r="42" fill="none" stroke="url(#tGold)" strokeWidth="2" strokeLinecap="round"
-              strokeDasharray="264" style={{ animation: 'ring-pulse 1.6s ease-in-out infinite' }} />
-            <defs><linearGradient id="tGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#C9A96E" /><stop offset="100%" stopColor="#876b3a" /></linearGradient></defs>
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Brain size={18} className="text-gold-400/80" style={{ animation: 'heartbeat 2s ease-in-out infinite' }} />
-          </div>
+    <div className="space-y-4 py-4 animate-fade-in">
+      <div className="flex items-center gap-3">
+        <Skeleton width={36} height={36} rounded="lg" />
+        <div className="flex-1 space-y-2">
+          <Skeleton height={14} width="40%" />
+          <Skeleton height={10} width="60%" />
         </div>
-        <div className="text-center">
-          <p className="text-sm font-semibold text-white/70 tracking-wide">Modul yukleniyor</p>
-          <p className="text-[10px] text-white/35 mt-0.5">HERMES AI Terminal</p>
-        </div>
-        {/* Progress */}
-        <div className="w-40 h-0.5 bg-white/[0.04] rounded-full overflow-hidden">
-          <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
-        </div>
-        {/* Mini modules */}
-        <div className="flex gap-2">
-          {MODULES.map((m, i) => (
-            <div key={i} className="px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/[0.04] opacity-0"
-              style={{ animation: `card-reveal 0.4s ease-out ${0.5 + i * 0.25}s forwards` }}>
-              <span className="text-[9px] text-white/40 font-medium tracking-wider">{m}</span>
-            </div>
-          ))}
-        </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} height={88} rounded="xl" />
+        ))}
+      </div>
+      <div className="space-y-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} height={44} rounded="lg" />
+        ))}
+      </div>
+      <div className="flex items-center justify-center gap-2 pt-2 text-2xs text-text-quaternary">
+        <Brain size={12} className="text-gold-400/70 animate-pulse" />
+        <span className="font-medium tracking-wider uppercase">Modül yükleniyor…</span>
       </div>
     </div>
   )
 }
 
-type HermesTab = 'stocks' | 'market' | 'stock' | 'calendar' | 'macro' | 'fred' | 'pulse' | 'financials' | 'ownership' | 'analyst' | 'compare'
+// ═══════════════════════════════════════════════════════════════════
+// TAB CONFIG
+// ═══════════════════════════════════════════════════════════════════
+
+type HermesTab =
+  | 'stocks' | 'market' | 'stock' | 'calendar' | 'macro' | 'fred'
+  | 'pulse' | 'financials' | 'ownership' | 'analyst' | 'compare'
 
 interface TabConfig {
   id: HermesTab
   label: string
+  shortLabel: string
   icon: React.ReactNode
   desc: string
 }
 
 const TABS: TabConfig[] = [
-  { id: 'market', label: 'PIYASA & TREND', icon: <Globe size={16} />, desc: 'Piyasa trendi, endeks skorlari, sektor rotasyonu' },
-  { id: 'pulse', label: 'WALL STREET NABZI', icon: <Activity size={16} />, desc: '12 bilesenli piyasa nabiz endeksi — breadth, smart money, earnings, korku/hirs' },
-  { id: 'stocks', label: 'HISSELER', icon: <BarChart3 size={16} />, desc: 'Tum hisseler ve puanlama' },
-  { id: 'stock', label: 'DETAY', icon: <Eye size={16} />, desc: 'Hisse detay analizi' },
-  { id: 'financials', label: 'FINANSALLAR', icon: <PieChart size={16} />, desc: 'Gelir tablosu, bilanco' },
-  { id: 'ownership', label: 'SAHIPLIK', icon: <Users size={16} />, desc: 'Kurumsallar ve iceriden alanlar' },
-  { id: 'analyst', label: 'ANALIST', icon: <Target size={16} />, desc: 'Analist tahminleri ve hedefler' },
-  { id: 'macro', label: 'MAKRO', icon: <Globe2 size={16} />, desc: 'GDP, tuketici guveni, ESG, endeksler' },
-  { id: 'fred', label: 'MAKRO RADAR', icon: <Radio size={16} />, desc: 'FRED bazli makro ekonomi paneli — verim egrisi, Fed, enflasyon, istihdam' },
-  { id: 'calendar', label: 'TAKVIM', icon: <Calendar size={16} />, desc: 'Kazanc, temettu, split, IPO takvimleri' },
-  { id: 'compare', label: 'KARSILASTIR', icon: <GitCompare size={16} />, desc: 'Hisseleri karsilastir' },
+  { id: 'market',     label: 'Piyasa & Trend',  shortLabel: 'PIYASA', icon: <Globe size={14} />,     desc: 'Piyasa trendi, endeks skorları, sektör rotasyonu' },
+  { id: 'pulse',      label: 'Wall Street Nabzı', shortLabel: 'NABIZ',  icon: <Activity size={14} />,  desc: '12 bileşenli piyasa nabız endeksi' },
+  { id: 'stocks',     label: 'Hisseler',          shortLabel: 'HISSE',  icon: <BarChart3 size={14} />, desc: 'Tüm hisseler ve puanlama' },
+  { id: 'stock',      label: 'Detay',             shortLabel: 'DETAY',  icon: <Eye size={14} />,       desc: 'Hisse detay analizi' },
+  { id: 'financials', label: 'Finansallar',       shortLabel: 'FINANS', icon: <PieChart size={14} />,  desc: 'Gelir tablosu, bilanço' },
+  { id: 'ownership',  label: 'Sahiplik',          shortLabel: 'SAHIP',  icon: <Users size={14} />,     desc: 'Kurumsal ve içeriden alanlar' },
+  { id: 'analyst',    label: 'Analist',           shortLabel: 'ANALIST',icon: <Target size={14} />,    desc: 'Analist tahminleri ve hedefler' },
+  { id: 'macro',      label: 'Makro',             shortLabel: 'MAKRO',  icon: <Globe2 size={14} />,    desc: 'GDP, tüketici güveni, ESG' },
+  { id: 'fred',       label: 'Makro Radar',       shortLabel: 'RADAR',  icon: <Radio size={14} />,     desc: 'FRED bazlı makro paneli' },
+  { id: 'calendar',   label: 'Takvim',            shortLabel: 'TAKVIM', icon: <Calendar size={14} />,  desc: 'Kazanç, temettü, IPO takvimi' },
+  { id: 'compare',    label: 'Karşılaştır',       shortLabel: 'KARS.',  icon: <GitCompare size={14} />,desc: 'Hisseleri karşılaştır' },
 ]
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN
+// ═══════════════════════════════════════════════════════════════════
 
 export default function ModuleNasdaqTerminal() {
   const [activeTab, setActiveTab] = useState<HermesTab>('market')
@@ -266,46 +300,27 @@ export default function ModuleNasdaqTerminal() {
   }, [])
 
   return (
-    <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 py-3 sm:py-4 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3 sm:mb-5 gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-[10px] sm:rounded-[12px] bg-[#1e2028] flex items-center justify-center hermes-logo overflow-hidden shrink-0"
-            style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.04)' }}>
-            <svg className="w-5 h-5 sm:w-7 sm:h-7 relative z-10" viewBox="0 0 32 32" fill="none">
-              <line x1="6" y1="10" x2="16" y2="7" stroke="rgba(120,160,255,0.25)" strokeWidth="0.8" />
-              <line x1="16" y1="7" x2="26" y2="12" stroke="rgba(120,160,255,0.25)" strokeWidth="0.8" />
-              <line x1="6" y1="10" x2="10" y2="18" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
-              <line x1="16" y1="7" x2="10" y2="18" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
-              <line x1="16" y1="7" x2="22" y2="16" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
-              <line x1="26" y1="12" x2="22" y2="16" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
-              <line x1="10" y1="18" x2="22" y2="16" stroke="rgba(120,160,255,0.15)" strokeWidth="0.6" />
-              <path d="M4 22 L8.5 17 L13 19.5 L18 13 L22.5 16 L28 10" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="6" cy="10" r="1.8" fill="rgba(120,160,255,0.5)" />
-              <circle cx="16" cy="7" r="2.2" fill="rgba(120,160,255,0.6)" />
-              <circle cx="26" cy="12" r="1.8" fill="rgba(120,160,255,0.5)" />
-              <circle cx="10" cy="18" r="1.5" fill="rgba(120,160,255,0.35)" />
-              <circle cx="22" cy="16" r="1.5" fill="rgba(120,160,255,0.35)" />
-              <circle cx="13" cy="19.5" r="1.4" fill="rgba(255,255,255,0.85)" />
-              <circle cx="18" cy="13" r="1.6" fill="rgba(255,255,255,0.9)" />
-              <circle cx="28" cy="10" r="1.4" fill="rgba(255,255,255,0.85)" />
-            </svg>
-            <div className="absolute inset-0 rounded-[12px] bg-gradient-to-br from-[rgba(120,160,255,0.04)] via-transparent to-transparent" />
-          </div>
+    <div className="max-w-[1920px] mx-auto px-3 sm:px-5 lg:px-6 py-4 sm:py-5 animate-fade-in">
+      {/* ─── Module header ─── */}
+      <div className="flex items-center justify-between mb-5 gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <HermesLogo size={40} />
           <div className="min-w-0">
-            <h2 className="text-sm sm:text-lg font-bold text-white tracking-wide whitespace-nowrap">
-              <span className="sm:hidden">NASDAQ <span className="gradient-text">AI</span></span>
-              <span className="hidden sm:inline">NASDAQ TERMINAL <span className="gradient-text">AI</span></span>
-            </h2>
-            <p className="text-[10px] sm:text-[11px] text-white/40 hidden sm:block">Temel analiz & puanlama platformu</p>
-          </div>
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold-400/8 border border-gold-400/15 ml-2 shrink-0">
-            <div className="w-1.5 h-1.5 rounded-full bg-gold-300 animate-pulse" />
-            <span className="text-[11px] text-gold-300 font-medium tracking-wider">CANLI</span>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-text-primary whitespace-nowrap">
+                NASDAQ Terminal
+                <span className="ml-2 text-gold-400 font-bold">AI</span>
+              </h2>
+              <Badge tone="success" size="xs" dot pulse className="hidden lg:inline-flex">
+                CANLI
+              </Badge>
+            </div>
+            <p className="text-xs text-text-tertiary hidden sm:block mt-0.5">
+              Temel analiz · Z-Score sinyalleri · Sektör rotasyonu
+            </p>
           </div>
         </div>
 
-        {/* Search */}
         <NasdaqSymbolSearchInput
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -313,69 +328,56 @@ export default function ModuleNasdaqTerminal() {
         />
       </div>
 
-      {/* Desktop Tab Navigation */}
-      <div className="hidden md:flex items-center gap-1 mb-5 overflow-x-auto pb-1 scrollbar-hide">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            title={tab.desc}
-            className={`group flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium 
-                         whitespace-nowrap transition-all duration-200
-              ${activeTab === tab.id
-                ? 'bg-gold-400/15 text-gold-300 border border-gold-400/25 shadow-sm shadow-gold-400/5'
-                : 'bg-transparent text-white/45 hover:bg-midnight-50/80 hover:text-white/60 border border-transparent hover:border-gold-400/8'
-              }`}
-          >
-            <span className={`transition-colors ${activeTab === tab.id ? 'text-gold-300' : 'text-white/40 group-hover:text-white/60'}`}>
-              {tab.icon}
-            </span>
-            <span>{tab.label}</span>
-            {tab.id === 'compare' && compareSymbols.length > 0 && (
-              <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-gold-400/20 text-[11px] text-gold-300 font-bold">
-                {compareSymbols.length}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Mobile Tab Navigation */}
-      <div className="md:hidden flex items-center gap-1 mb-3 overflow-x-auto pb-1 scrollbar-hide -mx-2 px-2">
+      {/* ─── Tab navigation: pills with subtle hover, mobile horizontal scroll ─── */}
+      <div
+        role="tablist"
+        aria-label="NASDAQ Terminal sekmeleri"
+        className={cn(
+          'flex items-center gap-1 mb-5 overflow-x-auto scrollbar-hide',
+          '-mx-3 px-3 sm:mx-0 sm:px-0 pb-1',
+        )}
+      >
         {TABS.map(tab => {
-          const shortLabels: Record<string, string> = {
-            market: 'PIYASA', stocks: 'HISSE', stock: 'DETAY', financials: 'FINANS',
-            ownership: 'SAHIP', analyst: 'ANALIST', macro: 'MAKRO', fred: 'RADAR',
-            calendar: 'TAKVIM', compare: 'KARS.',
-          }
+          const isActive = activeTab === tab.id
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={isActive}
               onClick={() => setActiveTab(tab.id)}
-              className={`group flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold 
-                           whitespace-nowrap transition-all duration-200 shrink-0
-                ${activeTab === tab.id
-                  ? 'bg-gold-400/15 text-gold-300 border border-gold-400/25 shadow-sm shadow-gold-400/5'
-                  : 'text-white/45 hover:text-white/60 border border-transparent'
-                }`}
+              title={tab.desc}
+              className={cn(
+                'group inline-flex items-center gap-1.5 shrink-0',
+                'h-8 px-3 rounded-md text-xs font-semibold tracking-wide whitespace-nowrap',
+                'transition-all duration-150 ease-snap',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-0',
+                isActive
+                  ? 'bg-gold-400/15 text-gold-300 border border-stroke-gold-strong shadow-depth-1'
+                  : 'text-text-tertiary border border-transparent hover:bg-surface-3 hover:text-text-primary hover:border-stroke',
+              )}
             >
-              <span className={`transition-colors ${activeTab === tab.id ? 'text-gold-300' : 'text-white/40'}`}>
+              <span className={cn(isActive ? 'text-gold-300' : 'text-text-tertiary group-hover:text-text-secondary')}>
                 {tab.icon}
               </span>
-              <span>{shortLabels[tab.id] || tab.label}</span>
+              <span className="hidden md:inline">{tab.label}</span>
+              <span className="md:hidden">{tab.shortLabel}</span>
               {tab.id === 'compare' && compareSymbols.length > 0 && (
-                <span className="ml-0.5 px-1 py-0.5 rounded-full bg-gold-400/20 text-[10px] text-gold-300 font-bold">
+                <Badge tone="gold" size="xs" className="ml-0.5 px-1.5 font-mono">
                   {compareSymbols.length}
-                </span>
+                </Badge>
               )}
             </button>
           )
         })}
       </div>
 
-      {/* Tab Content — lazy loaded with Suspense + ErrorBoundary per tab */}
-      <div className="min-h-[60vh] animate-fade-in" key={activeTab}>
-        <ErrorBoundary fallbackTitle={`${activeTab.toUpperCase()} Tab Hatasi`}>
+      {/* ─── Tab content ─── */}
+      <div
+        role="tabpanel"
+        className="min-h-[60vh] animate-fade-in-up"
+        key={activeTab}
+      >
+        <ErrorBoundary fallbackTitle={`${activeTab.toUpperCase()} Tab Hatası`}>
           <Suspense fallback={<TabSkeleton />}>
             {activeTab === 'pulse' && <TabPulse onSelectSymbol={handleSelectSymbol} />}
             {activeTab === 'stocks' && <TabStocks onSelectSymbol={handleSelectSymbol} />}

@@ -52,7 +52,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <h3 className="text-lg font-semibold text-white mb-1">
               {this.props.fallbackTitle || 'Modul Hatasi'}
             </h3>
-            <p className="text-sm text-white/50 max-w-md">
+            <p className="text-sm text-text-tertiary max-w-md">
               Bu modulde beklenmeyen bir hata olustu. Sayfayi yenileyebilir veya asagidaki butona tiklayabilirsiniz.
             </p>
             {this.state.error && (
@@ -63,7 +63,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           </div>
           <button
             onClick={this.handleReset}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] border border-white/[0.1] text-sm text-white/70 hover:bg-white/[0.1] hover:text-white transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-3 border border-stroke text-sm text-text-secondary hover:bg-surface-4 hover:text-white transition-all"
           >
             <RefreshCw size={14} />
             Tekrar Dene

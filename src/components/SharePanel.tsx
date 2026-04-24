@@ -19,7 +19,7 @@ const PLATFORMS = [
     id: 'x',
     label: 'X',
     color: '#000000',
-    hoverBg: 'hover:bg-white/[0.08]',
+    hoverBg: 'hover:bg-surface-3',
     icon: (
       <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -79,7 +79,7 @@ const PLATFORMS = [
     id: 'tiktok',
     label: 'TikTok',
     color: '#000000',
-    hoverBg: 'hover:bg-white/[0.08]',
+    hoverBg: 'hover:bg-surface-3',
     icon: (
       <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
         <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
@@ -142,8 +142,8 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
         onClick={() => setOpen(!open)}
         className={`group relative flex items-center gap-1.5 px-4 py-2 sm:py-2.5 rounded-xl border text-xs font-bold transition-all duration-300 overflow-hidden ${
           open
-            ? `bg-gradient-to-r from-gold-500/20 to-amber-500/15 border-gold-400/40 text-gold-300 shadow-lg shadow-gold-500/15`
-            : `bg-gradient-to-r from-gold-500/10 to-amber-500/8 border-gold-400/20 text-gold-400 hover:from-gold-500/20 hover:to-amber-500/15 hover:border-gold-400/40 hover:text-gold-300 hover:shadow-lg hover:shadow-gold-500/15`
+            ? `bg-gradient-to-r from-gold-500/20 to-amber-500/15 border-stroke-gold-strong text-gold-300 shadow-lg shadow-gold-500/15`
+            : `bg-gradient-to-r from-gold-500/10 to-amber-500/8 border-stroke-gold text-gold-400 hover:from-gold-500/20 hover:to-amber-500/15 hover:border-stroke-gold-strong hover:text-gold-300 hover:shadow-lg hover:shadow-gold-500/15`
         } hover:scale-[1.05]`}
       >
         <span className="absolute inset-0 bg-gradient-to-r from-gold-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -155,19 +155,19 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
 
       {open && (
         <div className="absolute right-0 top-full mt-2 z-50 animate-fade-in">
-          <div className="bg-[#131318] border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/40 p-3 w-[280px] max-w-[calc(100vw-2rem)]"
+          <div className="bg-[#131318] border border-stroke rounded-2xl shadow-2xl shadow-black/40 p-3 w-[280px] max-w-[calc(100vw-2rem)]"
             style={{ backdropFilter: 'blur(20px)' }}>
 
             {/* Header */}
-            <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-white/[0.06]">
+            <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-stroke-subtle">
               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/15 border border-amber-500/20 flex items-center justify-center">
                 <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
               </div>
               <div>
-                <p className="text-xs font-bold text-white/80">Sosyal Medyada Paylas</p>
-                <p className="text-[9px] text-white/35 mt-0.5">{title}</p>
+                <p className="text-xs font-bold text-text-primary">Sosyal Medyada Paylas</p>
+                <p className="text-[9px] text-text-quaternary mt-0.5">{title}</p>
               </div>
             </div>
 
@@ -177,12 +177,12 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
                 <button
                   key={platform.id}
                   onClick={() => handleShare(platform)}
-                  className={`flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-xl border border-white/[0.04] bg-white/[0.02] ${platform.hoverBg} hover:border-white/[0.12] transition-all duration-200 group/btn hover:scale-[1.05]`}
+                  className={`flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-xl border border-stroke-subtle bg-surface-2 ${platform.hoverBg} hover:border-stroke transition-all duration-200 group/btn hover:scale-[1.05]`}
                 >
                   <div className="transition-transform duration-200 group-hover/btn:scale-110" style={{ color: platform.color === '#000000' ? 'rgba(255,255,255,0.7)' : platform.color }}>
                     {platform.icon}
                   </div>
-                  <span className="text-[9px] font-medium text-white/50 group-hover/btn:text-white/70 transition-colors">{platform.label}</span>
+                  <span className="text-[9px] font-medium text-text-tertiary group-hover/btn:text-text-secondary transition-colors">{platform.label}</span>
                 </button>
               ))}
             </div>
@@ -210,8 +210,8 @@ export default function SharePanel({ title, subtitle, price, change, score, scor
             </button>
 
             {/* Slogan */}
-            <div className="mt-2.5 pt-2 border-t border-white/[0.04] text-center">
-              <p className="text-[8px] text-white/35 italic tracking-wide leading-relaxed">
+            <div className="mt-2.5 pt-2 border-t border-stroke-subtle text-center">
+              <p className="text-[8px] text-text-quaternary italic tracking-wide leading-relaxed">
                 Veriye hukmeden, paraya hukmeder.
               </p>
             </div>

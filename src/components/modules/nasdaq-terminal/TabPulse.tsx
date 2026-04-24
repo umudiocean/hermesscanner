@@ -70,17 +70,17 @@ function RadialGauge({ value, size = 220 }: { value: number; size?: number }) {
 
 function ComponentBar({ name, value, weight, icon, available }: { name: string; value: number; weight: number; icon: React.ReactNode; available: boolean }) {
   const color = !available ? 'bg-white/10' : value >= 70 ? 'bg-emerald-500' : value >= 50 ? 'bg-gold-400' : value >= 30 ? 'bg-orange-400' : 'bg-red-500'
-  const textColor = !available ? 'text-white/20' : value >= 70 ? 'text-emerald-400' : value >= 50 ? 'text-gold-300' : value >= 30 ? 'text-orange-400' : 'text-red-400'
+  const textColor = !available ? 'text-text-quaternary' : value >= 70 ? 'text-emerald-400' : value >= 50 ? 'text-gold-300' : value >= 30 ? 'text-orange-400' : 'text-red-400'
 
   return (
     <div className={`flex items-center gap-2 py-1 ${!available ? 'opacity-40' : ''}`}>
-      <span className="text-white/40 w-5 shrink-0">{icon}</span>
-      <span className="text-[11px] text-white/60 w-28 truncate">{name}</span>
-      <div className="flex-1 h-2 rounded-full bg-white/[0.06] overflow-hidden">
+      <span className="text-text-tertiary w-5 shrink-0">{icon}</span>
+      <span className="text-[11px] text-text-secondary w-28 truncate">{name}</span>
+      <div className="flex-1 h-2 rounded-full bg-surface-3 overflow-hidden">
         <div className={`h-full rounded-full ${color} transition-all duration-700`} style={{ width: `${available ? value : 0}%` }} />
       </div>
       <span className={`text-[11px] font-mono w-8 text-right ${textColor}`}>{available ? value.toFixed(0) : '--'}</span>
-      <span className="text-[9px] text-white/25 w-8 text-right">{(weight * 100).toFixed(0)}%</span>
+      <span className="text-[9px] text-text-quaternary w-8 text-right">{(weight * 100).toFixed(0)}%</span>
     </div>
   )
 }
@@ -89,7 +89,7 @@ function ComponentBar({ name, value, weight, icon, available }: { name: string; 
 
 function BreadthPanel({ data }: { data: PulseData }) {
   const b = data?.breadth
-  if (!b || b.total === 0) return <div className="text-white/30 text-xs py-4">Breadth verisi yok</div>
+  if (!b || b.total === 0) return <div className="text-text-quaternary text-xs py-4">Breadth verisi yok</div>
 
   const advPct = ((b.advancing / b.total) * 100).toFixed(1)
   const decPct = ((b.declining / b.total) * 100).toFixed(1)
@@ -104,12 +104,12 @@ function BreadthPanel({ data }: { data: PulseData }) {
       <MiniMetric label="52H Dip" value={`${b.newLows ?? 0}`} sub={`yakin`} color="text-red-400" />
       <MiniMetric label="A/D Orani" value={adRatio.toFixed(2)} sub="" color={adRatio > 1 ? 'text-emerald-400' : 'text-red-400'} />
       <MiniMetric label="Orta Nokta Ustu" value={`${midPct}%`} sub={`${b.aboveMidpoint ?? 0} hisse`} color={(b.aboveMidpointPct ?? 0) > 0.5 ? 'text-emerald-400' : 'text-red-400'} />
-      <MiniMetric label="Toplam" value={`${b.total}`} sub="hisse" color="text-white/60" />
-      <MiniMetric label="Degismez" value={`${b.unchanged ?? 0}`} sub="" color="text-white/40" />
+      <MiniMetric label="Toplam" value={`${b.total}`} sub="hisse" color="text-text-secondary" />
+      <MiniMetric label="Degismez" value={`${b.unchanged ?? 0}`} sub="" color="text-text-tertiary" />
 
       {/* Stacked bar */}
       <div className="col-span-2 lg:col-span-4 mt-1">
-        <div className="h-4 rounded-full overflow-hidden flex bg-white/[0.04]">
+        <div className="h-4 rounded-full overflow-hidden flex bg-surface-3">
           <div className="bg-emerald-500/80 transition-all duration-500" style={{ width: `${advPct}%` }} />
           <div className="bg-white/10 transition-all duration-500" style={{ width: `${b.total > 0 ? ((b.unchanged / b.total) * 100) : 0}%` }} />
           <div className="bg-red-500/80 transition-all duration-500" style={{ width: `${decPct}%` }} />
@@ -127,7 +127,7 @@ function BreadthPanel({ data }: { data: PulseData }) {
 
 function SmartMoneyPanel({ data }: { data: PulseData }) {
   const sm = data?.smartMoney
-  if (!sm) return <div className="text-white/30 text-xs py-4">Smart Money verisi yok</div>
+  if (!sm) return <div className="text-text-quaternary text-xs py-4">Smart Money verisi yok</div>
   const iRatio = sm.insiderRatio ?? 50
   const cRatio = sm.congressRatio ?? 50
   return (
@@ -146,7 +146,7 @@ function SmartMoneyPanel({ data }: { data: PulseData }) {
 
 function EarningsPanel({ data }: { data: PulseData }) {
   const e = data?.earnings
-  if (!e) return <div className="text-white/30 text-xs py-4">Kazanc verisi yok</div>
+  if (!e) return <div className="text-text-quaternary text-xs py-4">Kazanc verisi yok</div>
   const beatRate = e.beatRate ?? 50
   const avgSurp = e.avgSurprise ?? 0
   return (
@@ -154,7 +154,7 @@ function EarningsPanel({ data }: { data: PulseData }) {
       <MiniMetric label="Beat" value={`${e.beatCount ?? 0}`} sub={`${beatRate.toFixed(0)}%`} color="text-emerald-400" />
       <MiniMetric label="Miss" value={`${e.missCount ?? 0}`} sub="" color="text-red-400" />
       <MiniMetric label="Ort. Surpriz" value={`${avgSurp > 0 ? '+' : ''}${avgSurp.toFixed(1)}%`} sub="" color={avgSurp > 0 ? 'text-emerald-400' : 'text-red-400'} />
-      <MiniMetric label="Trend" value={e.trend === 'improving' ? 'Iyilesiyor' : e.trend === 'declining' ? 'Kotulesyor' : 'Sabit'} sub="" color={e.trend === 'improving' ? 'text-emerald-400' : e.trend === 'declining' ? 'text-red-400' : 'text-white/50'} />
+      <MiniMetric label="Trend" value={e.trend === 'improving' ? 'Iyilesiyor' : e.trend === 'declining' ? 'Kotulesyor' : 'Sabit'} sub="" color={e.trend === 'improving' ? 'text-emerald-400' : e.trend === 'declining' ? 'text-red-400' : 'text-text-tertiary'} />
     </div>
   )
 }
@@ -163,13 +163,13 @@ function EarningsPanel({ data }: { data: PulseData }) {
 
 function SqueezePanel({ data, onSelectSymbol }: { data: PulseData; onSelectSymbol?: (s: string) => void }) {
   const list = data.shortSqueeze || []
-  if (list.length === 0) return <div className="text-white/30 text-xs py-4">Squeeze adayi yok</div>
+  if (list.length === 0) return <div className="text-text-quaternary text-xs py-4">Squeeze adayi yok</div>
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[11px]">
         <thead>
-          <tr className="text-white/40 border-b border-white/[0.06]">
+          <tr className="text-text-tertiary border-b border-stroke-subtle">
             <th className="text-left py-1.5 px-1">Sembol</th>
             <th className="text-right py-1.5 px-1">Short %</th>
             <th className="text-right py-1.5 px-1">Degisim</th>
@@ -179,13 +179,13 @@ function SqueezePanel({ data, onSelectSymbol }: { data: PulseData; onSelectSymbo
         </thead>
         <tbody>
           {list.slice(0, 15).map(s => (
-            <tr key={s.symbol} className="border-b border-white/[0.03] hover:bg-white/[0.02] cursor-pointer" onClick={() => onSelectSymbol?.(s.symbol)}>
+            <tr key={s.symbol} className="border-b border-white/[0.03] hover:bg-surface-2 cursor-pointer" onClick={() => onSelectSymbol?.(s.symbol)}>
               <td className="py-1.5 px-1 font-mono text-gold-300">{s.symbol}</td>
               <td className="py-1.5 px-1 text-right text-orange-400">{(s.shortFloat ?? 0).toFixed(1)}%</td>
               <td className={`py-1.5 px-1 text-right ${(s.dayChange ?? 0) > 0 ? 'text-emerald-400' : 'text-red-400'}`}>{(s.dayChange ?? 0) > 0 ? '+' : ''}{(s.dayChange ?? 0).toFixed(2)}%</td>
-              <td className={`py-1.5 px-1 text-right ${(s.volumeSpike ?? 0) > 2 ? 'text-gold-300' : 'text-white/50'}`}>{(s.volumeSpike ?? 0).toFixed(1)}x</td>
+              <td className={`py-1.5 px-1 text-right ${(s.volumeSpike ?? 0) > 2 ? 'text-gold-300' : 'text-text-tertiary'}`}>{(s.volumeSpike ?? 0).toFixed(1)}x</td>
               <td className="py-1.5 px-1 text-right">
-                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${s.squeezeScore >= 60 ? 'bg-red-500/20 text-red-300' : s.squeezeScore >= 40 ? 'bg-orange-500/15 text-orange-300' : 'bg-white/5 text-white/40'}`}>
+                <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${s.squeezeScore >= 60 ? 'bg-red-500/20 text-red-300' : s.squeezeScore >= 40 ? 'bg-orange-500/15 text-orange-300' : 'bg-white/5 text-text-tertiary'}`}>
                   {s.squeezeScore}
                 </span>
               </td>
@@ -202,13 +202,13 @@ function SqueezePanel({ data, onSelectSymbol }: { data: PulseData; onSelectSymbo
 function CollapseSection({ title, icon, children, defaultOpen = false }: { title: string; icon: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="border border-white/[0.06] rounded-xl overflow-hidden transition-all duration-300">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 px-4 py-3 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+    <div className="border border-stroke-subtle rounded-xl overflow-hidden transition-all duration-300">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2 px-4 py-3 bg-surface-2 hover:bg-surface-3 transition-colors">
         <span className="text-gold-300">{icon}</span>
-        <span className="text-sm font-semibold text-white/80 flex-1 text-left">{title}</span>
-        {open ? <ChevronUp size={14} className="text-white/30" /> : <ChevronDown size={14} className="text-white/30" />}
+        <span className="text-sm font-semibold text-text-primary flex-1 text-left">{title}</span>
+        {open ? <ChevronUp size={14} className="text-text-quaternary" /> : <ChevronDown size={14} className="text-text-quaternary" />}
       </button>
-      {open && <div className="px-4 py-3 bg-[#0c0c14]/50">{children}</div>}
+      {open && <div className="px-4 py-3 bg-surface-1/50">{children}</div>}
     </div>
   )
 }
@@ -217,10 +217,10 @@ function CollapseSection({ title, icon, children, defaultOpen = false }: { title
 
 function MiniMetric({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
   return (
-    <div className="bg-white/[0.03] rounded-lg px-3 py-2">
-      <div className="text-[9px] text-white/35 uppercase tracking-wider mb-0.5">{label}</div>
+    <div className="bg-surface-2 rounded-lg px-3 py-2">
+      <div className="text-[9px] text-text-quaternary uppercase tracking-wider mb-0.5">{label}</div>
       <div className={`text-base font-bold tabular-nums ${color}`}>{value}</div>
-      {sub && <div className="text-[9px] text-white/25">{sub}</div>}
+      {sub && <div className="text-[9px] text-text-quaternary">{sub}</div>}
     </div>
   )
 }
@@ -242,7 +242,7 @@ function ComponentHealthPanel({ data }: { data: PulseData }) {
     <div className="overflow-x-auto">
       <table className="w-full text-[11px]">
         <thead>
-          <tr className="text-white/40 border-b border-white/[0.06]">
+          <tr className="text-text-tertiary border-b border-stroke-subtle">
             <th className="text-left py-1.5 px-1">Bilesen</th>
             <th className="text-left py-1.5 px-1">Kaynak</th>
             <th className="text-right py-1.5 px-1">Skor</th>
@@ -253,10 +253,10 @@ function ComponentHealthPanel({ data }: { data: PulseData }) {
         <tbody>
           {rows.map((r) => (
             <tr key={r.id} className="border-b border-white/[0.03]">
-              <td className="py-1.5 px-1 text-white/75">{r.name}</td>
-              <td className="py-1.5 px-1 text-white/45">{r.source}</td>
-              <td className="py-1.5 px-1 text-right text-white/70 tabular-nums">{r.available ? r.value.toFixed(0) : '--'}</td>
-              <td className="py-1.5 px-1 text-right text-white/45 tabular-nums">{Math.round(r.weight * 100)}%</td>
+              <td className="py-1.5 px-1 text-text-primary">{r.name}</td>
+              <td className="py-1.5 px-1 text-text-tertiary">{r.source}</td>
+              <td className="py-1.5 px-1 text-right text-text-secondary tabular-nums">{r.available ? r.value.toFixed(0) : '--'}</td>
+              <td className="py-1.5 px-1 text-right text-text-tertiary tabular-nums">{Math.round(r.weight * 100)}%</td>
               <td className={`py-1.5 px-1 text-right font-medium ${r.statusColor}`}>{r.status}</td>
             </tr>
           ))}
@@ -337,28 +337,28 @@ export default function TabPulse({ onSelectSymbol }: { onSelectSymbol?: (s: stri
       {/* ── Hero: Gauge + Breakdown ──────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
         {/* Gauge */}
-        <div className="bg-[#0c0c14] rounded-2xl border border-white/[0.06] p-4 flex flex-col items-center justify-center">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-subtle p-4 flex flex-col items-center justify-center">
           <div className="flex items-center gap-2 mb-2">
             <Activity size={14} className="text-gold-300" />
             <span className="text-xs font-semibold text-gold-300 tracking-wider">WALL STREET NABZI</span>
           </div>
           <RadialGauge value={safeComposite} size={220} />
-          <div className="flex items-center gap-2 mt-2 text-[10px] text-white/30">
+          <div className="flex items-center gap-2 mt-2 text-[10px] text-text-quaternary">
             <span>{availableCount}/12 bilesen aktif</span>
             <span>•</span>
             <span>{lastUpdate}</span>
             {!pulse.marketOpen && <><span>•</span><span className="text-orange-400/60">Kapali — son kapanis verileri</span></>}
-            <button onClick={fetchPulse} className="text-white/20 hover:text-white/50 transition-colors ml-1"><RefreshCw size={10} /></button>
+            <button onClick={fetchPulse} className="text-text-quaternary hover:text-text-tertiary transition-colors ml-1"><RefreshCw size={10} /></button>
           </div>
           {pulse.marketOpen && <span className="mt-1 text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">MARKET OPEN</span>}
-          {!pulse.marketOpen && <span className="mt-1 text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-white/30 border border-white/[0.06]">MARKET CLOSED</span>}
+          {!pulse.marketOpen && <span className="mt-1 text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-text-quaternary border border-stroke-subtle">MARKET CLOSED</span>}
         </div>
 
         {/* Component Breakdown */}
-        <div className="bg-[#0c0c14] rounded-2xl border border-white/[0.06] p-4">
+        <div className="bg-surface-1 rounded-2xl border border-stroke-subtle p-4">
           <div className="flex items-center gap-2 mb-3">
             <Brain size={14} className="text-violet-400" />
-            <span className="text-xs font-semibold text-white/60 tracking-wider">BILESEN DAGILIMI</span>
+            <span className="text-xs font-semibold text-text-secondary tracking-wider">BILESEN DAGILIMI</span>
           </div>
           <div className="space-y-0.5">
             {sorted.filter(c => c.available).map(c => (
@@ -412,13 +412,13 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
   const composite = data.composite
   const fc = data.forecast
 
-  if (!fc) return <div className="text-white/30 text-xs py-4">Ongoru verisi hesaplaniyor...</div>
+  if (!fc) return <div className="text-text-quaternary text-xs py-4">Ongoru verisi hesaplaniyor...</div>
 
   const specials = fc.specialSignals || []
   const regime = fc.regime || 'NORMAL'
   const isGolden = fc.isGoldenSignal
 
-  const biasColor = fc.bias === 'POZITIF' ? 'text-emerald-400' : fc.bias === 'NEGATIF' ? 'text-red-400' : 'text-white/50'
+  const biasColor = fc.bias === 'POZITIF' ? 'text-emerald-400' : fc.bias === 'NEGATIF' ? 'text-red-400' : 'text-text-tertiary'
 
   const vixComp = data.components.find(c => c.id === 'vix')
   const vixRaw = vixComp?.rawValue
@@ -427,7 +427,7 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
     EXTREME: { label: 'EXTREME VOL', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20', desc: 'Yuksek volatilite — mean reversion agirligi arttirildi' },
     HIGH_VOL: { label: 'HIGH VOL', color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20', desc: 'Yukari volatilite — makro agirligi yukseldi' },
     LOW_VOL: { label: 'LOW VOL', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', desc: 'Dusuk volatilite — momentum agirligi arttirildi' },
-    NORMAL: { label: 'NORMAL', color: 'text-white/50', bg: 'bg-white/[0.03] border-white/[0.06]', desc: 'Standart piyasa kosullari — dengeli agirliklar' },
+    NORMAL: { label: 'NORMAL', color: 'text-text-tertiary', bg: 'bg-surface-2 border-stroke-subtle', desc: 'Standart piyasa kosullari — dengeli agirliklar' },
   }
   const rc = regimeConfig[regime]
 
@@ -439,29 +439,29 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
         <div className={`rounded-xl border p-3 ${rc.bg}`}>
           <div className="flex items-center gap-2 mb-1">
             <Activity size={12} className={rc.color} />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">PIYASA REJIMI</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">PIYASA REJIMI</span>
           </div>
           <div className={`text-lg font-bold ${rc.color}`}>{rc.label}</div>
-          <div className="text-[10px] text-white/30 mt-0.5">{rc.desc}</div>
+          <div className="text-[10px] text-text-quaternary mt-0.5">{rc.desc}</div>
           {vixRaw != null && (
-            <div className="text-[10px] text-white/20 mt-1 font-mono">VIX: {vixRaw.toFixed(1)}</div>
+            <div className="text-[10px] text-text-quaternary mt-1 font-mono">VIX: {vixRaw.toFixed(1)}</div>
           )}
         </div>
 
         {/* Forecast Summary */}
-        <div className={`rounded-xl border p-3 ${isGolden ? 'bg-gold-400/[0.06] border-gold-400/30 signal-fire-gold' : composite >= 65 ? 'bg-emerald-500/[0.04] border-emerald-500/20' : composite <= 35 ? 'bg-red-500/[0.04] border-red-500/20' : 'bg-white/[0.03] border-white/[0.06]'}`}>
+        <div className={`rounded-xl border p-3 ${isGolden ? 'bg-gold-400/[0.06] border-stroke-gold-strong signal-fire-gold' : composite >= 65 ? 'bg-emerald-500/[0.04] border-emerald-500/20' : composite <= 35 ? 'bg-red-500/[0.04] border-red-500/20' : 'bg-surface-2 border-stroke-subtle'}`}>
           <div className="flex items-center gap-2 mb-1">
             <Zap size={12} className="text-gold-300" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">ONGORU</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">ONGORU</span>
             {isGolden && (
-              <span className="badge-enter px-1.5 py-0.5 rounded-full bg-gold-400/20 border border-gold-400/40 text-[9px] font-bold text-gold-300 combo-pulse">GOLDEN</span>
+              <span className="badge-enter px-1.5 py-0.5 rounded-full bg-gold-400/20 border border-stroke-gold-strong text-[9px] font-bold text-gold-300 combo-pulse">GOLDEN</span>
             )}
           </div>
           <div className="flex items-center gap-3">
             <div className={`text-2xl font-black tabular-nums ${biasColor}`}>{fc.bias}</div>
             <div>
-              <div className="text-[10px] text-white/40">Composite: {composite}/100 {fc.boostApplied !== 0 && <span className={fc.boostApplied > 0 ? 'text-emerald-400' : 'text-red-400'}>(+{fc.boostApplied})</span>}</div>
-              <div className="text-[9px] text-white/20">{specials.length} ozel sinyal | Guven: %{fc.confidence}</div>
+              <div className="text-[10px] text-text-tertiary">Composite: {composite}/100 {fc.boostApplied !== 0 && <span className={fc.boostApplied > 0 ? 'text-emerald-400' : 'text-red-400'}>(+{fc.boostApplied})</span>}</div>
+              <div className="text-[9px] text-text-quaternary">{specials.length} ozel sinyal | Guven: %{fc.confidence}</div>
             </div>
           </div>
           {isGolden && (
@@ -477,8 +477,8 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Target size={12} className="text-gold-300" />
-            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider">OZEL SINYALLER</span>
-            <span className="text-[9px] text-white/20 ml-auto">{specials.length} aktif</span>
+            <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider">OZEL SINYALLER</span>
+            <span className="text-[9px] text-text-quaternary ml-auto">{specials.length} aktif</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
             {specials.map((s, i) => (
@@ -487,7 +487,7 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
                 className={`badge-enter flex items-start gap-2 rounded-lg border px-3 py-2 ${
                   s.type === 'bullish' ? 'bg-emerald-500/[0.06] border-emerald-500/20' :
                   s.type === 'bearish' ? 'bg-red-500/[0.06] border-red-500/20' :
-                  'bg-white/[0.03] border-white/[0.06]'
+                  'bg-surface-2 border-stroke-subtle'
                 }`}
                 style={{ animationDelay: `${i * 80}ms` }}
               >
@@ -496,7 +496,7 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
                 </span>
                 <div className="min-w-0">
                   <span className={`text-[11px] font-bold ${s.type === 'bullish' ? 'text-emerald-400' : s.type === 'bearish' ? 'text-red-400' : 'text-blue-400'}`}>{s.label}</span>
-                  <div className="text-[9px] text-white/30 mt-0.5">{s.description}</div>
+                  <div className="text-[9px] text-text-quaternary mt-0.5">{s.description}</div>
                 </div>
               </div>
             ))}
@@ -505,22 +505,22 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
       )}
 
       {/* Backtest Performance Footer */}
-      <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-2.5">
+      <div className="rounded-lg bg-surface-2 border border-stroke-subtle p-2.5">
         <div className="flex items-center gap-2 mb-1.5">
-          <Shield size={10} className="text-white/25" />
-          <span className="text-[9px] font-semibold text-white/30 uppercase tracking-wider">V4 BACKTEST PERFORMANSI (10 YIL)</span>
+          <Shield size={10} className="text-text-quaternary" />
+          <span className="text-[9px] font-semibold text-text-quaternary uppercase tracking-wider">V4 BACKTEST PERFORMANSI (10 YIL)</span>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
           <div>
-            <div className="text-[9px] text-white/25">Genel Hit</div>
-            <div className="text-[11px] font-bold text-white/50 tabular-nums">%59.1</div>
+            <div className="text-[9px] text-text-quaternary">Genel Hit</div>
+            <div className="text-[11px] font-bold text-text-tertiary tabular-nums">%59.1</div>
           </div>
           <div>
-            <div className="text-[9px] text-white/25">Golden 1G</div>
+            <div className="text-[9px] text-text-quaternary">Golden 1G</div>
             <div className="text-[11px] font-bold text-emerald-400 tabular-nums">%68.8</div>
           </div>
           <div>
-            <div className="text-[9px] text-white/25">Golden 3G</div>
+            <div className="text-[9px] text-text-quaternary">Golden 3G</div>
             <div className="text-[11px] font-bold text-emerald-400 tabular-nums">%81.2</div>
           </div>
         </div>
@@ -533,10 +533,10 @@ function ForecastIntelligence({ data }: { data: PulseData }) {
 
 function QuickStat({ label, value, good, icon }: { label: string; value: string; good: boolean; icon: React.ReactNode }) {
   return (
-    <div className="bg-[#0c0c14] rounded-xl border border-white/[0.06] p-3 flex items-center gap-3">
+    <div className="bg-surface-1 rounded-xl border border-stroke-subtle p-3 flex items-center gap-3">
       <span className={good ? 'text-emerald-400' : 'text-red-400'}>{icon}</span>
       <div>
-        <div className="text-[9px] text-white/35 uppercase tracking-wider">{label}</div>
+        <div className="text-[9px] text-text-quaternary uppercase tracking-wider">{label}</div>
         <div className={`text-sm font-bold tabular-nums ${good ? 'text-emerald-400' : 'text-red-400'}`}>{value}</div>
       </div>
     </div>
@@ -549,24 +549,24 @@ function PulseLoadingSkeleton() {
   return (
     <div className="space-y-4 animate-pulse">
       <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
-        <div className="bg-white/[0.03] rounded-2xl h-72 flex items-center justify-center">
-          <div className="w-40 h-40 rounded-full border-4 border-white/[0.06] flex items-center justify-center">
-            <div className="text-3xl text-white/10 font-bold">--</div>
+        <div className="bg-surface-2 rounded-2xl h-72 flex items-center justify-center">
+          <div className="w-40 h-40 rounded-full border-4 border-stroke-subtle flex items-center justify-center">
+            <div className="text-3xl text-text-quaternary font-bold">--</div>
           </div>
         </div>
-        <div className="bg-white/[0.03] rounded-2xl p-4 space-y-3">
+        <div className="bg-surface-2 rounded-2xl p-4 space-y-3">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="flex items-center gap-2">
-              <div className="w-5 h-3 bg-white/[0.04] rounded" />
-              <div className="w-24 h-3 bg-white/[0.04] rounded" />
-              <div className="flex-1 h-2 bg-white/[0.04] rounded-full" />
-              <div className="w-8 h-3 bg-white/[0.04] rounded" />
+              <div className="w-5 h-3 bg-surface-3 rounded" />
+              <div className="w-24 h-3 bg-surface-3 rounded" />
+              <div className="flex-1 h-2 bg-surface-3 rounded-full" />
+              <div className="w-8 h-3 bg-surface-3 rounded" />
             </div>
           ))}
         </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="bg-white/[0.03] rounded-xl h-16" />)}
+        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="bg-surface-2 rounded-xl h-16" />)}
       </div>
     </div>
   )

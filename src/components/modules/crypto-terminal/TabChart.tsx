@@ -568,9 +568,9 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
   if (!coinId) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-        <TrendingUp size={48} className="text-white/10 mb-4" />
+        <TrendingUp size={48} className="text-text-quaternary mb-4" />
         <h3 className="text-lg font-semibold text-white mb-2">Coin Secin</h3>
-        <p className="text-white/50 text-sm mb-6">Grafik gormek icin bir coin secin</p>
+        <p className="text-text-tertiary text-sm mb-6">Grafik gormek icin bir coin secin</p>
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -578,7 +578,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
             onChange={e => setSearchInput(e.target.value.toLowerCase())}
             onKeyDown={e => { if (e.key === 'Enter' && searchInput) { onSelectCoin(searchInput); setSearchInput('') } }}
             placeholder="Orn: bitcoin, ethereum..."
-            className="px-4 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-sm text-white placeholder-white/30 focus:outline-none focus:border-amber-500/40 w-56"
+            className="px-4 py-2 rounded-lg bg-surface-3 border border-stroke text-sm text-white placeholder-white/30 focus:outline-none focus:border-amber-500/40 w-56"
           />
           <button onClick={() => { if (searchInput) { onSelectCoin(searchInput); setSearchInput('') } }}
             className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium">
@@ -613,7 +613,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
           {/* Chart mode toggle */}
           <button
             onClick={() => setChartMode(chartMode === 'candle' ? 'line' : 'candle')}
-            className={`p-1.5 rounded-xl text-[10px] transition-all duration-300 border ${chartMode === 'candle' ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10' : 'text-white/50 hover:text-amber-200/80 border-white/[0.04] hover:border-amber-500/20'}`}
+            className={`p-1.5 rounded-xl text-[10px] transition-all duration-300 border ${chartMode === 'candle' ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border-amber-500/35 shadow-sm shadow-amber-500/10' : 'text-text-tertiary hover:text-amber-200/80 border-stroke-subtle hover:border-amber-500/20'}`}
             title={chartMode === 'candle' ? 'Mum Grafik' : 'Cizgi Grafik'}
           >
             <BarChart3 size={14} />
@@ -627,7 +627,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
               className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all duration-300 border ${
                 indicators.has(ind)
                   ? 'bg-gradient-to-r from-violet-500/15 to-purple-500/8 text-violet-300 border-violet-500/35 shadow-sm shadow-violet-500/10'
-                  : 'text-white/40 hover:text-violet-300/70 border-white/[0.04] hover:border-violet-500/20'
+                  : 'text-text-tertiary hover:text-violet-300/70 border-stroke-subtle hover:border-violet-500/20'
               }`}
             >
               {ind.toUpperCase()}
@@ -644,7 +644,7 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
               className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all duration-300 ${
                 range === tr.value
                   ? 'bg-gradient-to-r from-amber-500/15 to-orange-500/8 text-amber-300 border border-amber-500/35 shadow-sm shadow-amber-500/10'
-                  : 'text-white/50 hover:text-amber-200/80 border border-white/[0.04] hover:border-amber-500/20'
+                  : 'text-text-tertiary hover:text-amber-200/80 border border-stroke-subtle hover:border-amber-500/20'
               }`}
             >
               {tr.label}
@@ -654,15 +654,15 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
       </div>
 
       {/* Main Chart */}
-      <div className="bg-[#0d0d14] rounded-2xl border border-white/[0.06] relative overflow-hidden">
+      <div className="bg-surface-1 rounded-2xl border border-stroke-subtle relative overflow-hidden">
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#0d0d14]/90 z-10 rounded-2xl">
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-1/90 z-10 rounded-2xl">
             <div className="w-8 h-8 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
           </div>
         )}
         <div ref={chartContainerRef} className="w-full" />
         {ohlcData.length === 0 && !loading && (
-          <div className="flex items-center justify-center h-[400px] text-white/40 text-sm">
+          <div className="flex items-center justify-center h-[400px] text-text-tertiary text-sm">
             Grafik verisi bulunamadi
           </div>
         )}
@@ -670,10 +670,10 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
 
       {/* RSI Sub-chart */}
       {indicators.has('rsi') && ohlcData.length > 15 && (
-        <div className="bg-[#0d0d14] rounded-xl border border-white/[0.06] overflow-hidden">
-          <div className="flex items-center gap-2 px-3 py-1.5 border-b border-white/[0.04]">
+        <div className="bg-surface-1 rounded-xl border border-stroke-subtle overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-1.5 border-b border-stroke-subtle">
             <Activity size={12} className="text-amber-400/60" />
-            <span className="text-[10px] font-medium text-white/50">RSI (14)</span>
+            <span className="text-[10px] font-medium text-text-tertiary">RSI (14)</span>
           </div>
           <div ref={rsiContainerRef} className="w-full" />
         </div>
@@ -681,10 +681,10 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
 
       {/* MACD Sub-chart */}
       {indicators.has('macd') && ohlcData.length > 26 && (
-        <div className="bg-[#0d0d14] rounded-xl border border-white/[0.06] overflow-hidden">
-          <div className="flex items-center gap-2 px-3 py-1.5 border-b border-white/[0.04]">
+        <div className="bg-surface-1 rounded-xl border border-stroke-subtle overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-1.5 border-b border-stroke-subtle">
             <Layers size={12} className="text-blue-400/60" />
-            <span className="text-[10px] font-medium text-white/50">MACD (12, 26, 9)</span>
+            <span className="text-[10px] font-medium text-text-tertiary">MACD (12, 26, 9)</span>
           </div>
           <div ref={macdContainerRef} className="w-full" />
         </div>
@@ -694,13 +694,13 @@ export default function TabChart({ coinId, onSelectCoin }: TabChartProps) {
       {ohlcData.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
           {[
-            { label: 'Acilis', value: formatPrice(ohlcData[0].open), color: 'text-white/60' },
+            { label: 'Acilis', value: formatPrice(ohlcData[0].open), color: 'text-text-secondary' },
             { label: 'En Yuksek', value: formatPrice(Math.max(...ohlcData.map(c => c.high))), color: 'text-emerald-400/70' },
             { label: 'En Dusuk', value: formatPrice(Math.min(...ohlcData.map(c => c.low))), color: 'text-red-400/70' },
             { label: 'Kapanis', value: formatPrice(ohlcData[ohlcData.length - 1].close), color: 'text-white' },
           ].map(stat => (
-            <div key={stat.label} className="bg-[#151520] rounded-xl border border-white/[0.04] px-2 sm:px-3 py-1.5 sm:py-2 hover:border-white/[0.12] hover:shadow-md hover:shadow-black/20 transition-all duration-300">
-              <div className="text-[9px] text-white/40 uppercase tracking-wider">{stat.label}</div>
+            <div key={stat.label} className="bg-surface-3 rounded-xl border border-stroke-subtle px-2 sm:px-3 py-1.5 sm:py-2 hover:border-stroke hover:shadow-md hover:shadow-black/20 transition-all duration-300">
+              <div className="text-[9px] text-text-tertiary uppercase tracking-wider">{stat.label}</div>
               <div className={`text-xs sm:text-sm font-semibold ${stat.color}`}>{stat.value}</div>
             </div>
           ))}

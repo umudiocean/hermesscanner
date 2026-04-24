@@ -207,7 +207,7 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     aiReq: 'STRONG',
     bg: 'bg-gold-400/10',
     text: 'text-gold-300',
-    border: 'border-gold-400/30',
+    border: 'border-stroke-gold-strong',
     glow: 'shadow-gold-400/20',
     gradient: 'from-gold-400/20 to-gold-600/5',
     badgeBg: 'bg-gold-400/20',
@@ -220,14 +220,14 @@ const SIGNAL_CONFIG: Record<BestSignalType, {
     desc: 'Teknik guclu + Temel iyi',
     teknikReq: 'LONG',
     aiReq: 'GOOD',
-    bg: 'bg-hermes-green/10',
-    text: 'text-hermes-green',
-    border: 'border-hermes-green/30',
-    glow: 'shadow-hermes-green/20',
-    gradient: 'from-hermes-green/20 to-hermes-green/5',
-    badgeBg: 'bg-hermes-green/20',
+    bg: 'bg-success-400/10',
+    text: 'text-success-400',
+    border: 'border-success-400/30',
+    glow: 'shadow-success-400/20',
+    gradient: 'from-success-400/20 to-hermes-green/5',
+    badgeBg: 'bg-success-400/20',
     icon: '\u{1F7E2}',
-    color: 'text-hermes-green bg-hermes-green/10',
+    color: 'text-success-400 bg-success-400/10',
   },
   smart_long: {
     label: 'SMART LONG',
@@ -464,13 +464,13 @@ function FilterBtn({ active, onClick, cfg, count }: {
         transition-all duration-200 border
         ${active
           ? `${cfg.badgeBg} ${cfg.text} ${cfg.border} shadow-lg ${cfg.glow}`
-          : 'bg-white/[0.03] text-white/60 border-white/[0.06] hover:bg-white/[0.06] hover:text-white/70'}
+          : 'bg-surface-2 text-text-secondary border-stroke-subtle hover:bg-surface-3 hover:text-text-secondary'}
       `}
     >
       <span className="text-sm">{cfg.icon}</span>
       <span>{cfg.label}</span>
       {count !== undefined && (
-        <span className={`font-bold tabular-nums ${active ? 'text-white/90' : 'text-white/60'}`}>
+        <span className={`font-bold tabular-nums ${active ? 'text-text-primary' : 'text-text-secondary'}`}>
           {count}
         </span>
       )}
@@ -493,9 +493,9 @@ function getSignalLabel(signalType: string): string {
 
 function TeknikBadge({ signalType }: { signalType: string }) {
   const colors: Record<string, string> = {
-    strong_long: 'text-gold-300 bg-gold-400/15 border-gold-400/30',
-    long: 'text-hermes-green bg-hermes-green/15 border-hermes-green/30',
-    neutral: 'text-white/50 bg-white/[0.05] border-white/[0.08]',
+    strong_long: 'text-gold-300 bg-gold-400/15 border-stroke-gold-strong',
+    long: 'text-success-400 bg-success-400/15 border-success-400/30',
+    neutral: 'text-text-tertiary bg-surface-3 border-stroke',
     short: 'text-orange-400 bg-orange-500/15 border-orange-500/30',
     strong_short: 'text-red-400 bg-red-500/15 border-red-500/30',
   }
@@ -509,9 +509,9 @@ function TeknikBadge({ signalType }: { signalType: string }) {
 // ─── AI Signal Badge ───
 function AiBadge({ signal, score }: { signal: string; score: number }) {
   const colors: Record<string, string> = {
-    'STRONG': 'text-gold-300 bg-gold-400/15 border-gold-400/30',
-    'GOOD': 'text-hermes-green bg-hermes-green/15 border-hermes-green/30',
-    'NEUTRAL': 'text-white/50 bg-white/[0.05] border-white/[0.08]',
+    'STRONG': 'text-gold-300 bg-gold-400/15 border-stroke-gold-strong',
+    'GOOD': 'text-success-400 bg-success-400/15 border-success-400/30',
+    'NEUTRAL': 'text-text-tertiary bg-surface-3 border-stroke',
     'WEAK': 'text-orange-400 bg-orange-500/15 border-orange-500/30',
     'BAD': 'text-red-400 bg-red-500/15 border-red-500/30',
   }
@@ -817,7 +817,7 @@ export default function ModuleNasdaqSignals() {
   }
 
   const SortIcon = ({ field }: { field: typeof sortField }) => {
-    if (field !== sortField) return <span className="text-white/40 ml-0.5">{'\u2195'}</span>
+    if (field !== sortField) return <span className="text-text-tertiary ml-0.5">{'\u2195'}</span>
     return <span className="text-gold-300 ml-0.5">{sortDir === 'asc' ? '\u2191' : '\u2193'}</span>
   }
 
@@ -870,7 +870,7 @@ export default function ModuleNasdaqSignals() {
             <SystemFreshnessBadge />
           </div>
         </div>
-        <p className="text-[11px] text-white/40 ml-9">
+        <p className="text-[11px] text-text-tertiary ml-9">
           Teknik analiz (52W Z-Score/VWAP) ve temel analiz (P/E, P/B, ROE, Borc) sinyallerinin capraz onay birlesimleri
         </p>
         <div className="ml-9 mt-2">
@@ -895,7 +895,7 @@ export default function ModuleNasdaqSignals() {
               {signalsPaused ? 'SIGNALS PAUSED' : `${marketRegime.replace('_', ' ')} REGIME`}
               {vixValue !== null && <span className="ml-2 font-normal opacity-70">VIX: {vixValue.toFixed(1)}</span>}
             </p>
-            <p className="text-[10px] text-white/50 mt-0.5">
+            <p className="text-[10px] text-text-tertiary mt-0.5">
               {pauseReason || (
                 marketRegime === 'CRISIS'
                   ? 'Extreme volatility — all new signals suspended. Existing positions monitored.'
@@ -907,8 +907,8 @@ export default function ModuleNasdaqSignals() {
           </div>
           {positionSizeMultiplier < 1 && positionSizeMultiplier > 0 && (
             <div className="shrink-0 text-right">
-              <div className="text-xs font-bold text-white/60">{Math.round(positionSizeMultiplier * 100)}%</div>
-              <div className="text-[9px] text-white/40">Pos Size</div>
+              <div className="text-xs font-bold text-text-secondary">{Math.round(positionSizeMultiplier * 100)}%</div>
+              <div className="text-[9px] text-text-tertiary">Pos Size</div>
             </div>
           )}
         </div>
@@ -924,11 +924,11 @@ export default function ModuleNasdaqSignals() {
             onClick={() => setActiveFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
               activeFilter === 'all'
-                ? 'bg-gold-400/10 text-gold-300 border-gold-400/25'
-                : 'bg-midnight-50/50 text-white/50 border-gold-400/8 hover:bg-midnight-50/80'
+                ? 'bg-gold-400/10 text-gold-300 border-stroke-gold'
+                : 'bg-surface-3/50 text-text-tertiary border-stroke-gold hover:bg-surface-3/80'
             }`}
           >
-            Tumu <span className={`ml-1 font-bold tabular-nums ${activeFilter === 'all' ? 'text-white/90' : 'text-white/60'}`}>{counts.all}</span>
+            Tumu <span className={`ml-1 font-bold tabular-nums ${activeFilter === 'all' ? 'text-text-primary' : 'text-text-secondary'}`}>{counts.all}</span>
           </button>
         </div>
         <div className="flex items-center gap-2 mb-2">
@@ -937,8 +937,8 @@ export default function ModuleNasdaqSignals() {
             onClick={() => setRevisionFilter('all')}
             className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
               revisionFilter === 'all'
-                ? 'bg-gold-400/10 text-gold-300 border-gold-400/25'
-                : 'bg-midnight-50/50 text-white/50 border-gold-400/8 hover:bg-midnight-50/80'
+                ? 'bg-gold-400/10 text-gold-300 border-stroke-gold'
+                : 'bg-surface-3/50 text-text-tertiary border-stroke-gold hover:bg-surface-3/80'
             }`}
           >
             Tumu
@@ -947,8 +947,8 @@ export default function ModuleNasdaqSignals() {
             onClick={() => setRevisionFilter('up')}
             className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
               revisionFilter === 'up'
-                ? 'bg-hermes-green/12 text-hermes-green border-hermes-green/30'
-                : 'bg-midnight-50/50 text-white/50 border-gold-400/8 hover:bg-midnight-50/80'
+                ? 'bg-success-400/12 text-success-400 border-success-400/30'
+                : 'bg-surface-3/50 text-text-tertiary border-stroke-gold hover:bg-surface-3/80'
             }`}
           >
             Rev Up
@@ -958,7 +958,7 @@ export default function ModuleNasdaqSignals() {
             className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
               revisionFilter === 'down'
                 ? 'bg-red-500/12 text-red-400 border-red-500/30'
-                : 'bg-midnight-50/50 text-white/50 border-gold-400/8 hover:bg-midnight-50/80'
+                : 'bg-surface-3/50 text-text-tertiary border-stroke-gold hover:bg-surface-3/80'
             }`}
           >
             Rev Down
@@ -983,16 +983,16 @@ export default function ModuleNasdaqSignals() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Sembol veya sektor ara..."
-            className="bg-midnight-50/50 border border-gold-400/10 rounded-lg px-3 py-1.5 text-xs text-white/80 placeholder-white/25 w-60 focus:outline-none focus:border-gold-400/25 transition-colors"
+            className="bg-surface-3/50 border border-stroke-gold rounded-lg px-3 py-1.5 text-xs text-text-primary placeholder-white/25 w-60 focus:outline-none focus:border-stroke-gold transition-colors"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="text-white/50 hover:text-white/70 text-xs">
+            <button onClick={() => setSearch('')} className="text-text-tertiary hover:text-text-secondary text-xs">
               Temizle
             </button>
           )}
           {/* Column Tooltip */}
           {tooltip && (
-            <div className="flex-1 flex items-center gap-1.5 px-3 py-1.5 bg-gold-400/8 border border-gold-400/15 rounded-lg text-xs text-gold-200 animate-fade-in">
+            <div className="flex-1 flex items-center gap-1.5 px-3 py-1.5 bg-gold-400/8 border border-stroke-gold rounded-lg text-xs text-gold-200 animate-fade-in">
               <span className="text-gold-400">i</span>
               {tooltip}
             </div>
@@ -1010,15 +1010,15 @@ export default function ModuleNasdaqSignals() {
               <button
                 onClick={() => downloadCSV('nasdaq')}
                 disabled={filtered.length === 0}
-                className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-gold-400/10 text-gold-300 border border-gold-400/20 hover:bg-gold-400/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-gold-400/10 text-gold-300 border border-stroke-gold hover:bg-gold-400/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 title="NASDAQ sinyallerini CSV olarak indir"
               >
                 CSV Indir
               </button>
             )}
-            <span className="text-[11px] text-white/50 tabular-nums">
+            <span className="text-[11px] text-text-tertiary tabular-nums">
               <span className="font-bold text-gold-300">{filtered.length}</span>
-              <span className="text-white/40"> / {counts.all} sinyal</span>
+              <span className="text-text-tertiary"> / {counts.all} sinyal</span>
             </span>
           </div>
         </div>
@@ -1075,8 +1075,8 @@ export default function ModuleNasdaqSignals() {
               >
                 <div className="text-xl mb-1">{cfg.icon}</div>
                 <div className={`text-[10px] font-bold ${cfg.text} mb-0.5`}>{cfg.label}</div>
-                <div className={`text-lg font-black tabular-nums ${count === 0 ? 'text-white/35' : 'text-white/90'}`}>{count}</div>
-                <div className="text-[9px] text-white/50 mt-0.5">{cfg.desc}</div>
+                <div className={`text-lg font-black tabular-nums ${count === 0 ? 'text-text-quaternary' : 'text-text-primary'}`}>{count}</div>
+                <div className="text-[9px] text-text-tertiary mt-0.5">{cfg.desc}</div>
               </button>
             )
           })}
@@ -1092,7 +1092,7 @@ export default function ModuleNasdaqSignals() {
               <span className={`text-sm font-bold ${SIGNAL_CONFIG[activeFilter].text}`}>
                 {SIGNAL_CONFIG[activeFilter].label}
               </span>
-              <span className="text-[10px] text-white/60 ml-2">
+              <span className="text-[10px] text-text-secondary ml-2">
                 N.Teknik: {SIGNAL_CONFIG[activeFilter].teknikReq} + H.AI: {SIGNAL_CONFIG[activeFilter].aiReq}
               </span>
             </div>
@@ -1105,62 +1105,62 @@ export default function ModuleNasdaqSignals() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gold-400/10 bg-midnight-50/30">
-                <th className="text-left px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+              <tr className="border-b border-stroke-gold bg-surface-3/30">
+                <th className="text-left px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('symbol')} onMouseEnter={() => setTooltip(COLUMN_TIPS.symbol)} onMouseLeave={() => setTooltip(null)}>
                   Sembol <SortIcon field="symbol" />
                 </th>
-                <th className="text-left px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-left px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('sector')} onMouseEnter={() => setTooltip(COLUMN_TIPS.sector)} onMouseLeave={() => setTooltip(null)}>
                   Sektor <SortIcon field="sector" />
                 </th>
-                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('bestSignal')} onMouseEnter={() => setTooltip(COLUMN_TIPS.bestSignal)} onMouseLeave={() => setTooltip(null)}>
                   Best Sinyal <SortIcon field="bestSignal" />
                 </th>
-                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('nTeknik')} onMouseEnter={() => setTooltip(COLUMN_TIPS.nTeknik)} onMouseLeave={() => setTooltip(null)}>
                   N. Teknik <SortIcon field="nTeknik" />
                 </th>
-                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('teknikScore')} onMouseEnter={() => setTooltip(COLUMN_TIPS.teknikScore)} onMouseLeave={() => setTooltip(null)}>
                   Teknik Skor <SortIcon field="teknikScore" />
                 </th>
-                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('hAi')} onMouseEnter={() => setTooltip(COLUMN_TIPS.hAi)} onMouseLeave={() => setTooltip(null)}>
                   H. AI <SortIcon field="hAi" />
                 </th>
-                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('aiScore')} onMouseEnter={() => setTooltip(COLUMN_TIPS.aiScore)} onMouseLeave={() => setTooltip(null)}>
                   AI Skor <SortIcon field="aiScore" />
                 </th>
-                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('confidence')} onMouseEnter={() => setTooltip(COLUMN_TIPS.confidence)} onMouseLeave={() => setTooltip(null)}>
                   Guven <SortIcon field="confidence" />
                 </th>
-                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('valuation')} onMouseEnter={() => setTooltip(COLUMN_TIPS.valuation)} onMouseLeave={() => setTooltip(null)}>
                   Fiyatlama <SortIcon field="valuation" />
                 </th>
-                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('price')} onMouseEnter={() => setTooltip(COLUMN_TIPS.price)} onMouseLeave={() => setTooltip(null)}>
                   Fiyat <SortIcon field="price" />
                 </th>
-                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('changePercent')} onMouseEnter={() => setTooltip(COLUMN_TIPS.changePercent)} onMouseLeave={() => setTooltip(null)}>
                   Degisim <SortIcon field="changePercent" />
                 </th>
-                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider cursor-pointer select-none hover:text-white/80"
+                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider cursor-pointer select-none hover:text-text-primary"
                   onClick={() => handleSort('marketCap')} onMouseEnter={() => setTooltip(COLUMN_TIPS.marketCap)} onMouseLeave={() => setTooltip(null)}>
                   M.Cap <SortIcon field="marketCap" />
                 </th>
-                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider hidden xl:table-cell" title="Hedef Fiyat">
+                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider hidden xl:table-cell" title="Hedef Fiyat">
                   Hedef
                 </th>
-                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider hidden xl:table-cell" title="Dip Fiyat">
+                <th className="text-right px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider hidden xl:table-cell" title="Dip Fiyat">
                   Dip
                 </th>
-                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-white/60 uppercase tracking-wider hidden xl:table-cell" title="Risk/Odul">
+                <th className="text-center px-3 py-2.5 text-[10px] font-bold text-text-secondary uppercase tracking-wider hidden xl:table-cell" title="Risk/Odul">
                   R:R
                 </th>
               </tr>
@@ -1170,7 +1170,7 @@ export default function ModuleNasdaqSignals() {
                 Array.from({ length: 12 }).map((_, i) => <SkeletonRow key={i} />)
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={15} className="text-center py-12 text-white/40 text-sm">
+                  <td colSpan={15} className="text-center py-12 text-text-tertiary text-sm">
                     {counts.all === 0
                       ? 'Veri bekleniyor... NASDAQ TEKNIK ve Hermes AI taramasi tamamlaninca sinyaller gorunecek.'
                       : 'Bu filtreye uygun sinyal bulunamadi.'}
@@ -1184,7 +1184,7 @@ export default function ModuleNasdaqSignals() {
                       key={`${item.symbol}-${item.signalType}`}
                       className={`
                         border-b border-gold-400/5 premium-row
-                        ${idx % 2 === 0 ? 'bg-transparent' : 'bg-midnight-50/20'}
+                        ${idx % 2 === 0 ? 'bg-transparent' : 'bg-surface-3/20'}
                         ${item.signalType === 'confluence_buy' ? 'row-glow-strong-long' :
                           item.signalType === 'alpha_long' || item.signalType === 'hermes_long' ? 'row-glow-long' :
                           item.signalType === 'confluence_sell' ? 'row-glow-strong-short' :
@@ -1200,20 +1200,20 @@ export default function ModuleNasdaqSignals() {
                             className={`shrink-0 p-0.5 rounded transition-all duration-200 ${
                               watchlist.has(item.symbol)
                                 ? 'text-amber-400 hover:text-amber-300'
-                                : 'text-white/35 hover:text-amber-400/60'
+                                : 'text-text-quaternary hover:text-amber-400/60'
                             }`}
                             title={watchlist.has(item.symbol) ? 'Watchlist\'ten cikar' : 'Watchlist\'e ekle'}
                           >
                             <svg width="13" height="13" viewBox="0 0 24 24" fill={watchlist.has(item.symbol) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
                           </button>
                           <span className="text-xs font-bold text-white">{item.symbol}</span>
-                          <span className="text-[9px] text-white/40 font-medium">{item.segment}</span>
+                          <span className="text-[9px] text-text-tertiary font-medium">{item.segment}</span>
                         </div>
                       </td>
 
                       {/* Sector */}
                       <td className="px-3 py-2.5">
-                        <span className="text-[10px] text-white/60 truncate max-w-[90px] inline-block">{item.sector}</span>
+                        <span className="text-[10px] text-text-secondary truncate max-w-[90px] inline-block">{item.sector}</span>
                       </td>
 
                       {/* Best Signal Badge */}
@@ -1234,7 +1234,7 @@ export default function ModuleNasdaqSignals() {
                         <div className="flex items-center justify-center gap-1">
                           <ScoreMiniBar value={100 - item.teknikScore} maxWidth={48} />
                           {item.teknikScore >= 35 && item.teknikScore <= 40 && (
-                            <span className="text-[9px] text-hermes-green/70" title="LONG bolgelerine yaklasma">↓L</span>
+                            <span className="text-[9px] text-success-400/70" title="LONG bolgelerine yaklasma">↓L</span>
                           )}
                           {item.teknikScore >= 87 && item.teknikScore <= 91 && (
                             <span className="text-[9px] text-red-400/70" title="SHORT bolgelerine yaklasma">↑S</span>
@@ -1256,11 +1256,11 @@ export default function ModuleNasdaqSignals() {
                       <td className="px-3 py-2.5 text-center">
                         <div className="flex flex-col items-center leading-tight">
                           <span className={`text-[11px] tabular-nums font-medium ${
-                            item.signalConfidence >= 70 ? 'text-hermes-green/70' : item.signalConfidence >= 50 ? 'text-amber-400/70' : 'text-white/35'
+                            item.signalConfidence >= 70 ? 'text-success-400/70' : item.signalConfidence >= 50 ? 'text-amber-400/70' : 'text-text-quaternary'
                           }`}>{item.signalConfidence > 0 ? `${item.signalConfidence}%` : '—'}</span>
                           <span className={`text-[9px] tabular-nums ${
-                            (item.analystEpsRevision30d || 0) > 0 ? 'text-hermes-green/80' :
-                            (item.analystEpsRevision30d || 0) < 0 ? 'text-red-400/80' : 'text-white/35'
+                            (item.analystEpsRevision30d || 0) > 0 ? 'text-success-400/80' :
+                            (item.analystEpsRevision30d || 0) < 0 ? 'text-red-400/80' : 'text-text-quaternary'
                           }`}>
                             R30 {(item.analystEpsRevision30d || 0) !== 0 ? `${(item.analystEpsRevision30d || 0) > 0 ? '+' : ''}${(item.analystEpsRevision30d || 0).toFixed(1)}%` : '—'}
                           </span>
@@ -1276,14 +1276,14 @@ export default function ModuleNasdaqSignals() {
                       <td className="px-3 py-2.5 text-center">
                         {item.valuationLabel ? (
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${
-                            item.valuationLabel === 'COK UCUZ' ? 'text-hermes-green bg-hermes-green/15' :
-                            item.valuationLabel === 'UCUZ' ? 'text-hermes-green bg-hermes-green/10' :
-                            item.valuationLabel === 'NORMAL' ? 'text-slate-300 bg-white/[0.04]' :
+                            item.valuationLabel === 'COK UCUZ' ? 'text-success-400 bg-success-400/15' :
+                            item.valuationLabel === 'UCUZ' ? 'text-success-400 bg-success-400/10' :
+                            item.valuationLabel === 'NORMAL' ? 'text-slate-300 bg-surface-3' :
                             item.valuationLabel === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
                             item.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
-                            'text-white/35 bg-white/[0.03]'
+                            'text-text-quaternary bg-surface-2'
                           }`}>{item.valuationLabel}</span>
-                        ) : <span className="text-white/40 text-[10px]">—</span>}
+                        ) : <span className="text-text-tertiary text-[10px]">—</span>}
                       </td>
 
                       {/* Price */}
@@ -1293,40 +1293,40 @@ export default function ModuleNasdaqSignals() {
 
                       {/* Change % */}
                       <td className="px-3 py-2.5 text-right">
-                        <span className={`text-xs font-semibold tabular-nums ${item.changePercent >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                        <span className={`text-xs font-semibold tabular-nums ${item.changePercent >= 0 ? 'text-success-400' : 'text-red-400'}`}>
                           {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
                         </span>
                       </td>
 
                       {/* Market Cap */}
                       <td className="px-3 py-2.5 text-right">
-                        <span className="text-[10px] text-white/60 tabular-nums">{formatMarketCap(item.marketCap)}</span>
+                        <span className="text-[10px] text-text-secondary tabular-nums">{formatMarketCap(item.marketCap)}</span>
                       </td>
 
                       {/* Target Price */}
                       <td className="px-3 py-2.5 text-right hidden xl:table-cell">
                         {item.targetPrice != null ? (
                           <span className={`text-xs font-mono font-semibold ${
-                            item.targetPrice > item.price ? 'text-hermes-green' : 'text-red-400'
+                            item.targetPrice > item.price ? 'text-success-400' : 'text-red-400'
                           }`}>${item.targetPrice.toFixed(2)}</span>
-                        ) : <span className="text-white/40 text-[10px]">—</span>}
+                        ) : <span className="text-text-tertiary text-[10px]">—</span>}
                       </td>
 
                       {/* Floor Price */}
                       <td className="px-3 py-2.5 text-right hidden xl:table-cell">
                         {item.floorPrice != null ? (
                           <span className="text-xs font-mono text-red-400/80">${item.floorPrice.toFixed(2)}</span>
-                        ) : <span className="text-white/40 text-[10px]">—</span>}
+                        ) : <span className="text-text-tertiary text-[10px]">—</span>}
                       </td>
 
                       {/* R:R */}
                       <td className="px-3 py-2.5 text-center hidden xl:table-cell">
                         {item.riskReward != null ? (
                           <span className={`text-xs font-mono font-bold ${
-                            item.riskReward >= 2 ? 'text-hermes-green' :
+                            item.riskReward >= 2 ? 'text-success-400' :
                             item.riskReward >= 1 ? 'text-gold-300' : 'text-red-400'
                           }`}>{item.riskReward.toFixed(1)}</span>
-                        ) : <span className="text-white/40 text-[10px]">—</span>}
+                        ) : <span className="text-text-tertiary text-[10px]">—</span>}
                       </td>
                     </tr>
                   )
@@ -1339,7 +1339,7 @@ export default function ModuleNasdaqSignals() {
 
       {/* Footer info */}
       {!isLoading && counts.all > 0 && (
-        <div className="mt-3 flex items-center justify-between text-[10px] text-white/40 px-1">
+        <div className="mt-3 flex items-center justify-between text-[10px] text-text-tertiary px-1">
           <span>
             TRADE AI + Terminal AI eslesme sinyalleri
           </span>

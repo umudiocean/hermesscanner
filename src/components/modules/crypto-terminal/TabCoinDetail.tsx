@@ -52,7 +52,7 @@ function computeDetailRisk(md: CoinDetail['market_data']): number {
 const VALUATION_STYLE_DETAIL: Record<ValuationTag, { text: string; bg: string; border: string }> = {
   'COK UCUZ': { text: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30' },
   'UCUZ': { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-  'NORMAL': { text: 'text-slate-300', bg: 'bg-white/[0.04]', border: 'border-white/10' },
+  'NORMAL': { text: 'text-slate-300', bg: 'bg-surface-3', border: 'border-stroke' },
   'PAHALI': { text: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20' },
   'COK PAHALI': { text: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
 }
@@ -83,8 +83,8 @@ function ChangeTag({ value, label }: { value: number | undefined; label: string 
   if (value == null) return null
   const isPos = value >= 0
   return (
-    <div className="flex flex-col items-center p-2 rounded-lg bg-white/[0.02]">
-      <span className="text-[9px] text-white/35 uppercase mb-1">{label}</span>
+    <div className="flex flex-col items-center p-2 rounded-lg bg-surface-2">
+      <span className="text-[9px] text-text-quaternary uppercase mb-1">{label}</span>
       <span className={`text-xs font-bold tabular-nums ${isPos ? 'text-emerald-400' : 'text-red-400'}`}>
         {isPos ? '+' : ''}{value.toFixed(2)}%
       </span>
@@ -161,9 +161,9 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
   if (!coinId) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-        <Eye size={48} className="text-white/10 mb-4" />
+        <Eye size={48} className="text-text-quaternary mb-4" />
         <h3 className="text-lg font-semibold text-white mb-2">Coin Secin</h3>
-        <p className="text-white/50 text-sm mb-6">COINLER sekmesinden veya arama ile coin secin</p>
+        <p className="text-text-tertiary text-sm mb-6">COINLER sekmesinden veya arama ile coin secin</p>
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -171,7 +171,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
             onChange={e => setSearchInput(e.target.value.toLowerCase())}
             onKeyDown={e => { if (e.key === 'Enter' && searchInput) { onSelectCoin(searchInput); setSearchInput('') } }}
             placeholder="Orn: bitcoin, ethereum, solana..."
-            className="px-4 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-sm text-white placeholder-white/30 focus:outline-none focus:border-amber-500/40 w-64"
+            className="px-4 py-2 rounded-lg bg-surface-3 border border-stroke text-sm text-white placeholder-white/30 focus:outline-none focus:border-amber-500/40 w-64"
           />
           <button
             onClick={() => { if (searchInput) { onSelectCoin(searchInput); setSearchInput('') } }}
@@ -201,7 +201,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
         {/* Close button top-right */}
         <button
           onClick={closeSplash}
-          className="absolute top-2 right-2 z-20 p-2 rounded-full bg-white/[0.06] border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          className="absolute top-2 right-2 z-20 p-2 rounded-full bg-surface-3 border border-stroke text-text-tertiary hover:text-white hover:bg-white/10 transition-all"
         >
           <X size={16} />
         </button>
@@ -227,7 +227,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-1 animate-[fadeInUp_0.5s_0.2s_ease-out_both]">
             {detail.name}
           </h1>
-          <span className="text-sm text-white/40 font-medium uppercase tracking-widest mb-6 animate-[fadeInUp_0.5s_0.3s_ease-out_both]">
+          <span className="text-sm text-text-tertiary font-medium uppercase tracking-widest mb-6 animate-[fadeInUp_0.5s_0.3s_ease-out_both]">
             {detail.symbol} #{md?.market_cap_rank}
           </span>
 
@@ -237,7 +237,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
           </div>
           <div className={`text-lg font-bold tabular-nums mb-8 animate-[fadeInUp_0.5s_0.5s_ease-out_both] ${change24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
             {change24h >= 0 ? '+' : ''}{change24h.toFixed(2)}%
-            <span className="text-xs text-white/40 ml-1.5 font-normal">24s</span>
+            <span className="text-xs text-text-tertiary ml-1.5 font-normal">24s</span>
           </div>
 
           {/* Score Circle */}
@@ -247,7 +247,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
               score?.level === 'GOOD' ? 'border-emerald-500/50 bg-emerald-500/10' :
               score?.level === 'WEAK' ? 'border-orange-500/50 bg-orange-500/10' :
               score?.level === 'BAD' ? 'border-red-500/50 bg-red-500/10' :
-              'border-white/20 bg-white/[0.04]'
+              'border-stroke-strong bg-surface-3'
             }`}>
               <span className={`text-3xl sm:text-4xl font-black tabular-nums ${splashColor}`}>
                 {splashScore}
@@ -284,9 +284,9 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
 
   if (loading && !showSplash) return (
     <div className="space-y-4">
-      <div className="h-24 bg-white/[0.02] rounded-2xl animate-pulse" />
+      <div className="h-24 bg-surface-2 rounded-2xl animate-pulse" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-16 bg-white/[0.02] rounded-xl animate-pulse" />)}
+        {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-16 bg-surface-2 rounded-xl animate-pulse" />)}
       </div>
     </div>
   )
@@ -294,7 +294,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[40vh]">
       <span className="text-3xl mb-3">&#9888;</span>
-      <p className="text-white/60 text-sm">{error}</p>
+      <p className="text-text-secondary text-sm">{error}</p>
     </div>
   )
   if (!detail) return null
@@ -453,7 +453,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
   return (
     <div className="space-y-2 sm:space-y-4 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 hover:border-white/[0.12] transition-all duration-300">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
         <div className="flex items-center gap-3">
           {detail.image?.large && (
             <img src={detail.image.large} alt={detail.symbol} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full" />
@@ -461,8 +461,8 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg sm:text-xl font-bold text-white">{detail.name}</h2>
-              <span className="text-sm text-white/40 font-medium uppercase">{detail.symbol}</span>
-              <span className="text-[10px] text-white/40 bg-white/[0.04] px-1.5 py-0.5 rounded">#{md?.market_cap_rank}</span>
+              <span className="text-sm text-text-tertiary font-medium uppercase">{detail.symbol}</span>
+              <span className="text-[10px] text-text-tertiary bg-surface-3 px-1.5 py-0.5 rounded">#{md?.market_cap_rank}</span>
             </div>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               {detail.categories?.slice(0, 3).map(cat => (
@@ -485,7 +485,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
                 score.level === 'GOOD' ? 'bg-emerald-500/15 border-emerald-500/30' :
                 score.level === 'WEAK' ? 'bg-orange-500/15 border-orange-500/30' :
                 score.level === 'BAD' ? 'bg-red-500/15 border-red-500/30' :
-                'bg-white/[0.04] border-white/[0.08]'
+                'bg-surface-3 border-stroke'
               }`}>
                 <span className={`text-lg font-bold ${getCryptoScoreColor(score.level)}`}>{score.total}</span>
                 <span className={`text-[8px] font-medium ${getCryptoScoreColor(score.level)}`}>{CRYPTO_SCORE_LABELS[score.level]}</span>
@@ -493,8 +493,8 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
               <div className="flex flex-col gap-1">
                 <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-bold ${
                   score.confidence >= 70 ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
-                  score.confidence >= 50 ? 'text-white/60 bg-white/[0.04] border-white/10' :
-                  'text-white/40 bg-white/[0.02] border-white/[0.06]'
+                  score.confidence >= 50 ? 'text-text-secondary bg-surface-3 border-stroke' :
+                  'text-text-tertiary bg-surface-2 border-stroke-subtle'
                 }`} title="Veri kalitesi guveni — kac kategoride gercek veri var">
                   <Shield size={10} />
                   Guven: %{Math.round(score.confidence)}
@@ -521,7 +521,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
           className={`group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border text-xs font-bold transition-all duration-300 ${
             watchlist.has(coinId)
               ? 'bg-amber-500/15 border-amber-500/30 text-amber-400 hover:bg-amber-500/25 hover:border-amber-500/40 shadow-md shadow-amber-500/10'
-              : 'bg-white/[0.04] border-white/8 text-white/60 hover:bg-amber-500/10 hover:border-amber-500/25 hover:text-amber-400'
+              : 'bg-surface-3 border-white/8 text-text-secondary hover:bg-amber-500/10 hover:border-amber-500/25 hover:text-amber-400'
           } hover:scale-[1.03]`}
         >
           <Star size={12} className="inline mr-1" fill={watchlist.has(coinId) ? '#f59e0b' : 'none'} />
@@ -530,7 +530,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
         <button onClick={() => onViewChart(coinId)} className="group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-500/12 to-orange-500/8 border border-amber-500/25 text-amber-400 text-xs font-bold hover:from-amber-500/20 hover:to-orange-500/12 hover:border-amber-500/40 hover:shadow-md hover:shadow-amber-500/10 hover:scale-[1.03] transition-all duration-300">
           <TrendingUp size={12} className="inline mr-1" />Grafik
         </button>
-        <button onClick={() => onAddToCompare(coinId)} className="group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-white/[0.04] border border-white/8 text-white/60 text-xs font-bold hover:bg-white/[0.08] hover:border-white/15 hover:text-white/70 hover:shadow-md hover:shadow-black/20 hover:scale-[1.03] transition-all duration-300">
+        <button onClick={() => onAddToCompare(coinId)} className="group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-surface-3 border border-white/8 text-text-secondary text-xs font-bold hover:bg-surface-3 hover:border-stroke hover:text-text-secondary hover:shadow-md hover:shadow-black/20 hover:scale-[1.03] transition-all duration-300">
           Karsilastir
         </button>
         <button
@@ -541,7 +541,7 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
           {pdfLoading ? 'PDF hazirlaniyor...' : 'Raporu PDF indir'} <span className="ml-1 text-[9px] text-amber-200/90">PREMIUM</span>
         </button>
         {detail.links?.homepage?.[0] && (
-          <a href={detail.links.homepage[0]} target="_blank" rel="noopener noreferrer" className="group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-white/[0.04] border border-white/8 text-white/60 text-xs font-bold hover:bg-white/[0.08] hover:border-white/15 hover:text-white/70 hover:shadow-md hover:shadow-black/20 hover:scale-[1.02] transition-all duration-300">
+          <a href={detail.links.homepage[0]} target="_blank" rel="noopener noreferrer" className="group px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-surface-3 border border-white/8 text-text-secondary text-xs font-bold hover:bg-surface-3 hover:border-stroke hover:text-text-secondary hover:shadow-md hover:shadow-black/20 hover:scale-[1.02] transition-all duration-300">
             <ExternalLink size={12} className="inline mr-1" />Website
           </a>
         )}
@@ -569,38 +569,38 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
       {/* AI Analysis Badges */}
       {md && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-          <div className={`bg-[#151520] rounded-xl border p-2.5 sm:p-3 ${
-            (score?.confidence ?? 0) >= 70 ? 'border-amber-500/25' : 'border-white/[0.06]'
+          <div className={`bg-surface-3 rounded-xl border p-2.5 sm:p-3 ${
+            (score?.confidence ?? 0) >= 70 ? 'border-amber-500/25' : 'border-stroke-subtle'
           }`}>
-            <span className="text-[10px] text-white/40 uppercase tracking-wider">Guven</span>
+            <span className="text-[10px] text-text-tertiary uppercase tracking-wider">Guven</span>
             <div className={`text-base sm:text-lg font-bold tabular-nums mt-0.5 ${
               (score?.confidence ?? 0) >= 70 ? 'text-amber-400' :
-              (score?.confidence ?? 0) >= 50 ? 'text-white/70' : 'text-white/40'
+              (score?.confidence ?? 0) >= 50 ? 'text-text-secondary' : 'text-text-tertiary'
             }`}>%{Math.round(score?.confidence ?? 0)}</div>
-            <span className="text-[9px] text-white/40">{score?.degraded ? 'Eksik veri' : 'Kaliteli veri'}</span>
+            <span className="text-[9px] text-text-tertiary">{score?.degraded ? 'Eksik veri' : 'Kaliteli veri'}</span>
           </div>
           {(() => {
             const vl = computeDetailValuation(md)
             const vs = VALUATION_STYLE_DETAIL[vl]
             return (
-              <div className={`bg-[#151520] rounded-xl border p-2.5 sm:p-3 ${vs.border}`}>
-                <span className="text-[10px] text-white/40 uppercase tracking-wider">Fiyatlama</span>
+              <div className={`bg-surface-3 rounded-xl border p-2.5 sm:p-3 ${vs.border}`}>
+                <span className="text-[10px] text-text-tertiary uppercase tracking-wider">Fiyatlama</span>
                 <div className={`text-base sm:text-lg font-bold mt-0.5 ${vs.text}`}>{vl}</div>
-                <span className="text-[9px] text-white/40">ATH + FDV/MC bazli</span>
+                <span className="text-[9px] text-text-tertiary">ATH + FDV/MC bazli</span>
               </div>
             )
           })()}
           {(() => {
             const r = computeDetailRisk(md)
             return (
-              <div className={`bg-[#151520] rounded-xl border p-2.5 sm:p-3 ${
+              <div className={`bg-surface-3 rounded-xl border p-2.5 sm:p-3 ${
                 r >= 70 ? 'border-red-500/25' : r >= 50 ? 'border-orange-500/20' : 'border-emerald-500/20'
               }`}>
-                <span className="text-[10px] text-white/40 uppercase tracking-wider">Risk Skoru</span>
+                <span className="text-[10px] text-text-tertiary uppercase tracking-wider">Risk Skoru</span>
                 <div className={`text-base sm:text-lg font-bold tabular-nums mt-0.5 ${
-                  r >= 70 ? 'text-red-400' : r >= 50 ? 'text-orange-400' : r >= 30 ? 'text-white/70' : 'text-emerald-400'
+                  r >= 70 ? 'text-red-400' : r >= 50 ? 'text-orange-400' : r >= 30 ? 'text-text-secondary' : 'text-emerald-400'
                 }`}>{r}/100</div>
-                <span className="text-[9px] text-white/40">{r >= 70 ? 'Yuksek risk' : r >= 50 ? 'Orta risk' : 'Dusuk risk'}</span>
+                <span className="text-[9px] text-text-tertiary">{r >= 70 ? 'Yuksek risk' : r >= 50 ? 'Orta risk' : 'Dusuk risk'}</span>
               </div>
             )
           })()}
@@ -610,17 +610,17 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
             const fdv = md.fully_diluted_valuation?.usd ?? 0
             const fdvR = mcap > 0 && fdv > 0 ? (fdv / mcap).toFixed(1) : '-'
             return (
-              <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5 sm:p-3">
-                <span className="text-[10px] text-white/40 uppercase tracking-wider">Arz & Dilution</span>
+              <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-2.5 sm:p-3">
+                <span className="text-[10px] text-text-tertiary uppercase tracking-wider">Arz & Dilution</span>
                 <div className="flex items-baseline gap-2 mt-0.5">
-                  <span className={`text-base sm:text-lg font-bold tabular-nums ${supRatio >= 80 ? 'text-emerald-400' : supRatio >= 50 ? 'text-white/70' : 'text-orange-400'}`}>
+                  <span className={`text-base sm:text-lg font-bold tabular-nums ${supRatio >= 80 ? 'text-emerald-400' : supRatio >= 50 ? 'text-text-secondary' : 'text-orange-400'}`}>
                     {supRatio > 0 ? `${supRatio}%` : '-'}
                   </span>
-                  <span className={`text-xs font-medium tabular-nums ${fdvR !== '-' && parseFloat(fdvR) > 3 ? 'text-red-400' : 'text-white/50'}`}>
+                  <span className={`text-xs font-medium tabular-nums ${fdvR !== '-' && parseFloat(fdvR) > 3 ? 'text-red-400' : 'text-text-tertiary'}`}>
                     FDV/MC: {fdvR}x
                   </span>
                 </div>
-                <span className="text-[9px] text-white/40">Dolasim / Toplam arz</span>
+                <span className="text-[9px] text-text-tertiary">Dolasim / Toplam arz</span>
               </div>
             )
           })()}
@@ -641,8 +641,8 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
 
       {/* Score Breakdown */}
       {score && (
-        <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 hover:border-white/[0.12] transition-all duration-300">
-          <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider mb-2 sm:mb-3">HERMES AI Skor Dagilimi</h3>
+        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 hover:border-stroke transition-all duration-300">
+          <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-2 sm:mb-3">HERMES AI Skor Dagilimi</h3>
           <div className="space-y-2">
             {CRYPTO_CATEGORY_KEYS
               .slice()
@@ -652,8 +652,8 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
               const barColor = value >= 70 ? 'bg-emerald-400' : value >= 50 ? 'bg-amber-400' : value >= 30 ? 'bg-orange-400' : 'bg-red-400'
               return (
                 <div key={key} className="flex items-center gap-2">
-                  <span className="w-20 text-[10px] text-white/50">{CRYPTO_CATEGORY_LABELS[key]}</span>
-                  <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
+                  <span className="w-20 text-[10px] text-text-tertiary">{CRYPTO_CATEGORY_LABELS[key]}</span>
+                  <div className="flex-1 h-2 bg-surface-3 rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${barColor} transition-all duration-700`} style={{ width: `${Math.max(2, value)}%` }} />
                   </div>
                   <span className={`w-8 text-[10px] text-right tabular-nums font-medium ${value >= 70 ? 'text-emerald-400' : value >= 50 ? 'text-amber-400' : value >= 30 ? 'text-orange-400' : 'text-red-400'}`}>{Math.round(value)}</span>
@@ -667,30 +667,30 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
       {/* Community & Developer */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
         {detail.community_data && (
-          <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4">
+          <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4">
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
               <Users size={14} className="text-blue-400" />
-              <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Topluluk</h3>
+              <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Topluluk</h3>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div><span className="text-white/40">Twitter</span> <span className="text-white font-medium ml-1">{(detail.community_data.twitter_followers ?? 0).toLocaleString()}</span></div>
-              <div><span className="text-white/40">Reddit</span> <span className="text-white font-medium ml-1">{(detail.community_data.reddit_subscribers ?? 0).toLocaleString()}</span></div>
-              <div><span className="text-white/40">Telegram</span> <span className="text-white font-medium ml-1">{(detail.community_data.telegram_channel_user_count ?? 0).toLocaleString()}</span></div>
-              <div><span className="text-white/40">Sentiment</span> <span className="text-emerald-400 font-medium ml-1">{detail.sentiment_votes_up_percentage?.toFixed(0) ?? '-'}% pozitif</span></div>
+              <div><span className="text-text-tertiary">Twitter</span> <span className="text-white font-medium ml-1">{(detail.community_data.twitter_followers ?? 0).toLocaleString()}</span></div>
+              <div><span className="text-text-tertiary">Reddit</span> <span className="text-white font-medium ml-1">{(detail.community_data.reddit_subscribers ?? 0).toLocaleString()}</span></div>
+              <div><span className="text-text-tertiary">Telegram</span> <span className="text-white font-medium ml-1">{(detail.community_data.telegram_channel_user_count ?? 0).toLocaleString()}</span></div>
+              <div><span className="text-text-tertiary">Sentiment</span> <span className="text-emerald-400 font-medium ml-1">{detail.sentiment_votes_up_percentage?.toFixed(0) ?? '-'}% pozitif</span></div>
             </div>
           </div>
         )}
         {detail.developer_data && (
-          <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4">
+          <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4">
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
               <Code size={14} className="text-violet-400" />
-              <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider">Gelistirici</h3>
+              <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Gelistirici</h3>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div><span className="text-white/40">GitHub Stars</span> <span className="text-white font-medium ml-1">{(detail.developer_data.stars ?? 0).toLocaleString()}</span></div>
-              <div><span className="text-white/40">Forks</span> <span className="text-white font-medium ml-1">{(detail.developer_data.forks ?? 0).toLocaleString()}</span></div>
-              <div><span className="text-white/40">4H Commit</span> <span className="text-white font-medium ml-1">{detail.developer_data.commit_count_4_weeks ?? 0}</span></div>
-              <div><span className="text-white/40">PR Merged</span> <span className="text-white font-medium ml-1">{detail.developer_data.pull_requests_merged ?? 0}</span></div>
+              <div><span className="text-text-tertiary">GitHub Stars</span> <span className="text-white font-medium ml-1">{(detail.developer_data.stars ?? 0).toLocaleString()}</span></div>
+              <div><span className="text-text-tertiary">Forks</span> <span className="text-white font-medium ml-1">{(detail.developer_data.forks ?? 0).toLocaleString()}</span></div>
+              <div><span className="text-text-tertiary">4H Commit</span> <span className="text-white font-medium ml-1">{detail.developer_data.commit_count_4_weeks ?? 0}</span></div>
+              <div><span className="text-text-tertiary">PR Merged</span> <span className="text-white font-medium ml-1">{detail.developer_data.pull_requests_merged ?? 0}</span></div>
             </div>
           </div>
         )}
@@ -698,9 +698,9 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
 
       {/* Description */}
       {detail.description?.en && (
-        <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4">
-          <h3 className="text-sm font-bold text-white/70 uppercase tracking-wider mb-1.5 sm:mb-2">Hakkinda</h3>
-          <p className="text-xs text-white/50 leading-relaxed line-clamp-4">{detail.description.en.replace(/<[^>]*>/g, '').substring(0, 500)}</p>
+        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4">
+          <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-1.5 sm:mb-2">Hakkinda</h3>
+          <p className="text-xs text-text-tertiary leading-relaxed line-clamp-4">{detail.description.en.replace(/<[^>]*>/g, '').substring(0, 500)}</p>
         </div>
       )}
     </div>
@@ -709,10 +709,10 @@ export default function TabCoinDetail({ coinId, onSelectCoin, onViewChart, onAdd
 
 function MetricCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-3 hover:border-white/[0.12] hover:shadow-md hover:shadow-black/20 transition-all duration-300">
-      <span className="text-[10px] text-white/40 uppercase tracking-wider">{label}</span>
+    <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-3 hover:border-stroke hover:shadow-md hover:shadow-black/20 transition-all duration-300">
+      <span className="text-[10px] text-text-tertiary uppercase tracking-wider">{label}</span>
       <div className="text-sm font-bold text-white tabular-nums mt-0.5">{value}</div>
-      {sub && <span className="text-[10px] text-white/40">{sub}</span>}
+      {sub && <span className="text-[10px] text-text-tertiary">{sub}</span>}
     </div>
   )
 }

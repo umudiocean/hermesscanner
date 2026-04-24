@@ -113,7 +113,7 @@ export function PremiumGauge({ value, size = 140, label, sublabel }: {
           {label || c.text}
         </span>
       </div>
-      {sublabel && <span className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mt-1">{sublabel}</span>}
+      {sublabel && <span className="text-[10px] text-text-tertiary uppercase tracking-widest font-semibold mt-1">{sublabel}</span>}
     </div>
   )
 }
@@ -124,7 +124,7 @@ export function FearGreedBar({ value, label }: { value: number; label?: string }
   const barLabel = label || (
     clamped <= 20 ? 'ASIRI KORKU' : clamped <= 40 ? 'KORKU' : clamped <= 60 ? 'NOTR' : clamped <= 80 ? 'ACGOZLULUK' : 'ASIRI ACGOZLULUK'
   )
-  const barColor = clamped <= 25 ? 'text-red-400' : clamped <= 45 ? 'text-orange-400' : clamped <= 55 ? 'text-slate-300' : clamped <= 75 ? 'text-hermes-green' : 'text-hermes-green'
+  const barColor = clamped <= 25 ? 'text-red-400' : clamped <= 45 ? 'text-orange-400' : clamped <= 55 ? 'text-slate-300' : clamped <= 75 ? 'text-success-400' : 'text-success-400'
 
   return (
     <div>
@@ -133,8 +133,8 @@ export function FearGreedBar({ value, label }: { value: number; label?: string }
           <span className={`text-xl font-black tabular-nums ${barColor}`}>{Math.round(value)}</span>
           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
             clamped <= 25 ? 'text-red-400 bg-red-500/15' : clamped <= 45 ? 'text-orange-400 bg-orange-500/15' :
-            clamped <= 55 ? 'text-slate-300 bg-white/[0.06]' : clamped <= 75 ? 'text-hermes-green bg-hermes-green/15' :
-            'text-hermes-green bg-hermes-green/20'
+            clamped <= 55 ? 'text-slate-300 bg-surface-3' : clamped <= 75 ? 'text-success-400 bg-success-400/15' :
+            'text-success-400 bg-success-400/20'
           }`}>{barLabel}</span>
         </div>
       </div>
@@ -146,7 +146,7 @@ export function FearGreedBar({ value, label }: { value: number; label?: string }
       </div>
       <div className="flex justify-between mt-1 px-0.5">
         {['Asiri Korku', 'Korku', 'Notr', 'Acgozluluk', 'Asiri Acgozluluk'].map((t, i) => (
-          <span key={i} className="text-[8px] text-white/35">{t}</span>
+          <span key={i} className="text-[8px] text-text-quaternary">{t}</span>
         ))}
       </div>
     </div>
@@ -165,9 +165,9 @@ export function AILoading({ text = 'Neural Core analiz ediyor', subText }: { tex
         </div>
       </div>
       <div className="text-center">
-        <p className="text-sm text-white/60 font-medium gold-shimmer">{text}</p>
-        {subText && <p className="text-xs text-white/35 mt-1">{subText}</p>}
-        <p className="text-[10px] text-white/35 mt-2 tracking-widest">HERMES AI NEURAL CORE</p>
+        <p className="text-sm text-text-secondary font-medium gold-shimmer">{text}</p>
+        {subText && <p className="text-xs text-text-quaternary mt-1">{subText}</p>}
+        <p className="text-[10px] text-text-quaternary mt-2 tracking-widest">HERMES AI NEURAL CORE</p>
       </div>
     </div>
   )
@@ -198,19 +198,19 @@ export function EmptyState({ icon = '💎', title, description, actionLabel, onA
       <div className="relative mb-6">
         <div className="absolute inset-[-20px] rounded-full bg-gold-400/[0.03] blur-2xl" />
         <div className="relative">
-          <div className="w-20 h-20 rounded-2xl bg-[#141414] border border-gold-400/10 flex items-center justify-center animate-empty-float">
+          <div className="w-20 h-20 rounded-2xl bg-[#141414] border border-stroke-gold flex items-center justify-center animate-empty-float">
             <span className="text-4xl">{icon}</span>
           </div>
           <div className="absolute inset-[-30px]" style={{ animation: 'orbit 8s linear infinite' }}>
             <div className="w-2 h-2 rounded-full bg-gold-400/30 absolute top-0 left-1/2 -translate-x-1/2" />
           </div>
           <div className="absolute inset-[-20px]" style={{ animation: 'orbit 12s linear infinite reverse' }}>
-            <div className="w-1.5 h-1.5 rounded-full bg-hermes-green/30 absolute top-0 left-1/2 -translate-x-1/2" />
+            <div className="w-1.5 h-1.5 rounded-full bg-success-400/30 absolute top-0 left-1/2 -translate-x-1/2" />
           </div>
         </div>
       </div>
-      <h3 className="text-lg font-bold text-white/60 mb-1">{title}</h3>
-      {description && <p className="text-sm text-white/40 max-w-sm">{description}</p>}
+      <h3 className="text-lg font-bold text-text-secondary mb-1">{title}</h3>
+      {description && <p className="text-sm text-text-tertiary max-w-sm">{description}</p>}
       {actionLabel && onAction && (
         <button onClick={onAction}
           className="mt-5 px-6 py-2.5 rounded-xl bg-gradient-to-r from-gold-600 to-gold-400 text-white font-medium text-sm
@@ -228,8 +228,8 @@ export const SignalBadge = memo(function SignalBadge({ type, label, compact = fa
 }) {
   const mapped = (type === 'strong_long') ? 'long' : (type === 'strong_short') ? 'short' : type
   const config: Record<string, { bg: string; text: string; glow: string; border: string; dot: string }> = {
-    long: { bg: 'bg-hermes-green/15', text: 'text-hermes-green', glow: 'badge-glow-green', border: 'border-l-hermes-green/50', dot: 'bg-hermes-green' },
-    neutral: { bg: 'bg-white/[0.05]', text: 'text-slate-400', glow: '', border: 'border-l-white/15', dot: 'bg-slate-500' },
+    long: { bg: 'bg-success-400/15', text: 'text-success-400', glow: 'badge-glow-green', border: 'border-l-success-400/50', dot: 'bg-success-400' },
+    neutral: { bg: 'bg-surface-3', text: 'text-slate-400', glow: '', border: 'border-l-white/15', dot: 'bg-slate-500' },
     short: { bg: 'bg-red-500/15', text: 'text-red-400', glow: 'badge-glow-red', border: 'border-l-red-400/60', dot: 'bg-red-400' },
   }
   const c = config[mapped] || config.neutral
@@ -246,10 +246,10 @@ export const SignalBadge = memo(function SignalBadge({ type, label, compact = fa
 export const ScoreMiniBar = memo(function ScoreMiniBar({ value, maxWidth = 48 }: { value: number; maxWidth?: number }) {
   const clamped = Math.max(0, Math.min(100, value))
   const color = clamped >= 75 ? '#B3945B' : clamped >= 60 ? '#62cbc1' : clamped >= 40 ? '#94a3b8' : clamped >= 25 ? '#fb923c' : '#ef4444'
-  const textColor = clamped >= 75 ? 'text-amber-400' : clamped >= 60 ? 'text-hermes-green' : clamped >= 40 ? 'text-white/60' : clamped >= 25 ? 'text-orange-400' : 'text-red-400'
+  const textColor = clamped >= 75 ? 'text-amber-400' : clamped >= 60 ? 'text-success-400' : clamped >= 40 ? 'text-text-secondary' : clamped >= 25 ? 'text-orange-400' : 'text-red-400'
   return (
     <div className="flex items-center gap-1.5">
-      <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden" style={{ width: maxWidth }}>
+      <div className="h-2 bg-surface-3 rounded-full overflow-hidden" style={{ width: maxWidth }}>
         <div className="h-full rounded-full transition-all duration-700" style={{
           width: `${clamped}%`,
           backgroundColor: color,
@@ -264,10 +264,10 @@ export const ScoreMiniBar = memo(function ScoreMiniBar({ value, maxWidth = 48 }:
 // ─── LiveDot — pulsating connection indicator ────────────────────
 export function LiveDot({ label = 'LIVE' }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-hermes-green/80">
+    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-success-400/80">
       <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full rounded-full bg-hermes-green opacity-40 live-dot" />
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-hermes-green" />
+        <span className="absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-40 live-dot" />
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-success-400" />
       </span>
       {label}
     </span>
@@ -289,7 +289,7 @@ export function TimeAgo({ timestamp }: { timestamp: Date | number | string }) {
     const iv = setInterval(update, 10000)
     return () => clearInterval(iv)
   }, [timestamp])
-  return <span className="text-[10px] text-white/40 tabular-nums">{text}</span>
+  return <span className="text-[10px] text-text-tertiary tabular-nums">{text}</span>
 }
 
 // ─── TargetFloorBar — mini range bar for Target/Floor/R:R ────────
@@ -303,12 +303,12 @@ export const TargetFloorBar = memo(function TargetFloorBar({
   return (
     <div className="flex items-center gap-1 w-20">
       <span className="text-[9px] text-red-400/50 tabular-nums">{floor.toFixed(0)}</span>
-      <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full relative overflow-hidden">
-        <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-500/40 via-white/10 to-hermes-green/40 rounded-full w-full" />
+      <div className="flex-1 h-1.5 bg-surface-3 rounded-full relative overflow-hidden">
+        <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-red-500/40 via-white/10 to-success-400/40 rounded-full w-full" />
         <div className="absolute top-0 h-full w-1 bg-white rounded-full shadow-[0_0_4px_rgba(255,255,255,0.5)]"
           style={{ left: `calc(${clamped}% - 2px)` }} />
       </div>
-      <span className="text-[9px] text-hermes-green/50 tabular-nums">{target.toFixed(0)}</span>
+      <span className="text-[9px] text-success-400/50 tabular-nums">{target.toFixed(0)}</span>
     </div>
   )
 })

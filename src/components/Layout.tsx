@@ -5,6 +5,17 @@ import { ScanResult, ScanSummary } from '@/lib/types'
 import { getWatchlist, getSettings, setCachedResults, getCachedResults } from '@/lib/store'
 import { REFRESH, MARKET, SCAN_GUARD } from '@/lib/config/constants'
 import { LEGAL_DISCLAIMER_TEXT } from '@/lib/legal-disclaimer'
+import { Kbd, Tooltip } from '@/components/ui'
+import { HermesLogo } from '@/components/shell/HermesLogo'
+import {
+  MarketPill,
+  FreshnessPill,
+  RegimePill,
+  LastRefreshIndicator,
+} from '@/components/shell/StatusPills'
+import { ModuleNav, type ModuleNavItem } from '@/components/shell/ModuleNav'
+import { HermesCommandPalette } from '@/components/shell/HermesCommandPalette'
+import { cn } from '@/lib/cn'
 
 // ═══════════════════════════════════════════════════════════════════
 // HERMES Scanner - Main Layout with Module Navigation
@@ -25,6 +36,15 @@ const MODULES: Module[] = [
   { id: 'nasdaq-signals', label: 'AI SIGNALS', icon: '⚡', ready: true },
   { id: 'nasdaq-watchlist', label: 'Watchlist', icon: '⭐', ready: true },
   { id: 'hermes-index', label: 'HERMES AI INDEX', icon: '💎', ready: true },
+]
+
+// ─── Premium nav items (mapped for ModuleNav primitive) ─────────────
+const NAV_ITEMS: ModuleNavItem<ModuleId>[] = [
+  { id: 'nasdaq-terminal',  label: 'Terminal',  shortLabel: 'TERMINAL', icon: '🧠' },
+  { id: 'nasdaq-trade',     label: 'Trade AI',  shortLabel: 'TRADE',    icon: '📊' },
+  { id: 'nasdaq-signals',   label: 'Signals',   shortLabel: 'SIGNALS',  icon: '⚡', premium: true, premiumTooltip: 'İleride HERMES Coin holderlarına özel' },
+  { id: 'nasdaq-watchlist', label: 'Watchlist', shortLabel: 'WATCH',    icon: '⭐' },
+  { id: 'hermes-index',     label: 'AI Index',  shortLabel: 'INDEX',    icon: '💎', premium: true, premiumTooltip: 'İleride HERMES Coin holderlarına özel' },
 ]
 
 // ═══════════════════════════════════════════════════════════════════
@@ -120,12 +140,20 @@ function ScrollToTopButton() {
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-[#0d0d0d] shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 hover:scale-110 transition-all duration-300 flex items-center justify-center group"
-      title="Basa Don"
+      title="Başa dön"
+      aria-label="Sayfanın en üstüne dön"
+      className={cn(
+        'fixed bottom-5 right-5 sm:bottom-7 sm:right-7 z-40',
+        'w-11 h-11 rounded-full',
+        'bg-gradient-to-br from-gold-400 to-gold-500 text-surface-0',
+        'shadow-glow-gold hover:shadow-depth-3',
+        'transition-all duration-200 ease-snap hover:scale-105 active:scale-95',
+        'flex items-center justify-center group',
+        'animate-fade-in-up',
+      )}
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-y-0.5 transition-transform">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-y-0.5 transition-transform duration-150">
         <path d="M18 15l-6-6-6 6" />
-        <path d="M18 9l-6-6-6 6" />
       </svg>
     </button>
   )
@@ -818,238 +846,180 @@ export default function Layout({ children, onBack }: { children: (activeModule: 
   const isAnyLoading = loading
   const currentProgress = progress
 
+  // ─── Command Palette state ──────────────────────────────────────
+  const [paletteOpen, setPaletteOpen] = useState(false)
+
   return (
     <ScanContext.Provider value={contextValue}>
-      <div className="min-h-screen bg-[#0d0d0d] text-white relative">
-        {/* Premium ambient background layers */}
+      <div className="min-h-screen bg-surface-0 text-text-primary relative">
+        {/* Premium ambient background — refined aurora + neural grid */}
         <div className="aurora-bg" aria-hidden="true">
           <div className="aurora-blob-1" />
           <div className="aurora-blob-2" />
           <div className="aurora-blob-3" />
         </div>
         <div className="neural-grid" aria-hidden="true" />
-        {/* ═══ HEADER — Midnight Gold Professional ═══ */}
-        <header className="sticky top-0 z-50 bg-[#111111]/95 backdrop-blur-xl safe-top transform-gpu will-change-transform">
-          <div className="header-glow-line" />
-          <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6">
-            {/* Top Bar */}
-            <div className="flex items-center justify-between h-12 sm:h-14">
-              {/* Logo & Brand */}
-              <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+
+        {/* ═══ HEADER — Premium institutional terminal chrome ═══ */}
+        <header className="sticky top-0 z-50 bg-surface-1/90 backdrop-blur-xl safe-top border-b border-stroke transform-gpu will-change-transform">
+          <div className="max-w-[1920px] mx-auto px-3 sm:px-5 lg:px-6">
+            {/* ── Top bar ── */}
+            <div className="flex items-center justify-between h-14 gap-3">
+              {/* Brand */}
+              <div className="flex items-center gap-3 min-w-0">
                 {onBack && (
-                  <button
-                    onClick={onBack}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-midnight-50/50 border border-gold-400/10 flex items-center justify-center text-white/50 hover:text-gold-300 hover:border-gold-400/30 transition-all duration-200 shrink-0"
-                    title="Back to Markets"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
+                  <Tooltip content="Pazar seçimine dön" side="bottom">
+                    <button
+                      onClick={onBack}
+                      aria-label="Pazar seçimine dön"
+                      className={cn(
+                        'w-9 h-9 rounded-lg shrink-0',
+                        'bg-surface-3 border border-stroke text-text-secondary',
+                        'hover:bg-surface-4 hover:text-gold-400 hover:border-stroke-gold',
+                        'transition-all duration-150 ease-snap',
+                        'flex items-center justify-center',
+                      )}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  </Tooltip>
                 )}
-                <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-[10px] sm:rounded-[12px] bg-[#1e2028] flex items-center justify-center hermes-logo overflow-hidden shrink-0"
-                  style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.04)' }}>
-                  <svg className="w-[22px] h-[22px] sm:w-[26px] sm:h-[26px] relative z-10" viewBox="0 0 32 32" fill="none">
-                    <line x1="6" y1="10" x2="16" y2="7" stroke="rgba(120,160,255,0.25)" strokeWidth="0.8" />
-                    <line x1="16" y1="7" x2="26" y2="12" stroke="rgba(120,160,255,0.25)" strokeWidth="0.8" />
-                    <line x1="6" y1="10" x2="10" y2="18" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
-                    <line x1="16" y1="7" x2="10" y2="18" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
-                    <line x1="16" y1="7" x2="22" y2="16" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
-                    <line x1="26" y1="12" x2="22" y2="16" stroke="rgba(120,160,255,0.2)" strokeWidth="0.7" />
-                    <line x1="10" y1="18" x2="22" y2="16" stroke="rgba(120,160,255,0.15)" strokeWidth="0.6" />
-                    <path d="M4 22 L8.5 17 L13 19.5 L18 13 L22.5 16 L28 10" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    <circle cx="6" cy="10" r="1.8" fill="rgba(120,160,255,0.5)" />
-                    <circle cx="16" cy="7" r="2.2" fill="rgba(120,160,255,0.6)" />
-                    <circle cx="26" cy="12" r="1.8" fill="rgba(120,160,255,0.5)" />
-                    <circle cx="10" cy="18" r="1.5" fill="rgba(120,160,255,0.35)" />
-                    <circle cx="22" cy="16" r="1.5" fill="rgba(120,160,255,0.35)" />
-                    <circle cx="13" cy="19.5" r="1.4" fill="rgba(255,255,255,0.85)" />
-                    <circle cx="18" cy="13" r="1.6" fill="rgba(255,255,255,0.9)" />
-                    <circle cx="28" cy="10" r="1.4" fill="rgba(255,255,255,0.85)" />
-                  </svg>
-                  <div className="absolute inset-0 rounded-[12px] bg-gradient-to-br from-[rgba(120,160,255,0.04)] via-transparent to-transparent" />
-                </div>
-                <div className="flex items-center gap-2 min-w-0">
-                  <h1 className="text-sm sm:text-base font-bold tracking-wide whitespace-nowrap">
-                    <span className="text-white/90">HERMES</span>
-                    <span className="gradient-text ml-1 sm:ml-1.5 font-extrabold">AI</span>
+                <HermesLogo size={36} />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <h1 className="text-md font-semibold tracking-tight whitespace-nowrap">
+                    <span className="text-text-primary">HERMES</span>
+                    <span className="ml-1.5 text-gold-400 font-bold">AI</span>
                   </h1>
-                  <div className="hidden lg:block w-px h-4 bg-gold-400/15" />
-                  <span className="hidden lg:inline text-[11px] text-gold-400/50 font-medium tracking-wider uppercase truncate">NASDAQ/NYSE • Neural Core</span>
+                  <span className="hidden lg:block w-px h-3.5 bg-stroke" />
+                  <span className="hidden lg:inline text-2xs font-medium tracking-widest uppercase text-text-tertiary">
+                    NASDAQ/NYSE · Neural Core
+                  </span>
                 </div>
               </div>
 
-              {/* Right Controls */}
-              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                {/* Market Status */}
-                <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-midnight-50/50 border border-gold-400/8">
-                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${marketOpen ? 'bg-hermes-green shadow-lg shadow-hermes-green/50 animate-pulse' : 'bg-red-400/50'}`} />
-                  <span className={`text-[10px] sm:text-[11px] font-semibold tracking-wide ${marketOpen ? 'text-hermes-green' : 'text-red-400/50'}`}>
-                    <span className="hidden sm:inline">{marketLabel}</span>
-                    <span className="sm:hidden">{marketOpen ? 'OPEN' : 'CLOSED'}</span>
-                  </span>
-                  {marketNextEvent && (
-                    <span className="text-[10px] text-white/40 hidden lg:inline">{marketNextEvent}</span>
-                  )}
-                </div>
-
-                {/* Freshness Guardrail + SLO trend (1h) */}
-                {healthSnapshot && (
-                  <div
-                    className={`flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border ${
-                      freshnessLevel === 'bad'
-                        ? 'bg-red-500/12 text-red-300 border-red-500/30'
-                        : freshnessLevel === 'warn'
-                          ? 'bg-amber-500/12 text-amber-300 border-amber-500/30'
-                          : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
-                    }`}
-                    title={
-                      `Freshness Guardrail | ScanAge=${scanAgeMin ?? 'n/a'}m | QuoteAge=${quoteAgeMin ?? 'n/a'}m | `
-                      + `SLO1h scan=${healthSnapshot.sloTrend1h?.breachCounts1h.scan ?? 0}, quote=${healthSnapshot.sloTrend1h?.breachCounts1h.stocksQuote ?? 0}, checks=${healthSnapshot.sloTrend1h?.totalChecks1h ?? 0}`
-                    }
-                  >
-                    <span className="text-[10px] sm:text-[11px] font-semibold tracking-wide">
-                      {freshnessLevel === 'bad' ? 'FRESHNESS BAD' : freshnessLevel === 'warn' ? 'FRESHNESS WARN' : 'FRESHNESS OK'}
-                    </span>
-                    <span className="hidden xl:inline text-[10px] opacity-80">
-                      SLO1h {healthSnapshot.sloTrend1h?.breachCounts1h.scan ?? 0}/{healthSnapshot.sloTrend1h?.breachCounts1h.stocksQuote ?? 0}
-                    </span>
-                  </div>
+              {/* Center: Cmd+K trigger (premium signature) */}
+              <button
+                onClick={() => setPaletteOpen(true)}
+                className={cn(
+                  'hidden md:flex items-center gap-2.5 flex-1 max-w-sm mx-auto h-9 px-3 rounded-lg',
+                  'bg-surface-2/70 border border-stroke text-text-tertiary text-sm',
+                  'hover:bg-surface-3 hover:border-stroke-strong hover:text-text-secondary',
+                  'transition-all duration-150 ease-snap',
                 )}
-                {healthSnapshot && (
-                  <div
-                    className="hidden xl:flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-white/10 bg-white/[0.03] text-white/70"
-                    title={
-                      `Ops Trend | Watchdog runs=${healthSnapshot.watchdog?.runs ?? 0}, fail=${healthSnapshot.watchdog?.failures ?? 0}, `
-                      + `selfHeal=${healthSnapshot.watchdog?.selfHealRuns ?? 0}, selfHealFail=${healthSnapshot.watchdog?.selfHealFailures ?? 0}`
-                    }
-                  >
-                    <span className="text-[10px] font-semibold tracking-wide">OPS</span>
-                    <span className="text-[10px] opacity-80">
-                      W {healthSnapshot.watchdog?.failures ?? 0}/{healthSnapshot.watchdog?.runs ?? 0}
-                    </span>
-                    <span className="text-[10px] opacity-70">
-                      H {healthSnapshot.watchdog?.selfHealFailures ?? 0}/{healthSnapshot.watchdog?.selfHealRuns ?? 0}
-                    </span>
-                  </div>
-                )}
+                aria-label="Komut paletini aç"
+              >
+                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+                <span className="flex-1 text-left truncate">Sembol, modül veya komut ara…</span>
+                <span className="flex items-center gap-0.5 shrink-0">
+                  <Kbd size="xs">⌘</Kbd>
+                  <Kbd size="xs">K</Kbd>
+                </span>
+              </button>
 
-                {/* Regime Badge */}
-                {marketRegime !== 'RISK_ON' && (
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold border ${
-                    marketRegime === 'CRISIS'
-                      ? 'bg-red-500/15 text-red-400 border-red-500/30 animate-pulse'
-                      : marketRegime === 'RISK_OFF'
-                        ? 'bg-orange-500/15 text-orange-400 border-orange-500/30'
-                        : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                  }`} title={pauseReason || `VIX: ${vixValue ?? '?'} | Pos: ${Math.round(positionSizeMultiplier * 100)}%`}>
-                    {marketRegime === 'CRISIS' ? '🚨' : marketRegime === 'RISK_OFF' ? '⚠️' : '⚡'}
-                    <span className="hidden sm:inline">{marketRegime.replace('_', ' ')}</span>
-                    {vixValue !== null && <span className="opacity-60 ml-0.5">VIX {vixValue.toFixed(0)}</span>}
-                  </div>
-                )}
-
-                {/* Auto-refresh */}
+              {/* Right cluster */}
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Mobile palette trigger */}
                 <button
-                  onClick={() => setAutoRefreshEnabled(prev => !prev)}
-                  className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all duration-200 border ${
-                    autoRefreshEnabled 
-                      ? 'bg-hermes-green/10 text-hermes-green border-hermes-green/20' 
-                      : 'bg-midnight-50/50 text-white/50 border-gold-400/8'
-                  }`}
-                  title={autoRefreshEnabled ? 'Auto-refresh active (60min)' : 'Auto-refresh paused'}
+                  onClick={() => setPaletteOpen(true)}
+                  aria-label="Komut paleti"
+                  className="md:hidden w-9 h-9 rounded-lg bg-surface-3 border border-stroke text-text-secondary hover:text-gold-400 hover:border-stroke-gold transition-all duration-150 flex items-center justify-center"
                 >
-                  {isAutoRefreshing ? (
-                    <span className="animate-spin inline-block">↻</span>
-                  ) : 'Auto'}
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
                 </button>
 
-                <div className="w-px h-5 bg-gold-400/10 hidden lg:block" />
+                <MarketPill open={marketOpen} label={marketLabel} nextEvent={marketNextEvent} />
 
-                <div className="hidden lg:flex flex-col items-end gap-0.5">
-                  {lastRefresh && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-hermes-green opacity-40 live-dot" />
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-hermes-green" />
-                      </span>
-                      <span className="text-[10px] text-white/45 font-mono">
-                        {lastRefresh?.toLocaleTimeString('en-US', { hour12: false })}
-                      </span>
-                    </div>
-                  )}
-                  {lastPriceRefresh && (
-                    <span className="text-[10px] text-white/35 font-mono">
-                      Px: {lastPriceRefresh.toLocaleTimeString('en-US', { hour12: false })}
-                    </span>
-                  )}
-                  {isAutoRefreshing && (
-                    <span className="text-[10px] text-gold-300 animate-pulse">Refreshing...</span>
-                  )}
-                  {!isAutoRefreshing && marketOpen && autoRefreshEnabled && nextRefreshCountdown && (
-                    <span className="text-[10px] text-white/35">Next: {nextRefreshCountdown}</span>
-                  )}
-                </div>
-                
-                {/* Scan butonu kaldirildi — otomatik scan calisiyor, admin panel'den tetiklenebilir */}
+                {healthSnapshot && (
+                  <FreshnessPill
+                    level={freshnessLevel}
+                    scanAgeMin={scanAgeMin}
+                    quoteAgeMin={quoteAgeMin}
+                  />
+                )}
+
+                <RegimePill regime={marketRegime} vix={vixValue} />
+
+                {/* Auto-refresh toggle */}
+                <Tooltip content={autoRefreshEnabled ? 'Auto-refresh: aktif (60dk)' : 'Auto-refresh: durdu'} side="bottom">
+                  <button
+                    onClick={() => setAutoRefreshEnabled(prev => !prev)}
+                    aria-pressed={autoRefreshEnabled}
+                    aria-label="Auto-refresh kontrol"
+                    className={cn(
+                      'h-7 px-2.5 rounded-md text-2xs font-semibold tracking-wide border transition-all duration-150',
+                      autoRefreshEnabled
+                        ? 'bg-success-400/12 text-success-300 border-success-400/30 hover:bg-success-400/18'
+                        : 'bg-surface-3 text-text-tertiary border-stroke hover:bg-surface-4',
+                    )}
+                  >
+                    {isAutoRefreshing ? <span className="animate-spin inline-block">↻</span> : 'AUTO'}
+                  </button>
+                </Tooltip>
+
+                <LastRefreshIndicator
+                  lastRefresh={lastRefresh}
+                  lastPriceRefresh={lastPriceRefresh}
+                  isRefreshing={isAutoRefreshing}
+                  marketOpen={marketOpen}
+                  autoEnabled={autoRefreshEnabled}
+                  countdown={nextRefreshCountdown}
+                />
               </div>
             </div>
 
-            {/* Module Navigation — Gold accent tabs, horizontal scroll on mobile */}
-            <nav className="flex items-center gap-0.5 -mb-px overflow-x-auto scrollbar-hide -mx-2 px-2 sm:mx-0 sm:px-0">
-              {MODULES.map(mod => (
-                <button
-                  key={mod.id}
-                  onClick={() => setActiveModule(mod.id)}
-                  className={`relative px-2.5 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-[13px] font-semibold transition-all duration-200 whitespace-nowrap flex items-center gap-1 sm:gap-1.5 shrink-0 ${
-                    activeModule === mod.id
-                      ? 'text-gold-300'
-                      : mod.ready
-                        ? 'text-white/45 hover:text-white/60'
-                        : 'text-white/40 hover:text-white/45'
-                  }`}
-                >
-                  <span className="text-xs sm:text-sm">{mod.icon}</span>
-                  <span className="hidden sm:inline">{mod.label}</span>
-                  <span className="sm:hidden">{mod.id === 'nasdaq-terminal' ? 'TERMINAL' : mod.id === 'nasdaq-trade' ? 'TRADE' : mod.id === 'nasdaq-signals' ? 'SIGNALS' : mod.id === 'nasdaq-watchlist' ? 'WATCH' : 'INDEX'}</span>
-                  {(mod.id === 'nasdaq-signals' || mod.id === 'hermes-index') && (
-                    <span className="relative ml-1 text-[7px] sm:text-[8px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/15 text-amber-300/90 border border-amber-400/30 font-bold tracking-wider animate-pulse group/premium cursor-default">
-                      PREMIUM
-                      <span className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] px-2 py-1 rounded-lg bg-[#1a1a2e]/95 text-amber-300/80 border border-amber-400/20 opacity-0 group-hover/premium:opacity-100 transition-opacity duration-300 pointer-events-none backdrop-blur-sm shadow-lg z-50">
-                        Ileride Hermes Coin holder&apos;larina ozel
-                      </span>
-                    </span>
-                  )}
-                  {activeModule === mod.id && (
-                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-gradient-to-r from-gold-400/80 via-gold-300 to-gold-400/80 rounded-full" />
-                  )}
-                  {!mod.ready && (
-                    <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-gold-400/10 text-gold-400/50">Soon</span>
-                  )}
-                </button>
-              ))}
-            </nav>
+            {/* ── Module navigation ── */}
+            <ModuleNav
+              items={NAV_ITEMS}
+              active={activeModule}
+              onChange={setActiveModule}
+              className="-mx-3 px-3 sm:mx-0 sm:px-0"
+            />
           </div>
-          <div className="header-glow-line" />
+          {/* Subtle gold seam */}
+          <div className="h-px bg-gradient-to-r from-transparent via-gold-400/25 to-transparent" />
         </header>
 
         {/* ═══ CONTENT ═══ */}
-        <main className="animate-fade-in">
+        <main className="relative animate-fade-in">
           {children(activeModule)}
         </main>
 
-        {/* ═══ FOOTER — Midnight Gold ═══ */}
-        <footer className="border-t border-gold-400/8 bg-[#111111]/80 py-2.5 sm:py-3 mt-8 safe-bottom">
-          <div className="max-w-[1920px] mx-auto px-2 sm:px-4 lg:px-6 flex flex-col gap-1">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-[11px] text-white/35 font-medium tracking-wide truncate">HERMES AI • NASDAQ/NYSE Scanner</span>
-              <span className="hidden md:inline text-[11px] text-white/40 shrink-0">Neural Core • Real-Time Analysis</span>
+        {/* ═══ FOOTER — minimal institutional ═══ */}
+        <footer className="border-t border-stroke-subtle bg-surface-1/60 backdrop-blur-sm py-3 mt-12 safe-bottom">
+          <div className="max-w-[1920px] mx-auto px-3 sm:px-5 lg:px-6 flex flex-col gap-1.5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xs font-semibold tracking-wide text-text-secondary truncate">HERMES AI</span>
+                <span className="text-text-quaternary">·</span>
+                <span className="hidden sm:inline text-xs text-text-tertiary truncate">Institutional Trading Terminal</span>
+              </div>
+              <span className="hidden md:inline text-xs text-text-tertiary shrink-0">
+                Neural Core · Real-Time Analysis
+              </span>
             </div>
-            <p className="text-[9px] text-white/35 leading-tight">{LEGAL_DISCLAIMER_TEXT}</p>
+            <p className="text-2xs text-text-quaternary leading-relaxed">{LEGAL_DISCLAIMER_TEXT}</p>
           </div>
         </footer>
 
-        {/* ═══ SCROLL TO TOP BUTTON — appears when user scrolls down ═══ */}
+        {/* ═══ Cmd+K Command Palette ═══ */}
+        <HermesCommandPalette
+          open={paletteOpen}
+          onOpenChange={setPaletteOpen}
+          activeModule={activeModule}
+          onModuleChange={setActiveModule}
+          symbols={results.slice(0, 50).map(r => r.symbol)}
+          onRefresh={() => { void runScan() }}
+          onScrollTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        />
+
         <ScrollToTopButton />
       </div>
     </ScanContext.Provider>

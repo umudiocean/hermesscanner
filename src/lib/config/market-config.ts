@@ -5,7 +5,7 @@
 // default strategy params, and data source.
 // ═══════════════════════════════════════════════════════════════════
 
-export type MarketId = 'nasdaq' | 'crypto' | 'europe' | 'bist100' | 'forex' | 'fund'
+export type MarketId = 'nasdaq' | 'crypto' | 'bist100' | 'forex' | 'fund'
 
 export interface MarketSession {
   openMinutes: number   // Minutes from midnight (local tz)
@@ -115,42 +115,6 @@ const CRYPTO_CONFIG: MarketConfig = {
   concurrency: 5,
 }
 
-// ─── EUROPE (DAX / CAC / FTSE) ─────────────────────────────────────
-
-const EUROPE_CONFIG: MarketConfig = {
-  id: 'europe',
-  label: 'Europe (DAX/CAC/FTSE)',
-  shortLabel: 'EUROPE',
-  timezone: 'Europe/Berlin',
-  currency: 'EUR',
-  session: {
-    openMinutes: 540,    // 9:00 CET
-    closeMinutes: 1050,   // 17:30 CET
-    is24h: false,
-  },
-  holidays2026: [
-    { date: '2026-01-01', name: 'New Year' },
-    { date: '2026-04-03', name: 'Good Friday' },
-    { date: '2026-04-06', name: 'Easter Monday' },
-    { date: '2026-05-01', name: 'Labour Day' },
-    { date: '2026-12-25', name: 'Christmas' },
-    { date: '2026-12-26', name: 'St Stephen' },
-  ],
-  strategy: {
-    vwapDays: 254,
-    zscoreDays: 157,
-    tanhDiv: 1.24,
-    tp: 1,
-    sl: 31,
-    longThreshold: 25,
-    shortThreshold: 95,
-    bpd: 34,
-  },
-  timeframe: '15min',
-  dataSource: 'fmp',
-  scanBatch: 200,
-  concurrency: 10,
-}
 
 // ─── BIST 100 ───────────────────────────────────────────────────────
 
@@ -227,7 +191,6 @@ const FOREX_CONFIG: MarketConfig = {
 const ALL_MARKETS: Record<MarketId, MarketConfig> = {
   nasdaq: NASDAQ_CONFIG,
   crypto: CRYPTO_CONFIG,
-  europe: EUROPE_CONFIG,
   bist100: BIST_CONFIG,
   forex: FOREX_CONFIG,
   fund: {

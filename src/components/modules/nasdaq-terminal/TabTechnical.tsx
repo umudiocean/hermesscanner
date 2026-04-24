@@ -32,13 +32,13 @@ function GaugeBar({ value, min, max, zones, label, tip }: {
   return (
     <div className="group relative">
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm font-semibold text-white/70 flex items-center gap-1">
+        <span className="text-sm font-semibold text-text-secondary flex items-center gap-1">
           {label}
-          <span className="hidden group-hover:inline text-[10px] text-white/40 font-normal ml-1">{tip}</span>
+          <span className="hidden group-hover:inline text-[10px] text-text-tertiary font-normal ml-1">{tip}</span>
         </span>
         <span className="text-sm font-bold text-white tabular-nums">{value !== null ? value.toFixed(1) : '--'}</span>
       </div>
-      <div className="relative h-3 rounded-full overflow-hidden bg-white/[0.06]">
+      <div className="relative h-3 rounded-full overflow-hidden bg-surface-3">
         {zones.map((z, i) => {
           const left = ((z.from - min) / (max - min)) * 100
           const width = ((z.to - z.from) / (max - min)) * 100
@@ -55,12 +55,12 @@ function GaugeBar({ value, min, max, zones, label, tip }: {
 
 function SignalBadge({ type, label }: { type: string, label: string }) {
   const styles: Record<string, string> = {
-    'STRONG_UP': 'text-hermes-green bg-hermes-green/15 border-hermes-green/30',
-    'UP': 'text-hermes-green bg-hermes-green/10 border-hermes-green/20',
-    'NEUTRAL': 'text-slate-300 bg-white/[0.04] border-white/[0.08]',
+    'STRONG_UP': 'text-success-400 bg-success-400/15 border-success-400/30',
+    'UP': 'text-success-400 bg-success-400/10 border-success-400/20',
+    'NEUTRAL': 'text-slate-300 bg-surface-3 border-stroke',
     'DOWN': 'text-orange-400 bg-orange-500/10 border-orange-500/20',
     'STRONG_DOWN': 'text-red-400 bg-red-500/15 border-red-500/30',
-    'OVERSOLD': 'text-hermes-green bg-hermes-green/12 border-hermes-green/25',
+    'OVERSOLD': 'text-success-400 bg-success-400/12 border-success-400/25',
     'OVERBOUGHT': 'text-red-400 bg-red-500/12 border-red-500/25',
   }
   const icons: Record<string, React.ReactNode> = {
@@ -99,8 +99,8 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
         <div className="text-center">
-          <Activity size={48} className="text-white/10 mx-auto mb-3" />
-          <p className="text-white/40 text-base">Teknik analiz icin bir hisse secin</p>
+          <Activity size={48} className="text-text-quaternary mx-auto mb-3" />
+          <p className="text-text-tertiary text-base">Teknik analiz icin bir hisse secin</p>
         </div>
       </div>
     )
@@ -121,17 +121,17 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             <div className="absolute inset-0 flex items-center justify-center text-gold-400/80 text-lg">📊</div>
           </div>
           <div className="text-center">
-            <p className="text-xs font-semibold text-white/60">Teknik gostergeler</p>
-            <p className="text-[9px] text-white/40 mt-0.5">RSI, SMA, ADX, Williams%R</p>
+            <p className="text-xs font-semibold text-text-secondary">Teknik gostergeler</p>
+            <p className="text-[9px] text-text-tertiary mt-0.5">RSI, SMA, ADX, Williams%R</p>
           </div>
-          <div className="w-32 h-0.5 bg-white/[0.04] rounded-full overflow-hidden">
+          <div className="w-32 h-0.5 bg-surface-3 rounded-full overflow-hidden">
             <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
           </div>
           <div className="flex gap-2">
             {['RSI', 'SMA', 'ADX', 'EMA'].map((t, i) => (
-              <div key={i} className="px-2 py-1 rounded-md bg-white/[0.02] border border-white/[0.04] opacity-0"
+              <div key={i} className="px-2 py-1 rounded-md bg-surface-2 border border-stroke-subtle opacity-0"
                 style={{ animation: `card-reveal 0.3s ease-out ${0.4 + i * 0.15}s forwards` }}>
-                <span className="text-[8px] text-white/35 font-medium">{t}</span>
+                <span className="text-[8px] text-text-quaternary font-medium">{t}</span>
               </div>
             ))}
           </div>
@@ -166,15 +166,15 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
   return (
     <div className="space-y-5 animate-fade-in">
       {/* Header */}
-      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-5 shadow-xl shadow-black/20">
+      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-5 shadow-xl shadow-black/20">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
               <Activity size={20} className="text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">{data.symbol} <span className="text-white/50 text-sm font-normal">Teknik Analiz</span></h3>
-              <p className="text-xs text-white/40">Hermes AI Technical Indicators - Canli veri</p>
+              <h3 className="text-lg font-bold text-white">{data.symbol} <span className="text-text-tertiary text-sm font-normal">Teknik Analiz</span></h3>
+              <p className="text-xs text-text-tertiary">Hermes AI Technical Indicators - Canli veri</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -184,29 +184,29 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
 
         {/* Quick Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/40 font-medium mb-1">RSI (14)</div>
+          <div className="bg-surface-2 rounded-xl p-3 border border-stroke-subtle">
+            <div className="text-[11px] text-text-tertiary font-medium mb-1">RSI (14)</div>
             <div className="text-lg font-bold text-white tabular-nums">{fmt(s.rsi14, 1)}</div>
             <SignalBadge type={s.rsiSignal} label={RSI_LABELS[s.rsiSignal] || 'NOTR'} />
           </div>
-          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/40 font-medium mb-1">SMA CROSSOVER</div>
+          <div className="bg-surface-2 rounded-xl p-3 border border-stroke-subtle">
+            <div className="text-[11px] text-text-tertiary font-medium mb-1">SMA CROSSOVER</div>
             <div className="text-lg font-bold text-white">{s.goldenCross ? 'GOLDEN CROSS' : 'DEATH CROSS'}</div>
-            <div className="text-xs text-white/50 mt-1">
+            <div className="text-xs text-text-tertiary mt-1">
               SMA50: {fmt(s.sma50)} | SMA200: {fmt(s.sma200)}
             </div>
           </div>
-          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/40 font-medium mb-1">TREND GUCU (ADX)</div>
+          <div className="bg-surface-2 rounded-xl p-3 border border-stroke-subtle">
+            <div className="text-[11px] text-text-tertiary font-medium mb-1">TREND GUCU (ADX)</div>
             <div className="text-lg font-bold text-white tabular-nums">{fmt(s.adx14, 1)}</div>
-            <span className={`text-xs ${(s.adx14 ?? 0) > 25 ? 'text-violet-400' : 'text-white/50'}`}>
+            <span className={`text-xs ${(s.adx14 ?? 0) > 25 ? 'text-violet-400' : 'text-text-tertiary'}`}>
               {(s.adx14 ?? 0) > 25 ? 'Guclu Trend' : (s.adx14 ?? 0) > 20 ? 'Orta Trend' : 'Zayif/Yatay'}
             </span>
           </div>
-          <div className="bg-white/[0.03] rounded-xl p-3 border border-white/[0.05]">
-            <div className="text-[11px] text-white/40 font-medium mb-1">EMA (20)</div>
+          <div className="bg-surface-2 rounded-xl p-3 border border-stroke-subtle">
+            <div className="text-[11px] text-text-tertiary font-medium mb-1">EMA (20)</div>
             <div className="text-lg font-bold text-white tabular-nums">${fmt(s.ema20)}</div>
-            <span className={`text-xs ${s.priceAboveEma20 ? 'text-hermes-green' : 'text-red-400'}`}>
+            <span className={`text-xs ${s.priceAboveEma20 ? 'text-success-400' : 'text-red-400'}`}>
               Fiyat {s.priceAboveEma20 ? 'ustunde' : 'altinda'}
             </span>
           </div>
@@ -215,16 +215,16 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
 
       {/* Gauge Bars */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-5 shadow-xl shadow-black/20 space-y-5">
-          <h4 className="text-sm font-bold text-white/60 flex items-center gap-1.5">
+        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-5 shadow-xl shadow-black/20 space-y-5">
+          <h4 className="text-sm font-bold text-text-secondary flex items-center gap-1.5">
             <BarChart3 size={14} /> OSILATÖRLER
           </h4>
           <GaugeBar
             value={s.rsi14} min={0} max={100} label="RSI (14)"
             tip="30 alti = asiri satim (al), 70 ustu = asiri alim (sat)"
             zones={[
-              { from: 0, to: 30, color: 'bg-hermes-green/30' },
-              { from: 30, to: 70, color: 'bg-white/[0.04]' },
+              { from: 0, to: 30, color: 'bg-success-400/30' },
+              { from: 30, to: 70, color: 'bg-surface-3' },
               { from: 70, to: 100, color: 'bg-red-500/30' },
             ]}
           />
@@ -232,8 +232,8 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             value={s.williams14} min={-100} max={0} label="Williams %R (14)"
             tip="-80 alti = asiri satim, -20 ustu = asiri alim"
             zones={[
-              { from: -100, to: -80, color: 'bg-hermes-green/30' },
-              { from: -80, to: -20, color: 'bg-white/[0.04]' },
+              { from: -100, to: -80, color: 'bg-success-400/30' },
+              { from: -80, to: -20, color: 'bg-surface-3' },
               { from: -20, to: 0, color: 'bg-red-500/30' },
             ]}
           />
@@ -248,8 +248,8 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
           />
         </div>
 
-        <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-5 shadow-xl shadow-black/20 space-y-5">
-          <h4 className="text-sm font-bold text-white/60 flex items-center gap-1.5">
+        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-5 shadow-xl shadow-black/20 space-y-5">
+          <h4 className="text-sm font-bold text-text-secondary flex items-center gap-1.5">
             <TrendingUp size={14} /> HAREKETLI ORTALAMALAR
           </h4>
           <div className="space-y-3">
@@ -260,17 +260,17 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
               { label: 'DEMA 20', value: s.dema20, desc: 'Cift ustel ortalama' },
               { label: 'TEMA 20', value: s.tema20, desc: 'Uclu ustel ortalama' },
             ].map(ma => (
-              <div key={ma.label} className="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
+              <div key={ma.label} className="flex items-center justify-between py-1.5 border-b border-stroke-subtle">
                 <div>
-                  <span className="text-sm font-semibold text-white/70">{ma.label}</span>
-                  <span className="text-[11px] text-white/35 ml-2">{ma.desc}</span>
+                  <span className="text-sm font-semibold text-text-secondary">{ma.label}</span>
+                  <span className="text-[11px] text-text-quaternary ml-2">{ma.desc}</span>
                 </div>
                 <span className="text-sm font-bold text-white tabular-nums">${fmt(ma.value)}</span>
               </div>
             ))}
           </div>
-          <div className="mt-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-            <div className="text-[11px] text-white/40 mb-1">VOLATILITE (Std Dev 20)</div>
+          <div className="mt-3 p-3 rounded-xl bg-surface-2 border border-stroke-subtle">
+            <div className="text-[11px] text-text-tertiary mb-1">VOLATILITE (Std Dev 20)</div>
             <div className="text-base font-bold text-white tabular-nums">{fmt(s.stdDev20, 4)}</div>
           </div>
         </div>
@@ -278,8 +278,8 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
 
       {/* RSI History Mini Chart */}
       {data.history.rsi.length > 0 && (
-        <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-5 shadow-xl shadow-black/20">
-          <h4 className="text-sm font-bold text-white/60 mb-3 flex items-center gap-1.5">
+        <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-5 shadow-xl shadow-black/20">
+          <h4 className="text-sm font-bold text-text-secondary mb-3 flex items-center gap-1.5">
             <Activity size={14} /> SON 30 GUN RSI TRENDI
           </h4>
           <div className="flex items-end gap-[2px] h-20">
@@ -287,7 +287,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
               const rsiVal = Number(point.rsi ?? 50)
               const h = (rsiVal / 100) * 100
               let color = 'bg-white/20'
-              if (rsiVal < 30) color = 'bg-hermes-green/60'
+              if (rsiVal < 30) color = 'bg-success-400/60'
               else if (rsiVal > 70) color = 'bg-red-500/60'
               else color = 'bg-violet-500/40'
               return (
@@ -298,12 +298,12 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
             })}
           </div>
           <div className="flex justify-between mt-1.5">
-            <span className="text-[10px] text-white/40">{data.history.rsi[Math.min(29, data.history.rsi.length - 1)]?.date || ''}</span>
+            <span className="text-[10px] text-text-tertiary">{data.history.rsi[Math.min(29, data.history.rsi.length - 1)]?.date || ''}</span>
             <div className="flex items-center gap-3">
-              <span className="text-[10px] text-hermes-green/50">--- 30 (asiri satim)</span>
+              <span className="text-[10px] text-success-400/50">--- 30 (asiri satim)</span>
               <span className="text-[10px] text-red-400/50">--- 70 (asiri alim)</span>
             </div>
-            <span className="text-[10px] text-white/40">{data.history.rsi[0]?.date || ''}</span>
+            <span className="text-[10px] text-text-tertiary">{data.history.rsi[0]?.date || ''}</span>
           </div>
         </div>
       )}
@@ -311,7 +311,7 @@ export default function TabTechnical({ symbol }: TabTechnicalProps) {
       {/* Info */}
       <div className="flex items-start gap-2 px-4 py-3 bg-violet-500/[0.05] rounded-xl border border-violet-500/10">
         <Info size={14} className="text-violet-400/50 mt-0.5 shrink-0" />
-        <p className="text-[12px] text-white/40 leading-relaxed">
+        <p className="text-[12px] text-text-tertiary leading-relaxed">
           Teknik gostergeler gunluk verilerle hesaplanir. RSI asiri alim/satim, SMA crossover trend yonu,
           ADX trend gucu, Williams %R momentum gosterir. Golden Cross (SMA50 &gt; SMA200) = yukselis trendi.
         </p>

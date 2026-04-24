@@ -38,7 +38,7 @@ function getChangeColor(change: number): string {
 function getChangeTextColor(change: number): string {
   if (change > 0) return 'text-emerald-200'
   if (change < 0) return 'text-red-200'
-  return 'text-white/60'
+  return 'text-text-secondary'
 }
 
 function formatPrice(p: number): string {
@@ -204,7 +204,7 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
         <div className="flex items-center gap-2">
           <Grid3X3 size={16} className="text-amber-400" />
           <h3 className="text-sm font-bold text-white">MARKET CAP HEATMAP</h3>
-          <span className="text-[10px] text-white/40">Top 80 Coin</span>
+          <span className="text-[10px] text-text-tertiary">Top 80 Coin</span>
         </div>
         <div className="flex items-center gap-1">
           {(['1h', '24h', '7d'] as TimeFilter[]).map(tf => (
@@ -214,7 +214,7 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
               className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
                 timeFilter === tf
                   ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                  : 'text-white/50 hover:text-white/60 border border-transparent'
+                  : 'text-text-tertiary hover:text-text-secondary border border-transparent'
               }`}
             >
               {tf}
@@ -227,34 +227,34 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
       <div className="flex items-center gap-2 sm:gap-3 justify-center">
         <div className="flex items-center gap-1">
           <div className="w-3 h-2 rounded-sm bg-red-500" />
-          <span className="text-[9px] text-white/40">&lt;-10%</span>
+          <span className="text-[9px] text-text-tertiary">&lt;-10%</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-2 rounded-sm bg-red-500/50" />
-          <span className="text-[9px] text-white/40">-5%</span>
+          <span className="text-[9px] text-text-tertiary">-5%</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-2 rounded-sm bg-white/10" />
-          <span className="text-[9px] text-white/40">0%</span>
+          <span className="text-[9px] text-text-tertiary">0%</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-2 rounded-sm bg-emerald-500/50" />
-          <span className="text-[9px] text-white/40">+5%</span>
+          <span className="text-[9px] text-text-tertiary">+5%</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-2 rounded-sm bg-emerald-500" />
-          <span className="text-[9px] text-white/40">&gt;+10%</span>
+          <span className="text-[9px] text-text-tertiary">&gt;+10%</span>
         </div>
       </div>
 
       {/* Heatmap */}
       <div
         ref={containerRef}
-        className="bg-[#0d0d14] rounded-2xl border border-white/[0.06] relative overflow-hidden hover:border-white/[0.12] transition-all duration-300"
+        className="bg-surface-1 rounded-2xl border border-stroke-subtle relative overflow-hidden hover:border-stroke transition-all duration-300"
         style={{ minHeight: 500 }}
       >
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#0d0d14]/90 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-surface-1/90 z-10">
             <div className="w-8 h-8 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
           </div>
         )}
@@ -281,7 +281,7 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
                 >
                   {!isTiny && (
                     <>
-                      <span className={`font-bold ${isSmall ? 'text-[8px]' : 'text-[11px]'} text-white/90`}>
+                      <span className={`font-bold ${isSmall ? 'text-[8px]' : 'text-[11px]'} text-text-primary`}>
                         {rect.coin.symbol.toUpperCase()}
                       </span>
                       {!isSmall && (
@@ -299,10 +299,10 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
 
         {/* Hover tooltip */}
         {hoveredCoin && (
-          <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-[#1a1a2e] border border-white/10 rounded-xl px-2 sm:px-3 py-1.5 sm:py-2 z-20 shadow-xl">
+          <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-surface-2 border border-stroke rounded-xl px-2 sm:px-3 py-1.5 sm:py-2 z-20 shadow-xl">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-bold text-white">{hoveredCoin.symbol.toUpperCase()}</span>
-              <span className="text-[10px] text-white/50">{hoveredCoin.name}</span>
+              <span className="text-[10px] text-text-tertiary">{hoveredCoin.name}</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-white">{formatPrice(hoveredCoin.current_price)}</span>
@@ -310,7 +310,7 @@ export default function TabHeatmap({ onSelectCoin }: TabHeatmapProps) {
                 {getChangeValue(hoveredCoin) > 0 ? '+' : ''}
                 {getChangeValue(hoveredCoin).toFixed(2)}% ({timeFilter})
               </span>
-              <span className="text-[9px] text-white/35">MCap: ${(hoveredCoin.market_cap / 1e9).toFixed(1)}B</span>
+              <span className="text-[9px] text-text-quaternary">MCap: ${(hoveredCoin.market_cap / 1e9).toFixed(1)}B</span>
             </div>
           </div>
         )}

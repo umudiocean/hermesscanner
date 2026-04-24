@@ -39,15 +39,6 @@
     },
 
     {
-      "path": "/api/cron/refresh/europe",
-      "schedule": "5 8 * * 1-5"
-    },
-    {
-      "path": "/api/cron/refresh/europe",
-      "schedule": "35 16 * * 1-5"
-    },
-
-    {
       "path": "/api/cron/refresh/crypto",
       "schedule": "5 0,4,8,12,16,20 * * *"
     },

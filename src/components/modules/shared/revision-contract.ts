@@ -5,7 +5,5 @@ export const REVISION_TOOLTIPS = {
 
 export const CSV_HEADERS = {
   nasdaqSignals: 'Symbol,Sector,Best Signal,N.Teknik,Teknik Score,H.AI,AI Score,Guven%,Rev30%,Rev90%,Fiyatlama,Price,Change%,MarketCap',
-  europeSignals: 'Signal,Symbol,Exchange,Price,Change%,TradeScore,AIScore,Rev30%,Rev90%,Risk',
   nasdaqWatchlist: 'Symbol,Segment,Price,Change%,Terminal AI,Trade AI,AI Signal,Skor,RSI,MFI,Guven%,Rev30%,Rev90%,Fiyatlama,Risk,MCap,52W,Z',
-  europeWatchlist: 'Symbol,Exchange,Price,Change%,TradeScore,AISignal,AIScore,Rev30%,Rev90%',
 } as const

@@ -123,8 +123,8 @@ function SymbolSearchInput({ onAdd, existingSymbols, placeholder }: {
           onFocus={() => { if (suggestions.length > 0) setShowDropdown(true) }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder || 'Orn: AAPL, MSFT...'}
-          className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white
-                     placeholder-white/30 focus:outline-none focus:border-gold-400/40 focus:shadow-md focus:shadow-gold-400/10 transition-all duration-300 w-48"
+          className="px-3 py-2 rounded-xl bg-surface-3 border border-stroke text-sm text-white
+                     placeholder-white/30 focus:outline-none focus:border-stroke-gold-strong focus:shadow-md focus:shadow-gold-400/10 transition-all duration-300 w-48"
         />
         <button
           onClick={() => { if (input.trim()) { handleSelect(input.trim().toUpperCase()) } }}
@@ -134,17 +134,17 @@ function SymbolSearchInput({ onAdd, existingSymbols, placeholder }: {
         </button>
       </div>
       {showDropdown && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 w-72 max-h-64 overflow-y-auto bg-[#151520] border border-white/10 rounded-xl shadow-2xl shadow-black/40 z-50">
+        <div className="absolute top-full left-0 mt-1 w-72 max-h-64 overflow-y-auto bg-surface-3 border border-stroke rounded-xl shadow-2xl shadow-black/40 z-50">
           {suggestions.map((s, i) => (
             <button
               key={s.symbol}
               onClick={() => handleSelect(s.symbol)}
               className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors ${
-                i === selectedIdx ? 'bg-gold-400/10 text-white' : 'text-white/70 hover:bg-white/[0.04]'
+                i === selectedIdx ? 'bg-gold-400/10 text-white' : 'text-text-secondary hover:bg-surface-3'
               }`}
             >
               <span className="font-mono font-bold text-xs w-12">{s.symbol}</span>
-              <span className="text-[11px] text-white/50 truncate">{s.name}</span>
+              <span className="text-[11px] text-text-tertiary truncate">{s.name}</span>
             </button>
           ))}
         </div>
@@ -187,7 +187,7 @@ export default function TabCompare({ symbols, onRemoveSymbol, onSelectSymbol }: 
       <div className="flex flex-col items-center justify-center min-h-[50vh]">
         <span className="text-4xl sm:text-5xl mb-3 sm:mb-4">⚖️</span>
         <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Karsilastirma Modu</h3>
-        <p className="text-white/50 text-sm mb-3 sm:mb-4">Sembol yazin ve ekleyin (max 4 hisse)</p>
+        <p className="text-text-tertiary text-sm mb-3 sm:mb-4">Sembol yazin ve ekleyin (max 4 hisse)</p>
         <SymbolSearchInput onAdd={onSelectSymbol} existingSymbols={symbols} />
       </div>
     )
@@ -198,11 +198,11 @@ export default function TabCompare({ symbols, onRemoveSymbol, onSelectSymbol }: 
       {/* Symbol pills + search */}
       <div className="flex items-center gap-2 flex-wrap">
         {symbols.map(s => (
-          <div key={s} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10">
+          <div key={s} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-3 border border-stroke">
             <span className="text-xs font-medium text-white">{s}</span>
             <button
               onClick={() => onRemoveSymbol(s)}
-              className="text-white/40 hover:text-red-400 transition-colors text-xs ml-1"
+              className="text-text-tertiary hover:text-red-400 transition-colors text-xs ml-1"
             >
               ✕
             </button>
@@ -223,12 +223,12 @@ export default function TabCompare({ symbols, onRemoveSymbol, onSelectSymbol }: 
           <div key={item.symbol} className="bg-[#0F0F15] rounded-xl border border-white/5 p-3 sm:p-4">
             {item.loading ? (
               <div className="h-40 flex flex-col items-center justify-center gap-2">
-                <div className="w-6 h-6 border-2 border-gold-400/30 border-t-gold-400 rounded-full animate-spin" />
-                <span className="text-[10px] text-white/40">{item.symbol} yukleniyor...</span>
+                <div className="w-6 h-6 border-2 border-stroke-gold-strong border-t-gold-400 rounded-full animate-spin" />
+                <span className="text-[10px] text-text-tertiary">{item.symbol} yukleniyor...</span>
               </div>
             ) : !item.data ? (
               <div className="h-40 flex flex-col items-center justify-center">
-                <span className="text-sm text-white/40">{item.symbol}</span>
+                <span className="text-sm text-text-tertiary">{item.symbol}</span>
                 <span className="text-[10px] text-red-400/50 mt-1">Veri yuklenemedi</span>
               </div>
             ) : (
@@ -236,7 +236,7 @@ export default function TabCompare({ symbols, onRemoveSymbol, onSelectSymbol }: 
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-white">{item.symbol}</span>
                   {item.data?.profile?.companyName && (
-                    <span className="text-[10px] text-white/40 truncate max-w-[100px]">
+                    <span className="text-[10px] text-text-tertiary truncate max-w-[100px]">
                       {item.data.profile.companyName}
                     </span>
                   )}
@@ -254,7 +254,7 @@ export default function TabCompare({ symbols, onRemoveSymbol, onSelectSymbol }: 
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/5">
-                <th className="text-left px-2 sm:px-4 py-2 sm:py-2.5 text-[10px] text-white/40 uppercase tracking-wider w-32 sm:w-40">
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-2.5 text-[10px] text-text-tertiary uppercase tracking-wider w-32 sm:w-40">
                   Metrik
                 </th>
                 {items.map(item => (
@@ -327,14 +327,14 @@ function CompareRow({
   }, null)
 
   return (
-    <tr className="border-b border-white/[0.03] hover:bg-white/[0.02]">
-      <td className={`px-2 sm:px-4 py-1.5 text-xs text-white/60 ${bold ? 'font-bold' : ''}`}>{label}</td>
+    <tr className="border-b border-white/[0.03] hover:bg-surface-2">
+      <td className={`px-2 sm:px-4 py-1.5 text-xs text-text-secondary ${bold ? 'font-bold' : ''}`}>{label}</td>
       {values.map((v, i) => {
         const isTopValue = v != null && v === best && cleanValues.filter(cv => cv === best).length === 1
-        let color = 'text-white/70'
+        let color = 'text-text-secondary'
         if (colorize && v != null && isFinite(v)) {
           if (format === 'percent' || format === 'roePercent') {
-            color = v >= 0 ? 'text-hermes-green' : 'text-red-400'
+            color = v >= 0 ? 'text-success-400' : 'text-red-400'
           } else if (format === 'score') {
             const level = getScoreLevel(v)
             color = getScoreColor(level)

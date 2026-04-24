@@ -15,7 +15,6 @@ export type DataKey =
   | 'derivatives'
   | 'scan'
   | 'stocksQuote'
-  | 'europeScan'
   | 'onchain'
 
 export interface ProviderStatus {
@@ -90,7 +89,6 @@ export const SLA_THRESHOLDS_MINUTES: Record<DataKey, number> = {
   derivatives: 300,
   scan: 120,
   stocksQuote: 120,
-  europeScan: 600,
   onchain: 120,
 }
 

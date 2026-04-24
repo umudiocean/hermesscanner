@@ -84,18 +84,18 @@ const SECTORS = [
 ]
 
 const SEGMENT_CONFIG: { key: SegmentFilter; label: string; desc: string; icon: React.ReactNode; color: string }[] = [
-  { key: 'ALL', label: 'Tumu', desc: 'Tum hisseler', icon: <Layers size={13} />, color: 'text-white/60 bg-white/[0.04] border-white/[0.08] hover:border-white/20' },
+  { key: 'ALL', label: 'Tumu', desc: 'Tum hisseler', icon: <Layers size={13} />, color: 'text-text-secondary bg-surface-3 border-stroke hover:border-stroke-strong' },
   { key: 'MEGA', label: 'MEGA', desc: '$200B+', icon: <Crown size={13} />, color: 'text-amber-400 bg-amber-500/8 border-amber-500/20 hover:border-amber-500/40' },
   { key: 'LARGE', label: 'LARGE', desc: '$10B-$200B', icon: <Building2 size={13} />, color: 'text-violet-400 bg-violet-500/8 border-violet-500/20 hover:border-violet-500/40' },
   { key: 'MID', label: 'MID', desc: '$2B-$10B', icon: <Store size={13} />, color: 'text-blue-400 bg-blue-500/8 border-blue-500/20 hover:border-blue-500/40' },
-  { key: 'SMALL', label: 'SMALL', desc: '$300M-$2B', icon: <Filter size={13} />, color: 'text-hermes-green bg-hermes-green/8 border-hermes-green/20 hover:border-hermes-green/40' },
+  { key: 'SMALL', label: 'SMALL', desc: '$300M-$2B', icon: <Filter size={13} />, color: 'text-success-400 bg-success-400/8 border-success-400/20 hover:border-success-400/40' },
   { key: 'MICRO', label: 'MICRO', desc: '<$300M', icon: <Bug size={13} />, color: 'text-orange-400 bg-orange-500/8 border-orange-500/20 hover:border-orange-500/40' },
 ]
 
 const SIGNAL_CONFIG: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
   STRONG: { color: 'text-amber-400 bg-amber-500/12 border-amber-500/25', icon: <Zap size={12} />, label: 'Guclu' },
-  GOOD: { color: 'text-hermes-green bg-hermes-green/12 border-hermes-green/25', icon: <TrendingUp size={12} />, label: 'Iyi' },
-  NEUTRAL: { color: 'text-slate-300 bg-white/[0.04] border-white/[0.08]', icon: <Minus size={12} />, label: 'Notr' },
+  GOOD: { color: 'text-success-400 bg-success-400/12 border-success-400/25', icon: <TrendingUp size={12} />, label: 'Iyi' },
+  NEUTRAL: { color: 'text-slate-300 bg-surface-3 border-stroke', icon: <Minus size={12} />, label: 'Notr' },
   WEAK: { color: 'text-orange-400 bg-orange-500/12 border-orange-500/25', icon: <AlertTriangle size={12} />, label: 'Zayif' },
   BAD: { color: 'text-red-400 bg-red-500/12 border-red-500/25', icon: <TrendingDown size={12} />, label: 'Kotu' },
 }
@@ -247,7 +247,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
               onClick={() => { setSegmentFilter(seg.key); setWatchlistOnly(false); setPage(0) }}
               title={`${seg.label} - ${seg.desc}`}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all duration-200
-                ${isActive ? seg.color + ' ring-1 ring-white/10 shadow-lg' : 'text-white/40 bg-white/[0.02] border-white/[0.05] hover:border-white/10 hover:text-white/60'}`}>
+                ${isActive ? seg.color + ' ring-1 ring-white/10 shadow-lg' : 'text-text-tertiary bg-surface-2 border-stroke-subtle hover:border-stroke hover:text-text-secondary'}`}>
               {seg.icon}
               <span>{seg.label}</span>
               <span className={`text-[10px] tabular-nums ${isActive ? 'opacity-80' : 'opacity-40'}`}>{count}</span>
@@ -255,7 +255,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
           )
         })}
 
-        <div className="w-px h-6 bg-white/[0.06] mx-1" />
+        <div className="w-px h-6 bg-surface-3 mx-1" />
 
         <button
           onClick={() => { setWatchlistOnly(w => !w); setPage(0) }}
@@ -263,7 +263,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
           className={`relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all duration-300 overflow-hidden
             ${watchlistOnly
               ? 'text-amber-300 bg-gradient-to-r from-amber-500/15 to-amber-600/10 border-amber-400/40 ring-1 ring-amber-400/20 shadow-lg shadow-amber-500/25'
-              : 'text-amber-400/40 bg-white/[0.02] border-white/[0.05] hover:border-amber-400/25 hover:text-amber-400/70 hover:bg-amber-500/[0.04]'
+              : 'text-amber-400/40 bg-surface-2 border-stroke-subtle hover:border-amber-400/25 hover:text-amber-400/70 hover:bg-amber-500/[0.04]'
             }`}
         >
           {watchlistOnly && (
@@ -282,56 +282,56 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
       {/* GUVEN + FIYATLANMA + SINYAL Filter Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
         {/* GUVEN filtre */}
-        <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5">
-          <span className="text-[9px] text-white/40 uppercase tracking-wider font-semibold block mb-1.5">Guven Filtresi</span>
+        <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-2.5">
+          <span className="text-[9px] text-text-tertiary uppercase tracking-wider font-semibold block mb-1.5">Guven Filtresi</span>
           <div className="flex gap-1 flex-wrap">
             {[
-              { key: 'all' as const, label: 'Tumu', color: 'text-white/60 bg-white/[0.04] border-white/[0.08]' },
-              { key: 'high' as const, label: '%70+', color: 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' },
+              { key: 'all' as const, label: 'Tumu', color: 'text-text-secondary bg-surface-3 border-stroke' },
+              { key: 'high' as const, label: '%70+', color: 'text-success-400 bg-success-400/10 border-success-400/25' },
               { key: 'medium' as const, label: '%50-69', color: 'text-amber-400 bg-amber-500/10 border-amber-500/25' },
               { key: 'low' as const, label: '<%50', color: 'text-red-400 bg-red-500/10 border-red-500/25' },
             ].map(f => (
               <button key={f.key} onClick={() => { setConfidenceFilter(f.key); setPage(0) }}
                 className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all ${
-                  confidenceFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/35 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
+                  confidenceFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-text-quaternary bg-surface-2 border-stroke-subtle hover:border-stroke'
                 }`}>{f.label}</button>
             ))}
           </div>
         </div>
         {/* FIYATLANMA filtre */}
-        <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5">
-          <span className="text-[9px] text-white/40 uppercase tracking-wider font-semibold block mb-1.5">Fiyatlanma Filtresi</span>
+        <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-2.5">
+          <span className="text-[9px] text-text-tertiary uppercase tracking-wider font-semibold block mb-1.5">Fiyatlanma Filtresi</span>
           <div className="flex gap-1 flex-wrap">
             {[
-              { key: 'all', label: 'Tumu', color: 'text-white/60 bg-white/[0.04] border-white/[0.08]' },
-              { key: 'COK UCUZ', label: 'Cok Ucuz', color: 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' },
-              { key: 'UCUZ', label: 'Ucuz', color: 'text-hermes-green/80 bg-hermes-green/8 border-hermes-green/20' },
-              { key: 'NORMAL', label: 'Normal', color: 'text-slate-300 bg-white/[0.04] border-white/10' },
+              { key: 'all', label: 'Tumu', color: 'text-text-secondary bg-surface-3 border-stroke' },
+              { key: 'COK UCUZ', label: 'Cok Ucuz', color: 'text-success-400 bg-success-400/10 border-success-400/25' },
+              { key: 'UCUZ', label: 'Ucuz', color: 'text-success-400/80 bg-success-400/8 border-success-400/20' },
+              { key: 'NORMAL', label: 'Normal', color: 'text-slate-300 bg-surface-3 border-stroke' },
               { key: 'PAHALI', label: 'Pahali', color: 'text-orange-400 bg-orange-500/10 border-orange-500/25' },
               { key: 'COK PAHALI', label: 'Cok Pahali', color: 'text-red-400 bg-red-500/10 border-red-500/25' },
             ].map(f => (
               <button key={f.key} onClick={() => { setValuationFilter(f.key); setPage(0) }}
                 className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all ${
-                  valuationFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/35 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
+                  valuationFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-text-quaternary bg-surface-2 border-stroke-subtle hover:border-stroke'
                 }`}>{f.label}</button>
             ))}
           </div>
         </div>
         {/* SINYAL filtre */}
-        <div className="bg-[#151520] rounded-xl border border-white/[0.06] p-2.5">
-          <span className="text-[9px] text-white/40 uppercase tracking-wider font-semibold block mb-1.5">Sinyal Filtresi</span>
+        <div className="bg-surface-3 rounded-xl border border-stroke-subtle p-2.5">
+          <span className="text-[9px] text-text-tertiary uppercase tracking-wider font-semibold block mb-1.5">Sinyal Filtresi</span>
           <div className="flex gap-1 flex-wrap">
             {[
-              { key: 'all', label: 'Tumu', color: 'text-white/60 bg-white/[0.04] border-white/[0.08]' },
+              { key: 'all', label: 'Tumu', color: 'text-text-secondary bg-surface-3 border-stroke' },
               { key: 'STRONG', label: 'Guclu', color: 'text-amber-400 bg-amber-500/10 border-amber-500/25' },
-              { key: 'GOOD', label: 'Iyi', color: 'text-hermes-green bg-hermes-green/10 border-hermes-green/25' },
-              { key: 'NEUTRAL', label: 'Notr', color: 'text-slate-300 bg-white/[0.04] border-white/10' },
+              { key: 'GOOD', label: 'Iyi', color: 'text-success-400 bg-success-400/10 border-success-400/25' },
+              { key: 'NEUTRAL', label: 'Notr', color: 'text-slate-300 bg-surface-3 border-stroke' },
               { key: 'WEAK', label: 'Zayif', color: 'text-orange-400 bg-orange-500/10 border-orange-500/25' },
               { key: 'BAD', label: 'Kotu', color: 'text-red-400 bg-red-500/10 border-red-500/25' },
             ].map(f => (
               <button key={f.key} onClick={() => { setSignalFilter(f.key); setPage(0) }}
                 className={`text-[10px] font-semibold px-2 py-1 rounded-lg border transition-all ${
-                  signalFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-white/35 bg-white/[0.02] border-white/[0.04] hover:border-white/10'
+                  signalFilter === f.key ? f.color + ' ring-1 ring-white/10' : 'text-text-quaternary bg-surface-2 border-stroke-subtle hover:border-stroke'
                 }`}>{f.label}</button>
             ))}
           </div>
@@ -342,50 +342,50 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
       <div className="flex flex-col md:flex-row items-start md:items-center gap-2 sm:gap-2.5 justify-between">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative group">
-            <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/35 group-focus-within:text-violet-400 transition-colors" />
+            <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-quaternary group-focus-within:text-violet-400 transition-colors" />
             <input type="text" value={search}
               onChange={e => { setSearch(e.target.value.toUpperCase()); setPage(0) }}
               placeholder="Hisse ara..."
-              className="pl-8 pr-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white
-                         placeholder-white/25 focus:outline-none focus:border-violet-500/30 focus:bg-white/[0.06] w-full sm:w-48 transition-all duration-200"
+              className="pl-8 pr-3 py-1.5 rounded-xl bg-surface-3 border border-stroke text-sm text-white
+                         placeholder-white/25 focus:outline-none focus:border-violet-500/30 focus:bg-surface-3 w-full sm:w-48 transition-all duration-200"
             />
           </div>
           <div className="relative">
-            <Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/35" />
+            <Filter size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-quaternary" />
             <select value={sectorFilter}
               onChange={e => { setSectorFilter(e.target.value); setPage(0) }}
-              className="pl-7 pr-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white
+              className="pl-7 pr-3 py-1.5 rounded-xl bg-surface-3 border border-stroke text-sm text-white
                          focus:outline-none focus:border-violet-500/30 cursor-pointer appearance-none transition-all duration-200">
-              {SECTORS.map(s => <option key={s} value={s} className="bg-[#151520]">{s}</option>)}
+              {SECTORS.map(s => <option key={s} value={s} className="bg-surface-3">{s}</option>)}
             </select>
           </div>
           <select value={columnFilter}
             onChange={e => { setColumnFilter(e.target.value); setSortField(e.target.value === 'all' ? 'signalScore' : e.target.value as SortField); setSortDir('desc'); setPage(0) }}
-            className="px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs text-white
+            className="px-3 py-1.5 rounded-xl bg-surface-3 border border-stroke text-xs text-white
                        focus:outline-none focus:border-violet-500/30 cursor-pointer appearance-none transition-all duration-200">
-            <option value="all" className="bg-[#151520]">Sirala: Tumu</option>
-            <option value="signalScore" className="bg-[#151520]">Puan (Yuksek)</option>
-            <option value="confidence" className="bg-[#151520]">Guven (Yuksek)</option>
-            <option value="valuationScore" className="bg-[#151520]">Fiyatlanma</option>
-            <option value="riskScore" className="bg-[#151520]">Risk (Dusuk)</option>
-            <option value="changePercent" className="bg-[#151520]">Degisim %</option>
-            <option value="marketCap" className="bg-[#151520]">Piyasa Degeri</option>
-            <option value="pe" className="bg-[#151520]">F/K Orani</option>
-            <option value="altmanZ" className="bg-[#151520]">Altman Z</option>
-            <option value="piotroski" className="bg-[#151520]">F-Skor</option>
-            <option value="dcfUpside" className="bg-[#151520]">DCF %</option>
-            <option value="roe" className="bg-[#151520]">ROE %</option>
-            <option value="debtEquity" className="bg-[#151520]">Borc/OZ</option>
-            <option value="overvalScore" className="bg-[#151520]">Overval</option>
-            <option value="shortFloat" className="bg-[#151520]">Float %</option>
-            <option value="volume" className="bg-[#151520]">Hacim</option>
-            <option value="analystEpsRevision30d" className="bg-[#151520]">EPS Rev30</option>
-            <option value="analystEpsRevision90d" className="bg-[#151520]">EPS Rev90</option>
+            <option value="all" className="bg-surface-3">Sirala: Tumu</option>
+            <option value="signalScore" className="bg-surface-3">Puan (Yuksek)</option>
+            <option value="confidence" className="bg-surface-3">Guven (Yuksek)</option>
+            <option value="valuationScore" className="bg-surface-3">Fiyatlanma</option>
+            <option value="riskScore" className="bg-surface-3">Risk (Dusuk)</option>
+            <option value="changePercent" className="bg-surface-3">Degisim %</option>
+            <option value="marketCap" className="bg-surface-3">Piyasa Degeri</option>
+            <option value="pe" className="bg-surface-3">F/K Orani</option>
+            <option value="altmanZ" className="bg-surface-3">Altman Z</option>
+            <option value="piotroski" className="bg-surface-3">F-Skor</option>
+            <option value="dcfUpside" className="bg-surface-3">DCF %</option>
+            <option value="roe" className="bg-surface-3">ROE %</option>
+            <option value="debtEquity" className="bg-surface-3">Borc/OZ</option>
+            <option value="overvalScore" className="bg-surface-3">Overval</option>
+            <option value="shortFloat" className="bg-surface-3">Float %</option>
+            <option value="volume" className="bg-surface-3">Hacim</option>
+            <option value="analystEpsRevision30d" className="bg-surface-3">EPS Rev30</option>
+            <option value="analystEpsRevision90d" className="bg-surface-3">EPS Rev90</option>
           </select>
         </div>
-        <div className="flex items-center gap-4 text-xs text-white/45">
-          <span>Toplam: <b className="text-white/80">{stocks.length}</b></span>
-          <span>Gosterilen: <b className="text-white/80">{filteredStocks.length}</b></span>
+        <div className="flex items-center gap-4 text-xs text-text-tertiary">
+          <span>Toplam: <b className="text-text-primary">{stocks.length}</b></span>
+          <span>Gosterilen: <b className="text-text-primary">{filteredStocks.length}</b></span>
         </div>
       </div>
 
@@ -398,11 +398,11 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
       )}
 
       {/* Table — Virtualized with @tanstack/react-virtual */}
-      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] overflow-hidden shadow-xl shadow-black/20">
+      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle overflow-hidden shadow-xl shadow-black/20">
         <div ref={scrollContainerRef} className="overflow-x-auto overflow-y-auto max-h-[80vh]" style={{ willChange: 'transform' }}>
           <table className="w-full border-collapse">
-            <thead className="sticky top-0 bg-[#0e0e18] z-10 after:absolute after:left-0 after:right-0 after:bottom-0 after:h-px after:bg-white/[0.08]">
-              <tr className="border-b border-white/[0.08]">
+            <thead className="sticky top-0 bg-[#0e0e18] z-10 after:absolute after:left-0 after:right-0 after:bottom-0 after:h-px after:bg-surface-3">
+              <tr className="border-b border-stroke">
                 <ThC field="symbol" label="SEMBOL" sort={sortField} dir={sortDir} onSort={handleSort}
                   tip={COLUMN_TIPS.symbol} onTip={setTooltip} />
                 <ThC field="companyName" label="SIRKET" sort={sortField} dir={sortDir} onSort={handleSort}
@@ -479,7 +479,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                           className={`shrink-0 p-0.5 rounded transition-all duration-200 ${
                             watchlist.includes(s.symbol)
                               ? 'text-amber-400 hover:text-amber-300'
-                              : 'text-white/35 hover:text-amber-400/60'
+                              : 'text-text-quaternary hover:text-amber-400/60'
                           }`}
                           title={watchlist.includes(s.symbol) ? 'Watchlist\'ten cikar' : 'Watchlist\'e ekle'}
                         >
@@ -491,16 +491,16 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                           <span key={idx} className={`text-[8px] font-bold px-1 py-0 rounded ${
                             idx === 'SP500' ? 'text-violet-300/70 bg-violet-500/10' :
                             idx === 'NDX100' ? 'text-blue-300/70 bg-blue-500/10' :
-                            idx === 'DJIA' ? 'text-amber-300/70 bg-amber-500/10' : 'text-white/40 bg-white/[0.04]'
+                            idx === 'DJIA' ? 'text-amber-300/70 bg-amber-500/10' : 'text-text-tertiary bg-surface-3'
                           }`}>{idx}</span>
                         ))}
                       </div>
                     </td>
                     <td className="px-1 py-2">
-                      <span className="text-[13px] text-white/60 truncate block max-w-[130px]" title={s.companyName}>{s.companyName}</span>
+                      <span className="text-[13px] text-text-secondary truncate block max-w-[130px]" title={s.companyName}>{s.companyName}</span>
                     </td>
                     <td className="px-1 py-2">
-                      <span className="text-xs text-white/45 truncate block max-w-[80px]" title={s.sector}>
+                      <span className="text-xs text-text-tertiary truncate block max-w-[80px]" title={s.sector}>
                         {s.sector === 'Unknown' ? '\u2014' : shortSector(s.sector)}
                       </span>
                     </td>
@@ -514,8 +514,8 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                       <div className="group/score relative flex items-center justify-end cursor-pointer">
                         <ScoreMiniBar value={s.signalScore} maxWidth={40} />
                         {/* Score Breakdown Popup */}
-                        <div className="hidden group-hover/score:block absolute z-50 bottom-full right-0 mb-2 w-52 bg-[#141420] border border-white/10 rounded-xl shadow-2xl p-3">
-                          <div className="text-[10px] text-white/50 font-semibold mb-2 tracking-wider">HERMES AI SKOR</div>
+                        <div className="hidden group-hover/score:block absolute z-50 bottom-full right-0 mb-2 w-52 bg-[#141420] border border-stroke rounded-xl shadow-2xl p-3">
+                          <div className="text-[10px] text-text-tertiary font-semibold mb-2 tracking-wider">HERMES AI SKOR</div>
                           {[
                             { label: 'Degerleme', val: s.categories?.valuation || 0, w: 22 },
                             { label: 'Saglik', val: s.categories?.health || 0, w: 20 },
@@ -527,15 +527,15 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                             { label: 'Smart Money', val: s.categories?.smartMoney || 0, w: 5 },
                           ].sort((a, b) => b.val - a.val).map(c => (
                             <div key={c.label} className="flex items-center gap-1.5 mb-1">
-                              <span className="text-[10px] text-white/50 w-16 truncate">{c.label}</span>
-                              <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                              <span className="text-[10px] text-text-tertiary w-16 truncate">{c.label}</span>
+                              <div className="flex-1 h-1.5 bg-surface-3 rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all" style={{
                                   width: `${c.val}%`,
                                   backgroundColor: c.val >= 70 ? '#62cbc1' : c.val >= 40 ? '#fbbf24' : '#f87171'
                                 }} />
                               </div>
-                              <span className="text-[10px] tabular-nums text-white/60 w-6 text-right">{c.val}</span>
-                              <span className="text-[8px] text-white/40 w-5 text-right">{c.w}%</span>
+                              <span className="text-[10px] tabular-nums text-text-secondary w-6 text-right">{c.val}</span>
+                              <span className="text-[8px] text-text-tertiary w-5 text-right">{c.w}%</span>
                             </div>
                           ))}
                           {s.gated && (
@@ -548,64 +548,64 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-medium ${
-                        (s.confidence || 0) >= 70 ? 'text-hermes-green/60' : (s.confidence || 0) >= 50 ? 'text-amber-400/60' : 'text-white/35'
+                        (s.confidence || 0) >= 70 ? 'text-success-400/60' : (s.confidence || 0) >= 50 ? 'text-amber-400/60' : 'text-text-quaternary'
                       }`}>{s.confidence || 30}%</span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <PriceFlashCell price={s.price} className="text-sm text-white/90 font-medium" />
+                      <PriceFlashCell price={s.price} className="text-sm text-text-primary font-medium" />
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className={`inline-flex items-center gap-0.5 text-[13px] tabular-nums font-semibold ${s.changePercent >= 0 ? 'text-hermes-green' : 'text-red-400'}`}>
+                      <span className={`inline-flex items-center gap-0.5 text-[13px] tabular-nums font-semibold ${s.changePercent >= 0 ? 'text-success-400' : 'text-red-400'}`}>
                         {s.changePercent >= 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
                         {s.changePercent >= 0 ? '+' : ''}{fmtN(s.changePercent, 2)}%
                       </span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className="text-[13px] text-white/60 tabular-nums">{fmtCap(s.marketCap)}</span>
+                      <span className="text-[13px] text-text-secondary tabular-nums">{fmtCap(s.marketCap)}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className="text-[13px] text-white/60 tabular-nums">{fmtR(s.pe)}</span>
+                      <span className="text-[13px] text-text-secondary tabular-nums">{fmtR(s.pe)}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-medium ${
-                        (s.altmanZ || 0) >= 3 ? 'text-hermes-green/70' : (s.altmanZ || 0) >= 1.8 ? 'text-amber-400/70' : (s.altmanZ || 0) > 0 ? 'text-red-400/70' : 'text-white/40'
+                        (s.altmanZ || 0) >= 3 ? 'text-success-400/70' : (s.altmanZ || 0) >= 1.8 ? 'text-amber-400/70' : (s.altmanZ || 0) > 0 ? 'text-red-400/70' : 'text-text-tertiary'
                       }`}>{s.altmanZ > 0 ? s.altmanZ.toFixed(1) : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-bold ${
-                        (s.piotroski || 0) >= 7 ? 'text-hermes-green' : (s.piotroski || 0) >= 5 ? 'text-amber-400/70' : (s.piotroski || 0) > 0 ? 'text-orange-400/70' : 'text-white/40'
+                        (s.piotroski || 0) >= 7 ? 'text-success-400' : (s.piotroski || 0) >= 5 ? 'text-amber-400/70' : (s.piotroski || 0) > 0 ? 'text-orange-400/70' : 'text-text-tertiary'
                       }`}>{s.piotroski > 0 ? s.piotroski : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-medium ${
-                        (s.dcfUpside || 0) > 20 ? 'text-hermes-green' : (s.dcfUpside || 0) > 0 ? 'text-hermes-green/60' : (s.dcfUpside || 0) < -20 ? 'text-red-400' : (s.dcfUpside || 0) < 0 ? 'text-red-400/60' : 'text-white/40'
+                        (s.dcfUpside || 0) > 20 ? 'text-success-400' : (s.dcfUpside || 0) > 0 ? 'text-success-400/60' : (s.dcfUpside || 0) < -20 ? 'text-red-400' : (s.dcfUpside || 0) < 0 ? 'text-red-400/60' : 'text-text-tertiary'
                       }`}>{s.dcfUpside ? `${s.dcfUpside > 0 ? '+' : ''}${s.dcfUpside.toFixed(0)}%` : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[10px] tabular-nums ${
-                        (s.analystEpsRevision30d || 0) > 0 ? 'text-hermes-green/80' : (s.analystEpsRevision30d || 0) < 0 ? 'text-red-400/80' : 'text-white/35'
+                        (s.analystEpsRevision30d || 0) > 0 ? 'text-success-400/80' : (s.analystEpsRevision30d || 0) < 0 ? 'text-red-400/80' : 'text-text-quaternary'
                       }`}>
                         {(s.analystEpsRevision30d || 0) !== 0 ? `${(s.analystEpsRevision30d || 0) > 0 ? '+' : ''}${(s.analystEpsRevision30d || 0).toFixed(1)}%` : '\u2014'}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[10px] tabular-nums ${
-                        (s.analystEpsRevision90d || 0) > 0 ? 'text-hermes-green/70' : (s.analystEpsRevision90d || 0) < 0 ? 'text-red-400/70' : 'text-white/35'
+                        (s.analystEpsRevision90d || 0) > 0 ? 'text-success-400/70' : (s.analystEpsRevision90d || 0) < 0 ? 'text-red-400/70' : 'text-text-quaternary'
                       }`}>
                         {(s.analystEpsRevision90d || 0) !== 0 ? `${(s.analystEpsRevision90d || 0) > 0 ? '+' : ''}${(s.analystEpsRevision90d || 0).toFixed(1)}%` : '\u2014'}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className={`text-[13px] tabular-nums ${s.roe > 0 ? 'text-hermes-green/70' : s.roe < 0 ? 'text-red-400/70' : 'text-white/35'}`}>
+                      <span className={`text-[13px] tabular-nums ${s.roe > 0 ? 'text-success-400/70' : s.roe < 0 ? 'text-red-400/70' : 'text-text-quaternary'}`}>
                         {fmtPct(s.roe)}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className={`text-[13px] tabular-nums ${s.debtEquity > 2 ? 'text-red-400/70' : 'text-white/45'}`}>{fmtR(s.debtEquity)}</span>
+                      <span className={`text-[13px] tabular-nums ${s.debtEquity > 2 ? 'text-red-400/70' : 'text-text-tertiary'}`}>{fmtR(s.debtEquity)}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums font-semibold px-1.5 py-0.5 rounded-full ${
-                        (s.riskScore || 50) <= 25 ? 'text-hermes-green bg-hermes-green/10' :
+                        (s.riskScore || 50) <= 25 ? 'text-success-400 bg-success-400/10' :
                         (s.riskScore || 50) <= 50 ? 'text-amber-400 bg-amber-500/10' :
                         (s.riskScore || 50) <= 75 ? 'text-orange-400 bg-orange-500/10' :
                         'text-red-400 bg-red-500/10'
@@ -613,12 +613,12 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${
-                        s.valuationLabel === 'COK UCUZ' ? 'text-hermes-green bg-hermes-green/15' :
-                        s.valuationLabel === 'UCUZ' ? 'text-hermes-green bg-hermes-green/10' :
-                        s.valuationLabel === 'NORMAL' ? 'text-slate-300 bg-white/[0.04]' :
+                        s.valuationLabel === 'COK UCUZ' ? 'text-success-400 bg-success-400/15' :
+                        s.valuationLabel === 'UCUZ' ? 'text-success-400 bg-success-400/10' :
+                        s.valuationLabel === 'NORMAL' ? 'text-slate-300 bg-surface-3' :
                         s.valuationLabel === 'PAHALI' ? 'text-orange-400 bg-orange-500/10' :
                         s.valuationLabel === 'COK PAHALI' ? 'text-red-400 bg-red-500/10' :
-                        'text-white/35 bg-white/[0.03]'
+                        'text-text-quaternary bg-surface-2'
                       }`}>{s.valuationLabel || 'N/A'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
@@ -627,14 +627,14 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                           s.overvalLevel === 'EXTREME' ? 'text-fuchsia-300 bg-fuchsia-500/20' :
                           s.overvalLevel === 'HIGH' ? 'text-red-400 bg-red-500/15' :
                           s.overvalLevel === 'MEDIUM' ? 'text-orange-400 bg-orange-500/10' :
-                          'text-white/40 bg-white/[0.03]'
+                          'text-text-tertiary bg-surface-2'
                         }`}>{s.overvalScore}</span>
-                      ) : <span className="text-white/35">{'\u2014'}</span>}
+                      ) : <span className="text-text-quaternary">{'\u2014'}</span>}
                       {(s.badges?.length || 0) > 0 && (
                         <div className="flex flex-wrap gap-0.5 mt-0.5 justify-end">
                           {s.badges.slice(0, 2).map((b, bi) => (
                             <span key={bi} className={`text-[8px] px-1 py-0 rounded ${
-                              b.severity === 'positive' ? 'text-hermes-green bg-hermes-green/10' :
+                              b.severity === 'positive' ? 'text-success-400 bg-success-400/10' :
                               b.severity === 'negative' ? 'text-red-400 bg-red-500/10' :
                               b.severity === 'warning' ? 'text-amber-400 bg-amber-500/10' :
                               'text-blue-400 bg-blue-500/10'
@@ -648,20 +648,20 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                       {s.priceTarget > 0 ? (
                         <div className="flex flex-col items-end">
                           <span className={`font-mono text-[11px] font-semibold ${
-                            s.priceTarget > s.price ? 'text-hermes-green' : s.priceTarget < s.price ? 'text-red-400' : 'text-white/60'
+                            s.priceTarget > s.price ? 'text-success-400' : s.priceTarget < s.price ? 'text-red-400' : 'text-text-secondary'
                           }`}>${s.priceTarget.toFixed(2)}</span>
-                          <span className="text-[9px] text-white/35">{s.price > 0 ? `${((s.priceTarget - s.price) / s.price * 100) >= 0 ? '+' : ''}${((s.priceTarget - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
+                          <span className="text-[9px] text-text-quaternary">{s.price > 0 ? `${((s.priceTarget - s.price) / s.price * 100) >= 0 ? '+' : ''}${((s.priceTarget - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
                         </div>
-                      ) : <span className="text-white/35">{'\u2014'}</span>}
+                      ) : <span className="text-text-quaternary">{'\u2014'}</span>}
                     </td>
                     {/* DIP (52W Low) */}
                     <td className="px-1 py-2 text-right">
                       {s.yearLow > 0 ? (
                         <div className="flex flex-col items-end">
                           <span className="font-mono text-[11px] text-red-400/70">${s.yearLow.toFixed(2)}</span>
-                          <span className="text-[9px] text-white/35">{s.price > 0 ? `${((s.yearLow - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
+                          <span className="text-[9px] text-text-quaternary">{s.price > 0 ? `${((s.yearLow - s.price) / s.price * 100).toFixed(1)}%` : ''}</span>
                         </div>
-                      ) : <span className="text-white/35">{'\u2014'}</span>}
+                      ) : <span className="text-text-quaternary">{'\u2014'}</span>}
                     </td>
                     {/* R:R */}
                     <td className="px-1 py-2 text-right">
@@ -669,23 +669,23 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
                         const upside = s.priceTarget > 0 && s.price > 0 ? s.priceTarget - s.price : 0
                         const downside = s.yearLow > 0 && s.price > 0 ? s.price - s.yearLow : 0
                         const rr = downside > 0 ? upside / downside : 0
-                        if (rr <= 0) return <span className="text-white/35">{'\u2014'}</span>
+                        if (rr <= 0) return <span className="text-text-quaternary">{'\u2014'}</span>
                         return (
                           <span className={`font-mono text-[11px] font-bold ${
-                            rr >= 2 ? 'text-hermes-green' : rr >= 1 ? 'text-gold-300' : 'text-red-400'
+                            rr >= 2 ? 'text-success-400' : rr >= 1 ? 'text-gold-300' : 'text-red-400'
                           }`}>{rr.toFixed(1)}</span>
                         )
                       })()}
                     </td>
                     <td className="px-1 py-2 text-right">
                       <span className={`text-[11px] tabular-nums ${
-                        (s.shortFloat || 0) >= 90 ? 'text-hermes-green/70' :
-                        (s.shortFloat || 0) >= 50 ? 'text-white/45' :
-                        (s.shortFloat || 0) > 0 ? 'text-orange-400/70' : 'text-white/35'
+                        (s.shortFloat || 0) >= 90 ? 'text-success-400/70' :
+                        (s.shortFloat || 0) >= 50 ? 'text-text-tertiary' :
+                        (s.shortFloat || 0) > 0 ? 'text-orange-400/70' : 'text-text-quaternary'
                       }`}>{s.shortFloat > 0 ? `${s.shortFloat.toFixed(0)}%` : '\u2014'}</span>
                     </td>
                     <td className="px-1 py-2 text-right">
-                      <span className="text-[13px] text-white/45 tabular-nums">{fmtVol(s.volume)}</span>
+                      <span className="text-[13px] text-text-tertiary tabular-nums">{fmtVol(s.volume)}</span>
                     </td>
                   </tr>
                 )
@@ -701,7 +701,7 @@ export default function TabStocks({ onSelectSymbol }: TabStocksProps) {
 
       {/* Total count */}
       <div className="flex items-center justify-center py-1.5">
-        <span className="text-xs text-white/35">Toplam <b className="text-white/60">{filteredStocks.length}</b> hisse listeleniyor</span>
+        <span className="text-xs text-text-quaternary">Toplam <b className="text-text-secondary">{filteredStocks.length}</b> hisse listeleniyor</span>
       </div>
     </div>
   )
@@ -719,13 +719,13 @@ function ThC({ field, label, sort, dir, onSort, w = '', align = 'left', tip, onT
       onMouseEnter={() => tip && onTip?.(tip)}
       onMouseLeave={() => onTip?.(null)}
       title={tip || ''}
-      className={`px-1 py-2.5 text-xs text-white/50 tracking-wider font-semibold cursor-pointer
-                  hover:text-white/70 transition-all duration-200 select-none whitespace-nowrap ${w}
+      className={`px-1 py-2.5 text-xs text-text-tertiary tracking-wider font-semibold cursor-pointer
+                  hover:text-text-secondary transition-all duration-200 select-none whitespace-nowrap ${w}
                   ${align === 'right' ? 'text-right' : 'text-left'}`}>
       {label}
       {sort === field
         ? <span className="text-violet-400 ml-0.5 text-[10px]">{'\u25B2'}{dir === 'asc' ? '' : '\u25BC'}</span>
-        : <span className="text-white/35 ml-0.5 text-[10px]">{'\u25BC'}</span>}
+        : <span className="text-text-quaternary ml-0.5 text-[10px]">{'\u25BC'}</span>}
     </th>
   )
 }
@@ -808,13 +808,13 @@ function TableSkeleton() {
 
         {/* Title */}
         <div className="text-center">
-          <h3 className="text-base font-bold text-white/90 tracking-wide">HERMES AI <span className="gradient-text">Terminal</span></h3>
-          <p className="text-[11px] text-white/40 mt-1 tracking-wider">Veriler analiz ediliyor...</p>
+          <h3 className="text-base font-bold text-text-primary tracking-wide">HERMES AI <span className="gradient-text">Terminal</span></h3>
+          <p className="text-[11px] text-text-tertiary mt-1 tracking-wider">Veriler analiz ediliyor...</p>
         </div>
 
         {/* Progress bar */}
         <div className="w-full max-w-xs">
-          <div className="h-1 bg-white/[0.04] rounded-full overflow-hidden">
+          <div className="h-1 bg-surface-3 rounded-full overflow-hidden">
             <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E, #B3945B)' }} />
           </div>
         </div>
@@ -826,7 +826,7 @@ function TableSkeleton() {
               style={{ animation: `card-reveal 0.4s ease-out ${0.3 + i * 0.35}s forwards` }}>
               <span className="text-gold-400/60 text-[10px] font-mono">{step.icon}</span>
               <div className="flex-1 relative overflow-hidden">
-                <span className="text-[11px] text-white/50 font-medium">{step.label}</span>
+                <span className="text-[11px] text-text-tertiary font-medium">{step.label}</span>
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="h-full w-1/3 terminal-scan-line" style={{
                     background: 'linear-gradient(90deg, transparent, rgba(179,148,91,0.15), transparent)',
@@ -846,17 +846,17 @@ function TableSkeleton() {
             { label: 'Puanlama', delay: '1.1s' },
             { label: 'Risk', delay: '1.4s' },
           ].map((card, i) => (
-            <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-2.5 opacity-0"
+            <div key={i} className="bg-surface-2 border border-stroke-subtle rounded-xl p-2.5 opacity-0"
               style={{ animation: `card-reveal 0.5s ease-out ${card.delay} forwards` }}>
               <div className="h-1 w-8 skeleton-shimmer rounded-full mb-2" />
               <div className="h-5 skeleton-shimmer rounded-md mb-1.5" />
-              <div className="text-[9px] text-white/40 font-medium tracking-wider">{card.label}</div>
+              <div className="text-[9px] text-text-tertiary font-medium tracking-wider">{card.label}</div>
             </div>
           ))}
         </div>
 
         {/* Simulated chart lines */}
-        <div className="w-full max-w-xs h-10 relative overflow-hidden rounded-lg bg-white/[0.015] border border-white/[0.04] opacity-0"
+        <div className="w-full max-w-xs h-10 relative overflow-hidden rounded-lg bg-white/[0.015] border border-stroke-subtle opacity-0"
           style={{ animation: 'card-reveal 0.5s ease-out 1.7s forwards' }}>
           <svg className="w-full h-full" viewBox="0 0 300 40" preserveAspectRatio="none">
             <polyline fill="none" stroke="rgba(98,203,193,0.3)" strokeWidth="1.5"
@@ -866,16 +866,16 @@ function TableSkeleton() {
               points="0,35 30,32 60,28 90,30 120,25 150,27 180,22 210,24 240,20 270,22 300,18"
               style={{ strokeDasharray: '500', strokeDashoffset: '500', animation: 'ring-pulse 2s ease-in-out 2.1s forwards' }} />
           </svg>
-          <div className="absolute bottom-1 right-2 text-[8px] text-white/35 font-mono">CHART PREVIEW</div>
+          <div className="absolute bottom-1 right-2 text-[8px] text-text-quaternary font-mono">CHART PREVIEW</div>
         </div>
 
         {/* Ticker tape */}
         <div className="w-full max-w-xs overflow-hidden rounded-lg opacity-0" style={{ animation: 'card-reveal 0.4s ease-out 2s forwards' }}>
           <div className="flex ticker-scroll whitespace-nowrap">
             {[...TICKERS, ...TICKERS].map((t, i) => (
-              <span key={i} className="inline-flex items-center gap-1 px-2 text-[9px] font-mono text-white/35">
+              <span key={i} className="inline-flex items-center gap-1 px-2 text-[9px] font-mono text-text-quaternary">
                 {t}
-                <span className={i % 3 === 0 ? 'text-hermes-green/20' : i % 3 === 1 ? 'text-red-400/20' : 'text-white/10'}>
+                <span className={i % 3 === 0 ? 'text-success-400/20' : i % 3 === 1 ? 'text-red-400/20' : 'text-text-quaternary'}>
                   {i % 3 === 0 ? '▲' : i % 3 === 1 ? '▼' : '—'}
                 </span>
               </span>
@@ -892,7 +892,7 @@ function ErrorState({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] animate-fade-in px-2 sm:px-4">
       <AlertTriangle size={36} className="text-red-400/50 mb-2 sm:mb-3" />
-      <p className="text-white/45 text-sm sm:text-base">{message}</p>
+      <p className="text-text-tertiary text-sm sm:text-base">{message}</p>
       <button onClick={() => window.location.reload()}
         className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white text-sm font-medium
                    hover:from-violet-500 hover:to-blue-500 shadow-lg shadow-violet-500/20 transition-all duration-200">

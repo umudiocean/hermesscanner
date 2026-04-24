@@ -206,7 +206,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
 
   const TYPE_STYLES: Record<EventType, { bg: string; border: string; text: string; label: string; dot: string }> = {
     earnings: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', label: 'KAZANC', dot: 'bg-amber-400' },
-    dividends: { bg: 'bg-hermes-green/10', border: 'border-hermes-green/20', text: 'text-hermes-green', label: 'TEMETTU', dot: 'bg-hermes-green' },
+    dividends: { bg: 'bg-success-400/10', border: 'border-success-400/20', text: 'text-success-400', label: 'TEMETTU', dot: 'bg-success-400' },
     splits: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400', label: 'SPLIT', dot: 'bg-blue-400' },
     ipos: { bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400', label: 'IPO', dot: 'bg-rose-400' },
   }
@@ -226,17 +226,17 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
             <div className="absolute inset-0 flex items-center justify-center text-gold-400/80 text-lg">📅</div>
           </div>
           <div className="text-center">
-            <p className="text-xs font-semibold text-white/60">Takvim verileri yukleniyor</p>
-            <p className="text-[9px] text-white/40 mt-0.5">Kazanc, temettu, split, IPO</p>
+            <p className="text-xs font-semibold text-text-secondary">Takvim verileri yukleniyor</p>
+            <p className="text-[9px] text-text-tertiary mt-0.5">Kazanc, temettu, split, IPO</p>
           </div>
-          <div className="w-32 h-0.5 bg-white/[0.04] rounded-full overflow-hidden">
+          <div className="w-32 h-0.5 bg-surface-3 rounded-full overflow-hidden">
             <div className="h-full rounded-full progress-fill" style={{ background: 'linear-gradient(90deg, #876b3a, #C9A96E)' }} />
           </div>
           <div className="flex gap-2">
             {['Kazanc', 'Temettu', 'Split', 'IPO'].map((t, i) => (
-              <div key={i} className="px-2 py-1 rounded-md bg-white/[0.02] border border-white/[0.04] opacity-0"
+              <div key={i} className="px-2 py-1 rounded-md bg-surface-2 border border-stroke-subtle opacity-0"
                 style={{ animation: `card-reveal 0.3s ease-out ${0.4 + i * 0.15}s forwards` }}>
-                <span className="text-[8px] text-white/35 font-medium">{t}</span>
+                <span className="text-[8px] text-text-quaternary font-medium">{t}</span>
               </div>
             ))}
           </div>
@@ -249,7 +249,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
     <div className="space-y-2 sm:space-y-3 px-2 sm:px-4 lg:px-6 animate-fade-in">
 
       {/* Mini Calendar Strip + Stats */}
-      <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-3 sm:p-4 shadow-xl shadow-black/20">
+      <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-3 sm:p-4 shadow-xl shadow-black/20">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/80 to-orange-600/80 flex items-center justify-center shadow-lg shadow-amber-500/15">
@@ -257,7 +257,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-bold text-white tracking-wide">PIYASA TAKVIMI</h3>
-              <p className="text-[10px] text-white/35">14 gunluk gorunum</p>
+              <p className="text-[10px] text-text-quaternary">14 gunluk gorunum</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -265,8 +265,8 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
               <button key={tr} onClick={() => { setTimeRange(tr); setSelectedDate(null) }}
                 className={`text-[10px] font-semibold px-2.5 py-1 rounded-lg transition-all ${
                   timeRange === tr
-                    ? 'bg-gold-400/15 text-gold-400 border border-gold-400/25'
-                    : 'text-white/35 hover:text-white/60 bg-white/[0.02] border border-transparent hover:border-white/[0.06]'
+                    ? 'bg-gold-400/15 text-gold-400 border border-stroke-gold'
+                    : 'text-text-quaternary hover:text-text-secondary bg-surface-2 border border-transparent hover:border-stroke-subtle'
                 }`}>
                 {tr === 'this_week' ? 'Bu Hafta' : tr === 'next_week' ? 'Gelecek Hafta' : 'Tumu'}
               </button>
@@ -286,19 +286,19 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                 onClick={() => setSelectedDate(isSelected ? null : day.date)}
                 className={`flex-shrink-0 w-10 sm:w-11 flex flex-col items-center py-1.5 rounded-lg transition-all duration-200 ${
                   day.isToday
-                    ? 'bg-gold-400/15 border border-gold-400/30 shadow-sm shadow-gold-400/10'
+                    ? 'bg-gold-400/15 border border-stroke-gold-strong shadow-sm shadow-gold-400/10'
                     : isSelected
                       ? 'bg-violet-500/15 border border-violet-500/30'
                       : day.isWeekend
                         ? 'bg-white/[0.01] border border-transparent opacity-40'
                         : hasEvents
-                          ? 'bg-white/[0.03] border border-white/[0.06] hover:border-white/15'
-                          : 'bg-white/[0.01] border border-transparent hover:border-white/[0.04]'
+                          ? 'bg-surface-2 border border-stroke-subtle hover:border-stroke'
+                          : 'bg-white/[0.01] border border-transparent hover:border-stroke-subtle'
                 }`}>
-                <span className={`text-[8px] font-medium ${day.isToday ? 'text-gold-400' : 'text-white/35'}`}>
+                <span className={`text-[8px] font-medium ${day.isToday ? 'text-gold-400' : 'text-text-quaternary'}`}>
                   {dayNames[dt.getDay()]}
                 </span>
-                <span className={`text-xs font-bold ${day.isToday ? 'text-gold-300' : isSelected ? 'text-violet-300' : 'text-white/60'}`}>
+                <span className={`text-xs font-bold ${day.isToday ? 'text-gold-300' : isSelected ? 'text-violet-300' : 'text-text-secondary'}`}>
                   {dt.getDate()}
                 </span>
                 {hasEvents && (
@@ -309,7 +309,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                   </div>
                 )}
                 {day.count > 0 && (
-                  <span className={`text-[7px] font-bold mt-0.5 ${day.isToday ? 'text-gold-400' : 'text-white/35'}`}>
+                  <span className={`text-[7px] font-bold mt-0.5 ${day.isToday ? 'text-gold-400' : 'text-text-quaternary'}`}>
                     {day.count}
                   </span>
                 )}
@@ -330,7 +330,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                   filter === t ? 'ring-1 ring-white/10 scale-[1.02]' : ''
                 }`}>
                 <div className={`text-lg sm:text-xl font-bold ${ts.text} tabular-nums`}>{count}</div>
-                <div className="text-[9px] text-white/40 font-medium">{ts.label}</div>
+                <div className="text-[9px] text-text-tertiary font-medium">{ts.label}</div>
               </button>
             )
           })}
@@ -343,24 +343,24 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
           <button key={f.id} onClick={() => setFilter(f.id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
               filter === f.id
-                ? 'bg-gradient-to-r from-gold-500/20 to-amber-500/15 border border-gold-400/25 text-gold-300 shadow-sm shadow-gold-400/10'
-                : 'bg-white/[0.03] border border-white/[0.05] text-white/45 hover:bg-white/[0.06] hover:text-white/60'
+                ? 'bg-gradient-to-r from-gold-500/20 to-amber-500/15 border border-stroke-gold text-gold-300 shadow-sm shadow-gold-400/10'
+                : 'bg-surface-2 border border-stroke-subtle text-text-tertiary hover:bg-surface-3 hover:text-text-secondary'
             }`}>
             {f.icon}
             <span>{f.label}</span>
-            <span className={`text-[9px] px-1 py-0 rounded-full ${filter === f.id ? 'bg-gold-400/15 text-gold-400' : 'bg-white/[0.04] text-white/40'}`}>
+            <span className={`text-[9px] px-1 py-0 rounded-full ${filter === f.id ? 'bg-gold-400/15 text-gold-400' : 'bg-surface-3 text-text-tertiary'}`}>
               {f.count}
             </span>
           </button>
         ))}
         <div className="relative ml-auto">
-          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40" />
+          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-tertiary" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value.toUpperCase())}
             placeholder="Sembol ara..."
-            className="pl-7 pr-3 py-1.5 w-36 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-white placeholder-white/15 focus:outline-none focus:border-gold-400/25"
+            className="pl-7 pr-3 py-1.5 w-36 rounded-lg bg-surface-3 border border-stroke-subtle text-xs text-white placeholder-white/15 focus:outline-none focus:border-stroke-gold"
           />
         </div>
         {selectedDate && (
@@ -373,7 +373,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
 
       {/* Mega-Cap Upcoming (featured events) */}
       {megaEvents.length > 0 && filter !== 'dividends' && filter !== 'splits' && (
-        <div className="bg-[#151520] rounded-2xl border border-gold-400/10 p-3 sm:p-4 shadow-xl shadow-black/20">
+        <div className="bg-surface-3 rounded-2xl border border-stroke-gold p-3 sm:p-4 shadow-xl shadow-black/20">
           <div className="flex items-center gap-2 mb-2.5">
             <Star size={13} className="text-gold-400" />
             <span className="text-[10px] font-bold text-gold-400/80 uppercase tracking-wider">Onemli Etkinlikler</span>
@@ -385,18 +385,18 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
               return (
                 <button key={i}
                   onClick={() => onSelectSymbol?.(ev.symbol)}
-                  className="bg-[#0c0c14] rounded-xl border border-white/[0.06] p-2.5 text-left hover:border-gold-400/20 hover:bg-gold-400/[0.02] transition-all group/mega">
+                  className="bg-surface-1 rounded-xl border border-stroke-subtle p-2.5 text-left hover:border-stroke-gold hover:bg-gold-400/[0.02] transition-all group/mega">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-bold text-white group-hover/mega:text-gold-300 transition-colors">{ev.symbol}</span>
                     <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${ts.bg} border ${ts.border} ${ts.text}`}>
                       {ts.label}
                     </span>
                   </div>
-                  <div className={`text-[9px] font-semibold ${dl.isToday ? 'text-gold-400' : dl.isPast ? 'text-white/40' : 'text-white/50'}`}>
+                  <div className={`text-[9px] font-semibold ${dl.isToday ? 'text-gold-400' : dl.isPast ? 'text-text-tertiary' : 'text-text-tertiary'}`}>
                     {dl.isToday ? 'BUGUN' : dl.label}
                   </div>
                   {ev.type === 'earnings' && ev.time && (
-                    <div className="text-[8px] text-white/40 mt-0.5">{ev.sub}</div>
+                    <div className="text-[8px] text-text-tertiary mt-0.5">{ev.sub}</div>
                   )}
                 </button>
               )
@@ -408,28 +408,28 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
       {/* Date-Grouped Timeline */}
       <div className="space-y-2">
         {dateGroups.length === 0 ? (
-          <div className="bg-[#151520] rounded-2xl border border-white/[0.06] p-8 text-center">
-            <Calendar size={36} className="text-white/8 mx-auto mb-3" />
-            <p className="text-white/40 text-sm font-medium">Bu donemde etkinlik bulunamadi</p>
-            <p className="text-[10px] text-white/10 mt-1">Filtre veya tarih secimini degistirmeyi deneyin</p>
+          <div className="bg-surface-3 rounded-2xl border border-stroke-subtle p-8 text-center">
+            <Calendar size={36} className="text-text-quaternary mx-auto mb-3" />
+            <p className="text-text-tertiary text-sm font-medium">Bu donemde etkinlik bulunamadi</p>
+            <p className="text-[10px] text-text-quaternary mt-1">Filtre veya tarih secimini degistirmeyi deneyin</p>
           </div>
         ) : dateGroups.map((group, gi) => {
           const dl = getDateLabel(group.date)
           return (
-            <div key={group.date} className="bg-[#151520] rounded-2xl border border-white/[0.06] overflow-hidden shadow-xl shadow-black/20"
+            <div key={group.date} className="bg-surface-3 rounded-2xl border border-stroke-subtle overflow-hidden shadow-xl shadow-black/20"
               style={{ animationDelay: `${gi * 50}ms` }}>
 
               {/* Date Header */}
               <div className={`flex items-center justify-between px-3 sm:px-4 py-2 border-b ${
                 dl.isToday
-                  ? 'bg-gold-400/[0.06] border-gold-400/15'
+                  ? 'bg-gold-400/[0.06] border-stroke-gold'
                   : dl.isPast
-                    ? 'bg-white/[0.01] border-white/[0.04]'
-                    : 'bg-white/[0.02] border-white/[0.05]'
+                    ? 'bg-white/[0.01] border-stroke-subtle'
+                    : 'bg-surface-2 border-stroke-subtle'
               }`}>
                 <div className="flex items-center gap-2">
                   {dl.isToday && <div className="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse" />}
-                  <span className={`text-xs font-bold ${dl.isToday ? 'text-gold-300' : dl.isPast ? 'text-white/35' : 'text-white/60'}`}>
+                  <span className={`text-xs font-bold ${dl.isToday ? 'text-gold-300' : dl.isPast ? 'text-text-quaternary' : 'text-text-secondary'}`}>
                     {dl.label}
                   </span>
                   {dl.isToday && <span className="text-[8px] text-gold-400/50 font-medium ml-1">AKTIF</span>}
@@ -440,7 +440,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                       {group.events.filter(e => e.type === 'earnings').length} Kazanc
                     </span>
                   )}
-                  <span className="text-[9px] text-white/40">{group.events.length} etkinlik</span>
+                  <span className="text-[9px] text-text-tertiary">{group.events.length} etkinlik</span>
                 </div>
               </div>
 
@@ -480,37 +480,37 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                         {ev.type === 'earnings' ? (
                           <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[9px] text-white/35">EPS Th:</span>
-                              <span className="text-[11px] font-semibold text-white/60 tabular-nums">{fmtNum(ev.epsEstimated, '$')}</span>
+                              <span className="text-[9px] text-text-quaternary">EPS Th:</span>
+                              <span className="text-[11px] font-semibold text-text-secondary tabular-nums">{fmtNum(ev.epsEstimated, '$')}</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[9px] text-white/35">Gelir Th:</span>
-                              <span className="text-[11px] font-semibold text-white/60 tabular-nums">{fmtNum(ev.revenueEstimated, '$')}</span>
+                              <span className="text-[9px] text-text-quaternary">Gelir Th:</span>
+                              <span className="text-[11px] font-semibold text-text-secondary tabular-nums">{fmtNum(ev.revenueEstimated, '$')}</span>
                             </div>
                             {hasBeat && (
                               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-                                beat === 'beat' ? 'bg-hermes-green/15 text-hermes-green border border-hermes-green/20'
+                                beat === 'beat' ? 'bg-success-400/15 text-success-400 border border-success-400/20'
                                   : beat === 'miss' ? 'bg-red-500/15 text-red-400 border border-red-500/20'
-                                    : 'bg-white/[0.04] text-white/40 border border-white/[0.06]'
+                                    : 'bg-surface-3 text-text-tertiary border border-stroke-subtle'
                               }`}>
                                 {beat === 'beat' ? 'BEKLENTI USTU' : beat === 'miss' ? 'BEKLENTI ALTI' : 'PARALEL'}
                               </span>
                             )}
                             {ev.eps !== null && (
-                              <span className="text-[10px] text-white/45 tabular-nums">Gercek: {fmtNum(ev.eps, '$')}</span>
+                              <span className="text-[10px] text-text-tertiary tabular-nums">Gercek: {fmtNum(ev.eps, '$')}</span>
                             )}
                           </div>
                         ) : ev.type === 'dividends' ? (
                           <div className="flex items-center gap-3">
-                            <span className="text-[11px] text-hermes-green font-semibold tabular-nums">${ev.dividend?.toFixed(3)}</span>
-                            <span className="text-[9px] text-white/40">Odeme: {ev.sub?.replace('Kayit: ', '')}</span>
+                            <span className="text-[11px] text-success-400 font-semibold tabular-nums">${ev.dividend?.toFixed(3)}</span>
+                            <span className="text-[9px] text-text-tertiary">Odeme: {ev.sub?.replace('Kayit: ', '')}</span>
                           </div>
                         ) : ev.type === 'splits' ? (
                           <div className="flex items-center gap-2">
                             <span className="text-[11px] text-blue-400 font-semibold">{ev.numerator}:{ev.denominator}</span>
                             <span className={`text-[9px] px-1.5 py-0.5 rounded ${
                               (ev.numerator || 0) > (ev.denominator || 0)
-                                ? 'bg-hermes-green/10 text-hermes-green'
+                                ? 'bg-success-400/10 text-success-400'
                                 : 'bg-red-500/10 text-red-400'
                             }`}>
                               {ev.sub}
@@ -518,9 +518,9 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-white/50 truncate">{ev.company}</span>
+                            <span className="text-[10px] text-text-tertiary truncate">{ev.company}</span>
                             {ev.priceRange && <span className="text-[10px] text-rose-400 font-medium">{ev.priceRange}</span>}
-                            {ev.exchange && <span className="text-[8px] text-white/35 bg-white/[0.03] px-1.5 py-0.5 rounded">{ev.exchange}</span>}
+                            {ev.exchange && <span className="text-[8px] text-text-quaternary bg-surface-2 px-1.5 py-0.5 rounded">{ev.exchange}</span>}
                           </div>
                         )}
                       </div>
@@ -529,7 +529,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                       <div className="shrink-0 text-right">
                         {ev.type === 'earnings' && ev.time && (
                           <span className={`text-[9px] font-medium px-2 py-0.5 rounded-md ${
-                            ev.time === 'bmo' ? 'bg-amber-500/10 text-amber-400/70' : ev.time === 'amc' ? 'bg-violet-500/10 text-violet-400/70' : 'bg-white/[0.03] text-white/40'
+                            ev.time === 'bmo' ? 'bg-amber-500/10 text-amber-400/70' : ev.time === 'amc' ? 'bg-violet-500/10 text-violet-400/70' : 'bg-surface-2 text-text-tertiary'
                           }`}>
                             {ev.time === 'bmo' ? 'BMO' : ev.time === 'amc' ? 'AMC' : 'GIC'}
                           </span>
@@ -537,7 +537,7 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
                       </div>
 
                       {/* Arrow */}
-                      <ArrowUpRight size={12} className="text-white/10 group-hover/row:text-white/40 shrink-0 transition-colors" />
+                      <ArrowUpRight size={12} className="text-text-quaternary group-hover/row:text-text-tertiary shrink-0 transition-colors" />
                     </div>
                   )
                 })}
@@ -548,11 +548,11 @@ export default function TabCalendar({ onSelectSymbol }: TabCalendarProps) {
       </div>
 
       {/* Footer Info */}
-      <div className="flex items-start gap-2 px-3 py-2.5 bg-gold-400/[0.02] rounded-xl border border-gold-400/8">
+      <div className="flex items-start gap-2 px-3 py-2.5 bg-gold-400/[0.02] rounded-xl border border-stroke-gold">
         <Info size={13} className="text-gold-400/40 mt-0.5 shrink-0" />
-        <p className="text-[11px] text-white/35 leading-relaxed">
+        <p className="text-[11px] text-text-quaternary leading-relaxed">
           Kazanc takvimleri, temettu tarihleri, hisse split&apos;leri ve yeni IPO&apos;lar canli olarak cekilir.
-          <span className="text-white/35"> BMO = Piyasa Oncesi, AMC = Piyasa Sonrasi, GIC = Gun Ici.</span>
+          <span className="text-text-quaternary"> BMO = Piyasa Oncesi, AMC = Piyasa Sonrasi, GIC = Gun Ici.</span>
         </p>
       </div>
     </div>

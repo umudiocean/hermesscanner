@@ -30,7 +30,7 @@ export default function DNABarcode({ categories, compact = false }: DNABarcodePr
         // Bar rengi
         const barColor =
           level === 'STRONG' ? 'bg-yellow-400' :
-          level === 'GOOD' ? 'bg-hermes-green' :
+          level === 'GOOD' ? 'bg-success-400' :
           level === 'NEUTRAL' ? 'bg-slate-400' :
           level === 'WEAK' ? 'bg-orange-400' :
           'bg-red-400'
@@ -38,7 +38,7 @@ export default function DNABarcode({ categories, compact = false }: DNABarcodePr
         // Bar glow
         const barGlow =
           level === 'STRONG' ? 'shadow-yellow-400/30' :
-          level === 'GOOD' ? 'shadow-hermes-green/30' :
+          level === 'GOOD' ? 'shadow-success-400/30' :
           level === 'NEUTRAL' ? '' :
           level === 'WEAK' ? 'shadow-orange-400/30' :
           'shadow-red-400/30'
@@ -46,12 +46,12 @@ export default function DNABarcode({ categories, compact = false }: DNABarcodePr
         return (
           <div key={key} className="flex items-center gap-2">
             {/* Label */}
-            <div className={`${compact ? 'w-16 text-[9px]' : 'w-24 text-[10px]'} text-white/50 truncate`}>
+            <div className={`${compact ? 'w-16 text-[9px]' : 'w-24 text-[10px]'} text-text-tertiary truncate`}>
               {CATEGORY_LABELS[key]}
             </div>
 
             {/* Bar */}
-            <div className="flex-1 h-2 bg-white/[0.04] rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-surface-3 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full ${barColor} ${barGlow} shadow-sm transition-all duration-700 ease-out`}
                 style={{ width: `${Math.max(2, value)}%` }}
@@ -65,7 +65,7 @@ export default function DNABarcode({ categories, compact = false }: DNABarcodePr
 
             {/* Weight */}
             {!compact && (
-              <div className="w-8 text-[8px] text-white/40 text-right">
+              <div className="w-8 text-[8px] text-text-tertiary text-right">
                 {Math.round(weight * 100)}%
               </div>
             )}
@@ -87,7 +87,7 @@ export function DNABarcodeMini({ categories }: { categories: FMPScoreBreakdown }
 
         const color =
           level === 'STRONG' ? 'bg-yellow-400' :
-          level === 'GOOD' ? 'bg-hermes-green' :
+          level === 'GOOD' ? 'bg-success-400' :
           level === 'NEUTRAL' ? 'bg-slate-500' :
           level === 'WEAK' ? 'bg-orange-400' :
           'bg-red-400'

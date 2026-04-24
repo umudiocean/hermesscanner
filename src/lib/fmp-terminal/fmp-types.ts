@@ -664,7 +664,7 @@ export function getScoreLevel(score: number, _thresholds?: ScoreThresholds): FMP
 export function getScoreColor(level: FMPScoreLevel): string {
   switch (level) {
     case 'STRONG': return 'text-yellow-400'
-    case 'GOOD': return 'text-hermes-green'
+    case 'GOOD': return 'text-success-400'
     case 'NEUTRAL': return 'text-slate-400'
     case 'WEAK': return 'text-orange-400'
     case 'BAD': return 'text-red-400'
@@ -674,7 +674,7 @@ export function getScoreColor(level: FMPScoreLevel): string {
 export function getScoreBgColor(level: FMPScoreLevel): string {
   switch (level) {
     case 'STRONG': return 'bg-yellow-500/20 border-yellow-500/30'
-    case 'GOOD': return 'bg-hermes-green/20 border-hermes-green/30'
+    case 'GOOD': return 'bg-success-400/20 border-success-400/30'
     case 'NEUTRAL': return 'bg-slate-500/20 border-slate-500/30'
     case 'WEAK': return 'bg-orange-500/20 border-orange-500/30'
     case 'BAD': return 'bg-red-500/20 border-red-500/30'

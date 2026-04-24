@@ -114,14 +114,14 @@ export default function ScoreGauge({ score, size = 'lg', showLabel = true, anima
       {showLabel && (
         <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${
           level === 'STRONG' ? 'bg-yellow-500/15 border-yellow-500/30' :
-          level === 'GOOD' ? 'bg-hermes-green/15 border-hermes-green/30' :
+          level === 'GOOD' ? 'bg-success-400/15 border-success-400/30' :
           level === 'NEUTRAL' ? 'bg-slate-500/15 border-slate-500/30' :
           level === 'WEAK' ? 'bg-orange-500/15 border-orange-500/30' :
           'bg-red-500/15 border-red-500/30'
         }`}>
           <div className={`w-1.5 h-1.5 rounded-full ${
             level === 'STRONG' ? 'bg-yellow-400' :
-            level === 'GOOD' ? 'bg-hermes-green' :
+            level === 'GOOD' ? 'bg-success-400' :
             level === 'NEUTRAL' ? 'bg-slate-400' :
             level === 'WEAK' ? 'bg-orange-400' :
             'bg-red-400'
@@ -134,7 +134,7 @@ export default function ScoreGauge({ score, size = 'lg', showLabel = true, anima
 
       {/* Confidence */}
       {score && score.confidence < 80 && (
-        <span className="text-[9px] text-white/40">
+        <span className="text-[9px] text-text-tertiary">
           Veri: %{score.confidence}
         </span>
       )}

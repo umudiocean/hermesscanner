@@ -14,7 +14,7 @@ import {
 // Types
 // ═══════════════════════════════════════════════════════════════════
 
-type AdminTab = 'overview' | 'nasdaq' | 'europe' | 'crypto' | 'analytics' | 'system' | 'diagnostics'
+type AdminTab = 'overview' | 'nasdaq' | 'crypto' | 'analytics' | 'system' | 'diagnostics'
 
 interface AnalyticsData {
   analytics: {
@@ -101,10 +101,10 @@ function Card({ title, icon: Icon, children, accent }: {
   title: string; icon: React.ElementType; children: React.ReactNode; accent?: string
 }) {
   return (
-    <div className={`bg-[#151520] rounded-2xl border ${accent || 'border-white/8'} p-5 shadow-xl`}>
+    <div className={`bg-surface-3 rounded-2xl border ${accent || 'border-white/8'} p-5 shadow-xl`}>
       <div className="flex items-center gap-2 mb-4">
         <Icon className="w-4 h-4 text-[#B3945B]" />
-        <h3 className="text-xs uppercase tracking-wider text-white/60 font-semibold">{title}</h3>
+        <h3 className="text-xs uppercase tracking-wider text-text-secondary font-semibold">{title}</h3>
       </div>
       {children}
     </div>
@@ -114,9 +114,9 @@ function Card({ title, icon: Icon, children, accent }: {
 function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
     <div>
-      <div className="text-2xl font-bold text-white/90 tabular-nums">{value}</div>
-      <div className="text-[10px] uppercase tracking-wider text-white/50 mt-0.5">{label}</div>
-      {sub && <div className="text-[10px] text-white/35 mt-0.5">{sub}</div>}
+      <div className="text-2xl font-bold text-text-primary tabular-nums">{value}</div>
+      <div className="text-[10px] uppercase tracking-wider text-text-tertiary mt-0.5">{label}</div>
+      {sub && <div className="text-[10px] text-text-quaternary mt-0.5">{sub}</div>}
     </div>
   )
 }
@@ -126,14 +126,14 @@ function MiniBar({ items, max }: { items: { label: string; value: number }[]; ma
     <div className="space-y-1.5">
       {items.slice(0, 8).map(item => (
         <div key={item.label} className="flex items-center gap-2">
-          <span className="text-[10px] text-white/50 w-24 truncate">{item.label}</span>
+          <span className="text-[10px] text-text-tertiary w-24 truncate">{item.label}</span>
           <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-[#B3945B] to-[#8B7340] rounded-full transition-all duration-500"
               style={{ width: `${max > 0 ? Math.max(2, (item.value / max) * 100) : 0}%` }}
             />
           </div>
-          <span className="text-[10px] text-white/60 tabular-nums w-10 text-right">{item.value}</span>
+          <span className="text-[10px] text-text-secondary tabular-nums w-10 text-right">{item.value}</span>
         </div>
       ))}
     </div>
@@ -146,7 +146,7 @@ function StatusDot({ ok }: { ok: boolean }) {
 
 function Sparkline({ values }: { values: number[] }) {
   if (!values.length) {
-    return <div className="h-10 rounded-lg bg-white/[0.03] border border-white/[0.06]" />
+    return <div className="h-10 rounded-lg bg-surface-2 border border-stroke-subtle" />
   }
   const max = Math.max(...values, 1)
   const points = values
@@ -157,7 +157,7 @@ function Sparkline({ values }: { values: number[] }) {
     })
     .join(' ')
   return (
-    <div className="h-10 rounded-lg bg-white/[0.03] border border-white/[0.06] p-1">
+    <div className="h-10 rounded-lg bg-surface-2 border border-stroke-subtle p-1">
       <svg viewBox="0 0 100 100" className="w-full h-full">
         <polyline
           fill="none"
@@ -177,9 +177,8 @@ function Sparkline({ values }: { values: number[] }) {
 // ═══════════════════════════════════════════════════════════════════
 
 const TABS: { id: AdminTab; label: string; icon: React.ElementType; accent: string }[] = [
-  { id: 'overview', label: 'Genel Bakis', icon: Home, accent: '#B3945B' },
-  { id: 'nasdaq', label: 'NASDAQ', icon: TrendingUp, accent: '#B3945B' },
-  { id: 'europe', label: 'EUROPE', icon: Building2, accent: '#3B82F6' },
+  { id: 'overview', label: 'Genel Bakis', icon: Home, accent: '#D4B86A' },
+  { id: 'nasdaq', label: 'NASDAQ', icon: TrendingUp, accent: '#D4B86A' },
   { id: 'crypto', label: 'CRYPTO', icon: Bitcoin, accent: '#F59E0B' },
   { id: 'analytics', label: 'Analitik', icon: BarChart3, accent: '#8B5CF6' },
   { id: 'system', label: 'Sistem', icon: Server, accent: '#10B981' },
@@ -454,10 +453,10 @@ export default function AdminDashboard() {
   // ═════════════════════════════════════════════════════════════════
 
   return (
-    <div className="min-h-screen bg-[#0c0c14]">
+    <div className="min-h-screen bg-surface-1">
 
       {/* ═══ HEADER with Market Menu ═══ */}
-      <header className="sticky top-0 z-50 bg-[#0c0c14]/95 backdrop-blur-md border-b border-white/5">
+      <header className="sticky top-0 z-50 bg-surface-1/95 backdrop-blur-md border-b border-white/5">
         <div className="px-4 md:px-8">
           {/* Top row: Logo + Actions */}
           <div className="flex items-center justify-between h-14">
@@ -466,8 +465,8 @@ export default function AdminDashboard() {
                 <Shield className="w-4.5 h-4.5 text-[#B3945B]" />
               </div>
               <div>
-                <h1 className="text-sm font-bold text-white/90">HERMES AI Admin</h1>
-                <p className="text-[9px] text-white/40">
+                <h1 className="text-sm font-bold text-text-primary">HERMES AI Admin</h1>
+                <p className="text-[9px] text-text-tertiary">
                   {data?.generatedAt ? new Date(data.generatedAt).toLocaleString('tr-TR') : '...'}
                 </p>
               </div>
@@ -476,7 +475,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
               <a
                 href="/"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 text-white/60 text-xs transition-all"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-3 hover:bg-surface-3 border border-white/8 text-text-secondary text-xs transition-all"
               >
                 <ArrowUpRight className="w-3.5 h-3.5" />
                 Siteye Git
@@ -484,9 +483,9 @@ export default function AdminDashboard() {
               <button
                 onClick={fetchData}
                 disabled={loading}
-                className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 transition-all"
+                className="p-2 rounded-xl bg-surface-3 hover:bg-surface-3 border border-white/8 transition-all"
               >
-                <RefreshCw className={`w-4 h-4 text-white/60 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-4 h-4 text-text-secondary ${loading ? 'animate-spin' : ''}`} />
               </button>
               <button
                 onClick={handleLogout}
@@ -509,8 +508,8 @@ export default function AdminDashboard() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                     isActive
-                      ? 'bg-white/[0.08] text-white border border-white/10'
-                      : 'text-white/50 hover:text-white/70 hover:bg-white/[0.04]'
+                      ? 'bg-surface-3 text-white border border-stroke'
+                      : 'text-text-tertiary hover:text-text-secondary hover:bg-surface-3'
                   }`}
                   style={isActive ? { borderColor: `${tab.accent}33` } : undefined}
                 >
@@ -522,7 +521,7 @@ export default function AdminDashboard() {
             {/* Hermes Fund — separate page */}
             <a
               href="/admin/hermes-fund"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all text-white/50 hover:text-white/70 hover:bg-white/[0.04] border border-transparent hover:border-[#C49E1C]/30"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all text-text-tertiary hover:text-text-secondary hover:bg-surface-3 border border-transparent hover:border-[#C49E1C]/30"
             >
               <span className="text-sm">🏦</span>
               HERMES FON
@@ -563,10 +562,6 @@ export default function AdminDashboard() {
                 onTriggerBootstrap={triggerBootstrap}
                 bootstrapTriggering={bootstrapTriggering}
               />
-            )}
-
-            {activeTab === 'europe' && (
-              <EuropeTab status={europeStatus} onRefresh={refreshEurope} />
             )}
 
             {activeTab === 'crypto' && (
@@ -613,7 +608,7 @@ function MarketCard({
   description: string; features: string[]
 }) {
   return (
-    <div className="bg-[#151520] rounded-2xl border border-white/8 hover:border-white/15 p-6 shadow-xl transition-all group">
+    <div className="bg-surface-3 rounded-2xl border border-white/8 hover:border-stroke p-6 shadow-xl transition-all group">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -621,8 +616,8 @@ function MarketCard({
             {icon}
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white/90">{title}</h3>
-            <p className="text-[10px] text-white/40 mt-0.5">{description}</p>
+            <h3 className="text-sm font-bold text-text-primary">{title}</h3>
+            <p className="text-[10px] text-text-tertiary mt-0.5">{description}</p>
           </div>
         </div>
         {stockCount > 0 ? (
@@ -649,13 +644,13 @@ function MarketCard({
           <div className="text-3xl font-bold tabular-nums" style={{ color: accent }}>
             {isLoading ? '...' : stockCount.toLocaleString()}
           </div>
-          <div className="text-[10px] text-white/40 uppercase tracking-wider">Toplam Hisse</div>
+          <div className="text-[10px] text-text-tertiary uppercase tracking-wider">Toplam Hisse</div>
         </div>
         <div>
-          <div className="text-sm font-medium text-white/60">
+          <div className="text-sm font-medium text-text-secondary">
             {lastRefresh ? new Date(lastRefresh).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '-'}
           </div>
-          <div className="text-[10px] text-white/40 uppercase tracking-wider">Son Guncelleme</div>
+          <div className="text-[10px] text-text-tertiary uppercase tracking-wider">Son Guncelleme</div>
         </div>
       </div>
 
@@ -670,8 +665,8 @@ function MarketCard({
       <div className="space-y-1.5 mb-4">
         {features.map(f => (
           <div key={f} className="flex items-center gap-2">
-            <ChevronRight className="w-3 h-3 text-white/30" />
-            <span className="text-[10px] text-white/50">{f}</span>
+            <ChevronRight className="w-3 h-3 text-text-quaternary" />
+            <span className="text-[10px] text-text-tertiary">{f}</span>
           </div>
         ))}
       </div>
@@ -694,7 +689,7 @@ function MarketCard({
         </button>
         <button
           onClick={onDetail}
-          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 text-white/60 text-xs transition-all"
+          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-surface-3 hover:bg-surface-3 border border-white/8 text-text-secondary text-xs transition-all"
         >
           <BarChart3 className="w-3.5 h-3.5" />
           Detay
@@ -731,7 +726,7 @@ function OverviewTab({
     <div className="space-y-6">
       {/* Market Cards */}
       <div>
-        <h2 className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-4">Market Durumu</h2>
+        <h2 className="text-xs uppercase tracking-wider text-text-tertiary font-semibold mb-4">Market Durumu</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <MarketCard
             title="NASDAQ"
@@ -747,22 +742,6 @@ function OverviewTab({
               'Trade AI (V15 V360_Z7 Pure Z-Score)',
               'AI Signals (6 capraz sinyal)',
               'Bootstrap + Redis bar cache',
-            ]}
-          />
-          <MarketCard
-            title="EUROPE"
-            icon="🇪🇺"
-            iconBg="bg-gradient-to-br from-blue-500/20 to-blue-500/5"
-            accent="#3B82F6"
-            {...europe}
-            onRefresh={onRefreshEurope}
-            onDetail={() => onSelectTab('europe')}
-            description="8 Borsa — LSE, XETRA, Euronext, SIX, MIL, BME, OMX"
-            features={[
-              'FMP company-screener dinamik sembol',
-              '8 kategori HERMES AI Skor',
-              'Europe Trade AI (V360_Z51)',
-              'Sektor + Hedef/Dip Fiyat',
             ]}
           />
           <MarketCard
@@ -786,49 +765,49 @@ function OverviewTab({
 
       {/* Quick System Status */}
       <div>
-        <h2 className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-4">Sistem Ozeti</h2>
+        <h2 className="text-xs uppercase tracking-wider text-text-tertiary font-semibold mb-4">Sistem Ozeti</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+          <div className="bg-surface-3 rounded-2xl border border-white/8 p-4">
             <div className="flex items-center gap-2 mb-2">
               <StatusDot ok={cache?.redis?.connected ?? false} />
-              <span className="text-[10px] text-white/50 uppercase">Redis</span>
+              <span className="text-[10px] text-text-tertiary uppercase">Redis</span>
             </div>
-            <div className="text-xl font-bold text-white/90 tabular-nums">{cache?.redis?.keyCount || 0}</div>
-            <div className="text-[9px] text-white/35">key</div>
+            <div className="text-xl font-bold text-text-primary tabular-nums">{cache?.redis?.keyCount || 0}</div>
+            <div className="text-[9px] text-text-quaternary">key</div>
           </div>
-          <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+          <div className="bg-surface-3 rounded-2xl border border-white/8 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Database className="w-3 h-3 text-white/40" />
-              <span className="text-[10px] text-white/50 uppercase">FMP Cache</span>
+              <Database className="w-3 h-3 text-text-tertiary" />
+              <span className="text-[10px] text-text-tertiary uppercase">FMP Cache</span>
             </div>
-            <div className="text-xl font-bold text-white/90 tabular-nums">{cache?.fmpMemory?.memoryEntries || 0}</div>
-            <div className="text-[9px] text-white/35">/{cache?.fmpMemory?.maxEntries || 500}</div>
+            <div className="text-xl font-bold text-text-primary tabular-nums">{cache?.fmpMemory?.memoryEntries || 0}</div>
+            <div className="text-[9px] text-text-quaternary">/{cache?.fmpMemory?.maxEntries || 500}</div>
           </div>
-          <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+          <div className="bg-surface-3 rounded-2xl border border-white/8 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Database className="w-3 h-3 text-white/40" />
-              <span className="text-[10px] text-white/50 uppercase">Crypto Cache</span>
+              <Database className="w-3 h-3 text-text-tertiary" />
+              <span className="text-[10px] text-text-tertiary uppercase">Crypto Cache</span>
             </div>
-            <div className="text-xl font-bold text-white/90 tabular-nums">{cache?.cryptoMemory?.memoryEntries || 0}</div>
-            <div className="text-[9px] text-white/35">/{cache?.cryptoMemory?.maxEntries || 1000}</div>
+            <div className="text-xl font-bold text-text-primary tabular-nums">{cache?.cryptoMemory?.memoryEntries || 0}</div>
+            <div className="text-[9px] text-text-quaternary">/{cache?.cryptoMemory?.maxEntries || 1000}</div>
           </div>
-          <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+          <div className="bg-surface-3 rounded-2xl border border-white/8 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-3 h-3 text-white/40" />
-              <span className="text-[10px] text-white/50 uppercase">Toplam Varlik</span>
+              <Activity className="w-3 h-3 text-text-tertiary" />
+              <span className="text-[10px] text-text-tertiary uppercase">Toplam Varlik</span>
             </div>
-            <div className="text-xl font-bold text-white/90 tabular-nums">
+            <div className="text-xl font-bold text-text-primary tabular-nums">
               {(nasdaq.stockCount + europe.stockCount + crypto.stockCount).toLocaleString()}
             </div>
-            <div className="text-[9px] text-white/35">hisse + coin</div>
+            <div className="text-[9px] text-text-quaternary">hisse + coin</div>
           </div>
         </div>
       </div>
 
       {/* Ops Alert Thresholds */}
       <div>
-        <h2 className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-4">Ops Alert Esikleri</h2>
-        <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+        <h2 className="text-xs uppercase tracking-wider text-text-tertiary font-semibold mb-4">Ops Alert Esikleri</h2>
+        <div className="bg-surface-3 rounded-2xl border border-white/8 p-4">
           <div className="flex flex-wrap gap-2">
             <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
               slaScanBreached ? 'text-red-300 bg-red-500/15 border-red-500/35' : 'text-emerald-300 bg-emerald-500/12 border-emerald-500/30'
@@ -853,7 +832,7 @@ function OverviewTab({
               SelfHeal Fail1h {(ops?.watchdog?.selfHealFail1h || 0)}
             </span>
           </div>
-          <p className="text-[10px] text-white/40 mt-3">
+          <p className="text-[10px] text-text-tertiary mt-3">
             Esik: Origin ratio warn &gt;={originWarnThreshold}%, critical &gt;={originCriticalThreshold}%. SLA breach veya self-heal fail durumunda ops incelemesi onerilir.
           </p>
         </div>
@@ -861,31 +840,31 @@ function OverviewTab({
 
       {/* Cache Tier Telemetry */}
       <div>
-        <h2 className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-4">Cache Tier Telemetry (1h)</h2>
+        <h2 className="text-xs uppercase tracking-wider text-text-tertiary font-semibold mb-4">Cache Tier Telemetry (1h)</h2>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+          <div className="bg-surface-3 rounded-2xl border border-white/8 p-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] text-white/50 uppercase tracking-wider">Tier Hit Dagilimi</span>
-              <span className="text-[10px] text-white/40">Toplam {tierTotal}</span>
+              <span className="text-[10px] text-text-tertiary uppercase tracking-wider">Tier Hit Dagilimi</span>
+              <span className="text-[10px] text-text-tertiary">Toplam {tierTotal}</span>
             </div>
             <div className="space-y-2 text-[11px]">
-              <div className="flex justify-between"><span className="text-white/55">Memory</span><span className="text-white/75 tabular-nums">{tier?.memory || 0}</span></div>
-              <div className="flex justify-between"><span className="text-white/55">Redis</span><span className="text-white/75 tabular-nums">{tier?.redis || 0}</span></div>
-              <div className="flex justify-between"><span className="text-white/55">Disk</span><span className="text-white/75 tabular-nums">{tier?.disk || 0}</span></div>
+              <div className="flex justify-between"><span className="text-text-secondary">Memory</span><span className="text-text-primary tabular-nums">{tier?.memory || 0}</span></div>
+              <div className="flex justify-between"><span className="text-text-secondary">Redis</span><span className="text-text-primary tabular-nums">{tier?.redis || 0}</span></div>
+              <div className="flex justify-between"><span className="text-text-secondary">Disk</span><span className="text-text-primary tabular-nums">{tier?.disk || 0}</span></div>
               <div className="flex justify-between"><span className="text-red-300/80">Origin</span><span className="text-red-300 tabular-nums">{tier?.origin || 0}</span></div>
             </div>
-            <div className="mt-3 pt-2 border-t border-white/[0.06] flex justify-between">
-              <span className="text-[10px] text-white/45">Cache hit rate</span>
+            <div className="mt-3 pt-2 border-t border-stroke-subtle flex justify-between">
+              <span className="text-[10px] text-text-tertiary">Cache hit rate</span>
               <span className="text-[10px] text-emerald-300 tabular-nums">{hitPct}%</span>
             </div>
           </div>
-          <div className="bg-[#151520] rounded-2xl border border-white/8 p-4">
+          <div className="bg-surface-3 rounded-2xl border border-white/8 p-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] text-white/50 uppercase tracking-wider">Origin Trend (Session)</span>
-              <span className="text-[10px] text-white/40">{cacheOriginTrend.length} nokta</span>
+              <span className="text-[10px] text-text-tertiary uppercase tracking-wider">Origin Trend (Session)</span>
+              <span className="text-[10px] text-text-tertiary">{cacheOriginTrend.length} nokta</span>
             </div>
             <Sparkline values={cacheOriginTrend} />
-            <p className="text-[10px] text-white/40 mt-2">
+            <p className="text-[10px] text-text-tertiary mt-2">
               Dusuk origin yuzdesi = daha iyi cache verimliligi.
             </p>
           </div>
@@ -911,7 +890,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs uppercase tracking-wider text-white/40 font-semibold">NASDAQ Yonetimi</h2>
+        <h2 className="text-xs uppercase tracking-wider text-text-tertiary font-semibold">NASDAQ Yonetimi</h2>
         <button
           onClick={onRefresh}
           disabled={status.refreshing}
@@ -937,18 +916,18 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
               <span className="text-[10px] text-red-400">{status.error}</span>
             </div>
           )}
-          <div className="mt-3 space-y-1.5 text-[10px] text-white/40">
+          <div className="mt-3 space-y-1.5 text-[10px] text-text-tertiary">
             <div className="flex justify-between">
               <span>Skor Motoru</span>
-              <span className="text-white/60">V5 — 8 Kategori</span>
+              <span className="text-text-secondary">V5 — 8 Kategori</span>
             </div>
             <div className="flex justify-between">
               <span>Trade AI</span>
-              <span className="text-white/60">V15 V360_Z7 L35_S85</span>
+              <span className="text-text-secondary">V15 V360_Z7 L35_S85</span>
             </div>
             <div className="flex justify-between">
               <span>API Kaynagi</span>
-              <span className="text-white/60">FMP Stable (Ultimate)</span>
+              <span className="text-text-secondary">FMP Stable (Ultimate)</span>
             </div>
           </div>
         </Card>
@@ -962,8 +941,8 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
                 <div className="text-[11px] text-amber-300">
                   <strong>Redis gerekli.</strong> Trade AI icin Upstash Redis veya Vercel KV gerekir.
                   Vercel Dashboard &gt; Storage &gt; KV ekleyin veya upstash.com ile Redis olusturun.
-                  <code className="block mt-1.5 text-[10px] text-white/60">UPSTASH_REDIS_REST_URL</code>
-                  <code className="block text-[10px] text-white/60">UPSTASH_REDIS_REST_TOKEN</code>
+                  <code className="block mt-1.5 text-[10px] text-text-secondary">UPSTASH_REDIS_REST_URL</code>
+                  <code className="block text-[10px] text-text-secondary">UPSTASH_REDIS_REST_TOKEN</code>
                 </div>
               </div>
             )}
@@ -978,8 +957,8 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
             {bootstrap.total > 0 && (
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-[10px] text-white/50">Ilerleme</span>
-                  <span className="text-[10px] text-white/60 tabular-nums">
+                  <span className="text-[10px] text-text-tertiary">Ilerleme</span>
+                  <span className="text-[10px] text-text-secondary tabular-nums">
                     {bootstrap.completed} / {bootstrap.total} ({bootstrap.total > 0 ? Math.round((bootstrap.completed / bootstrap.total) * 100) : 0}%)
                   </span>
                 </div>
@@ -994,7 +973,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
                   />
                 </div>
                 {bootstrap.lastSymbol && (
-                  <p className="text-[9px] text-white/35 mt-1">Son: {bootstrap.lastSymbol}</p>
+                  <p className="text-[9px] text-text-quaternary mt-1">Son: {bootstrap.lastSymbol}</p>
                 )}
               </div>
             )}
@@ -1011,7 +990,7 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
                 {bootstrapTriggering ? 'Baslatiliyor...' : bootstrap.redisAvailable ? 'Bootstrap Baslat' : 'Redis gerekli'}
               </button>
             )}
-            <p className="text-[9px] text-white/40 leading-relaxed mt-2">
+            <p className="text-[9px] text-text-tertiary leading-relaxed mt-2">
               %100 otomatik. Cron her 5 dakikada calisir: bootstrap tamamlanmamissa devam eder,
               tamamlanmissa Redis&apos;ten skor hesaplar ve sonuclari kaydeder.
             </p>
@@ -1061,14 +1040,14 @@ function NasdaqTab({ status, bootstrap, symbolsSync, onRefresh, onTriggerBootstr
                       a.click()
                       URL.revokeObjectURL(a.href)
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/8 text-white/70 text-xs transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-3 hover:bg-surface-3 border border-white/8 text-text-secondary text-xs transition-all"
                   >
                     insufficient.json
                   </button>
                 </div>
               </>
             ) : (
-              <p className="text-[10px] text-white/50">Tarama sonucu yok veya yukleniyor...</p>
+              <p className="text-[10px] text-text-tertiary">Tarama sonucu yok veya yukleniyor...</p>
             )}
           </div>
         </Card>
@@ -1097,7 +1076,7 @@ function EuropeTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs uppercase tracking-wider text-white/40 font-semibold">EUROPE Yonetimi</h2>
+        <h2 className="text-xs uppercase tracking-wider text-text-tertiary font-semibold">EUROPE Yonetimi</h2>
         <button
           onClick={onRefresh}
           disabled={status.refreshing}
@@ -1123,18 +1102,18 @@ function EuropeTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
               <span className="text-[10px] text-red-400">{status.error}</span>
             </div>
           )}
-          <div className="mt-3 space-y-1.5 text-[10px] text-white/40">
+          <div className="mt-3 space-y-1.5 text-[10px] text-text-tertiary">
             <div className="flex justify-between">
               <span>Skor Motoru</span>
-              <span className="text-white/60">8 Kategori (NASDAQ ile ayni)</span>
+              <span className="text-text-secondary">8 Kategori (NASDAQ ile ayni)</span>
             </div>
             <div className="flex justify-between">
               <span>Trade AI</span>
-              <span className="text-white/60">V360_Z51, TP 1%, SL 31%</span>
+              <span className="text-text-secondary">V360_Z51, TP 1%, SL 31%</span>
             </div>
             <div className="flex justify-between">
               <span>Veri Kaynagi</span>
-              <span className="text-white/60">FMP company-screener (dinamik)</span>
+              <span className="text-text-secondary">FMP company-screener (dinamik)</span>
             </div>
           </div>
         </Card>
@@ -1142,12 +1121,12 @@ function EuropeTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
         {/* Europe Data Flow */}
         <Card title="Veri Akisi" icon={Activity}>
           <div className="space-y-2 text-[10px]">
-            <p className="text-white/50 leading-relaxed">
+            <p className="text-text-tertiary leading-relaxed">
               Avrupa hisseleri <span className="text-blue-400 font-medium">FMP company-screener</span> API&apos;sinden
               dinamik olarak cekilir. Her borsa icin en yuksek piyasa degerine sahip 1000 hisse secilir.
             </p>
             <div className="border-t border-white/5 pt-2 mt-2">
-              <p className="text-white/40 font-semibold mb-1.5">Veri Pipeline:</p>
+              <p className="text-text-tertiary font-semibold mb-1.5">Veri Pipeline:</p>
               <div className="space-y-1">
                 {[
                   'FMP company-screener → Sembol listesi (24s cache)',
@@ -1158,12 +1137,12 @@ function EuropeTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
                 ].map(step => (
                   <div key={step} className="flex items-start gap-1.5">
                     <ChevronRight className="w-3 h-3 text-blue-400/60 mt-0.5 flex-shrink-0" />
-                    <span className="text-white/50">{step}</span>
+                    <span className="text-text-tertiary">{step}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <p className="text-white/35 mt-2 pt-2 border-t border-white/5">
+            <p className="text-text-quaternary mt-2 pt-2 border-t border-white/5">
               Hisseler gorunmuyorsa: &quot;Verileri Yenile&quot; ile cache temizlenip yeni veri cekilir.
               FMP API limitleri nedeniyle ilk yukleme 30-60sn surebilir.
             </p>
@@ -1177,9 +1156,9 @@ function EuropeTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
               <div key={ex.id} className="flex items-center justify-between py-1.5 border-b border-white/[0.03] last:border-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm">{ex.flag}</span>
-                  <span className="text-[11px] text-white/60">{ex.name}</span>
+                  <span className="text-[11px] text-text-secondary">{ex.name}</span>
                 </div>
-                <span className="text-[10px] text-white/35 font-mono">{ex.suffix}</span>
+                <span className="text-[10px] text-text-quaternary font-mono">{ex.suffix}</span>
               </div>
             ))}
           </div>
@@ -1198,7 +1177,7 @@ function CryptoTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs uppercase tracking-wider text-white/40 font-semibold">CRYPTO Yonetimi</h2>
+        <h2 className="text-xs uppercase tracking-wider text-text-tertiary font-semibold">CRYPTO Yonetimi</h2>
         <button
           onClick={onRefresh}
           disabled={status.refreshing}
@@ -1224,22 +1203,22 @@ function CryptoTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
               <span className="text-[10px] text-red-400">{status.error}</span>
             </div>
           )}
-          <div className="mt-3 space-y-1.5 text-[10px] text-white/40">
+          <div className="mt-3 space-y-1.5 text-[10px] text-text-tertiary">
             <div className="flex justify-between">
               <span>Skor Motoru</span>
-              <span className="text-white/60">8 Kategori Crypto Score</span>
+              <span className="text-text-secondary">8 Kategori Crypto Score</span>
             </div>
             <div className="flex justify-between">
               <span>API Kaynagi</span>
-              <span className="text-white/60">CoinGecko Analyst ($129/ay)</span>
+              <span className="text-text-secondary">CoinGecko Analyst ($129/ay)</span>
             </div>
             <div className="flex justify-between">
               <span>Rate Limit</span>
-              <span className="text-white/60">500 req/min</span>
+              <span className="text-text-secondary">500 req/min</span>
             </div>
             <div className="flex justify-between">
               <span>Ozellikler</span>
-              <span className="text-white/60">10 Tab (On-Chain, DEX, Turev)</span>
+              <span className="text-text-secondary">10 Tab (On-Chain, DEX, Turev)</span>
             </div>
           </div>
         </Card>
@@ -1262,11 +1241,11 @@ function CryptoTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
                   {m.ok ? (
                     <CheckCircle className="w-3 h-3 text-emerald-400" />
                   ) : (
-                    <div className="w-3 h-3 rounded-full border border-white/20" />
+                    <div className="w-3 h-3 rounded-full border border-stroke-strong" />
                   )}
-                  <span className="text-white/60 font-medium">{m.name}</span>
+                  <span className="text-text-secondary font-medium">{m.name}</span>
                 </div>
-                <span className="text-white/35">{m.desc}</span>
+                <span className="text-text-quaternary">{m.desc}</span>
               </div>
             ))}
           </div>
@@ -1275,22 +1254,22 @@ function CryptoTab({ status, onRefresh }: { status: MarketStatus; onRefresh: () 
         {/* Crypto Data */}
         <Card title="Veri Kaynaklari" icon={Database}>
           <div className="space-y-2 text-[10px]">
-            <p className="text-white/50 leading-relaxed">
+            <p className="text-text-tertiary leading-relaxed">
               CoinGecko Analyst Plan API ile <span className="text-amber-400 font-medium">18,919+</span> kripto varligin
               analizi yapilir. 26+ endpoint aktif.
             </p>
             <div className="border-t border-white/5 pt-2 mt-2 space-y-1.5">
               <div className="flex justify-between">
-                <span className="text-white/40">Pro Endpoint</span>
-                <span className="text-white/60">20 aktif</span>
+                <span className="text-text-tertiary">Pro Endpoint</span>
+                <span className="text-text-secondary">20 aktif</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/40">GeckoTerminal</span>
-                <span className="text-white/60">6 aktif</span>
+                <span className="text-text-tertiary">GeckoTerminal</span>
+                <span className="text-text-secondary">6 aktif</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/40">Credit/ay</span>
-                <span className="text-white/60">~350K / 500K</span>
+                <span className="text-text-tertiary">Credit/ay</span>
+                <span className="text-text-secondary">~350K / 500K</span>
               </div>
             </div>
           </div>
@@ -1324,14 +1303,14 @@ function AnalyticsTab({ analytics: a }: { analytics: AnalyticsData['analytics'] 
         <div className="space-y-1">
           {a?.pageViews?.slice(0, 7).map(d => (
             <div key={d.date} className="flex items-center gap-2">
-              <span className="text-[9px] text-white/40 w-16">{d.date.slice(5)}</span>
+              <span className="text-[9px] text-text-tertiary w-16">{d.date.slice(5)}</span>
               <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#B3945B]/60 rounded-full"
                   style={{ width: `${weekPV > 0 ? Math.max(2, (d.count / Math.max(...(a?.pageViews?.map(x => x.count) || [1]))) * 100) : 0}%` }}
                 />
               </div>
-              <span className="text-[9px] text-white/50 tabular-nums w-8 text-right">{d.count}</span>
+              <span className="text-[9px] text-text-tertiary tabular-nums w-8 text-right">{d.count}</span>
             </div>
           ))}
         </div>
@@ -1342,7 +1321,7 @@ function AnalyticsTab({ analytics: a }: { analytics: AnalyticsData['analytics'] 
         {(a?.topPages?.length || 0) > 0 ? (
           <MiniBar items={a!.topPages.map(p => ({ label: p.path, value: p.count }))} max={a!.topPages[0]?.count || 1} />
         ) : (
-          <p className="text-white/40 text-xs">Henuz veri yok</p>
+          <p className="text-text-tertiary text-xs">Henuz veri yok</p>
         )}
       </Card>
 
@@ -1351,7 +1330,7 @@ function AnalyticsTab({ analytics: a }: { analytics: AnalyticsData['analytics'] 
         {(a?.referrers?.length || 0) > 0 ? (
           <MiniBar items={a!.referrers.map(r => ({ label: r.source, value: r.count }))} max={a!.referrers[0]?.count || 1} />
         ) : (
-          <p className="text-white/40 text-xs">Henuz veri yok</p>
+          <p className="text-text-tertiary text-xs">Henuz veri yok</p>
         )}
       </Card>
 
@@ -1368,8 +1347,8 @@ function AnalyticsTab({ analytics: a }: { analytics: AnalyticsData['analytics'] 
             return (
               <div key={d.type}>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs text-white/60 capitalize">{d.type}</span>
-                  <span className="text-xs text-white/50">{pct}% ({d.count})</span>
+                  <span className="text-xs text-text-secondary capitalize">{d.type}</span>
+                  <span className="text-xs text-text-tertiary">{pct}% ({d.count})</span>
                 </div>
                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                   <div
@@ -1380,7 +1359,7 @@ function AnalyticsTab({ analytics: a }: { analytics: AnalyticsData['analytics'] 
               </div>
             )
           })}
-          {(a?.devices?.length || 0) === 0 && <p className="text-white/40 text-xs">Henuz veri yok</p>}
+          {(a?.devices?.length || 0) === 0 && <p className="text-text-tertiary text-xs">Henuz veri yok</p>}
         </div>
       </Card>
 
@@ -1391,8 +1370,8 @@ function AnalyticsTab({ analytics: a }: { analytics: AnalyticsData['analytics'] 
           <div>
             {(a?.externalApis || []).map(e => (
               <div key={e.provider} className="flex justify-between">
-                <span className="text-[10px] text-white/50 uppercase">{e.provider}</span>
-                <span className="text-[10px] text-white/60 tabular-nums">{e.count}</span>
+                <span className="text-[10px] text-text-tertiary uppercase">{e.provider}</span>
+                <span className="text-[10px] text-text-secondary tabular-nums">{e.count}</span>
               </div>
             ))}
           </div>
@@ -1400,7 +1379,7 @@ function AnalyticsTab({ analytics: a }: { analytics: AnalyticsData['analytics'] 
         {(a?.apiCalls?.length || 0) > 0 ? (
           <MiniBar items={a!.apiCalls.slice(0, 6).map(c => ({ label: c.endpoint, value: c.count }))} max={a!.apiCalls[0]?.count || 1} />
         ) : (
-          <p className="text-white/40 text-xs">Henuz veri yok</p>
+          <p className="text-text-tertiary text-xs">Henuz veri yok</p>
         )}
       </Card>
     </div>
@@ -1436,28 +1415,28 @@ function SystemTab({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <StatusDot ok={c?.redis?.connected ?? false} />
-            <span className="text-xs text-white/60">Redis: {c?.redis?.connected ? 'Bagli' : 'Bagli Degil'}</span>
+            <span className="text-xs text-text-secondary">Redis: {c?.redis?.connected ? 'Bagli' : 'Bagli Degil'}</span>
             {c?.redis?.keyCount !== undefined && (
-              <span className="text-[10px] text-white/40 ml-auto">{c.redis.keyCount} key</span>
+              <span className="text-[10px] text-text-tertiary ml-auto">{c.redis.keyCount} key</span>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Database className="w-3 h-3 text-white/40" />
-            <span className="text-xs text-white/60">FMP Memory Cache</span>
-            <span className="text-[10px] text-white/40 ml-auto">{c?.fmpMemory?.memoryEntries || 0}/{c?.fmpMemory?.maxEntries || 500}</span>
+            <Database className="w-3 h-3 text-text-tertiary" />
+            <span className="text-xs text-text-secondary">FMP Memory Cache</span>
+            <span className="text-[10px] text-text-tertiary ml-auto">{c?.fmpMemory?.memoryEntries || 0}/{c?.fmpMemory?.maxEntries || 500}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Database className="w-3 h-3 text-white/40" />
-            <span className="text-xs text-white/60">Crypto Memory Cache</span>
-            <span className="text-[10px] text-white/40 ml-auto">{c?.cryptoMemory?.memoryEntries || 0}/{c?.cryptoMemory?.maxEntries || 1000}</span>
+            <Database className="w-3 h-3 text-text-tertiary" />
+            <span className="text-xs text-text-secondary">Crypto Memory Cache</span>
+            <span className="text-[10px] text-text-tertiary ml-auto">{c?.cryptoMemory?.memoryEntries || 0}/{c?.cryptoMemory?.maxEntries || 1000}</span>
           </div>
           {c?.redis?.prefixes && Object.keys(c.redis.prefixes).length > 0 && (
             <div className="mt-2 pt-2 border-t border-white/5">
-              <span className="text-[9px] text-white/35 uppercase">Redis Key Dagilimi</span>
+              <span className="text-[9px] text-text-quaternary uppercase">Redis Key Dagilimi</span>
               {Object.entries(c.redis.prefixes).map(([p, n]) => (
                 <div key={p} className="flex justify-between mt-1">
-                  <span className="text-[10px] text-white/40">{p}</span>
-                  <span className="text-[10px] text-white/50 tabular-nums">{n}</span>
+                  <span className="text-[10px] text-text-tertiary">{p}</span>
+                  <span className="text-[10px] text-text-tertiary tabular-nums">{n}</span>
                 </div>
               ))}
             </div>
@@ -1472,12 +1451,12 @@ function SystemTab({
             const enabled = flags[key] !== false
             return (
               <div key={key} className="flex items-center justify-between">
-                <span className="text-xs text-white/60">{label}</span>
+                <span className="text-xs text-text-secondary">{label}</span>
                 <button onClick={() => onToggleFlag(key)} disabled={flagLoading === key} className="transition-all">
                   {enabled ? (
                     <ToggleRight className="w-6 h-6 text-emerald-400" />
                   ) : (
-                    <ToggleLeft className="w-6 h-6 text-white/40" />
+                    <ToggleLeft className="w-6 h-6 text-text-tertiary" />
                   )}
                 </button>
               </div>
@@ -1529,17 +1508,17 @@ function SystemTab({
         </div>
         <div className="mt-4 pt-3 border-t border-white/5">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] text-white/50 uppercase tracking-wider">Cache Tier Hit 1h</span>
+            <span className="text-[10px] text-text-tertiary uppercase tracking-wider">Cache Tier Hit 1h</span>
             <span className="text-[10px] text-emerald-300 tabular-nums">{hitPct}% hit</span>
           </div>
           <div className="grid grid-cols-4 gap-2 text-center mb-2">
-            <div><div className="text-[11px] text-white/75 tabular-nums">{tier?.memory || 0}</div><div className="text-[9px] text-white/40">Mem</div></div>
-            <div><div className="text-[11px] text-white/75 tabular-nums">{tier?.redis || 0}</div><div className="text-[9px] text-white/40">Redis</div></div>
-            <div><div className="text-[11px] text-white/75 tabular-nums">{tier?.disk || 0}</div><div className="text-[9px] text-white/40">Disk</div></div>
-            <div><div className="text-[11px] text-red-300 tabular-nums">{tier?.origin || 0}</div><div className="text-[9px] text-white/40">Origin</div></div>
+            <div><div className="text-[11px] text-text-primary tabular-nums">{tier?.memory || 0}</div><div className="text-[9px] text-text-tertiary">Mem</div></div>
+            <div><div className="text-[11px] text-text-primary tabular-nums">{tier?.redis || 0}</div><div className="text-[9px] text-text-tertiary">Redis</div></div>
+            <div><div className="text-[11px] text-text-primary tabular-nums">{tier?.disk || 0}</div><div className="text-[9px] text-text-tertiary">Disk</div></div>
+            <div><div className="text-[11px] text-red-300 tabular-nums">{tier?.origin || 0}</div><div className="text-[9px] text-text-tertiary">Origin</div></div>
           </div>
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[10px] text-white/45">Origin ratio</span>
+            <span className="text-[10px] text-text-tertiary">Origin ratio</span>
             <span className={`text-[10px] font-semibold tabular-nums px-2 py-0.5 rounded-full border ${
               originState === 'critical' ? 'text-red-300 bg-red-500/15 border-red-500/35' :
               originState === 'warn' ? 'text-amber-300 bg-amber-500/15 border-amber-500/35' :
@@ -1548,7 +1527,7 @@ function SystemTab({
               {originPct}% {originState === 'critical' ? 'CRITICAL' : originState === 'warn' ? 'WARN' : 'OK'}
             </span>
           </div>
-          <p className="text-[9px] text-white/35 mb-2">
+          <p className="text-[9px] text-text-quaternary mb-2">
             Thresholds: warn {originWarnThreshold}% | critical {originCriticalThreshold}%
           </p>
           <Sparkline values={cacheOriginTrend} />
@@ -1630,7 +1609,7 @@ function DiagnosticsTab() {
             <AlertTriangle className="w-5 h-5 text-red-400" />
             System Diagnostics
           </h2>
-          <p className="text-xs text-white/50 mt-1">
+          <p className="text-xs text-text-tertiary mt-1">
             Her yenilemede tum moduller kontrol edilir. Sorun varsa otomatik bildirilir.
           </p>
         </div>
@@ -1641,21 +1620,21 @@ function DiagnosticsTab() {
             </div>
           )}
           <button onClick={loadDiag} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all" title="Yenile">
-            <RefreshCw className={`w-4 h-4 text-white/60 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-text-secondary ${loading ? 'animate-spin' : ''}`} />
           </button>
-          <span className="text-[10px] text-white/40">Son: {lastRefresh}</span>
+          <span className="text-[10px] text-text-tertiary">Son: {lastRefresh}</span>
         </div>
       </div>
 
       {loading && !diagData ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+          <Loader2 className="w-8 h-8 text-text-quaternary animate-spin" />
         </div>
       ) : diagData ? (
         <>
           {diagData.issues.length > 0 && (
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-white/80">Sorunlar ({diagData.issueCount})</h3>
+              <h3 className="text-sm font-semibold text-text-primary">Sorunlar ({diagData.issueCount})</h3>
               {diagData.issues.map((issue, idx) => (
                 <div key={idx} className={`p-3 rounded-xl border ${
                   issue.severity === 'critical' ? 'bg-red-500/10 border-red-500/30' :
@@ -1667,10 +1646,10 @@ function DiagnosticsTab() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className={`text-xs font-bold ${issue.severity === 'critical' ? 'text-red-300' : issue.severity === 'warning' ? 'text-amber-300' : 'text-blue-300'}`}>[{issue.module}]</span>
-                        <span className="text-xs text-white/70">{issue.message}</span>
+                        <span className="text-xs text-text-secondary">{issue.message}</span>
                       </div>
                       {issue.detail && (
-                        <p className="text-[10px] text-white/40 mt-1">{issue.detail}</p>
+                        <p className="text-[10px] text-text-tertiary mt-1">{issue.detail}</p>
                       )}
                     </div>
                   </div>
@@ -1683,24 +1662,24 @@ function DiagnosticsTab() {
             <div className="p-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-center">
               <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
               <p className="text-sm font-semibold text-emerald-300">Tum Sistemler Saglikli</p>
-              <p className="text-[10px] text-white/40 mt-1">Hicbir sorun tespit edilmedi.</p>
+              <p className="text-[10px] text-text-tertiary mt-1">Hicbir sorun tespit edilmedi.</p>
             </div>
           )}
 
           <div>
-            <h3 className="text-sm font-semibold text-white/80 mb-3">Modul Durumu</h3>
+            <h3 className="text-sm font-semibold text-text-primary mb-3">Modul Durumu</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {Object.entries(diagData.modules).map(([name, mod]) => (
-                <div key={name} className="p-3 rounded-xl bg-[#151520] border border-white/8">
+                <div key={name} className="p-3 rounded-xl bg-surface-3 border border-white/8">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-white/80">{name}</span>
+                    <span className="text-xs font-semibold text-text-primary">{name}</span>
                     <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${statusBg(mod.status)} ${statusColor(mod.status)}`}>
                       {mod.status.toUpperCase()}
                     </span>
                   </div>
-                  <p className="text-[10px] text-white/50">{mod.detail}</p>
+                  <p className="text-[10px] text-text-tertiary">{mod.detail}</p>
                   {mod.lastUpdate && (
-                    <p className="text-[10px] text-white/30 mt-1">Son: {mod.lastUpdate}</p>
+                    <p className="text-[10px] text-text-quaternary mt-1">Son: {mod.lastUpdate}</p>
                   )}
                 </div>
               ))}
@@ -1708,26 +1687,26 @@ function DiagnosticsTab() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-3 rounded-xl bg-[#151520] border border-white/8 text-center">
+            <div className="p-3 rounded-xl bg-surface-3 border border-white/8 text-center">
               <div className="text-lg font-bold text-white tabular-nums">{diagData.symbolCount}</div>
-              <div className="text-[10px] text-white/40">Toplam Hisse</div>
+              <div className="text-[10px] text-text-tertiary">Toplam Hisse</div>
             </div>
-            <div className="p-3 rounded-xl bg-[#151520] border border-white/8 text-center">
+            <div className="p-3 rounded-xl bg-surface-3 border border-white/8 text-center">
               <div className="text-lg font-bold text-emerald-400 tabular-nums">{diagData.barCacheCount}</div>
-              <div className="text-[10px] text-white/40">Redis Bar Cache</div>
+              <div className="text-[10px] text-text-tertiary">Redis Bar Cache</div>
             </div>
-            <div className="p-3 rounded-xl bg-[#151520] border border-white/8 text-center">
+            <div className="p-3 rounded-xl bg-surface-3 border border-white/8 text-center">
               <div className={`text-lg font-bold tabular-nums ${diagData.criticalCount > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{diagData.criticalCount}</div>
-              <div className="text-[10px] text-white/40">Kritik Sorun</div>
+              <div className="text-[10px] text-text-tertiary">Kritik Sorun</div>
             </div>
-            <div className="p-3 rounded-xl bg-[#151520] border border-white/8 text-center">
+            <div className="p-3 rounded-xl bg-surface-3 border border-white/8 text-center">
               <div className={`text-lg font-bold tabular-nums ${diagData.warningCount > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>{diagData.warningCount}</div>
-              <div className="text-[10px] text-white/40">Uyari</div>
+              <div className="text-[10px] text-text-tertiary">Uyari</div>
             </div>
           </div>
         </>
       ) : (
-        <div className="text-center py-10 text-white/40 text-sm">Diagnostics verileri yuklenemedi.</div>
+        <div className="text-center py-10 text-text-tertiary text-sm">Diagnostics verileri yuklenemedi.</div>
       )}
     </div>
   )
