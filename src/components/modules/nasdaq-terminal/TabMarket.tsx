@@ -1189,136 +1189,165 @@ function HermesPulseGauge({ pulse }: {
     { label: 'Wall Street', value: pulse.components.wsScore, icon: '◇' },
   ]
 
+  // ─── Premium tone palette (matches pulse.color tone) ──────────
+  const pulseTone =
+    pulse.composite >= 60 ? 'success' :
+    pulse.composite >= 40 ? 'gold'    : 'danger'
+  const ringShadow = {
+    success: 'shadow-[0_0_0_1px_rgba(63,202,180,0.30),0_0_50px_rgba(63,202,180,0.12)]',
+    gold:    'shadow-[0_0_0_1px_rgba(212,184,106,0.30),0_0_50px_rgba(212,184,106,0.12)]',
+    danger:  'shadow-[0_0_0_1px_rgba(240,72,72,0.30),0_0_50px_rgba(240,72,72,0.12)]',
+  }[pulseTone]
+  const accentSeam = {
+    success: 'from-success-500 via-success-300 to-success-500',
+    gold:    'from-gold-500 via-gold-300 to-gold-500',
+    danger:  'from-danger-500 via-danger-300 to-danger-500',
+  }[pulseTone]
+
   return (
-    <div className={`bg-surface-2/70 backdrop-blur-xl rounded-2xl border border-stroke shadow-glass
-      overflow-hidden transition-all duration-500 ease-snap ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-      <div className="h-px bg-gradient-to-r from-transparent via-gold-400/30 to-transparent" />
-        <div className="relative p-3 sm:p-4 lg:p-6">
-        {/* Background pulse effect */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full opacity-[0.03]"
-            style={{ background: `radial-gradient(circle, ${pulse.color} 0%, transparent 70%)`, animation: 'heartbeat 3s ease-in-out infinite' }} />
+    <div className={`relative rounded-2xl bg-surface-2/80 backdrop-blur-xl overflow-hidden transition-all duration-500 ease-snap ${ringShadow} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
+      {/* Top accent seam */}
+      <div className={`h-px bg-gradient-to-r ${accentSeam}`} />
+
+      <div className="p-4 sm:p-5 lg:p-6">
+        {/* ── Title row ── */}
+        <div className="flex items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-2.5">
+            <div className="relative w-8 h-8 rounded-lg bg-surface-3 border border-stroke flex items-center justify-center">
+              <Radio size={14} style={{ color: pulse.color }} />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full live-dot" style={{ backgroundColor: pulse.color }} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-text-secondary">Sistem Nabzı</h3>
+              <p className="text-2xs text-text-quaternary mt-0.5">5 modül · Tüm modüllerin bileşik skoru</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="hidden sm:inline-flex items-center h-5 px-1.5 rounded text-2xs font-bold tracking-wide bg-success-400/12 text-success-300 border border-success-400/30">
+              ● 5 AKTIF
+            </span>
+            <span className="hidden md:inline-flex items-center h-5 px-1.5 rounded text-2xs font-bold tracking-wide bg-gold-400/12 text-gold-300 border border-stroke-gold-strong">
+              CANLI
+            </span>
+          </div>
         </div>
 
-        <div className="relative z-10 flex flex-col lg:flex-row items-center gap-6">
-          {/* Animated Ring Gauge */}
-          <div className="relative w-52 h-52 shrink-0">
-            <svg viewBox="0 0 200 200" className="w-full h-full" style={{ filter: 'drop-shadow(0 0 20px rgba(0,0,0,0.5))' }}>
+        {/* ── Hero: gauge + score grid ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6 lg:gap-8 items-center">
+          {/* ─── Premium animated radial gauge ─── */}
+          <div className="relative w-48 h-48 sm:w-56 sm:h-56 shrink-0 mx-auto lg:mx-0">
+            <svg viewBox="0 0 200 200" className="w-full h-full">
               <defs>
-                <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient id="pulseRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor={pulse.color} stopOpacity="1" />
-                  <stop offset="50%" stopColor={pulse.color} stopOpacity="0.7" />
-                  <stop offset="100%" stopColor={pulse.color} stopOpacity="0.3" />
+                  <stop offset="100%" stopColor={pulse.color} stopOpacity="0.4" />
                 </linearGradient>
-                <linearGradient id="ringBg" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.04" />
-                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0.02" />
-                </linearGradient>
-                <filter id="pulseGlow">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
-                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                <filter id="ringSoftGlow">
+                  <feGaussianBlur stdDeviation="2.5" />
                 </filter>
               </defs>
 
-              {/* Outer decorative ring */}
-              <circle cx="100" cy="100" r="96" fill="none" stroke="url(#ringBg)" strokeWidth="1" />
+              {/* Outer hairline ring */}
+              <circle cx="100" cy="100" r="96" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
 
-              {/* Background arc track */}
-              <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="8"
-                strokeLinecap="round" strokeDasharray={`${circumference * 0.75} ${circumference * 0.25}`}
+              {/* Track */}
+              <circle cx="100" cy="100" r="86" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="10"
+                strokeLinecap="round"
+                strokeDasharray={`${circumference * 0.75} ${circumference * 0.25}`}
                 transform="rotate(-225 100 100)" />
 
-              {/* Progress arc */}
-              <circle cx="100" cy="100" r="90" fill="none" stroke="url(#pulseGrad)" strokeWidth="8"
-                strokeLinecap="round" filter="url(#pulseGlow)"
-                strokeDasharray={`${strokeProgress} ${circumference - strokeProgress}`}
+              {/* Progress arc with glow */}
+              <circle cx="100" cy="100" r="86" fill="none" stroke="url(#pulseRingGrad)" strokeWidth="10"
+                strokeLinecap="round" filter="url(#ringSoftGlow)"
+                strokeDasharray={`${(animatedScore / 100) * (circumference * 0.75)} ${circumference}`}
                 transform="rotate(-225 100 100)"
-                style={{ transition: 'stroke-dasharray 1.5s cubic-bezier(0.4, 0, 0.2, 1)' }} />
-
-              {/* Inner ring 1 */}
-              <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="4"
-                strokeDasharray={`${circumference * 0.68 * 0.75} ${circumference * 0.68 * 0.25}`}
-                transform="rotate(-225 100 100)" style={{ animation: 'ring-spin 20s linear infinite reverse' }} />
-
-              {/* Inner ring 2 */}
-              <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="2"
-                strokeDasharray="4 8" style={{ animation: 'ring-spin 15s linear infinite' }} />
+                style={{ transition: 'stroke-dasharray 1.4s cubic-bezier(0.32, 0.72, 0, 1)' }} />
 
               {/* Tick marks */}
               {[0, 25, 50, 75, 100].map(tick => {
                 const angle = ((tick / 100) * 270 - 135) * (Math.PI / 180)
-                const x1 = 100 + 94 * Math.cos(angle)
-                const y1 = 100 + 94 * Math.sin(angle)
-                const x2 = 100 + 88 * Math.cos(angle)
-                const y2 = 100 + 88 * Math.sin(angle)
-                return <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" />
+                const x1 = 100 + 100 * Math.cos(angle)
+                const y1 = 100 + 100 * Math.sin(angle)
+                const x2 = 100 + 92 * Math.cos(angle)
+                const y2 = 100 + 92 * Math.sin(angle)
+                return <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
               })}
 
-              {/* Score needle dot */}
+              {/* Needle endpoint */}
               {(() => {
                 const angle = scoreAngle * (Math.PI / 180)
-                const x = 100 + 90 * Math.cos(angle)
-                const y = 100 + 90 * Math.sin(angle)
-                return <circle cx={x} cy={y} r="4" fill={pulse.color} style={{ filter: `drop-shadow(0 0 6px ${pulse.color})`, transition: 'cx 1.5s, cy 1.5s' }} />
+                const x = 100 + 86 * Math.cos(angle)
+                const y = 100 + 86 * Math.sin(angle)
+                return (
+                  <>
+                    <circle cx={x} cy={y} r="6" fill={pulse.color}
+                      style={{ filter: `drop-shadow(0 0 12px ${pulse.color})`, transition: 'cx 1.4s, cy 1.4s' }} />
+                    <circle cx={x} cy={y} r="2.5" fill="#08090B"
+                      style={{ transition: 'cx 1.4s, cy 1.4s' }} />
+                  </>
+                )
               })()}
             </svg>
 
-            {/* Center content */}
+            {/* Center hero number */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-[10px] text-text-quaternary uppercase tracking-widest mb-1">HERMES AI</span>
-              <span className="text-2xl sm:text-4xl font-black tabular-nums" style={{ color: pulse.color, textShadow: `0 0 20px ${pulse.color}40` }}>
+              <span className="text-2xs font-semibold uppercase tracking-widest text-text-quaternary mb-1">HERMES AI</span>
+              <span
+                className="font-mono font-bold tabular-nums leading-none"
+                style={{
+                  fontSize: '64px',
+                  color: pulse.color,
+                  textShadow: `0 0 28px ${pulse.color}50, 0 0 8px ${pulse.color}30`,
+                }}
+              >
                 {animatedScore}
               </span>
-              <span className="text-[11px] font-bold mt-0.5 px-2.5 py-0.5 rounded-full"
-                style={{ color: pulse.color, backgroundColor: `${pulse.color}15`, border: `1px solid ${pulse.color}30` }}>
+              <span
+                className="mt-2 inline-flex items-center h-5 px-2 rounded-md text-2xs font-bold tracking-widest uppercase border"
+                style={{
+                  color: pulse.color,
+                  backgroundColor: `${pulse.color}15`,
+                  borderColor: `${pulse.color}55`,
+                }}
+              >
                 {pulse.label}
               </span>
             </div>
           </div>
 
-          {/* Right side: Components breakdown */}
-          <div className="flex-1 w-full">
-            <div className="flex items-center gap-2 mb-4">
-              <Radio size={16} style={{ color: pulse.color }} className="animate-pulse" />
-              <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Sistem Nabzi</h3>
-              <span className="text-[10px] text-text-quaternary">Tum modullerin bilesik skoru</span>
-            </div>
-
-            <div className="space-y-2.5">
-              {components.map((comp, i) => {
-                const barColor = comp.value >= 60 ? '#3FCAB4' : comp.value >= 45 ? '#94a3b8' : '#fb923c'
-                return (
-                  <div key={i} className="flex items-center gap-3 group">
-                    <span className="text-[10px] w-3 text-center" style={{ color: `${barColor}80` }}>{comp.icon}</span>
-                    <span className="text-[11px] text-text-tertiary w-32 truncate">{comp.label}</span>
-                    <div className="flex-1 h-2 bg-surface-3 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-1000 ease-out"
-                        style={{
-                          width: `${comp.value}%`,
-                          background: `linear-gradient(90deg, ${barColor}60, ${barColor})`,
-                          transitionDelay: `${i * 150}ms`
-                        }} />
-                    </div>
-                    <span className="text-[12px] tabular-nums font-semibold w-8 text-right" style={{ color: barColor }}>
-                      {comp.value}
-                    </span>
+          {/* ─── Components: premium stacked rows ─── */}
+          <div className="flex-1 w-full space-y-2">
+            {components.map((comp, i) => {
+              const barTone = comp.value >= 60 ? 'success' : comp.value >= 45 ? 'gold' : 'danger'
+              const barColor = barTone === 'success' ? '#3FCAB4' : barTone === 'gold' ? '#D4B86A' : '#F04848'
+              return (
+                <div
+                  key={i}
+                  className="group flex items-center gap-3 px-3 py-2 rounded-lg border border-transparent hover:bg-surface-3/50 hover:border-stroke-subtle transition-all duration-150 ease-snap"
+                >
+                  <span className="text-2xs font-semibold uppercase tracking-wide text-text-tertiary w-32 sm:w-40 truncate">
+                    {comp.label}
+                  </span>
+                  <div className="flex-1 h-1.5 rounded-full bg-surface-4/60 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000 ease-snap"
+                      style={{
+                        width: `${comp.value}%`,
+                        background: `linear-gradient(90deg, ${barColor}80, ${barColor})`,
+                        boxShadow: `0 0 10px ${barColor}40`,
+                        transitionDelay: `${i * 120}ms`,
+                      }}
+                    />
                   </div>
-                )
-              })}
-            </div>
-
-            {/* Mini summary tags */}
-            <div className="flex items-center gap-2 mt-4 flex-wrap">
-              {[
-                { label: '5 Modul Aktif', color: 'text-success-400/60 bg-success-400/8' },
-                { label: 'Tum hisseler', color: 'text-info-400/60 bg-info-400/8' },
-                { label: 'Canli Veri', color: 'text-info-400/60 bg-info-400/8' },
-              ].map((tag, i) => (
-                <span key={i} className={`text-[9px] font-medium px-2 py-0.5 rounded-full border border-stroke-subtle ${tag.color}`}>
-                  {tag.label}
-                </span>
-              ))}
-            </div>
+                  <span
+                    className="text-sm font-mono font-semibold tabular-nums w-9 text-right"
+                    style={{ color: barColor }}
+                  >
+                    {comp.value}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
