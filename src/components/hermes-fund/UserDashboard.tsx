@@ -24,10 +24,12 @@ interface UserDashboardProps {
   isClaimHermesLoading?: boolean;
   isWithdrawUsdtLoading?: boolean;
   isUnstakeHermesLoading?: boolean;
+  onFullExit?: () => Promise<void>;
+  isFullExitLoading?: boolean;
 }
 
-export default function UserDashboard({ 
-  userInfo, 
+export default function UserDashboard({
+  userInfo,
   onClaimUsdt,
   onClaimHermes,
   onWithdrawUsdt,
@@ -35,7 +37,9 @@ export default function UserDashboard({
   isClaimUsdtLoading,
   isClaimHermesLoading,
   isWithdrawUsdtLoading,
-  isUnstakeHermesLoading
+  isUnstakeHermesLoading,
+  onFullExit,
+  isFullExitLoading
 }: UserDashboardProps) {
   const { language } = useLanguage();
   
@@ -205,6 +209,55 @@ export default function UserDashboard({
           </div>
         </div>
       </div>
+
+      {/* ═══ TAM CIKIS — tek tusla odul (%50) + ana para ═══ */}
+      {onFullExit && (() => {
+        const canExit = userInfo.canClaimUsdt || userInfo.canClaimHermes || userInfo.canWithdrawUsdt || userInfo.canUnstakeHermes
+        if (!canExit) return null
+        return (
+          <div
+            className="rounded-2xl p-4 sm:p-5 border"
+            style={{
+              background: `linear-gradient(135deg, ${FUND_THEME.accent}14, transparent 70%)`,
+              borderColor: `${FUND_THEME.accent}40`,
+            }}
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🚪</span>
+                  <h3 className="text-base font-bold" style={{ color: FUND_THEME.text }}>
+                    {language === 'tr' ? 'Tam Çıkış' : 'Full Exit'}
+                  </h3>
+                </div>
+                <p className="text-xs mt-1 leading-relaxed" style={{ color: FUND_THEME.textMuted }}>
+                  {language === 'tr'
+                    ? 'Tek tuşla: önce ödüller (%50), sonra ana para. Doğru sırada talep edilir — kazanç kaybı olmaz. Her adım cüzdan onayı ister.'
+                    : 'One click: rewards first (50%), then principal. Correct order — no reward loss. Each step needs a wallet signature.'}
+                </p>
+              </div>
+              <button
+                onClick={onFullExit}
+                disabled={isFullExitLoading}
+                className="w-full sm:w-auto shrink-0 px-6 py-3 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.03] flex items-center justify-center gap-2"
+                style={{ backgroundColor: FUND_THEME.accent, color: '#08090B' }}
+              >
+                {isFullExitLoading ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    {language === 'tr' ? 'İşleniyor...' : 'Processing...'}
+                  </>
+                ) : (
+                  language === 'tr' ? 'Tümünü Talep Et' : 'Request All'
+                )}
+              </button>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Claim Sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

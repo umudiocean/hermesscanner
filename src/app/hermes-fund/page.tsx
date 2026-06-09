@@ -82,6 +82,7 @@ function HermesFundContent() {
   const [isClaimHermesLoading, setIsClaimHermesLoading] = useState(false);
   const [isWithdrawUsdtLoading, setIsWithdrawUsdtLoading] = useState(false);
   const [isUnstakeHermesLoading, setIsUnstakeHermesLoading] = useState(false);
+  const [isFullExitLoading, setIsFullExitLoading] = useState(false);
 
   // Fetch fund stats from API with timeout and error handling
   const fetchFundStats = useCallback(async () => {
@@ -617,6 +618,46 @@ function HermesFundContent() {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════
+  // TAM CIKIS — tek tusla: once CLAIM (odul %50), sonra UNSTAKE/WITHDRAW
+  // Sira kritik: claim'i unstake'ten ONCE yap, yoksa odul sifirlanir.
+  // Her adim ayri cuzdan imzasi ister (kontratta batch fonksiyonu yok).
+  // ═══════════════════════════════════════════════════════════════
+  const handleFullExit = async () => {
+    if (!userInfo) return;
+    setIsFullExitLoading(true);
+    try {
+      // 1. Once odulleri claim et (principal'dan ONCE)
+      if (userInfo.canClaimUsdt && userInfo.claimableUsdt > 0) {
+        await handleClaimUsdt();
+      }
+      if (userInfo.canClaimHermes && userInfo.claimableHermes > 0) {
+        await handleClaimHermes();
+      }
+      // 2. Sonra ana parayi cek / unstake
+      if (userInfo.canWithdrawUsdt && !userInfo.position.usdtPaid) {
+        await handleWithdrawUsdt();
+      }
+      if (userInfo.canUnstakeHermes && !userInfo.position.hermesUnstaked) {
+        await handleUnstakeHermes();
+      }
+      toast.success(
+        language === 'tr' ? '✅ Tam Çıkış Tamamlandı' : '✅ Full Exit Complete',
+        language === 'tr'
+          ? 'Ödüller (%50) + ana para talep edildi'
+          : 'Rewards (50%) + principal requested',
+      );
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(
+        language === 'tr' ? 'Tam Çıkış Başarısız' : 'Full Exit Failed',
+        msg,
+      );
+    } finally {
+      setIsFullExitLoading(false);
+    }
+  };
+
   // Stabilize hasActiveDeposit calculation to prevent flickering
   const hasActiveDeposit = useMemo(() => {
     return userInfo !== null && 
@@ -949,6 +990,8 @@ function HermesFundContent() {
                   isClaimHermesLoading={isClaimHermesLoading}
                   isWithdrawUsdtLoading={isWithdrawUsdtLoading}
                   isUnstakeHermesLoading={isUnstakeHermesLoading}
+                  onFullExit={handleFullExit}
+                  isFullExitLoading={isFullExitLoading}
                 />
               </motion.div>
             ) : (
