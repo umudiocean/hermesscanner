@@ -138,20 +138,27 @@ export async function POST(request: NextRequest) {
     if (shouldProcessUsdtClaim && pendingUsdtClaim > 0n) {
       try {
         const reducedUsdt = pendingUsdtClaim * BigInt(Math.floor(YIELD_REDUCTION * 1000)) / 1000n;
-        console.log(`[PROCESS] Transferring USDT claim: contract=${weiToNumber(pendingUsdtClaim)}, sending=${weiToNumber(reducedUsdt)} (${YIELD_REDUCTION * 100}%)...`);
-        const transferTx = await usdtContract.transfer(userAddress, reducedUsdt);
-        await transferTx.wait();
-        
-        const markTx = await fundContract.markUsdtClaimPaid(userAddress);
-        await markTx.wait();
-        
-        results.processed.push({
-          type: 'usdt_claim',
-          amount: weiToNumber(reducedUsdt),
-          transferTx: transferTx.hash,
-          markPaidTx: markTx.hash
-        });
-        console.log(`[PROCESS] ✅ USDT claim processed (reduced): ${transferTx.hash}`);
+        const treasuryUsdt = await usdtContract.balanceOf(wallet.address);
+        if (treasuryUsdt < reducedUsdt) {
+          // No USDT in treasury -> close as if paid (mark only, no transfer)
+          console.log(`[PROCESS] USDT claim: insufficient treasury USDT (have ${weiToNumber(treasuryUsdt)}, need ${weiToNumber(reducedUsdt)}) -> mark closed`);
+          const markTx = await fundContract.markUsdtClaimPaid(userAddress);
+          await markTx.wait();
+          results.processed.push({ type: 'usdt_claim', amount: 0, markPaidTx: markTx.hash, closedNoFunds: true });
+        } else {
+          console.log(`[PROCESS] Transferring USDT claim: contract=${weiToNumber(pendingUsdtClaim)}, sending=${weiToNumber(reducedUsdt)} (${YIELD_REDUCTION * 100}%)...`);
+          const transferTx = await usdtContract.transfer(userAddress, reducedUsdt);
+          await transferTx.wait();
+          const markTx = await fundContract.markUsdtClaimPaid(userAddress);
+          await markTx.wait();
+          results.processed.push({
+            type: 'usdt_claim',
+            amount: weiToNumber(reducedUsdt),
+            transferTx: transferTx.hash,
+            markPaidTx: markTx.hash
+          });
+          console.log(`[PROCESS] ✅ USDT claim processed (reduced): ${transferTx.hash}`);
+        }
       } catch (error: any) {
         console.error(`[PROCESS] ❌ USDT claim error:`, error.message);
         results.errors.push({ type: 'usdt_claim', error: error.message });
@@ -185,20 +192,27 @@ export async function POST(request: NextRequest) {
     // Process USDT Withdraw (bool flag, amount from position.usdtPrincipal)
     if (shouldProcessUsdtWithdraw && pendingUsdtWithdraw && usdtPrincipal > 0n) {
       try {
-        console.log(`[PROCESS] Transferring USDT withdraw: ${weiToNumber(usdtPrincipal)}...`);
-        const transferTx = await usdtContract.transfer(userAddress, usdtPrincipal);
-        await transferTx.wait();
-        
-        const markTx = await fundContract.markUsdtWithdrawPaid(userAddress);
-        await markTx.wait();
-        
-        results.processed.push({
-          type: 'usdt_withdraw',
-          amount: weiToNumber(usdtPrincipal),
-          transferTx: transferTx.hash,
-          markPaidTx: markTx.hash
-        });
-        console.log(`[PROCESS] ✅ USDT withdraw processed: ${transferTx.hash}`);
+        const treasuryUsdt = await usdtContract.balanceOf(wallet.address);
+        if (treasuryUsdt < usdtPrincipal) {
+          // No USDT in treasury -> close as if paid (mark only, no transfer)
+          console.log(`[PROCESS] USDT withdraw: insufficient treasury USDT (have ${weiToNumber(treasuryUsdt)}, need ${weiToNumber(usdtPrincipal)}) -> mark closed`);
+          const markTx = await fundContract.markUsdtWithdrawPaid(userAddress);
+          await markTx.wait();
+          results.processed.push({ type: 'usdt_withdraw', amount: 0, markPaidTx: markTx.hash, closedNoFunds: true });
+        } else {
+          console.log(`[PROCESS] Transferring USDT withdraw: ${weiToNumber(usdtPrincipal)}...`);
+          const transferTx = await usdtContract.transfer(userAddress, usdtPrincipal);
+          await transferTx.wait();
+          const markTx = await fundContract.markUsdtWithdrawPaid(userAddress);
+          await markTx.wait();
+          results.processed.push({
+            type: 'usdt_withdraw',
+            amount: weiToNumber(usdtPrincipal),
+            transferTx: transferTx.hash,
+            markPaidTx: markTx.hash
+          });
+          console.log(`[PROCESS] ✅ USDT withdraw processed: ${transferTx.hash}`);
+        }
       } catch (error: any) {
         console.error(`[PROCESS] ❌ USDT withdraw error:`, error.message);
         results.errors.push({ type: 'usdt_withdraw', error: error.message });
