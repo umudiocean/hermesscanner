@@ -16,7 +16,14 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next()
 
   // ─── Admin Auth Protection ─────────────────────────────────────
-  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+  // hermes-fund admin uses its OWN client-side Bearer auth (verifyAdminAuth)
+  // — skip the cookie-redirect so it can render its own login form.
+  const isFundAdmin =
+    pathname.startsWith('/admin/hermes-fund') ||
+    pathname.startsWith('/api/admin/hermes-fund') ||
+    pathname.startsWith('/api/admin/wallet-nicknames')
+
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login' && !isFundAdmin) {
     const token = request.cookies.get('hermes-admin-token')?.value
     if (!token || !token.startsWith('hermes_')) {
       const loginUrl = new URL('/admin/login', request.url)
@@ -27,7 +34,8 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/api/admin/') &&
       !pathname.startsWith('/api/admin/login') &&
       !pathname.startsWith('/api/admin/logout') &&
-      !pathname.startsWith('/api/admin/track')) {
+      !pathname.startsWith('/api/admin/track') &&
+      !isFundAdmin) {
     const token = request.cookies.get('hermes-admin-token')?.value
     if (!token || !token.startsWith('hermes_')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
