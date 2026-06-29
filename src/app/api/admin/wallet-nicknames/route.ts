@@ -20,11 +20,17 @@ export async function GET(request: NextRequest) {
     }
 
     let nicknames: Record<string, string> = {}
-    
+
+    // Redis best-effort: auth already passed, login must succeed even if
+    // Redis is down. Nickname persistence falls back to client localStorage.
     if (redis) {
-      const data = await redis.get(NICKNAMES_KEY)
-      if (data && typeof data === 'object') {
-        nicknames = data as Record<string, string>
+      try {
+        const data = await redis.get(NICKNAMES_KEY)
+        if (data && typeof data === 'object') {
+          nicknames = data as Record<string, string>
+        }
+      } catch (redisErr) {
+        console.error('Wallet nicknames GET redis error (non-fatal):', redisErr)
       }
     }
 
@@ -35,11 +41,11 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Wallet nicknames GET error:', error)
+    // Auth passed but something else failed — still return success so login works
     return NextResponse.json({
-      success: false,
-      error: error.message || 'Unknown error',
+      success: true,
       nicknames: {}
-    }, { status: 500 })
+    })
   }
 }
 
@@ -63,22 +69,29 @@ export async function POST(request: NextRequest) {
 
     // Get existing nicknames
     let nicknames: Record<string, string> = {}
-    
+
+    // Redis best-effort: client localStorage is the primary fallback.
     if (redis) {
-      const data = await redis.get(NICKNAMES_KEY)
-      if (data && typeof data === 'object') {
-        nicknames = data as Record<string, string>
-      }
+      try {
+        const data = await redis.get(NICKNAMES_KEY)
+        if (data && typeof data === 'object') {
+          nicknames = data as Record<string, string>
+        }
 
-      // Update nickname (empty string removes it)
-      if (nickname && nickname.trim()) {
-        nicknames[normalizedAddress] = nickname.trim()
-      } else {
-        delete nicknames[normalizedAddress]
-      }
+        // Update nickname (empty string removes it)
+        if (nickname && nickname.trim()) {
+          nicknames[normalizedAddress] = nickname.trim()
+        } else {
+          delete nicknames[normalizedAddress]
+        }
 
-      // Save back to Redis
-      await redis.set(NICKNAMES_KEY, nicknames)
+        await redis.set(NICKNAMES_KEY, nicknames)
+      } catch (redisErr) {
+        console.error('Wallet nicknames POST redis error (non-fatal):', redisErr)
+        // Reflect the change in the returned object even if Redis write failed
+        if (nickname && nickname.trim()) nicknames[normalizedAddress] = nickname.trim()
+        else delete nicknames[normalizedAddress]
+      }
     }
 
     return NextResponse.json({
