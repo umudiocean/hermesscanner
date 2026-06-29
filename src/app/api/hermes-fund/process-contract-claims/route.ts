@@ -189,53 +189,55 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Process USDT Withdraw (bool flag, amount from position.usdtPrincipal)
+    // Process USDT Withdraw — principal paid at 50% (matches user dashboard display)
     if (shouldProcessUsdtWithdraw && pendingUsdtWithdraw && usdtPrincipal > 0n) {
       try {
+        const halfUsdtPrincipal = usdtPrincipal / 2n;
         const treasuryUsdt = await usdtContract.balanceOf(wallet.address);
-        if (treasuryUsdt < usdtPrincipal) {
+        if (treasuryUsdt < halfUsdtPrincipal) {
           // No USDT in treasury -> close as if paid (mark only, no transfer)
-          console.log(`[PROCESS] USDT withdraw: insufficient treasury USDT (have ${weiToNumber(treasuryUsdt)}, need ${weiToNumber(usdtPrincipal)}) -> mark closed`);
+          console.log(`[PROCESS] USDT withdraw: insufficient treasury USDT (have ${weiToNumber(treasuryUsdt)}, need ${weiToNumber(halfUsdtPrincipal)}) -> mark closed`);
           const markTx = await fundContract.markUsdtWithdrawPaid(userAddress);
           await markTx.wait();
           results.processed.push({ type: 'usdt_withdraw', amount: 0, markPaidTx: markTx.hash, closedNoFunds: true });
         } else {
-          console.log(`[PROCESS] Transferring USDT withdraw: ${weiToNumber(usdtPrincipal)}...`);
-          const transferTx = await usdtContract.transfer(userAddress, usdtPrincipal);
+          console.log(`[PROCESS] Transferring USDT withdraw (50%): ${weiToNumber(halfUsdtPrincipal)}...`);
+          const transferTx = await usdtContract.transfer(userAddress, halfUsdtPrincipal);
           await transferTx.wait();
           const markTx = await fundContract.markUsdtWithdrawPaid(userAddress);
           await markTx.wait();
           results.processed.push({
             type: 'usdt_withdraw',
-            amount: weiToNumber(usdtPrincipal),
+            amount: weiToNumber(halfUsdtPrincipal),
             transferTx: transferTx.hash,
             markPaidTx: markTx.hash
           });
-          console.log(`[PROCESS] ✅ USDT withdraw processed: ${transferTx.hash}`);
+          console.log(`[PROCESS] ✅ USDT withdraw processed (50%): ${transferTx.hash}`);
         }
       } catch (error: any) {
         console.error(`[PROCESS] ❌ USDT withdraw error:`, error.message);
         results.errors.push({ type: 'usdt_withdraw', error: error.message });
       }
     }
-    
-    // Process HERMES Unstake (bool flag, amount from position.hermesStaked)
+
+    // Process HERMES Unstake — principal paid at 50% (matches user dashboard display)
     if (shouldProcessHermesUnstake && pendingHermesUnstake && hermesStaked > 0n) {
       try {
-        console.log(`[PROCESS] Transferring HERMES unstake: ${weiToNumber(hermesStaked)}...`);
-        const transferTx = await hermesContract.transfer(userAddress, hermesStaked);
+        const halfHermesStaked = hermesStaked / 2n;
+        console.log(`[PROCESS] Transferring HERMES unstake (50%): ${weiToNumber(halfHermesStaked)}...`);
+        const transferTx = await hermesContract.transfer(userAddress, halfHermesStaked);
         await transferTx.wait();
-        
+
         const markTx = await fundContract.markHermesUnstakePaid(userAddress);
         await markTx.wait();
-        
+
         results.processed.push({
           type: 'hermes_unstake',
-          amount: weiToNumber(hermesStaked),
+          amount: weiToNumber(halfHermesStaked),
           transferTx: transferTx.hash,
           markPaidTx: markTx.hash
         });
-        console.log(`[PROCESS] ✅ HERMES unstake processed: ${transferTx.hash}`);
+        console.log(`[PROCESS] ✅ HERMES unstake processed (50%): ${transferTx.hash}`);
       } catch (error: any) {
         console.error(`[PROCESS] ❌ HERMES unstake error:`, error.message);
         results.errors.push({ type: 'hermes_unstake', error: error.message });
