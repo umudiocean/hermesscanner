@@ -516,14 +516,15 @@ export function buildUserInfo(
   const daysRemaining = Math.max(0, plan.duration - daysElapsed);
   const progressPercent = Math.min(100, (msElapsed / msDuration) * 100);
   
-  // Earned calculations (linear vesting) — with yield reduction
+  // Earned calculations (linear vesting)
+  // ONLY USDT earnings are reduced 50%. HERMES earnings are FULL.
   const YIELD_REDUCTION = 0.5;
   const earnedUsdt = (position.usdtPrincipal * plan.usdtYield / 100) * Math.min(1, msElapsed / msDuration) * YIELD_REDUCTION;
-  const earnedHermes = (position.hermesStaked * plan.hermesYield / 100) * Math.min(1, msElapsed / msDuration) * YIELD_REDUCTION;
-  
-  // Apply reduction to contract claimable values
+  const earnedHermes = (position.hermesStaked * plan.hermesYield / 100) * Math.min(1, msElapsed / msDuration);
+
+  // USDT claimable reduced 50%, HERMES claimable FULL
   const adjustedClaimableUsdt = claimableUsdt * YIELD_REDUCTION;
-  const adjustedClaimableHermes = claimableHermes * YIELD_REDUCTION;
+  const adjustedClaimableHermes = claimableHermes;
   
   // Cooldown checks
   const cooldownMs = FUND_CONSTANTS.CLAIM_COOLDOWN_HOURS * 60 * 60 * 1000;
@@ -583,9 +584,9 @@ export function buildFundStats(data: {
   return {
     totalStakedHermes: weiToNumber(data.totalStakedHermes),
     totalStakedUsdt,
-    totalGeneratedHermes: weiToNumber(data.totalGeneratedHermes) * YIELD_REDUCTION,
+    totalGeneratedHermes: weiToNumber(data.totalGeneratedHermes),
     totalGeneratedUsdt: weiToNumber(data.totalGeneratedUsdt) * YIELD_REDUCTION,
-    totalClaimedHermes: weiToNumber(data.totalClaimedHermes) * YIELD_REDUCTION,
+    totalClaimedHermes: weiToNumber(data.totalClaimedHermes),
     totalClaimedUsdt: weiToNumber(data.totalClaimedUsdt) * YIELD_REDUCTION,
     activeUserCount,
     minDeposit: weiToNumber(data.minDeposit),

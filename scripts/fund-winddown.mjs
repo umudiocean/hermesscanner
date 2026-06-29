@@ -161,12 +161,12 @@ async function main() {
     await sleep(120)  // gentle throttle between users
 
     const ops = []
-    // Principal — 50% (matches user dashboard display + payout policy)
-    if (pUW && pos.usdtPrincipal > 0n) ops.push({ key: 'usdt_withdraw', token: 'USDT', amount: pos.usdtPrincipal / 2n, mark: 'markUsdtWithdrawPaid' })
-    if (pHU && pos.hermesStaked > 0n) ops.push({ key: 'hermes_unstake', token: 'HERMES', amount: pos.hermesStaked / 2n, mark: 'markHermesUnstakePaid' })
-    // Rewards — 50%
+    // Principal — FULL (USDT + HERMES)
+    if (pUW && pos.usdtPrincipal > 0n) ops.push({ key: 'usdt_withdraw', token: 'USDT', amount: pos.usdtPrincipal, mark: 'markUsdtWithdrawPaid' })
+    if (pHU && pos.hermesStaked > 0n) ops.push({ key: 'hermes_unstake', token: 'HERMES', amount: pos.hermesStaked, mark: 'markHermesUnstakePaid' })
+    // Rewards — ONLY USDT claim is reduced 50%. HERMES claim is FULL.
     if (pUC > 0n) ops.push({ key: 'usdt_claim', token: 'USDT', amount: (pUC * YIELD_REDUCTION_NUM) / YIELD_REDUCTION_DEN, mark: 'markUsdtClaimPaid' })
-    if (pHC > 0n) ops.push({ key: 'hermes_claim', token: 'HERMES', amount: (pHC * YIELD_REDUCTION_NUM) / YIELD_REDUCTION_DEN, mark: 'markHermesClaimPaid' })
+    if (pHC > 0n) ops.push({ key: 'hermes_claim', token: 'HERMES', amount: pHC, mark: 'markHermesClaimPaid' })
 
     if (ops.length === 0) { log('    no pending ops'); continue }
 

@@ -147,7 +147,7 @@ export default function UserDashboard({
                   {language === 'tr' ? 'USDT Yatırım' : 'USDT Deposit'}
                 </span>
                 <span className="font-mono font-bold" style={{ color: FUND_THEME.text }}>
-                  {formatUSDT(userInfo.position.usdtPrincipal * 0.5)}
+                  {formatUSDT(userInfo.position.usdtPrincipal)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -155,7 +155,7 @@ export default function UserDashboard({
                   {language === 'tr' ? 'HERMES Stake' : 'HERMES Staked'}
                 </span>
                 <span className="font-mono font-bold" style={{ color: FUND_THEME.accent }}>
-                  {formatHermes(userInfo.position.hermesStaked * 0.5)}
+                  {formatHermes(userInfo.position.hermesStaked)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -438,7 +438,7 @@ export default function UserDashboard({
           </div>
 
           <div className="text-2xl font-bold font-mono mb-3" style={{ color: FUND_THEME.primary }}>
-            {formatUSDT(userInfo.position.usdtPrincipal * 0.5)}
+            {formatUSDT(userInfo.position.usdtPrincipal)}
           </div>
 
           {userInfo.position.usdtPaid && (
@@ -517,7 +517,7 @@ export default function UserDashboard({
           </div>
 
           <div className="text-2xl font-bold font-mono mb-3" style={{ color: FUND_THEME.accent }}>
-            {formatHermes(userInfo.position.hermesStaked * 0.5)}
+            {formatHermes(userInfo.position.hermesStaked)}
           </div>
 
           {userInfo.position.hermesUnstaked && (
