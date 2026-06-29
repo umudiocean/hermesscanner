@@ -94,6 +94,20 @@ export default function FundAdminPage() {
   const [editingNickname, setEditingNickname] = useState<string | null>(null);
   const [nicknameInput, setNicknameInput] = useState('');
 
+  // localStorage fallback — server (Redis) production'da kapaliysa nickname
+  // yine de bu tarayicida kalici olur. Server gelirse merge edilir.
+  const NICK_LS_KEY = 'hermes_fund_nicknames';
+  const readLocalNicks = (): Record<string, string> => {
+    try { return JSON.parse(localStorage.getItem(NICK_LS_KEY) || '{}'); } catch { return {}; }
+  };
+  const writeLocalNicks = (n: Record<string, string>) => {
+    try { localStorage.setItem(NICK_LS_KEY, JSON.stringify(n)); } catch { /* quota */ }
+  };
+  // Merge: local taban, server ustune yazar (server bos donerse local kalir)
+  const mergeNicks = (server: Record<string, string> | undefined): Record<string, string> => {
+    return { ...readLocalNicks(), ...(server || {}) };
+  };
+
   // Time
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
@@ -111,7 +125,7 @@ export default function FundAdminPage() {
       fetch('/api/admin/wallet-nicknames', { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.json())
         .then(d => {
-          if (d.success) { setIsAuthenticated(true); if (d.nicknames) setNicknames(d.nicknames); }
+          if (d.success) { setIsAuthenticated(true); setNicknames(mergeNicks(d.nicknames)); }
           else clearAdminToken();
         })
         .catch(() => clearAdminToken())
@@ -127,7 +141,7 @@ export default function FundAdminPage() {
     try {
       const res = await fetch('/api/admin/wallet-nicknames', { headers: { Authorization: `Bearer ${loginPassword}` } });
       const d = await res.json();
-      if (d.success) { setAdminToken(loginPassword); setIsAuthenticated(true); setLoginError(''); if (d.nicknames) setNicknames(d.nicknames); }
+      if (d.success) { setAdminToken(loginPassword); setIsAuthenticated(true); setLoginError(''); setNicknames(mergeNicks(d.nicknames)); }
       else setLoginError('Geçersiz şifre');
     } catch { setLoginError('Bağlantı hatası'); }
   };
@@ -138,21 +152,31 @@ export default function FundAdminPage() {
     try {
       const r = await fetch('/api/admin/wallet-nicknames', { headers: { Authorization: `Bearer ${token}` } });
       const d = await r.json();
-      if (d.success && d.nicknames) setNicknames(d.nicknames);
+      if (d.success) setNicknames(mergeNicks(d.nicknames));
     } catch {}
   }, []);
 
   const saveNickname = useCallback(async (address: string, nickname: string) => {
+    const addr = address.toLowerCase();
+    const trimmed = nickname.trim();
+    // 1) localStorage'a YAZ (aninda kalici — Redis kapali olsa bile)
+    const local = readLocalNicks();
+    if (trimmed) local[addr] = trimmed; else delete local[addr];
+    writeLocalNicks(local);
+    setNicknames(prev => {
+      const next = { ...prev };
+      if (trimmed) next[addr] = trimmed; else delete next[addr];
+      return next;
+    });
+    setEditingNickname(null); setNicknameInput('');
+    // 2) Server'a da gonder (Redis varsa kalici olur, yoksa sessizce gecer)
     const token = getAdminToken(); if (!token) return;
     try {
-      const r = await fetch('/api/admin/wallet-nicknames', {
+      await fetch('/api/admin/wallet-nicknames', {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ address, nickname }),
       });
-      const d = await r.json();
-      if (d.success && d.nicknames) setNicknames(d.nicknames);
     } catch {}
-    setEditingNickname(null); setNicknameInput('');
   }, []);
 
   const getNickname = useCallback((addr: string) => nicknames[addr.toLowerCase()] || null, [nicknames]);
@@ -468,6 +492,13 @@ function PlanDetailView({ plan, formatCountdown, now, getNickname, editingNickna
   const [sortKey, setSortKey] = useState<SortKey>('end');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
+  // Status filter: tumu / aktif / closed
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed'>('all');
+  const isClosed = (u: { statusText?: string; status?: number }) =>
+    (u.statusText || '').toLowerCase() === 'closed' || u.status === 4;
+  const closedCount = useMemo(() => plan.users.filter(isClosed).length, [plan.users]);
+  const activeCount = plan.users.length - closedCount;
+
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir('asc'); }
@@ -476,7 +507,11 @@ function PlanDetailView({ plan, formatCountdown, now, getNickname, editingNickna
   const sortIndicator = (key: SortKey) => sortKey === key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
 
   const sorted = useMemo(() => {
-    const arr = [...plan.users];
+    const arr = plan.users.filter(u => {
+      if (statusFilter === 'all') return true;
+      if (statusFilter === 'closed') return isClosed(u);
+      return !isClosed(u); // active
+    });
     arr.sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
@@ -496,7 +531,7 @@ function PlanDetailView({ plan, formatCountdown, now, getNickname, editingNickna
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return arr;
-  }, [plan.users, sortKey, sortDir, getNickname]);
+  }, [plan.users, sortKey, sortDir, getNickname, statusFilter]);
 
   const thStyle = (key: SortKey, align: string) => ({
     color: sortKey === key ? FUND_THEME.primary : FUND_THEME.textMuted,
@@ -522,8 +557,34 @@ function PlanDetailView({ plan, formatCountdown, now, getNickname, editingNickna
 
     {/* Users Table */}
     <div className="rounded-xl overflow-hidden" style={{ backgroundColor: FUND_THEME.surface, border: `1px solid ${color}30` }}>
-      <div className="p-4" style={{ backgroundColor: FUND_THEME.background }}><h3 className="font-bold" style={{ color: FUND_THEME.text }}>{plan.planName} Kullanıcıları ({plan.userCount})</h3></div>
-      {plan.users.length === 0 ? <p className="text-center py-8" style={{ color: FUND_THEME.textMuted }}>Bu planda henüz kullanıcı yok</p> : (
+      <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3" style={{ backgroundColor: FUND_THEME.background }}>
+        <h3 className="font-bold" style={{ color: FUND_THEME.text }}>{plan.planName} Kullanıcıları ({plan.userCount})</h3>
+        {/* Durum filtresi: Tumu / Aktif / Closed */}
+        <div className="flex items-center gap-1.5">
+          {([
+            { key: 'all' as const, label: `Tümü (${plan.users.length})`, c: FUND_THEME.primary },
+            { key: 'active' as const, label: `Aktif (${activeCount})`, c: FUND_THEME.success },
+            { key: 'closed' as const, label: `Closed (${closedCount})`, c: FUND_THEME.textMuted },
+          ]).map(btn => {
+            const on = statusFilter === btn.key;
+            return (
+              <button
+                key={btn.key}
+                onClick={() => setStatusFilter(btn.key)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  backgroundColor: on ? `${btn.c}20` : 'transparent',
+                  color: on ? btn.c : FUND_THEME.textMuted,
+                  border: `1px solid ${on ? btn.c : FUND_THEME.primary + '20'}`,
+                }}
+              >
+                {btn.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {plan.users.length === 0 ? <p className="text-center py-8" style={{ color: FUND_THEME.textMuted }}>Bu planda henüz kullanıcı yok</p> : sorted.length === 0 ? <p className="text-center py-8" style={{ color: FUND_THEME.textMuted }}>Bu filtreye uygun kullanıcı yok</p> : (
         <div className="overflow-x-auto"><table className="w-full"><thead>
           <tr style={{ borderBottom: `1px solid ${FUND_THEME.primary}20` }}>
             <th className="py-3 px-4 text-sm font-semibold hover:opacity-80 transition-opacity" style={thStyle('nickname','left')} onClick={() => toggleSort('nickname')}>Adres / Nickname{sortIndicator('nickname')}</th>
