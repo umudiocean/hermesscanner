@@ -87,7 +87,7 @@ function HermesFundContent() {
   // Fetch fund stats from API with timeout and error handling
   const fetchFundStats = useCallback(async () => {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s — stats reads all users from contract
     
     try {
       // Avoid any client-side caching; iOS Safari can be aggressive when tab resumes.
