@@ -232,8 +232,8 @@ export default function UserDashboard({
                 </div>
                 <p className="text-xs mt-1 leading-relaxed" style={{ color: FUND_THEME.textMuted }}>
                   {language === 'tr'
-                    ? 'Tek tuşla: önce ödüller (%50), sonra ana para. Doğru sırada talep edilir — kazanç kaybı olmaz. Her adım cüzdan onayı ister.'
-                    : 'One click: rewards first (50%), then principal. Correct order — no reward loss. Each step needs a wallet signature.'}
+                    ? 'Tek tuşla: önce ödüller, sonra ana para. Doğru sırada talep edilir — kazanç kaybı olmaz. Her adım cüzdan onayı ister.'
+                    : 'One click: rewards first, then principal. Correct order — no reward loss. Each step needs a wallet signature.'}
                 </p>
               </div>
               <button
